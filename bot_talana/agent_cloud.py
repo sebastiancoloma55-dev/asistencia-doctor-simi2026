@@ -63,13 +63,17 @@ def main():
         )
         LOG.info("Finaliza: estado=%s descargados=%s cargados=%s errores=%s", status, len(results), uploaded, len(errors))
         if status == "failed":
-            raise RuntimeError("; ".join(map(str, errors)) or "Talana no entregó reportes.")
+            # El estado failed ya quedó registrado arriba; terminar sin cerrar dos veces.
+            LOG.error("No se descargó ningún reporte: %s", "; ".join(map(str, errors)) or "sin detalle")
+            raise SystemExit(1)
+    except SystemExit:
+        raise
     except Exception as exc:
         LOG.exception("La ejecución del bot falló.")
         try:
             cloud.finish_run(run_id, "failed", downloaded=len(results), errors=[str(exc), *errors])
         except Exception:
-            LOG.exception("Tampoco se pudo guardar el estado de error en Supabase.")
+            LOG.exception("No se pudo actualizar el estado de error en Supabase.")
         raise
 
 
