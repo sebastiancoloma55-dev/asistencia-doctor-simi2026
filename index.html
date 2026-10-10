@@ -1290,10 +1290,10 @@ body{overflow-x:hidden}
                         <label class="rounded-lg border p-3 text-xs"><input id="correo-t-sinmarca" type="checkbox" checked> Sin marcas / inexistente</label>
                     </div>
                     <div class="lg:col-span-4 flex flex-wrap gap-2">
-                        <button onclick="prepararCorreosAsistencia()" class="corp-button">Generar vista previa</button>
+                        <button data-accion="preparar-correos" onclick="prepararCorreosAsistencia()" class="corp-button">Generar vista previa</button>
                         <button onclick="seleccionarTodosBorradores(true)" class="corp-button-dark">Seleccionar todos</button>
                         <button onclick="seleccionarTodosBorradores(false)" class="rounded-lg border px-4 py-2 text-sm font-bold">Limpiar selección</button>
-                        <button onclick="abrirBorradoresMasivos()" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white">Abrir borradores seleccionados</button>
+                        <button data-accion="abrir-borradores" onclick="abrirBorradoresMasivos()" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white">Abrir borradores seleccionados</button>
                     </div>
                 </div>
                 <div id="correo-resumen-resultados" class="hidden grid grid-cols-2 gap-3 sm:grid-cols-3"><div class="ui-card p-4"><span class="text-xs text-slate-500">Borradores preparados</span><b id="correo-resumen-borradores" class="mt-1 block text-2xl">0</b></div><div class="ui-card p-4"><span class="text-xs text-slate-500">Casos detectados</span><b id="correo-resumen-casos" class="mt-1 block text-2xl">0</b></div><div class="ui-card p-4"><span class="text-xs text-slate-500">Sin destinatario</span><b id="correo-resumen-sin-destino" class="mt-1 block text-2xl">0</b></div></div>
@@ -1356,6 +1356,7 @@ body{overflow-x:hidden}
             <section id="view-tareas" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro"><span class="module-kicker">Punto 15 · Productividad</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Tareas diarias, responsables y KPI</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Asigna una tarea en menos de un minuto, define quién la ejecuta y quién la valida. El tablero mide pendientes, atrasos y cumplimiento por usuario. La recurrencia queda registrada como dato de planificación; no genera tareas repetidas automáticamente.</p></div>
                 <div class="ui-card p-4"><label class="text-xs font-bold text-slate-600">Crear desde una plantilla (opcional)</label><div class="mt-1 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]"><select id="tarea-plantilla" class="form-field" onchange="aplicarPlantillaTarea()"><option value="">Elegir tarea sugerida…</option><option value="incidencias">Revisar correos de incidencias</option><option value="asistencia">Regularizar marcas de asistencia</option><option value="licencias">Revisar licencias médicas pendientes</option><option value="turnos">Revisar turnos y cambios</option><option value="reporte">Enviar reporte diario a jefatura</option><option value="sucursales">Contactar sucursales con pendientes</option></select><p class="self-center text-xs text-slate-500">La plantilla completa el título, la descripción y la prioridad; puedes editarlos.</p></div></div>
+                <div id="tarea-permiso-aviso" class="hidden rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">Puedes consultar tareas, pero no asignarlas. Solicita esa autorización al administrador.</div>
                 <form id="form-tarea" class="ui-card grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4" onsubmit="guardarTarea(event)">
                     <div class="lg:col-span-2"><label class="required-label text-xs font-semibold">Título</label><input id="tarea-titulo" required class="form-field"></div>
                     <div><label class="required-label text-xs font-semibold">Responsable</label><select id="tarea-responsable" required class="form-field"></select></div>
@@ -1367,9 +1368,9 @@ body{overflow-x:hidden}
                     <div class="lg:col-span-4"><label class="required-label text-xs font-semibold">Descripción</label><textarea id="tarea-descripcion" required rows="3" class="form-field"></textarea></div>
                     <div class="lg:col-span-4"><button class="corp-button">Crear tarea</button></div>
                 </form>
-                <div class="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7"><div class="ui-card p-3">Pendientes<b id="tk-pendiente" class="block text-2xl">0</b></div><div class="ui-card p-3">En proceso<b id="tk-proceso" class="block text-2xl">0</b></div><div class="ui-card p-3">Por validar<b id="tk-validar" class="block text-2xl">0</b></div><div class="ui-card p-3">Aprobadas<b id="tk-aprobada" class="block text-2xl">0</b></div><div class="ui-card p-3">Devueltas<b id="tk-devuelta" class="block text-2xl">0</b></div><div class="ui-card p-3">Vencidas<b id="tk-vencida" class="block text-2xl">0</b></div><div class="ui-card p-3">Cumplimiento<b id="tk-cumplimiento" class="block text-2xl">0%</b></div></div>
-                <div class="ui-card grid grid-cols-1 gap-3 p-4 md:grid-cols-4"><select id="tarea-filtro-estado" class="form-field" onchange="renderizarTareas()"><option value="TODOS">Todos los estados</option><option>PENDIENTE</option><option>EN_PROCESO</option><option>COMPLETADA_POR_VALIDAR</option><option>APROBADA</option><option>DEVUELTA</option><option>VENCIDA</option><option>CANCELADA</option></select><input id="tarea-filtro-buscar" class="form-field md:col-span-2" oninput="renderizarTareas()" placeholder="Buscar tarea, responsable o sucursal"><button onclick="cargarTareas()" class="corp-button-dark">Actualizar</button></div>
-                <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4"><h4 class="font-extrabold text-slate-800">KPI por usuario</h4><p class="mt-1 text-xs text-slate-500">Se calcula con las tareas asignadas a cada persona y su estado actual.</p></div><div id="tabla-kpi-usuarios" class="space-y-2 p-4"><p class="text-sm text-slate-400">Cargando métricas…</p></div></div>
+                <div class="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8"><div class="ui-card p-3">Pendientes<b id="tk-pendiente" class="block text-2xl">0</b></div><div class="ui-card p-3">En proceso<b id="tk-proceso" class="block text-2xl">0</b></div><div class="ui-card p-3">Por validar<b id="tk-validar" class="block text-2xl">0</b></div><div class="ui-card p-3">Aprobadas<b id="tk-aprobada" class="block text-2xl">0</b></div><div class="ui-card p-3">Devueltas<b id="tk-devuelta" class="block text-2xl">0</b></div><div class="ui-card p-3">Vencidas<b id="tk-vencida" class="block text-2xl">0</b></div><div class="ui-card p-3">Tasa de cierre<b id="tk-cumplimiento" class="block text-2xl">0%</b></div><div class="ui-card p-3">Cierre a tiempo<b id="tk-tiempo" class="block text-2xl">0%</b></div></div>
+                <div class="ui-card grid grid-cols-1 gap-3 p-4 md:grid-cols-5"><select id="tarea-filtro-responsable" class="form-field" onchange="renderizarTareas()"><option value="TODOS">Todos los responsables</option></select><select id="tarea-filtro-estado" class="form-field" onchange="renderizarTareas()"><option value="TODOS">Todos los estados</option><option>PENDIENTE</option><option>EN_PROCESO</option><option>COMPLETADA_POR_VALIDAR</option><option>APROBADA</option><option>DEVUELTA</option><option>VENCIDA</option><option>CANCELADA</option></select><input id="tarea-filtro-buscar" class="form-field md:col-span-2" oninput="renderizarTareas()" placeholder="Buscar tarea, responsable o sucursal"><button onclick="cargarTareas()" class="corp-button-dark">Actualizar</button></div>
+                <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4"><h4 class="font-extrabold text-slate-800">KPI por usuario</h4><p class="mt-1 text-xs text-slate-500">Se calcula con las tareas asignadas a cada persona y su estado actual.</p></div><div class="mb-3 flex flex-wrap items-center justify-between gap-3"><div><h4 class="font-extrabold text-slate-900">Rendimiento por usuario</h4><p class="text-xs text-slate-500">Filtra para revisar asignaciones, aprobaciones y atrasos de cada persona.</p></div><select id="tarea-kpi-filtro-usuario" class="form-field max-w-sm" onchange="renderizarTareas()"><option value="TODOS">Todos los usuarios</option></select></div><div id="tabla-kpi-usuarios" class="space-y-2 p-4"><p class="text-sm text-slate-400">Cargando métricas…</p></div></div>
                 <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4"><h4 class="font-extrabold text-slate-800">Seguimiento de tareas</h4><p class="mt-1 text-xs text-slate-500">Busca por tarea, responsable o sucursal. Actualiza el estado cuando avances o termines.</p></div><div class="table-scroll"><table class="w-full min-w-[1000px]"><thead><tr><th>Tarea</th><th>Responsable</th><th>Revisor</th><th>Prioridad</th><th>Vencimiento</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="tabla-tareas"></tbody></table></div></div>
             </section>
 
@@ -1930,15 +1931,17 @@ body{overflow-x:hidden}
                 }
 
                 if (data.session) {
-                    document
-                        .getElementById('login-overlay')
-                        .classList
-                        .add('hidden');
-
-                    document.getElementById('user-email-display').innerText =
-                        data.session.user.email;
-
-                    await inicializarDashboard();
+                    try{
+                        await cargarPerfilPermisosActual(data.session.user);
+                        document.getElementById('user-email-display').innerText=data.session.user.email;
+                        document.getElementById('login-overlay').classList.add('hidden');
+                        await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
+                        await inicializarDashboard();
+                    }catch(perfilError){
+                        await _supabase.auth.signOut();
+                        document.getElementById('login-overlay').classList.remove('hidden');
+                        const eb=document.getElementById('login-error');if(eb){eb.textContent=perfilError.message;eb.classList.remove('hidden');}
+                    }
                 }
             }
         );
@@ -1967,14 +1970,10 @@ body{overflow-x:hidden}
                     throw error;
                 }
 
-                document
-                    .getElementById('login-overlay')
-                    .classList
-                    .add('hidden');
-
-                document.getElementById('user-email-display').innerText =
-                    data.user.email;
-
+                await cargarPerfilPermisosActual(data.user);
+                document.getElementById('user-email-display').innerText=data.user.email;
+                document.getElementById('login-overlay').classList.add('hidden');
+                await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
                 await inicializarDashboard();
             } catch (error) {
                 errorBox.textContent = error.message || 'Credenciales incorrectas.';
@@ -1993,6 +1992,8 @@ body{overflow-x:hidden}
                 return;
             }
 
+            perfilActualSistema=null;modulosPermitidosActuales=[];
+            modulos.forEach(nombre=>document.getElementById('btn-'+nombre)?.classList.remove('hidden'));
             datosAsistenciaGlobal = [];
             datosLicenciasGlobal = [];
             asistenciaCargada = false;
@@ -2008,6 +2009,7 @@ body{overflow-x:hidden}
         // NAVEGACIÓN
         // ============================================================
         async function cambiarModulo(modulo, cargar = true) {
+            if(perfilActualSistema&&!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para acceder a este apartado.','warning');const primero=modulos.find(nombre=>tienePermisoModulo(nombre));if(primero&&primero!==modulo)return cambiarModulo(primero,cargar);return;}
             modulos.forEach(nombre => {
                 const boton = document.getElementById(`btn-${nombre}`);
 
@@ -3156,6 +3158,38 @@ body{overflow-x:hidden}
         }
 
         const listaPermisos=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas'];
+        let perfilActualSistema=null, modulosPermitidosActuales=[];
+        const EMAIL_ADMIN_PRINCIPAL='scoloma@farmaciasdoctorsimi.cl';
+        function esAdminPrincipalActual(){return String(perfilActualSistema?.email||'').toLowerCase()===EMAIL_ADMIN_PRINCIPAL;}
+        function tienePermisoModulo(modulo){return esAdminPrincipalActual()||modulosPermitidosActuales.includes(modulo);}
+        function puedeAsignarTareasActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_asignar_tareas;}
+        function puedeRevisarTareasActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_revisar_tareas;}
+        function puedePrepararCorreosActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_preparar_correos;}
+        async function cargarPerfilPermisosActual(user){
+            const email=String(user?.email||'').trim().toLowerCase();
+            if(!email)throw new Error('La sesión no contiene un correo válido.');
+            const {data,error}=await _supabase.from('usuarios_roles').select('*').eq('email',email).maybeSingle();
+            if(error)throw new Error('No se pudieron comprobar tus permisos: '+error.message);
+            if(email===EMAIL_ADMIN_PRINCIPAL){
+                perfilActualSistema=data||{email,nombre:'Administrador principal',rol:'ADMIN',activo:true,permisos:listaPermisos,acceso_global:true,puede_asignar_tareas:true,puede_revisar_tareas:true,puede_preparar_correos:true};
+                modulosPermitidosActuales=[...modulos];
+            }else{
+                if(!data||data.activo===false)throw new Error('Tu cuenta no tiene un perfil activo. Solicita al administrador que habilite tu acceso.');
+                perfilActualSistema=data;
+                modulosPermitidosActuales=Array.isArray(data.permisos)?data.permisos.filter(x=>modulos.includes(x)):[];
+                if(data.acceso_global)modulosPermitidosActuales=[...modulos];
+                if(!modulosPermitidosActuales.length)throw new Error('Tu usuario todavía no tiene módulos autorizados.');
+            }
+            aplicarPermisosVisuales();
+            return perfilActualSistema;
+        }
+        function aplicarPermisosVisuales(){
+            modulos.forEach(nombre=>{const b=document.getElementById('btn-'+nombre);if(b)b.classList.toggle('hidden',!tienePermisoModulo(nombre));});
+            const form=document.getElementById('form-tarea');if(form)form.classList.toggle('hidden',!tienePermisoModulo('tareas')||!puedeAsignarTareasActual());
+            const aviso=document.getElementById('tarea-permiso-aviso');if(aviso)aviso.classList.toggle('hidden',!tienePermisoModulo('tareas')||puedeAsignarTareasActual());
+            document.querySelectorAll('[data-accion="preparar-correos"],[data-accion="abrir-borradores"]').forEach(b=>b.classList.toggle('hidden',!puedePrepararCorreosActual()));
+            if(window.lucide)lucide.createIcons();
+        }
         function opcionesSeleccionadas(id){return [...document.getElementById(id).selectedOptions].map(x=>x.value);}
         function construirChecksPermisos(){const c=document.getElementById('usr-permisos');if(!c)return;c.innerHTML=listaPermisos.map(p=>`<label class="flex items-center gap-2 rounded-lg border p-2 text-xs"><input type="checkbox" value="${p}" class="usr-check">${p}</label>`).join('');}
         async function prepararSelectoresUsuarios(){
@@ -3308,6 +3342,9 @@ body{overflow-x:hidden}
             const responsables=activos;
             const revisores=activos.filter(u=>u.puede_revisar_tareas || ['ADMIN','RRHH'].includes(u.rol));
             const opt=(u)=>`<option value="${u.id}">${escaparHTML(u.nombre||u.email)} · ${escaparHTML(u.email||'')}</option>`;
+            const opcionesKpi='<option value="TODOS">Todos los usuarios</option>'+responsables.map(opt).join('');
+            document.getElementById('tarea-filtro-responsable').innerHTML=opcionesKpi;
+            document.getElementById('tarea-kpi-filtro-usuario').innerHTML=opcionesKpi;
             document.getElementById('tarea-responsable').innerHTML='<option value="">Selecciona responsable</option>'+responsables.map(opt).join('');
             document.getElementById('tarea-revisor').innerHTML='<option value="">Sin revisor</option>'+revisores.map(opt).join('');
             document.getElementById('tarea-sucursal').innerHTML='<option value="">Todas / No aplica</option>'+(sucursales||[]).map(x=>`<option value="${x.id}">${escaparHTML(x.nombre)}</option>`).join('');
@@ -3333,6 +3370,7 @@ body{overflow-x:hidden}
         }
         async function guardarTarea(event){
             event.preventDefault();
+            if(!puedeAsignarTareasActual())return mostrarToast('No tienes autorización para asignar tareas.','warning');
             const responsable=document.getElementById('tarea-responsable').value;
             const vencimiento=document.getElementById('tarea-vencimiento').value;
             if(!responsable)return mostrarToast('Selecciona un responsable para esta tarea.','warning');
@@ -3346,19 +3384,22 @@ body{overflow-x:hidden}
         function estadoTareaCalculado(t){if(!['APROBADA','CANCELADA','DEVUELTA'].includes(t.estado)&&new Date(t.fecha_limite)<new Date())return'VENCIDA';return t.estado;}
         async function cargarTareas(){const {data,error}=await _supabase.from('tareas').select('*,responsable:usuarios_roles!tareas_responsable_rol_id_fkey(nombre,email),revisor:usuarios_roles!tareas_revisor_rol_id_fkey(nombre,email),sucursal:sucursales(nombre)').order('fecha_limite',{ascending:true});if(error)return mostrarToast(error.message,'error');tareasGlobal=(data||[]).map(x=>({...x,estado_calculado:estadoTareaCalculado(x)}));renderizarTareas();}
         function renderizarTareas(){
-            const estado=document.getElementById('tarea-filtro-estado')?.value||'TODOS',q=texto(document.getElementById('tarea-filtro-buscar')?.value).toLowerCase();
-            let f=tareasGlobal;if(estado!=='TODOS')f=f.filter(x=>x.estado_calculado===estado);if(q)f=f.filter(x=>`${x.titulo} ${x.descripcion} ${x.responsable?.nombre} ${x.responsable?.email} ${x.sucursal?.nombre}`.toLowerCase().includes(q));
+            const estado=document.getElementById('tarea-filtro-estado')?.value||'TODOS',responsableFiltro=document.getElementById('tarea-filtro-responsable')?.value||'TODOS',q=texto(document.getElementById('tarea-filtro-buscar')?.value).toLowerCase();
+            let f=tareasGlobal;if(estado!=='TODOS')f=f.filter(x=>x.estado_calculado===estado);if(responsableFiltro!=='TODOS')f=f.filter(x=>String(x.responsable_rol_id)===responsableFiltro);if(q)f=f.filter(x=>`${x.titulo} ${x.descripcion} ${x.responsable?.nombre} ${x.responsable?.email} ${x.sucursal?.nombre}`.toLowerCase().includes(q));
             const cuenta=e=>tareasGlobal.filter(x=>x.estado_calculado===e).length;
             document.getElementById('tk-pendiente').innerText=cuenta('PENDIENTE');document.getElementById('tk-proceso').innerText=cuenta('EN_PROCESO');document.getElementById('tk-validar').innerText=cuenta('COMPLETADA_POR_VALIDAR');document.getElementById('tk-aprobada').innerText=cuenta('APROBADA');document.getElementById('tk-devuelta').innerText=cuenta('DEVUELTA');document.getElementById('tk-vencida').innerText=cuenta('VENCIDA');
-            const terminadas=tareasGlobal.filter(x=>x.estado_calculado==='APROBADA');
-            document.getElementById('tk-cumplimiento').innerText=(terminadas.length?Math.round(100*terminadas.filter(x=>new Date(x.updated_at||x.created_at)<=new Date(x.fecha_limite)).length/terminadas.length):0)+'%';
+            const medibles=tareasGlobal.filter(x=>x.estado_calculado!=='CANCELADA');
+            const terminadas=medibles.filter(x=>x.estado_calculado==='APROBADA');
+            document.getElementById('tk-cumplimiento').innerText=(medibles.length?Math.round(100*terminadas.length/medibles.length):0)+'%';
+            document.getElementById('tk-tiempo').innerText=(terminadas.length?Math.round(100*terminadas.filter(x=>new Date(x.updated_at||x.created_at)<=new Date(x.fecha_limite)).length/terminadas.length):0)+'%';
+            const filtroKpi=document.getElementById('tarea-kpi-filtro-usuario')?.value||'TODOS';
             const porUsuario=new Map();
-            tareasGlobal.forEach(t=>{const id=String(t.responsable_rol_id||'sin-asignar'),nombre=t.responsable?.nombre||t.responsable?.email||'Sin responsable';if(!porUsuario.has(id))porUsuario.set(id,{id,nombre,total:0,aprobadas:0,pendientes:0,vencidas:0,validar:0});const k=porUsuario.get(id);k.total++;if(t.estado_calculado==='APROBADA')k.aprobadas++;if(['PENDIENTE','EN_PROCESO'].includes(t.estado_calculado))k.pendientes++;if(t.estado_calculado==='VENCIDA')k.vencidas++;if(t.estado_calculado==='COMPLETADA_POR_VALIDAR')k.validar++;});
+            tareasGlobal.filter(t=>filtroKpi==='TODOS'||String(t.responsable_rol_id)===filtroKpi).forEach(t=>{const id=String(t.responsable_rol_id||'sin-asignar'),nombre=t.responsable?.nombre||t.responsable?.email||'Sin responsable';if(!porUsuario.has(id))porUsuario.set(id,{id,nombre,total:0,aprobadas:0,pendientes:0,vencidas:0,validar:0});const k=porUsuario.get(id);k.total++;if(t.estado_calculado==='APROBADA')k.aprobadas++;if(['PENDIENTE','EN_PROCESO'].includes(t.estado_calculado))k.pendientes++;if(t.estado_calculado==='VENCIDA')k.vencidas++;if(t.estado_calculado==='COMPLETADA_POR_VALIDAR')k.validar++;});
             const kpi=document.getElementById('tabla-kpi-usuarios');
             kpi.innerHTML=porUsuario.size?[...porUsuario.values()].sort((a,b)=>b.total-a.total).map(u=>{const medibles=tareasGlobal.filter(t=>String(t.responsable_rol_id||'sin-asignar')===u.id&&t.estado_calculado!=='CANCELADA').length;const pct=medibles?Math.round(100*u.aprobadas/medibles):0;return `<div class="kpi-persona-row rounded-xl border border-slate-100 p-3"><div><b class="block text-sm text-slate-800">${escaparHTML(u.nombre)}</b><span class="text-xs text-slate-500">${u.total} tarea(s) asignadas</span><div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full ${pct>=80?'bg-emerald-500':pct>=50?'bg-amber-500':'bg-rose-500'}" style="width:${pct}%"></div></div></div><div><span class="block text-[11px] text-slate-500">Aprobadas</span><b class="text-lg text-emerald-700">${u.aprobadas}</b></div><div><span class="block text-[11px] text-slate-500">Pendientes</span><b class="text-lg">${u.pendientes}</b></div><div><span class="block text-[11px] text-slate-500">Vencidas</span><b class="text-lg ${u.vencidas?'text-rose-700':''}">${u.vencidas}</b></div><div><span class="block text-[11px] text-slate-500">Cumplimiento</span><b class="text-lg">${pct}%</b><span class="block text-[10px] text-slate-400">${u.validar} por validar</span></div></div>`}).join(''):'<p class="p-4 text-sm text-slate-500">Todavía no hay tareas asignadas. Crea una tarea para empezar a medir.</p>';
             document.getElementById('tabla-tareas').innerHTML=f.length?f.map(t=>`<tr><td><b>${escaparHTML(t.titulo)}</b><br><span class="text-xs text-slate-500">${escaparHTML(t.descripcion)}</span></td><td>${escaparHTML(t.responsable?.nombre||t.responsable?.email||'Sin asignar')}</td><td>${escaparHTML(t.revisor?.nombre||t.revisor?.email||'—')}</td><td><span class="rounded-full px-2 py-1 text-xs font-bold ${t.prioridad==='URGENTE'?'bg-rose-100 text-rose-800':t.prioridad==='ALTA'?'bg-amber-100 text-amber-800':'bg-slate-100 text-slate-700'}">${escaparHTML(t.prioridad)}</span></td><td>${new Date(t.fecha_limite).toLocaleString('es-CL')}</td><td><span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-bold">${t.estado_calculado}</span></td><td><select aria-label="Cambiar estado de tarea" class="form-field min-w-40" onchange="cambiarEstadoTarea(${t.id},this.value)"><option value="">Actualizar estado…</option><option>EN_PROCESO</option><option>COMPLETADA_POR_VALIDAR</option><option>APROBADA</option><option>DEVUELTA</option><option>CANCELADA</option></select></td></tr>`).join(''):'<tr><td colspan="7" class="p-8 text-center text-sm text-slate-500">No hay tareas para estos filtros.</td></tr>';
         }
-        async function cambiarEstadoTarea(id,estado){if(!estado)return;const motivo=['DEVUELTA','CANCELADA'].includes(estado)?prompt('Indica el motivo del cambio:')||'Sin motivo':'';const {data:{session}}=await _supabase.auth.getSession();const {error}=await _supabase.from('tareas').update({estado,updated_at:new Date().toISOString()}).eq('id',id);if(error)return mostrarToast(error.message,'error');await _supabase.from('tareas_eventos').insert([{tarea_id:id,accion:'CAMBIO_ESTADO',estado_nuevo:estado,usuario_email:session?.user?.email||'',detalle:motivo}]);await cargarTareas();}
+        async function cambiarEstadoTarea(id,estado){if(!estado)return;const tarea=tareasGlobal.find(x=>String(x.id)===String(id));if(!tarea)return mostrarToast('No se encontró la tarea.','error');const idActual=String(perfilActualSistema?.id||'');const esResp=String(tarea.responsable_rol_id)===idActual;const esRev=String(tarea.revisor_rol_id)===idActual;if(!esAdminPrincipalActual()&&(['APROBADA','DEVUELTA','CANCELADA'].includes(estado)?(!puedeRevisarTareasActual()||!esRev):(!esResp&&!esRev)))return mostrarToast('No tienes permiso para cambiar este estado.','warning');const motivo=['DEVUELTA','CANCELADA'].includes(estado)?prompt('Indica el motivo del cambio:')||'Sin motivo':'';const {data:{session}}=await _supabase.auth.getSession();const {error}=await _supabase.from('tareas').update({estado,updated_at:new Date().toISOString()}).eq('id',id);if(error)return mostrarToast(error.message,'error');await _supabase.from('tareas_eventos').insert([{tarea_id:id,accion:'CAMBIO_ESTADO',estado_nuevo:estado,usuario_email:session?.user?.email||'',detalle:motivo}]);await cargarTareas();}
 
         async function registrarAuditoria(modulo,accion,detalle){try{const {data:{session}}=await _supabase.auth.getSession();await _supabase.from('auditoria_eventos').insert([{usuario_email:session?.user?.email||'sin sesión',modulo,accion,detalle}]);}catch(e){console.warn('Auditoría no registrada',e);}}
         async function cargarAuditoria(){const {data,error}=await _supabase.from('auditoria_eventos').select('*').order('created_at',{ascending:false}).limit(2000);if(error){mostrarToast(error.message,'error');return;}datosAuditoriaGlobal=data||[];renderizarAuditoria();}
@@ -3471,6 +3512,7 @@ body{overflow-x:hidden}
             window.open(urlOutlookBorrador(b), '_blank', 'noopener');
         }
         async function abrirBorradoresMasivos() {
+            if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para abrir borradores.','warning');
             const ids = [...document.querySelectorAll('.borrador-check:checked')].map(x => x.value);
             const seleccionados = borradoresGeneradosGlobal.filter(x => ids.includes(x.id));
             if (!seleccionados.length) return mostrarToast('Selecciona al menos un borrador.', 'warning');
