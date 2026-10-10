@@ -381,7 +381,7 @@ body{overflow-x:hidden}
 .selector-dropdown-2026 .selector-count-2026{padding:0 10px 10px}
 .selector-dropdown-2026:focus-within{border-color:#38bdf8;box-shadow:0 0 0 3px rgba(14,165,233,.12)}
 
-</style>
+ .selector-dropdown-2026{border:1px solid #d8e5ef;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 8px 24px rgba(15,41,64,.05)} .selector-dropdown-2026>summary{cursor:pointer;list-style:none;padding:12px 14px;background:linear-gradient(120deg,#f8fbff,#f0f9fc);font-size:12px;font-weight:800;color:#0f3550} .selector-dropdown-2026>summary::-webkit-details-marker{display:none} .selector-tools-2026{padding:10px;border-bottom:1px solid #e5edf4} .selector-action-row-2026{display:flex;gap:8px;margin-top:8px} .selector-action-row-2026 button{border:1px solid #d8e5ef;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:800;color:#16435c;background:#fff} .selector-checkbox-list-2026{max-height:270px;overflow:auto;padding:6px} .selector-checkbox-row-2026{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:12px;color:#334155} .selector-checkbox-row-2026:hover{background:#f1f8fc} .selector-checkbox-row-2026 input{width:16px;height:16px;accent-color:#009bb5;flex:0 0 auto} .selector-checkbox-row-2026 .selector-checkmark-2026{margin-left:auto;color:#009bb5;font-weight:900;opacity:0} .selector-checkbox-row-2026:has(input:checked){background:#eaf8fc;color:#075985;font-weight:750} .selector-checkbox-row-2026:has(input:checked) .selector-checkmark-2026{opacity:1} .selector-count-2026{padding:8px 12px;color:#64748b;font-size:11px;border-top:1px solid #edf2f7}</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -3554,9 +3554,7 @@ body{overflow-x:hidden}
             document.getElementById('correo-sucursales').innerHTML = sucursalesConfiguracionGlobal.map(x => `<option value="${escaparHTML(x.nombre)}">${escaparHTML(x.nombre)}</option>`).join('');
             const supervisores = [...new Set(sucursalesConfiguracionGlobal.map(x => texto(x.supervisor)).filter(Boolean))].sort();
             document.getElementById('correo-supervisores').innerHTML = supervisores.map(x => `<option value="${escaparHTML(x)}">${escaparHTML(x)}</option>`).join('');
-            renderizarSelectorCasillasCorreo('correo-sucursales', sucursalesConfiguracionGlobal.map(x=>x.nombre));
-            renderizarSelectorCasillasCorreo('correo-supervisores', supervisores);
-        }
+            }
         function crearCuerpoCorreo(grupo, casos, desde, hasta) {
             const nombreGrupo = grupo.tipo === 'SUPERVISOR' ? `sucursales a cargo de ${grupo.nombre}` : `sucursal ${grupo.nombre}`;
             const filas = casos.map((x, i) => {
@@ -4147,19 +4145,14 @@ body{overflow-x:hidden}
 <script>
 (function(){
   function setupMultiSelect(id,label){
-    var sel=document.getElementById(id); if(!sel||sel.dataset.ux2026==='1')return;
-    sel.dataset.ux2026='1';
-    var tools=document.createElement('div');tools.className='selector-tools-2026';
-    var input=document.createElement('input');input.type='search';input.placeholder='Buscar '+label+'…';input.setAttribute('aria-label','Buscar '+label);
-    var all=document.createElement('button');all.type='button';all.textContent='Seleccionar visibles';
-    var none=document.createElement('button');none.type='button';none.textContent='Limpiar';
-    tools.append(input,all,none);sel.parentNode.insertBefore(tools,sel);
-    var count=document.createElement('div');count.className='selector-count-2026';sel.insertAdjacentElement('afterend',count);
-    var panel=document.createElement('details');panel.className='selector-dropdown-2026';
-    var heading=document.createElement('summary');heading.setAttribute('aria-label','Abrir lista de '+label);panel.appendChild(heading);
-    tools.parentNode.insertBefore(panel,tools);panel.append(tools,sel,count);
-    function update(){var q=input.value.trim().toLocaleLowerCase('es-CL'),visible=0,chosen=0;Array.from(sel.options).forEach(function(o){var match=!q||o.textContent.toLocaleLowerCase('es-CL').indexOf(q)>=0;o.hidden=!match;if(match)visible++;if(o.selected)chosen++;});count.textContent=chosen+' seleccionados · '+visible+' de '+sel.options.length+' opciones visibles';heading.textContent=chosen+' seleccionados · Abrir lista de '+label;}
-    input.addEventListener('input',update);all.addEventListener('click',function(){Array.from(sel.options).forEach(function(o){if(!o.hidden)o.selected=true;});update();sel.dispatchEvent(new Event('change',{bubbles:true}));});none.addEventListener('click',function(){Array.from(sel.options).forEach(function(o){o.selected=false;});update();sel.dispatchEvent(new Event('change',{bubbles:true}));});sel.addEventListener('change',update);sel._uxUpdate2026=update;sel._uxPanel2026=panel;update();
+    var sel=document.getElementById(id);if(!sel||sel.dataset.ux2026==='1')return;sel.dataset.ux2026='1';sel.classList.add('hidden');sel.setAttribute('aria-hidden','true');
+    var host=document.getElementById(id+'-casillas');if(!host){host=document.createElement('div');host.id=id+'-casillas';sel.insertAdjacentElement('afterend',host);}
+    var panel=document.createElement('details');panel.className='selector-dropdown-2026';var heading=document.createElement('summary');
+    var tools=document.createElement('div');tools.className='selector-tools-2026';var input=document.createElement('input');input.type='search';input.className='form-field';input.placeholder='Buscar '+label+'…';
+    var actions=document.createElement('div');actions.className='selector-action-row-2026';var all=document.createElement('button');all.type='button';all.textContent='Seleccionar visibles';var none=document.createElement('button');none.type='button';none.textContent='Limpiar';actions.append(all,none);tools.append(input,actions);
+    var list=document.createElement('div');list.className='selector-checkbox-list-2026';var count=document.createElement('div');count.className='selector-count-2026';panel.append(heading,tools,list,count);host.replaceChildren(panel);
+    function render(){var chosen=new Set(Array.from(sel.options).filter(o=>o.selected).map(o=>o.value)),q=input.value.trim().toLocaleLowerCase('es-CL');list.replaceChildren();var visible=0;Array.from(sel.options).forEach(function(o){if(q&&!o.textContent.toLocaleLowerCase('es-CL').includes(q))return;visible++;var row=document.createElement('label');row.className='selector-checkbox-row-2026';var cb=document.createElement('input');cb.type='checkbox';cb.checked=chosen.has(o.value);cb.addEventListener('change',function(){o.selected=cb.checked;render();sel.dispatchEvent(new Event('change',{bubbles:true}));});var tx=document.createElement('span');tx.textContent=o.textContent;var tick=document.createElement('span');tick.className='selector-checkmark-2026';tick.textContent='✓';row.append(cb,tx,tick);list.append(row);});var selected=Array.from(sel.options).filter(o=>o.selected).length;heading.textContent=(selected?selected+' seleccionada(s)':'Ninguna seleccionada · se incluyen todas')+' · Abrir lista de '+label;count.textContent=selected+' seleccionada(s) · '+visible+' de '+sel.options.length+' opciones visibles';}
+    input.addEventListener('input',render);all.addEventListener('click',function(){var q=input.value.trim().toLocaleLowerCase('es-CL');Array.from(sel.options).forEach(o=>{if(!q||o.textContent.toLocaleLowerCase('es-CL').includes(q))o.selected=true;});render();sel.dispatchEvent(new Event('change',{bubbles:true}));});none.addEventListener('click',function(){Array.from(sel.options).forEach(o=>o.selected=false);render();sel.dispatchEvent(new Event('change',{bubbles:true}));});sel.addEventListener('change',render);sel._uxUpdate2026=render;sel._uxPanel2026=panel;render();
   }
   function setupSelectors(){
     setupMultiSelect('usr-supervisores','supervisores');setupMultiSelect('usr-sucursales','sucursales');
