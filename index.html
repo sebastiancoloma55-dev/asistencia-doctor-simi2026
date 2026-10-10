@@ -1858,14 +1858,14 @@ body.search-open{overflow:hidden}
   async function loadPermissions(){
     var sessionResult=await _supabase.auth.getSession();var user=sessionResult.data&&sessionResult.data.session&&sessionResult.data.session.user;
     if(!user){allowed=new Set(['dashboard']);paintPermissions();return;}
+    // El administrador principal no debe quedar bloqueado por una consulta de perfil o por una columna faltante.
+    if(String(user.email||'').trim().toLowerCase()===adminEmail){
+      allowed=new Set(allModulePermissions);paintPermissions();return;
+    }
     try{
       var result=await _supabase.from('usuarios_roles').select('email,permisos,activo,acceso_global,rol').eq('email',String(user.email||'').trim().toLowerCase()).maybeSingle();
       if(result.error)throw result.error;
       var profile=result.data;
-      if(String(user.email||'').trim().toLowerCase()===adminEmail){
-        if(profile&&profile.activo===false)throw new Error('La cuenta administradora está desactivada.');
-        allowed=new Set(allModulePermissions);paintPermissions();return;
-      }
       if(!profile||profile.activo===false){allowed=new Set(['dashboard']);paintPermissions();if(window.mostrarToast)mostrarToast('Tu usuario no tiene un perfil activo. Contacta al administrador.','warning',10000);return;}
       if(isGlobalAdmin(profile,user)){
         allowed=new Set(allModulePermissions);
