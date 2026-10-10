@@ -185,7 +185,7 @@
             await registrarAuditoria('reportes','GENERA_REPORTE',`${tipo} · ${formato} · ${desde||'s/f'} a ${hasta||'s/f'} · ${datos.length} registros`);mostrarToast('Reporte generado y descargado.','success');
         }
 
-        const listaPermisos=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas'];
+        const listaPermisos=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
         let perfilActualSistema=null, modulosPermitidosActuales=[];
         const EMAIL_ADMIN_PRINCIPAL='scoloma@farmaciasdoctorsimi.cl';
         function esAdminPrincipalActual(){return String(perfilActualSistema?.email||'').toLowerCase()===EMAIL_ADMIN_PRINCIPAL;}
