@@ -3196,7 +3196,7 @@
         }
         async function prepararModuloTareas(){
             const [usuarios,sucursales] = await Promise.all([
-                _supabase.from('usuarios_roles').select('id,nombre,email,rol,activo,puede_asignar_tareas,puede_revisar_tareas').eq('activo',true).order('nombre'),
+                _supabase.rpc('usuarios_tareas_asignables'),
                 obtenerSucursalesConfig()
             ]);
             if(usuarios.error) throw usuarios.error;
