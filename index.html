@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -45,8 +46,58 @@
         }
 
         .table-scroll {
+            width: 100%;
             overflow-x: auto;
+            overscroll-behavior-x: contain;
         }
+
+        .tabla-asistencia {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+
+        .tabla-asistencia th,
+        .tabla-asistencia td {
+            padding: 0.65rem 0.5rem;
+            vertical-align: top;
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+
+        .tabla-asistencia th {
+            white-space: normal;
+            line-height: 1.15;
+        }
+
+        .tabla-asistencia td {
+            line-height: 1.35;
+        }
+
+        .tabla-asistencia .col-fecha { width: 9%; }
+        .tabla-asistencia .col-sucursal { width: 16%; }
+        .tabla-asistencia .col-colaborador { width: 22%; }
+        .tabla-asistencia .col-turno { width: 7%; }
+        .tabla-asistencia .col-marcas { width: 14%; }
+        .tabla-asistencia .col-atraso { width: 7%; }
+        .tabla-asistencia .col-temprana { width: 12%; }
+        .tabla-asistencia .col-estado { width: 13%; }
+
+        .estado-asistencia {
+            display: inline-block;
+            max-width: 100%;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+
+        .badge-vigente { background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; }
+        .badge-proxima { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+        .badge-caducada { background:#fff1f2; color:#be123c; border:1px solid #fecdd3; }
+        .badge-alerta { background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; }
+        .form-field { width:100%; border:1px solid #e2e8f0; border-radius:.5rem; padding:.6rem .75rem; font-size:.875rem; background:#fff; }
+        .form-field:focus { outline:none; box-shadow:0 0 0 2px rgba(227,24,55,.2); border-color:#E31837; }
+        .section-title { font-weight:800; color:#0f172a; }
 
         @media (max-width: 900px) {
             #sidebar {
@@ -587,17 +638,17 @@
                     </div>
 
                     <div class="table-scroll">
-                        <table class="w-full min-w-[1100px] text-left">
+                        <table class="tabla-asistencia text-left text-[11px]">
                             <thead class="text-[11px] uppercase text-slate-500">
                                 <tr>
-                                    <th class="p-3">Fecha</th>
-                                    <th class="p-3">Sucursal</th>
-                                    <th class="p-3">Colaborador</th>
-                                    <th class="p-3">Turno</th>
-                                    <th class="p-3">Entrada / salida</th>
-                                    <th class="p-3">Atraso</th>
-                                    <th class="p-3">Salida temprana</th>
-                                    <th class="p-3">Estado</th>
+                                    <th class="col-fecha">Fecha</th>
+                                    <th class="col-sucursal">Sucursal</th>
+                                    <th class="col-colaborador">Colaborador</th>
+                                    <th class="col-turno">Turno</th>
+                                    <th class="col-marcas">Entrada / salida</th>
+                                    <th class="col-atraso">Atraso</th>
+                                    <th class="col-temprana">Salida temprana</th>
+                                    <th class="col-estado">Estado</th>
                                 </tr>
                             </thead>
 
@@ -733,6 +784,90 @@
                 </div>
             </section>
 
+            <!-- VACACIONES -->
+            <section id="view-vacaciones" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
+                    <div><h3 class="section-title">Histórico de vacaciones</h3><p class="mt-1 text-xs text-slate-500">Carga, persistencia, vigencia y cruce automático con marcas de asistencia.</p></div>
+                    <label id="btn-upload-vacaciones" class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-cyan-700 px-4 py-2.5 text-xs font-semibold text-white">
+                        <i data-lucide="upload-cloud" class="h-4 w-4"></i> Cargar histórico
+                        <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarHistorialVacaciones(event)">
+                    </label>
+                </div>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                    <div class="ui-card border-l-4 border-emerald-500 p-4"><p class="text-xs uppercase text-slate-500">Vigentes</p><h4 id="vac-stat-vigentes" class="text-2xl font-black">0</h4></div>
+                    <div class="ui-card border-l-4 border-blue-500 p-4"><p class="text-xs uppercase text-slate-500">Próximas</p><h4 id="vac-stat-proximas" class="text-2xl font-black">0</h4></div>
+                    <div class="ui-card border-l-4 border-rose-500 p-4"><p class="text-xs uppercase text-slate-500">No vigentes</p><h4 id="vac-stat-caducadas" class="text-2xl font-black">0</h4></div>
+                    <div class="ui-card border-l-4 border-orange-500 p-4"><p class="text-xs uppercase text-slate-500">Con marcas</p><h4 id="vac-stat-alertas" class="text-2xl font-black">0</h4></div>
+                </div>
+                <div class="ui-card grid grid-cols-1 gap-4 p-4 sm:grid-cols-4">
+                    <select id="filtro-vac-persona" class="form-field" onchange="renderizarVacaciones()"><option value="TODOS">Todos los colaboradores</option></select>
+                    <select id="filtro-vac-vigencia" class="form-field" onchange="renderizarVacaciones()"><option value="TODOS">Todas las vigencias</option><option value="VIGENTE">Vigentes</option><option value="PROXIMA">Próximas</option><option value="CADUCADA">No vigentes</option></select>
+                    <select id="filtro-vac-cruce" class="form-field" onchange="renderizarVacaciones()"><option value="TODOS">Con y sin alertas</option><option value="CON_MARCAS">Solo vacaciones con marcas</option><option value="SIN_MARCAS">Sin marcas</option></select>
+                    <input id="busqueda-vacaciones" class="form-field" oninput="renderizarVacaciones()" placeholder="Nombre, RUT o sucursal">
+                </div>
+                <div class="ui-card overflow-hidden">
+                    <div class="flex justify-between border-b bg-slate-50 p-4 text-xs font-bold uppercase"><span>Detalle histórico</span><span id="contador-vacaciones">0 registros</span></div>
+                    <div class="table-scroll"><table class="w-full min-w-[1200px] text-left"><thead class="text-[11px] uppercase text-slate-500"><tr><th class="p-3">Colaborador</th><th class="p-3">Sucursal</th><th class="p-3">Estado solicitud</th><th class="p-3">Tipo</th><th class="p-3">Inicio / Fin</th><th class="p-3">Retorno</th><th class="p-3">Días</th><th class="p-3">Vigencia</th><th class="p-3">Cruce asistencia</th></tr></thead><tbody id="tabla-vacaciones-body" class="divide-y divide-slate-100 text-xs"><tr><td colspan="9" class="p-8 text-center text-slate-400">Sin datos.</td></tr></tbody></table></div>
+                </div>
+            </section>
+
+            <!-- PAPELETAS -->
+            <section id="view-papeletas" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="ui-card p-5"><h3 class="section-title">Generador de papeletas de permiso</h3><p class="mt-1 text-xs text-slate-500">Documento personalizable basado en el formato corporativo suministrado.</p></div>
+                <div class="ui-card grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
+                    <div><label class="text-xs font-semibold">Nombre completo</label><input id="pap-nombre" class="form-field" placeholder="Nombre del colaborador"></div>
+                    <div><label class="text-xs font-semibold">RUT</label><input id="pap-rut" class="form-field" placeholder="RUT"></div>
+                    <div><label class="text-xs font-semibold">Sucursal</label><input id="pap-sucursal" class="form-field" placeholder="Sucursal"></div>
+                    <div><label class="text-xs font-semibold">Tipo de permiso</label><input id="pap-tipo" class="form-field" value="Permiso normal sin goce de sueldo"></div>
+                    <div><label class="text-xs font-semibold">Fecha inicio</label><input id="pap-inicio" type="date" class="form-field"></div>
+                    <div><label class="text-xs font-semibold">Fecha término</label><input id="pap-fin" type="date" class="form-field"></div>
+                    <div><label class="text-xs font-semibold">Fecha retorno</label><input id="pap-retorno" type="date" class="form-field"></div>
+                    <div><label class="text-xs font-semibold">Días autorizados</label><input id="pap-dias" type="number" min="0.5" step="0.5" value="1" class="form-field"></div>
+                    <div><label class="text-xs font-semibold">Remuneración</label><select id="pap-remuneracion" class="form-field"><option>SIN GOCE DE SUELDO</option><option>CON GOCE DE SUELDO</option></select></div>
+                    <div class="sm:col-span-2"><label class="text-xs font-semibold">Motivo / respaldo</label><textarea id="pap-motivo" class="form-field" rows="3" placeholder="Motivo personalizable"></textarea></div>
+                    <div><label class="text-xs font-semibold">Firma / responsable</label><input id="pap-firma" class="form-field" value="Departamento de Recursos Humanos"></div>
+                    <div><label class="text-xs font-semibold">Imagen de firma (opcional)</label><input id="pap-firma-imagen" type="file" accept="image/*" class="form-field"></div>
+                    <div class="sm:col-span-2"><label class="text-xs font-semibold">Texto adicional</label><textarea id="pap-adicional" class="form-field" rows="3" placeholder="Cláusula o indicación adicional"></textarea></div>
+                    <div class="flex items-end"><button onclick="generarPapeletaPDF()" class="w-full rounded-lg bg-simiRed px-4 py-3 text-sm font-bold text-white"><i data-lucide="file-down" class="mr-2 inline h-4 w-4"></i>Generar y guardar PDF</button></div>
+                </div>
+                <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4 text-xs font-bold uppercase">Papeletas generadas</div><div class="table-scroll"><table class="w-full min-w-[800px] text-left"><thead class="text-[11px] uppercase text-slate-500"><tr><th class="p-3">Fecha</th><th class="p-3">Colaborador</th><th class="p-3">Tipo</th><th class="p-3">Periodo</th><th class="p-3">Generado por</th></tr></thead><tbody id="tabla-papeletas-body" class="divide-y text-xs"><tr><td colspan="5" class="p-8 text-center text-slate-400">Sin registros.</td></tr></tbody></table></div></div>
+            </section>
+
+            <!-- REPORTES -->
+            <section id="view-reportes" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="ui-card p-5"><h3 class="section-title">Centro de reportes</h3><p class="mt-1 text-xs text-slate-500">Reportes estándar y reportes personalizados listos para descargar.</p></div>
+                <div class="ui-card grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
+                    <div><label class="text-xs font-semibold">Tipo de reporte</label><select id="rep-tipo" class="form-field"><option value="ASISTENCIA">Asistencia y anomalías</option><option value="LICENCIAS">Licencias y ausentismo</option><option value="VACACIONES">Vacaciones</option><option value="CRUCES">Cruces de asistencia con vacaciones</option><option value="RESUMEN">Resumen ejecutivo RRHH</option><option value="PERSONALIZADO">Reporte personalizado</option></select></div>
+                    <div><label class="text-xs font-semibold">Título</label><input id="rep-titulo" class="form-field" value="Reporte de Recursos Humanos"></div>
+                    <div><label class="text-xs font-semibold">Formato</label><select id="rep-formato" class="form-field"><option value="PDF">PDF</option><option value="XLSX">Excel</option></select></div>
+                    <div><label class="text-xs font-semibold">Desde</label><input id="rep-desde" type="date" class="form-field"></div>
+                    <div><label class="text-xs font-semibold">Hasta</label><input id="rep-hasta" type="date" class="form-field"></div>
+                    <div><label class="text-xs font-semibold">Sucursal</label><input id="rep-sucursal" class="form-field" placeholder="Todas"></div>
+                    <div class="sm:col-span-2 lg:col-span-3"><label class="text-xs font-semibold">Solicitud, contexto o contenido personalizado</label><textarea id="rep-contenido" class="form-field" rows="6" placeholder="Escribe aquí el reporte que necesitas, conclusiones, destinatario, observaciones o instrucciones."></textarea></div>
+                    <div class="lg:col-span-3"><button onclick="generarReporte()" class="rounded-lg bg-simiNavy px-6 py-3 text-sm font-bold text-white"><i data-lucide="file-bar-chart" class="mr-2 inline h-4 w-4"></i>Generar reporte listo</button></div>
+                </div>
+            </section>
+
+            <!-- USUARIOS -->
+            <section id="view-usuarios" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="ui-card p-5"><h3 class="section-title">Usuarios y permisos</h3><p class="mt-1 text-xs text-slate-500">Asigna capacidades de la aplicación a correos ya creados en Supabase Auth.</p></div>
+                <div class="ui-card grid grid-cols-1 gap-4 p-5 sm:grid-cols-3">
+                    <div><label class="text-xs font-semibold">Correo</label><input id="usr-email" type="email" class="form-field" placeholder="usuario@empresa.cl"></div>
+                    <div><label class="text-xs font-semibold">Nombre</label><input id="usr-nombre" class="form-field" placeholder="Nombre visible"></div>
+                    <div><label class="text-xs font-semibold">Rol</label><select id="usr-rol" class="form-field"><option value="ADMIN">Administrador</option><option value="RRHH">RRHH</option><option value="CARGA">Carga de datos</option><option value="CONSULTA">Solo consulta</option></select></div>
+                    <div class="sm:col-span-3 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6" id="usr-permisos"></div>
+                    <div class="sm:col-span-3"><button onclick="guardarUsuarioRol()" class="rounded-lg bg-simiRed px-5 py-2.5 text-sm font-bold text-white">Guardar usuario y permisos</button></div>
+                </div>
+                <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4 text-xs font-bold uppercase">Matriz de usuarios</div><div class="table-scroll"><table class="w-full min-w-[1000px] text-left"><thead class="text-[11px] uppercase text-slate-500"><tr><th class="p-3">Correo</th><th class="p-3">Nombre</th><th class="p-3">Rol</th><th class="p-3">Permisos</th><th class="p-3">Estado</th><th class="p-3">Acción</th></tr></thead><tbody id="tabla-usuarios-body" class="divide-y text-xs"><tr><td colspan="6" class="p-8 text-center text-slate-400">Sin usuarios configurados.</td></tr></tbody></table></div></div>
+            </section>
+
+            <!-- AUDITORÍA -->
+            <section id="view-auditoria" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-5"><div><h3 class="section-title">Auditoría del sistema</h3><p class="mt-1 text-xs text-slate-500">Carga de archivos, generación de documentos, reportes y cambios de permisos.</p></div><button onclick="cargarAuditoria()" class="rounded-lg bg-slate-700 px-4 py-2 text-xs font-bold text-white">Actualizar</button></div>
+                <div class="ui-card grid grid-cols-1 gap-4 p-4 sm:grid-cols-3"><input id="audit-buscar" class="form-field" oninput="renderizarAuditoria()" placeholder="Usuario, acción o módulo"><input id="audit-desde" type="date" class="form-field" onchange="renderizarAuditoria()"><input id="audit-hasta" type="date" class="form-field" onchange="renderizarAuditoria()"></div>
+                <div class="ui-card overflow-hidden"><div class="flex justify-between border-b bg-slate-50 p-4 text-xs font-bold uppercase"><span>Eventos</span><span id="contador-auditoria">0</span></div><div class="table-scroll"><table class="w-full min-w-[1000px] text-left"><thead class="text-[11px] uppercase text-slate-500"><tr><th class="p-3">Fecha</th><th class="p-3">Usuario</th><th class="p-3">Módulo</th><th class="p-3">Acción</th><th class="p-3">Detalle</th></tr></thead><tbody id="tabla-auditoria-body" class="divide-y text-xs"><tr><td colspan="5" class="p-8 text-center text-slate-400">Sin eventos.</td></tr></tbody></table></div></div>
+            </section>
+
             <!-- GENÉRICO -->
             <section id="view-generic" class="hidden p-8">
                 <div class="ui-card mx-auto mt-10 max-w-xl p-12 text-center">
@@ -799,11 +934,16 @@
         const TAMANO_LOTE = 300;
         const TAMANO_PAGINA = 1000;
         const LIMITE_RENDER = 300;
+        const LIMITE_RENDER_ASISTENCIA = 2000;
 
         let datosAsistenciaGlobal = [];
         let datosLicenciasGlobal = [];
         let asistenciaCargada = false;
         let licenciasCargadas = false;
+        let datosVacacionesGlobal = [];
+        let datosAuditoriaGlobal = [];
+        let vacacionesCargadas = false;
+        let firmaPapeletaDataUrl = null;
 
         const modulos = [
             'dashboard',
@@ -1255,6 +1395,7 @@
                     });
 
                 lucide.createIcons();
+                construirChecksPermisos();
                 await cambiarModulo('dashboard', false);
 
                 const { data, error } = await _supabase.auth.getSession();
@@ -1409,6 +1550,14 @@
                         poblarFiltrosLicencias();
                     }
                 }
+
+                if (modulo === 'vacaciones') {
+                    if (!vacacionesCargadas) await cargarVacacionesDesdeNube();
+                    else renderizarVacaciones();
+                }
+                if (modulo === 'papeletas') await cargarPapeletas();
+                if (modulo === 'usuarios') await cargarUsuariosRoles();
+                if (modulo === 'auditoria') await cargarAuditoria();
             } catch (error) {
                 mostrarToast(error.message, 'error', 15000);
             }
@@ -1640,6 +1789,7 @@
 
                 await cargarAsistenciaDesdeNube(false);
                 await inicializarDashboard();
+                await registrarAuditoria('asistencia', 'CARGA_EXCEL', `Filas: ${originales.length}; únicos: ${procesadas.length}; duplicados: ${consolidado.duplicados.length}`);
 
                 mostrarToast(
                     `Carga de asistencia finalizada. Excel: ${originales.length} filas. Registros únicos: ${procesadas.length}. Duplicados consolidados: ${consolidado.duplicados.length}. Supabase confirmó ${resultado.confirmados} registros en ${resultado.lotesProcesados} lote(s).`,
@@ -1774,7 +1924,7 @@
             }
 
             document.getElementById('contador-asistencia').innerText =
-                `Mostrando ${Math.min(filtrados.length, LIMITE_RENDER)} de ${filtrados.length}`;
+                `Mostrando ${Math.min(filtrados.length, LIMITE_RENDER_ASISTENCIA)} de ${filtrados.length}`;
 
             const tbody = document.getElementById('tabla-asistencia-body');
 
@@ -1784,7 +1934,7 @@
             }
 
             tbody.innerHTML = filtrados
-                .slice(0, LIMITE_RENDER)
+                .slice(0, LIMITE_RENDER_ASISTENCIA)
                 .map(registro => {
                     let estado = escaparHTML(registro.estado || 'OK');
 
@@ -1800,20 +1950,20 @@
 
                     return `
                         <tr>
-                            <td class="p-3 font-mono">${escaparHTML(registro.fecha)}</td>
-                            <td class="p-3">${escaparHTML(registro.sucursal)}</td>
-                            <td class="p-3">
+                            <td class="col-fecha font-mono">${escaparHTML(registro.fecha)}</td>
+                            <td class="col-sucursal font-semibold">${escaparHTML(registro.sucursal)}</td>
+                            <td class="col-colaborador">
                                 <div class="font-bold">${escaparHTML(registro.nombre || 'N/A')}</div>
                                 <div class="text-[10px] text-slate-400">${escaparHTML(registro.rut)}</div>
                             </td>
-                            <td class="p-3">${escaparHTML(registro.turno || 'Sin Turno')}</td>
-                            <td class="p-3 font-mono">
+                            <td class="col-turno">${escaparHTML(registro.turno || 'Sin Turno')}</td>
+                            <td class="col-marcas font-mono whitespace-nowrap">
                                 Entrada: ${escaparHTML(registro.entrada || '-')}<br>
                                 Salida: ${escaparHTML(registro.salida || '-')}
                             </td>
-                            <td class="p-3">${escaparHTML(registro.atraso || '-')}</td>
-                            <td class="p-3">${escaparHTML(registro.salida_temprana || '-')}</td>
-                            <td class="p-3">${estado}</td>
+                            <td class="col-atraso font-mono">${escaparHTML(registro.atraso || '-')}</td>
+                            <td class="col-temprana">${escaparHTML(registro.salida_temprana || '-')}</td>
+                            <td class="col-estado"><span class="estado-asistencia">${estado}</span></td>
                         </tr>
                     `;
                 })
@@ -1963,6 +2113,7 @@
 
                 await cargarLicenciasDesdeNube(false);
                 await inicializarDashboard();
+                await registrarAuditoria('licencias', 'CARGA_EXCEL', `Filas: ${originales.length}; únicos: ${procesadas.length}; duplicados: ${consolidado.duplicados.length}`);
 
                 mostrarToast(
                     `Carga de licencias finalizada. Excel: ${originales.length} filas. Registros únicos: ${procesadas.length}. Duplicados consolidados: ${consolidado.duplicados.length}. Supabase confirmó ${resultado.confirmados} registros en ${resultado.lotesProcesados} lote(s). Las 900 filas anteriores se actualizaron y las restantes se insertaron.`,
@@ -2152,6 +2303,145 @@
                 })
                 .join('');
         }
+
+
+        // ============================================================
+        // VACACIONES, CRUCES, PAPELETAS, REPORTES, USUARIOS Y AUDITORÍA
+        // ============================================================
+        function estadoVacacion(registro) {
+            const hoy = new Date(); hoy.setHours(0,0,0,0);
+            const inicio = parsearFechaExcel(registro.fecha_inicio);
+            const fin = parsearFechaExcel(registro.fecha_fin);
+            if (!inicio || !fin) return 'CADUCADA';
+            if (inicio > hoy) return 'PROXIMA';
+            if (inicio <= hoy && fin >= hoy) return 'VIGENTE';
+            return 'CADUCADA';
+        }
+
+        function analizarFilaVacacion(fila) {
+            return {
+                rut: normalizarRut(obtenerCampo(fila,['Rut','RUT'])),
+                nombre: texto(obtenerCampo(fila,['Nombre','Nombre Completo'])),
+                empresa: texto(obtenerCampo(fila,['Empresa'])),
+                cargo: texto(obtenerCampo(fila,['Cargo'])),
+                gerencia: texto(obtenerCampo(fila,['Gerencia'])),
+                sucursal: texto(obtenerCampo(fila,['Sucursal'])),
+                centro_costo: texto(obtenerCampo(fila,['Centro de Costo'])),
+                fecha_solicitud: texto(obtenerCampo(fila,['Fecha/Hora Solicitud'])),
+                fecha_aprobacion: texto(obtenerCampo(fila,['Fecha/Hora Aprobación/Rechazo','Fecha/Hora Aprobacion/Rechazo'])),
+                aprobado_por: texto(obtenerCampo(fila,['Aprobada/Rechazada por'])),
+                estado: texto(obtenerCampo(fila,['Estado'])),
+                fecha_inicio: fechaISODesdeExcel(obtenerCampo(fila,['Fecha Inicio Vacaciones'])),
+                fecha_fin: fechaISODesdeExcel(obtenerCampo(fila,['Fecha Fin Vacaciones'])),
+                fecha_retorno: fechaISODesdeExcel(obtenerCampo(fila,['Fecha Retorno'])),
+                dias: Number(obtenerCampo(fila,['Número de días de Vacaciones','Numero de dias de Vacaciones'],0)) || 0,
+                jornada: texto(obtenerCampo(fila,['Jornada'])),
+                tipo_vacaciones: texto(obtenerCampo(fila,['Tipo de Vacaciones'],'Vacaciones')) || 'Vacaciones',
+                observaciones: texto(obtenerCampo(fila,['Observaciones']))
+            };
+        }
+
+        async function procesarHistorialVacaciones(event) {
+            const input=event.target, file=input.files?.[0], boton=document.getElementById('btn-upload-vacaciones');
+            if(!file) return;
+            try {
+                boton.textContent='Procesando vacaciones...';
+                const originales=(await leerExcel(file)).map(analizarFilaVacacion);
+                const invalidas=originales.filter(r=>!r.rut||!r.fecha_inicio||!r.fecha_fin);
+                if(invalidas.length) throw new Error(`${invalidas.length} fila(s) sin RUT o fechas válidas.`);
+                const consolidado=deduplicarRegistros(originales,r=>[r.rut,r.fecha_inicio,r.fecha_fin,texto(r.tipo_vacaciones).toLowerCase()].join('|'));
+                boton.textContent='Guardando en Supabase...';
+                const resultado=await guardarLotes('vacaciones_historico',consolidado.registros,{onConflict:'rut,fecha_inicio,fecha_fin,tipo_vacaciones'});
+                await cargarVacacionesDesdeNube();
+                await registrarAuditoria('vacaciones','CARGA_EXCEL',`Filas: ${originales.length}; únicos: ${consolidado.registros.length}; duplicados: ${consolidado.duplicados.length}`);
+                mostrarToast(`Vacaciones guardadas. ${resultado.confirmados} registros confirmados; ${consolidado.duplicados.length} duplicados consolidados.`,'success',15000);
+            } catch(error) { mostrarToast(`No se pudieron guardar vacaciones. ${error.message}`,'error',18000); }
+            finally { boton.innerHTML='<i data-lucide="upload-cloud" class="h-4 w-4"></i> Cargar histórico<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarHistorialVacaciones(event)">'; input.value=''; lucide.createIcons(); }
+        }
+
+        function fechaEnRango(fecha,inicio,fin) { return fecha && inicio && fin && fecha>=inicio && fecha<=fin; }
+        function obtenerMarcasVacacion(v) {
+            return datosAsistenciaGlobal.filter(a=>normalizarRut(a.rut)===normalizarRut(v.rut) && fechaEnRango(a.fecha,v.fecha_inicio,v.fecha_fin) && ((a.entrada&&a.entrada!=='-')||(a.salida&&a.salida!=='-')));
+        }
+
+        async function cargarVacacionesDesdeNube() {
+            datosVacacionesGlobal=await leerTablaCompleta('vacaciones_historico','fecha_inicio');
+            if(!asistenciaCargada) await cargarAsistenciaDesdeNube();
+            vacacionesCargadas=true;
+            poblarFiltroVacaciones();
+        }
+
+        function poblarFiltroVacaciones() {
+            const sel=document.getElementById('filtro-vac-persona'), actual=sel.value;
+            const personas=new Map(datosVacacionesGlobal.filter(v=>v.rut).map(v=>[v.rut,v.nombre||'Sin nombre']));
+            sel.innerHTML='<option value="TODOS">Todos los colaboradores</option>';
+            [...personas.entries()].sort((a,b)=>a[1].localeCompare(b[1],'es')).forEach(([rut,nombre])=>{const o=document.createElement('option');o.value=rut;o.textContent=`${nombre} (${rut})`;sel.appendChild(o);});
+            sel.value=personas.has(actual)?actual:'TODOS'; renderizarVacaciones();
+        }
+
+        function renderizarVacaciones() {
+            const persona=document.getElementById('filtro-vac-persona').value, vig=document.getElementById('filtro-vac-vigencia').value, cruce=document.getElementById('filtro-vac-cruce').value, buscar=document.getElementById('busqueda-vacaciones').value.toLowerCase().trim();
+            let enriquecidos=datosVacacionesGlobal.map(v=>({...v,vigencia:estadoVacacion(v),marcas:obtenerMarcasVacacion(v)}));
+            document.getElementById('vac-stat-vigentes').innerText=enriquecidos.filter(v=>v.vigencia==='VIGENTE').length;
+            document.getElementById('vac-stat-proximas').innerText=enriquecidos.filter(v=>v.vigencia==='PROXIMA').length;
+            document.getElementById('vac-stat-caducadas').innerText=enriquecidos.filter(v=>v.vigencia==='CADUCADA').length;
+            document.getElementById('vac-stat-alertas').innerText=enriquecidos.filter(v=>v.marcas.length).length;
+            let f=enriquecidos;
+            if(persona!=='TODOS') f=f.filter(v=>v.rut===persona);
+            if(vig!=='TODOS') f=f.filter(v=>v.vigencia===vig);
+            if(cruce==='CON_MARCAS') f=f.filter(v=>v.marcas.length);
+            if(cruce==='SIN_MARCAS') f=f.filter(v=>!v.marcas.length);
+            if(buscar) f=f.filter(v=>`${v.nombre} ${v.rut} ${v.sucursal}`.toLowerCase().includes(buscar));
+            document.getElementById('contador-vacaciones').innerText=`Mostrando ${Math.min(f.length,1000)} de ${f.length}`;
+            const tbody=document.getElementById('tabla-vacaciones-body');
+            if(!f.length){tbody.innerHTML='<tr><td colspan="9" class="p-8 text-center text-slate-400">Sin registros.</td></tr>';return;}
+            tbody.innerHTML=f.slice(0,1000).map(v=>{const cls=v.vigencia==='VIGENTE'?'badge-vigente':v.vigencia==='PROXIMA'?'badge-proxima':'badge-caducada'; const alerta=v.marcas.length?`<span class="badge-alerta rounded-full px-2 py-1 font-bold">ALERTA: ${v.marcas.length} día(s) con marcas</span>`:'<span class="text-emerald-700">Sin marcas</span>'; return `<tr><td class="p-3"><div class="font-bold">${escaparHTML(v.nombre)}</div><div class="text-[10px] text-slate-400">${escaparHTML(v.rut)}</div></td><td class="p-3">${escaparHTML(v.sucursal)}</td><td class="p-3">${escaparHTML(v.estado)}</td><td class="p-3">${escaparHTML(v.tipo_vacaciones)}</td><td class="p-3 font-mono">${escaparHTML(v.fecha_inicio)} / ${escaparHTML(v.fecha_fin)}</td><td class="p-3 font-mono">${escaparHTML(v.fecha_retorno)}</td><td class="p-3">${escaparHTML(v.dias)}</td><td class="p-3"><span class="${cls} rounded-full px-2 py-1 font-bold">${v.vigencia}</span></td><td class="p-3">${alerta}</td></tr>`;}).join('');
+        }
+
+        function fechaBonita(iso) { if(!iso)return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
+        async function archivoADataURL(file) { return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file);}); }
+
+        async function generarPapeletaPDF() {
+            const nombre=texto(document.getElementById('pap-nombre').value), rut=normalizarRut(document.getElementById('pap-rut').value), sucursal=texto(document.getElementById('pap-sucursal').value), tipo=texto(document.getElementById('pap-tipo').value), inicio=document.getElementById('pap-inicio').value, fin=document.getElementById('pap-fin').value, retorno=document.getElementById('pap-retorno').value, dias=document.getElementById('pap-dias').value, remuneracion=document.getElementById('pap-remuneracion').value, motivo=texto(document.getElementById('pap-motivo').value), firma=texto(document.getElementById('pap-firma').value), adicional=texto(document.getElementById('pap-adicional').value);
+            if(!nombre||!rut||!inicio||!fin||!retorno){mostrarToast('Completa nombre, RUT y fechas.','warning');return;}
+            const file=document.getElementById('pap-firma-imagen').files?.[0]; if(file) firmaPapeletaDataUrl=await archivoADataURL(file);
+            const {jsPDF}=window.jspdf, doc=new jsPDF({unit:'mm',format:'a4'}); const left=20, width=170;
+            doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('FARMACIAS DE SIMILARES CHILE S.A.',105,18,{align:'center'});doc.setFontSize(9);doc.text('RUT: 59.111.330-5 · Departamento de Recursos Humanos',105,24,{align:'center'});doc.setDrawColor(227,24,55);doc.setLineWidth(1);doc.line(20,29,190,29);doc.setFontSize(12);doc.text('CARTA DE AUTORIZACIÓN DE PERMISO',105,40,{align:'center'});
+            doc.setFont('helvetica','normal');doc.setFontSize(10);let y=50; const lineas=doc.splitTextToSize(`Se deja constancia que ${nombre}, RUT ${rut}, perteneciente a la sucursal ${sucursal}, ha solicitado permiso por concepto de ${tipo}.`,width);doc.text(lineas,left,y);y+=lineas.length*5+5;
+            const campos=[['TIPO DE PERMISO',tipo],['FECHA INICIO',fechaBonita(inicio)],['FECHA TÉRMINO',fechaBonita(fin)],['FECHA DE RETORNO',fechaBonita(retorno)],['DÍAS AUTORIZADOS',`${dias} día(s)`],['REMUNERACIÓN',remuneracion],['MOTIVO / RESPALDO',motivo||'Sin observaciones']];
+            campos.forEach(([a,b])=>{doc.setFont('helvetica','bold');doc.text(a,left,y);doc.setFont('helvetica','normal');const t=doc.splitTextToSize(String(b),105);doc.text(t,75,y);y+=Math.max(7,t.length*5);});
+            y+=3;doc.text(doc.splitTextToSize(`El permiso queda registrado para fines administrativos, debiendo reintegrarse el ${fechaBonita(retorno)}. ${adicional}`,width),left,y);y+=25;
+            if(firmaPapeletaDataUrl){try{doc.addImage(firmaPapeletaDataUrl,'PNG',75,y,60,20);y+=23;}catch(e){console.warn(e);}}
+            doc.line(60,y,150,y);doc.setFont('helvetica','bold');doc.text(firma||'Departamento de Recursos Humanos',105,y+5,{align:'center'});doc.setFont('helvetica','normal');doc.text('Farmacias de Similares Chile S.A.',105,y+10,{align:'center'});
+            const nombreArchivo=`Papeleta_${rut}_${inicio}.pdf`;doc.save(nombreArchivo);
+            const {data:{session}}=await _supabase.auth.getSession(); const registro={rut,nombre,sucursal,tipo_permiso:tipo,fecha_inicio:inicio,fecha_fin:fin,fecha_retorno:retorno,dias:Number(dias)||1,remuneracion,motivo,firma_responsable:firma,generado_por:session?.user?.email||''};
+            const {error}=await _supabase.from('papeletas_permiso').insert([registro]); if(error) mostrarToast(`PDF generado, pero no se pudo registrar: ${error.message}`,'warning'); else {await registrarAuditoria('papeletas','GENERA_PDF',`${nombre} · ${tipo} · ${inicio} a ${fin}`);await cargarPapeletas();mostrarToast('Papeleta generada y registrada.','success');}
+        }
+
+        async function cargarPapeletas() { const tbody=document.getElementById('tabla-papeletas-body'); if(!tbody)return; const {data,error}=await _supabase.from('papeletas_permiso').select('*').order('created_at',{ascending:false}).limit(300); if(error){tbody.innerHTML=`<tr><td colspan="5" class="p-8 text-center text-red-600">${escaparHTML(error.message)}</td></tr>`;return;} tbody.innerHTML=data?.length?data.map(p=>`<tr><td class="p-3">${escaparHTML(p.created_at?.slice(0,10))}</td><td class="p-3"><b>${escaparHTML(p.nombre)}</b><br>${escaparHTML(p.rut)}</td><td class="p-3">${escaparHTML(p.tipo_permiso)}</td><td class="p-3">${escaparHTML(p.fecha_inicio)} a ${escaparHTML(p.fecha_fin)}</td><td class="p-3">${escaparHTML(p.generado_por)}</td></tr>`).join(''):'<tr><td colspan="5" class="p-8 text-center text-slate-400">Sin registros.</td></tr>'; }
+
+        function filtrarPeriodo(datos,campo,desde,hasta){return datos.filter(r=>(!desde||r[campo]>=desde)&&(!hasta||r[campo]<=hasta));}
+        async function generarReporte() {
+            const tipo=document.getElementById('rep-tipo').value,titulo=texto(document.getElementById('rep-titulo').value,'Reporte RRHH'),formato=document.getElementById('rep-formato').value,desde=document.getElementById('rep-desde').value,hasta=document.getElementById('rep-hasta').value,sucursal=texto(document.getElementById('rep-sucursal').value).toLowerCase(),contenido=texto(document.getElementById('rep-contenido').value);
+            let datos=[],resumen='';
+            if(tipo==='ASISTENCIA'){datos=filtrarPeriodo(datosAsistenciaGlobal,'fecha',desde,hasta);resumen=`Registros: ${datos.length}. Atrasos: ${datos.filter(r=>r.tiene_atraso).length}. Sin marcas: ${datos.filter(r=>r.sin_marca).length}.`;}
+            if(tipo==='LICENCIAS'){datos=filtrarPeriodo(datosLicenciasGlobal,'fecha_inicio',desde,hasta);resumen=`Licencias: ${datos.length}. Vigentes: ${datos.filter(r=>{const f=parsearFechaExcel(r.fecha_fin),h=new Date();h.setHours(0,0,0,0);return f&&f>=h;}).length}.`;}
+            if(tipo==='VACACIONES'||tipo==='CRUCES'){if(!vacacionesCargadas)await cargarVacacionesDesdeNube();datos=filtrarPeriodo(datosVacacionesGlobal,'fecha_inicio',desde,hasta).map(v=>({...v,marcas:obtenerMarcasVacacion(v).length}));if(tipo==='CRUCES')datos=datos.filter(v=>v.marcas);resumen=`Vacaciones: ${datos.length}. Casos con marcas: ${datos.filter(v=>v.marcas).length}.`;}
+            if(tipo==='RESUMEN'){resumen=`Asistencia: ${datosAsistenciaGlobal.length} registros. Licencias: ${datosLicenciasGlobal.length}. Vacaciones: ${datosVacacionesGlobal.length}. Alertas vacaciones con marcas: ${datosVacacionesGlobal.filter(v=>obtenerMarcasVacacion(v).length).length}.`;}
+            if(sucursal)datos=datos.filter(r=>texto(r.sucursal).toLowerCase().includes(sucursal));
+            if(formato==='XLSX'){const wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(datos.length?datos:[{reporte:titulo,resumen,contenido}]);XLSX.utils.book_append_sheet(wb,ws,'Reporte');XLSX.writeFile(wb,`${titulo.replace(/[^a-z0-9]+/gi,'_')}.xlsx`);} else {const {jsPDF}=window.jspdf,doc=new jsPDF();doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text(titulo,20,20);doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text(`Periodo: ${desde||'sin inicio'} a ${hasta||'sin término'}`,20,28);let y=38;[resumen,contenido].filter(Boolean).forEach(t=>{const l=doc.splitTextToSize(t,170);doc.text(l,20,y);y+=l.length*5+5;});doc.setFontSize(8);datos.slice(0,120).forEach((r,i)=>{const txt=`${i+1}. ${r.fecha||r.fecha_inicio||''} · ${r.nombre||''} · ${r.rut||''} · ${r.sucursal||''} ${r.marcas?`· Marcas: ${r.marcas}`:''}`;const l=doc.splitTextToSize(txt,170);if(y+l.length*4>280){doc.addPage();y=20;}doc.text(l,20,y);y+=l.length*4+2;});doc.save(`${titulo.replace(/[^a-z0-9]+/gi,'_')}.pdf`);}
+            await registrarAuditoria('reportes','GENERA_REPORTE',`${tipo} · ${formato} · ${desde||'s/f'} a ${hasta||'s/f'} · ${datos.length} registros`);mostrarToast('Reporte generado y descargado.','success');
+        }
+
+        const listaPermisos=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','reportes','usuarios','auditoria'];
+        function construirChecksPermisos(){const c=document.getElementById('usr-permisos');if(!c)return;c.innerHTML=listaPermisos.map(p=>`<label class="flex items-center gap-2 rounded-lg border p-2 text-xs"><input type="checkbox" value="${p}" class="usr-check">${p}</label>`).join('');}
+        async function guardarUsuarioRol(){const email=texto(document.getElementById('usr-email').value).toLowerCase(),nombre=texto(document.getElementById('usr-nombre').value),rol=document.getElementById('usr-rol').value,permisos=[...document.querySelectorAll('.usr-check:checked')].map(x=>x.value);if(!email){mostrarToast('Ingresa un correo.','warning');return;}const {error}=await _supabase.from('usuarios_roles').upsert([{email,nombre,rol,permisos,activo:true}],{onConflict:'email'});if(error){mostrarToast(error.message,'error');return;}await registrarAuditoria('usuarios','CAMBIA_PERMISOS',`${email} · ${rol} · ${permisos.join(', ')}`);await cargarUsuariosRoles();mostrarToast('Usuario y permisos guardados.','success');}
+        async function cargarUsuariosRoles(){construirChecksPermisos();const {data,error}=await _supabase.from('usuarios_roles').select('*').order('email');const tbody=document.getElementById('tabla-usuarios-body');if(error){tbody.innerHTML=`<tr><td colspan="6" class="p-8 text-center text-red-600">${escaparHTML(error.message)}</td></tr>`;return;}tbody.innerHTML=data?.length?data.map(u=>`<tr><td class="p-3">${escaparHTML(u.email)}</td><td class="p-3">${escaparHTML(u.nombre)}</td><td class="p-3 font-bold">${escaparHTML(u.rol)}</td><td class="p-3">${escaparHTML((u.permisos||[]).join(', '))}</td><td class="p-3">${u.activo?'Activo':'Inactivo'}</td><td class="p-3"><button onclick="toggleUsuario('${escaparHTML(u.email)}',${!u.activo})" class="text-simiRed font-bold">${u.activo?'Desactivar':'Activar'}</button></td></tr>`).join(''):'<tr><td colspan="6" class="p-8 text-center text-slate-400">Sin usuarios.</td></tr>';}
+        async function toggleUsuario(email,activo){const {error}=await _supabase.from('usuarios_roles').update({activo}).eq('email',email);if(error)mostrarToast(error.message,'error');else{await registrarAuditoria('usuarios',activo?'ACTIVA_USUARIO':'DESACTIVA_USUARIO',email);await cargarUsuariosRoles();}}
+
+        async function registrarAuditoria(modulo,accion,detalle){try{const {data:{session}}=await _supabase.auth.getSession();await _supabase.from('auditoria_eventos').insert([{usuario_email:session?.user?.email||'sin sesión',modulo,accion,detalle}]);}catch(e){console.warn('Auditoría no registrada',e);}}
+        async function cargarAuditoria(){const {data,error}=await _supabase.from('auditoria_eventos').select('*').order('created_at',{ascending:false}).limit(2000);if(error){mostrarToast(error.message,'error');return;}datosAuditoriaGlobal=data||[];renderizarAuditoria();}
+        function renderizarAuditoria(){const buscar=document.getElementById('audit-buscar')?.value.toLowerCase().trim()||'',desde=document.getElementById('audit-desde')?.value||'',hasta=document.getElementById('audit-hasta')?.value||'';let f=datosAuditoriaGlobal.filter(a=>(!desde||a.created_at.slice(0,10)>=desde)&&(!hasta||a.created_at.slice(0,10)<=hasta));if(buscar)f=f.filter(a=>`${a.usuario_email} ${a.modulo} ${a.accion} ${a.detalle}`.toLowerCase().includes(buscar));document.getElementById('contador-auditoria').innerText=f.length;document.getElementById('tabla-auditoria-body').innerHTML=f.length?f.map(a=>`<tr><td class="p-3 font-mono">${escaparHTML(a.created_at?.replace('T',' ').slice(0,19))}</td><td class="p-3">${escaparHTML(a.usuario_email)}</td><td class="p-3">${escaparHTML(a.modulo)}</td><td class="p-3 font-bold">${escaparHTML(a.accion)}</td><td class="p-3">${escaparHTML(a.detalle)}</td></tr>`).join(''):'<tr><td colspan="5" class="p-8 text-center text-slate-400">Sin eventos.</td></tr>';}
 
         // ============================================================
         // COLABORADORES Y SUCURSALES
