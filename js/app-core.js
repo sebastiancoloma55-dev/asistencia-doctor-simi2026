@@ -398,6 +398,21 @@
             return resultado;
         }
 
+        function actualizarBienvenidaUsuario(user){
+            const perfil=typeof perfilActualSistema!=='undefined'&&perfilActualSistema?perfilActualSistema:{};
+            const meta=user?.user_metadata||{};
+            const nombre=String(perfil.nombre||perfil.nombre_completo||meta.full_name||meta.name||'').trim();
+            const email=String(user?.email||perfil.email||'').trim();
+            const nombreVisible=nombre||email.split('@')[0]||'equipo de Asistencia';
+            const nameEl=document.getElementById('dashboard-welcome-name');
+            if(nameEl)nameEl.textContent=nombreVisible;
+            const subtitle=document.getElementById('dashboard-welcome-subtitle');
+            if(subtitle)subtitle.textContent=esAdminPrincipalActual()?'Tienes acceso de administrador principal a todos los módulos y herramientas del sistema.':'Tu centro de control para asistencia, ausentismo y operaciones.';
+            const role=document.getElementById('dashboard-welcome-role');
+            if(role)role.innerHTML='<i data-lucide="shield-check" class="h-4 w-4"></i> '+(esAdminPrincipalActual()?'Administrador principal':'Usuario autorizado');
+            if(window.lucide)lucide.createIcons();
+        }
+
         function toggleSidebar(abrir) {
             document
                 .getElementById('sidebar')
@@ -435,6 +450,7 @@
                 if (data.session) {
                     try{
                         await cargarPerfilPermisosActual(data.session.user);
+                        actualizarBienvenidaUsuario(data.session.user);
                         document.getElementById('user-email-display').innerText=data.session.user.email;
                         document.getElementById('login-overlay').classList.add('hidden');
                         await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
@@ -474,6 +490,7 @@
                 }
 
                 await cargarPerfilPermisosActual(data.user);
+                actualizarBienvenidaUsuario(data.user);
                 document.getElementById('user-email-display').innerText=data.user.email;
                 document.getElementById('login-overlay').classList.add('hidden');
                 await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
