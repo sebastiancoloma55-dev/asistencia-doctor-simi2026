@@ -191,7 +191,7 @@
         function esAdminPrincipalActual(){return String(perfilActualSistema?.email||'').trim().toLowerCase()===EMAIL_ADMIN_PRINCIPAL;}
         function esAdministradorConAccesoGlobal(){
             const rol=String(perfilActualSistema?.rol||'').trim().toUpperCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[\\s-]+/g,'_');
-            return esAdminPrincipalActual() || perfilActualSistema?.acceso_global===true || ['ADMIN','ADMINISTRADOR','SUPERADMIN','SUPER_ADMIN','ADMIN_PRINCIPAL'].includes(rol);
+            return esAdminPrincipalActual() || perfilActualSistema?.acceso_global===true || ['ADMIN','ADMINISTRADOR','SUPERADMIN','SUPER_ADMIN','ADMIN_PRINCIPAL','ADMINISTRADOR_PRINCIPAL'].includes(rol);
         }
         function tienePermisoModulo(modulo){
             // Los perfiles administradores y las cuentas con acceso_global pueden administrar los 19 módulos.
