@@ -3563,6 +3563,7 @@ body{overflow-x:hidden}
         async function prepararModuloCorreos() {
             if (!asistenciaCargada) await cargarAsistenciaDesdeNube();
             sucursalesConfiguracionGlobal = await obtenerSucursalesConfig();
+            if(!sucursalesConfiguracionGlobal.length)throw new Error('No se cargaron sucursales desde Supabase. Revisa los permisos del usuario y vuelve a intentar.');
             const hoy = new Date().toISOString().slice(0, 10);
             document.getElementById('correo-hasta').value ||= hoy;
             document.getElementById('correo-desde').value ||= hoy;
@@ -4208,7 +4209,9 @@ body{overflow-x:hidden}
   if(typeof originalChange==='function'){
     window.cambiarModulo=async function(modulo,cargar){
       if(!allowed.has(permissionName(modulo))){if(window.mostrarToast)mostrarToast('Este apartado no está habilitado para tu usuario. Solicita al administrador que lo autorice en Usuarios y roles.','warning');return;}
-      return originalChange.apply(this,arguments);
+      var resultado=await originalChange.apply(this,arguments);
+      if(modulo==='mapas'){setTimeout(function(){var mapa=asegurarMapaLeaflet();if(mapa)mapa.invalidateSize();},220);}
+      return resultado;
     };
   }
   var originalInit=window.inicializarDashboard;
