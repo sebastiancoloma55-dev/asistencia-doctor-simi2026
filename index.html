@@ -661,6 +661,9 @@ body{overflow-x:hidden}
                     <button type="button" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('tareas');setTimeout(()=>document.getElementById('tarea-titulo')?.focus(),250)">
                         <i data-lucide="plus" class="h-4 w-4"></i><span>Nueva tarea rápida</span>
                     </button>
+                    <button type="button" class="topbar-search hidden md:inline-flex" onclick="abrirBuscadorGlobal()" aria-label="Buscar módulos, Ctrl K" title="Buscar módulos (Ctrl+K)">
+                        <i data-lucide="search" class="h-4 w-4"></i><span>Buscar módulo...</span><kbd>Ctrl K</kbd>
+                    </button>
                     <span class="topbar-divider hidden sm:block"></span>
                     <span id="user-email-display" class="topbar-user-email hidden text-sm font-semibold text-slate-600 sm:inline">Cargando...</span>
 
@@ -1519,6 +1522,19 @@ body{overflow-x:hidden}
                 <div class="helper-note"><strong>Seguridad:</strong> no pegues claves privadas de Talana, IMED, Google, Microsoft ni Supabase en esta pantalla. Las credenciales deben almacenarse como variables de entorno en el servidor.</div>
             </section>
 
+            <div id="global-search-overlay" class="global-search-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="global-search-title" onclick="if(event.target===this)cerrarBuscadorGlobal()">
+                <div class="global-search-panel">
+                    <div class="flex items-center gap-3 border-b border-slate-100 p-4">
+                        <i data-lucide="search" class="h-5 w-5 text-blue-600"></i>
+                        <input id="global-search-input" class="global-search-input" type="search" placeholder="Busca módulos o tareas..." autocomplete="off" oninput="renderBuscadorGlobal()" onkeydown="if(event.key==='Enter'){const first=document.querySelector('#global-search-results [data-search-module]');if(first)navegarBuscadorGlobal(first.dataset.searchModule)}">
+                        <button type="button" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50" onclick="cerrarBuscadorGlobal()">Esc</button>
+                    </div>
+                    <div class="px-4 pt-3"><h2 id="global-search-title" class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Navegación rápida</h2></div>
+                    <div id="global-search-results" class="global-search-results p-3"></div>
+                    <div class="flex items-center justify-between border-t border-slate-100 px-4 py-3 text-[11px] text-slate-400"><span>Solo muestra módulos autorizados para tu perfil</span><span>↑ ↓ · Enter · Esc</span></div>
+                </div>
+            </div>
+
             <section id="view-generic" class="hidden p-8">
                 <div class="ui-card mx-auto mt-10 max-w-xl p-12 text-center">
                     <i data-lucide="wrench" class="mx-auto mb-4 h-10 w-10 text-simiRed"></i>
@@ -2257,6 +2273,48 @@ body{overflow-x:hidden}
         }
 
 
+
+
+        // ============================================================
+        // BUSCADOR GLOBAL · Navegación por teclado y permisos
+        // ============================================================
+        const etiquetasBusquedaGlobal={
+            dashboard:['inicio','resumen','indicadores','kpi'],
+            colaboradores:['personas','empleados','trabajadores','rut'],
+            sucursales:['locales','farmacias','directorio','direcciones'],
+            asistencia:['marcas','atrasos','entrada','salida','turnos'],
+            licencias:['licencias médicas','ausentismo','iméd','medipass'],
+            vacaciones:['feriado','descanso','solicitudes'],
+            papeletas:['permisos','documentos','papeleta'],
+            correos:['email','outlook','borradores','supervisores'],
+            amonestaciones:['coberturas','reemplazos','sucursal'],
+            reportes:['excel','csv','pdf','estadísticas','ia'],
+            usuarios:['roles','accesos','permisos'],
+            auditoria:['historial','trazabilidad','registro'],
+            configcorreos:['correos sucursales','destinatarios','cc'],
+            mapas:['distancia','ruta','kilómetros','gps'],
+            tareas:['pendientes','asignaciones','productividad','kpi'],
+            operaciones:['alertas','prioridades','vencimientos','centro de mando'],
+            calidad:['importaciones','errores','coordenadas','integridad'],
+            notificaciones:['avisos','sin leer','bandeja'],
+            integraciones:['talana','imed','supabase','vercel','gemini','outlook']
+        };
+        function abrirBuscadorGlobal(){
+            const ov=document.getElementById('global-search-overlay'),inp=document.getElementById('global-search-input');if(!ov||!inp)return;
+            ov.classList.remove('hidden');document.body.classList.add('search-open');inp.value='';renderBuscadorGlobal();setTimeout(()=>inp.focus(),30);
+        }
+        function cerrarBuscadorGlobal(){document.getElementById('global-search-overlay')?.classList.add('hidden');document.body.classList.remove('search-open');}
+        function renderBuscadorGlobal(){
+            const out=document.getElementById('global-search-results'),q=texto(document.getElementById('global-search-input')?.value).toLowerCase();if(!out)return;
+            const found=modulos.filter(m=>tienePermisoModulo(m)&&((String(titulos[m]||m)+' '+m+' '+(etiquetasBusquedaGlobal[m]||[]).join(' ')).toLowerCase().includes(q)));
+            out.innerHTML=found.length?found.map((m,i)=>'<button type="button" data-search-module="'+opsEsc(m)+'" onclick="navegarBuscadorGlobal(\''+opsEsc(m)+'\')" class="global-search-result '+(i===0?'selected':'')+'"><span class="global-search-result-icon"><i data-lucide="'+({dashboard:'layout-dashboard',colaboradores:'users',sucursales:'building-2',asistencia:'clock',licencias:'file-heart',vacaciones:'palmtree',papeletas:'file-text',correos:'mail',amonestaciones:'folder-alert',reportes:'chart-no-axes-combined',usuarios:'shield-check',auditoria:'history',configcorreos:'mail-cog',mapas:'map-pinned',tareas:'list-checks',operaciones:'gauge',calidad:'shield-check',notificaciones:'bell-ring',integraciones:'plug-zap'}[m]||'arrow-right')+'" class="h-4 w-4"></i></span><span class="min-w-0 flex-1"><strong class="block text-sm">'+opsEsc(titulos[m]||m)+'</strong><span class="mt-0.5 block text-xs text-slate-500">'+opsEsc((etiquetasBusquedaGlobal[m]||[]).slice(0,4).join(' · '))+'</span></span><i data-lucide="corner-down-left" class="h-4 w-4 text-slate-400"></i></button>').join(''):'<div class="p-8 text-center"><i data-lucide="search-x" class="mx-auto h-7 w-7 text-slate-300"></i><p class="mt-2 text-sm font-bold text-slate-600">No hay resultados</p><p class="mt-1 text-xs text-slate-400">Prueba con otro término o revisa tus permisos.</p></div>';
+            if(window.lucide)lucide.createIcons();
+        }
+        function navegarBuscadorGlobal(modulo){if(!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para abrir este módulo.','warning');return;}cerrarBuscadorGlobal();cambiarModulo(modulo);}
+        document.addEventListener('keydown',function(e){
+            if((e.ctrlKey||e.metaKey)&&String(e.key).toLowerCase()==='k'){e.preventDefault();abrirBuscadorGlobal();return;}
+            if(e.key==='Escape'&&!document.getElementById('global-search-overlay')?.classList.contains('hidden'))cerrarBuscadorGlobal();
+        });
 
         // ============================================================
         // NOTIFICACIONES · Bandeja personal con actualización segura
@@ -4592,6 +4650,22 @@ table tbody tr:hover{background:#f7fbff}
 
 /* Cifras del centro: separar totales exactos de la muestra usada para alertas */
 #view-operaciones .ops-kpi strong{font-variant-numeric:tabular-nums}
+
+/* Paleta de comandos: acceso rápido a los módulos autorizados */
+.topbar-search{align-items:center;gap:9px;border:1px solid #dce7f5;border-radius:11px;background:#f8fbff;color:#60708c;padding:9px 11px;font-size:11px;font-weight:700;transition:all .16s}
+.topbar-search:hover{border-color:#a9cafa;background:#eef6ff;color:#0759b0}
+.topbar-search kbd{border:1px solid #dbe5f1;border-radius:5px;background:#fff;padding:2px 5px;color:#8a98ad;font-size:9px;font-weight:800}
+.global-search-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding: min(13vh,110px) 18px 24px;background:rgba(7,22,48,.52);backdrop-filter:blur(7px)}
+.global-search-panel{width:min(640px,100%);overflow:hidden;border:1px solid rgba(255,255,255,.7);border-radius:20px;background:#fff;box-shadow:0 32px 100px rgba(3,18,44,.3);animation:searchPanelIn .16s ease-out}
+.global-search-input{min-width:0;flex:1;border:0!important;outline:0!important;box-shadow:none!important;background:transparent;font-size:15px;color:#14213d}
+.global-search-results{max-height:min(55vh,440px);overflow:auto}
+.global-search-result{display:flex;width:100%;align-items:center;gap:12px;border:1px solid transparent;border-radius:12px;padding:11px;text-align:left;transition:all .12s}
+.global-search-result:hover,.global-search-result.selected{border-color:#dcecff;background:#f2f8ff}
+.global-search-result-icon{display:grid;place-items:center;width:36px;height:36px;flex:0 0 auto;border-radius:11px;background:#e9f3ff;color:#0967c8}
+body.search-open{overflow:hidden}
+@keyframes searchPanelIn{from{opacity:0;transform:translateY(-8px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.global-search-panel{animation:none}}
+@media(max-width:700px){.global-search-overlay{padding:7vh 10px 15px}.global-search-panel{border-radius:16px}.topbar-search{padding:8px}}
 </style>
 <script>
 (function(){
