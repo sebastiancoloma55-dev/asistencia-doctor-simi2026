@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asistencia Doctor Simi - RRHH</title>
 
-    <!-- Dependencias -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -19,10 +18,6 @@
                         simiRed: '#E31837',
                         simiNavy: '#002B49',
                         simiNavyHover: '#001D33'
-                    },
-                    borderRadius: {
-                        xl: '0.75rem',
-                        '2xl': '1rem'
                     }
                 }
             }
@@ -36,75 +31,65 @@
 
         .ui-card {
             background: #ffffff;
-            border: 1px solid #E5E7EB;
+            border: 1px solid #e5e7eb;
             border-radius: 0.75rem;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .ui-button {
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.15s ease;
         }
 
         .ui-button:active {
             transform: scale(0.98);
         }
 
-        .table-wrapper {
+        .table-scroll {
             overflow-x: auto;
-        }
-
-        .toast-enter {
-            animation: toastIn 0.2s ease-out;
-        }
-
-        @keyframes toastIn {
-            from {
-                opacity: 0;
-                transform: translateY(-8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         @media (max-width: 900px) {
             #sidebar {
                 position: fixed;
                 inset: 0 auto 0 0;
-                z-index: 60;
+                z-index: 70;
                 transform: translateX(-100%);
                 transition: transform 0.2s ease;
             }
 
-            #sidebar.mobile-open {
+            #sidebar.open {
                 transform: translateX(0);
             }
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased">
 
-    <!-- Notificaciones -->
+<body class="bg-slate-50 text-slate-800 antialiased">
     <div
         id="toast-container"
-        class="fixed top-4 right-4 z-[200] w-full max-w-md space-y-2 px-4"
+        class="fixed right-4 top-4 z-[200] w-full max-w-md space-y-3 px-4"
     ></div>
 
-    <!-- Login -->
+    <!-- LOGIN -->
     <div
         id="login-overlay"
         class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900 p-4"
     >
-        <div class="w-full max-w-md rounded-2xl border-t-4 border-simiRed bg-white p-8 shadow-2xl">
+        <div
+            class="w-full max-w-md rounded-2xl border-t-4 border-simiRed bg-white p-8 shadow-2xl"
+        >
             <div class="mb-6 flex items-center justify-center gap-3">
-                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-simiRed text-xl font-black text-white shadow-md">
+                <div
+                    class="flex h-12 w-12 items-center justify-center rounded-xl bg-simiRed text-xl font-black text-white"
+                >
                     DS
                 </div>
+
                 <div>
                     <h1 class="text-xl font-bold tracking-wide text-simiNavy">
                         DOCTOR SIMI
                     </h1>
+
                     <p class="text-xs font-medium text-slate-500">
                         Acceso restringido - RRHH
                     </p>
@@ -120,17 +105,19 @@
                     <label class="mb-1 block text-sm font-semibold text-slate-700">
                         Correo electrónico
                     </label>
+
                     <div class="relative">
                         <i
                             data-lucide="mail"
                             class="absolute left-3 top-3 h-5 w-5 text-slate-400"
                         ></i>
+
                         <input
                             id="login-email"
                             type="email"
-                            required
                             autocomplete="username"
-                            class="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-simiRed"
+                            required
+                            class="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-simiRed"
                             placeholder="administrador@doctorsimi.cl"
                         >
                     </div>
@@ -140,17 +127,19 @@
                     <label class="mb-1 block text-sm font-semibold text-slate-700">
                         Contraseña
                     </label>
+
                     <div class="relative">
                         <i
                             data-lucide="lock"
                             class="absolute left-3 top-3 h-5 w-5 text-slate-400"
                         ></i>
+
                         <input
                             id="login-pass"
                             type="password"
-                            required
                             autocomplete="current-password"
-                            class="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-simiRed"
+                            required
+                            class="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-simiRed"
                             placeholder="••••••••"
                         >
                     </div>
@@ -158,102 +147,118 @@
 
                 <div
                     id="login-error"
-                    class="hidden items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-600"
-                >
-                    <i
-                        data-lucide="alert-circle"
-                        class="h-4 w-4 flex-shrink-0"
-                    ></i>
-                    <span id="login-error-text"></span>
-                </div>
+                    class="hidden rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700"
+                ></div>
 
                 <button
                     id="btn-login"
                     type="submit"
-                    class="ui-button mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-simiRed py-3 font-bold text-white shadow-sm hover:bg-red-700"
+                    class="ui-button flex w-full items-center justify-center gap-2 rounded-lg bg-simiRed py-3 font-bold text-white hover:bg-red-700"
                 >
-                    <i data-lucide="log-in" class="h-5 w-5"></i>
+                    <i
+                        data-lucide="log-in"
+                        class="h-5 w-5"
+                    ></i>
+
                     Ingresar al sistema
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- App -->
+    <!-- APP -->
     <div class="flex h-screen overflow-hidden">
         <aside
             id="sidebar"
-            class="flex w-64 flex-shrink-0 flex-col border-r border-slate-800 bg-simiNavy text-white"
+            class="flex w-64 flex-shrink-0 flex-col bg-simiNavy text-white"
         >
             <div class="flex items-center justify-between border-b border-blue-900/60 p-5">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-simiRed text-base font-black text-white shadow-md">
+                    <div
+                        class="flex h-9 w-9 items-center justify-center rounded-xl bg-simiRed font-black"
+                    >
                         DS
                     </div>
+
                     <div>
-                        <h1 class="text-sm font-bold tracking-wide">DOCTOR SIMI</h1>
-                        <p class="text-[11px] font-medium text-slate-300">Recursos Humanos</p>
+                        <h1 class="text-sm font-bold tracking-wide">
+                            DOCTOR SIMI
+                        </h1>
+
+                        <p class="text-[11px] text-slate-300">
+                            Recursos Humanos
+                        </p>
                     </div>
                 </div>
+
                 <button
                     class="lg:hidden"
                     onclick="toggleSidebar(false)"
-                    aria-label="Cerrar menú"
                 >
-                    <i data-lucide="x" class="h-5 w-5"></i>
+                    <i
+                        data-lucide="x"
+                        class="h-5 w-5"
+                    ></i>
                 </button>
             </div>
 
-            <nav
-                id="main-menu"
-                class="flex-1 space-y-1 overflow-y-auto p-3 text-sm font-medium"
-            >
-                <button id="btn-dashboard" onclick="cambiarModulo('dashboard')" class="menu-btn w-full">
+            <nav class="flex-1 space-y-1 overflow-y-auto p-3 text-sm">
+                <button id="btn-dashboard" class="menu-btn" onclick="cambiarModulo('dashboard')">
                     <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
                     1. Dashboard
                 </button>
-                <div class="my-2 border-t border-blue-900/50"></div>
-                <button id="btn-colaboradores" onclick="cambiarModulo('colaboradores')" class="menu-btn w-full">
+
+                <button id="btn-colaboradores" class="menu-btn" onclick="cambiarModulo('colaboradores')">
                     <i data-lucide="users" class="h-4 w-4"></i>
                     2. Colaboradores
                 </button>
-                <button id="btn-sucursales" onclick="cambiarModulo('sucursales')" class="menu-btn w-full">
+
+                <button id="btn-sucursales" class="menu-btn" onclick="cambiarModulo('sucursales')">
                     <i data-lucide="building-2" class="h-4 w-4"></i>
                     3. Sucursales
                 </button>
-                <button id="btn-asistencia" onclick="cambiarModulo('asistencia')" class="menu-btn w-full">
+
+                <button id="btn-asistencia" class="menu-btn" onclick="cambiarModulo('asistencia')">
                     <i data-lucide="clock" class="h-4 w-4"></i>
                     4. Asistencia y atrasos
                 </button>
-                <button id="btn-licencias" onclick="cambiarModulo('licencias')" class="menu-btn w-full">
+
+                <button id="btn-licencias" class="menu-btn" onclick="cambiarModulo('licencias')">
                     <i data-lucide="file-heart" class="h-4 w-4"></i>
                     5. Licencias y ausentismo
                 </button>
-                <button id="btn-vacaciones" onclick="cambiarModulo('vacaciones')" class="menu-btn w-full">
+
+                <button id="btn-vacaciones" class="menu-btn" onclick="cambiarModulo('vacaciones')">
                     <i data-lucide="palmtree" class="h-4 w-4"></i>
                     6. Vacaciones
                 </button>
-                <button id="btn-papeletas" onclick="cambiarModulo('papeletas')" class="menu-btn w-full">
+
+                <button id="btn-papeletas" class="menu-btn" onclick="cambiarModulo('papeletas')">
                     <i data-lucide="file-text" class="h-4 w-4"></i>
                     7. Papeletas
                 </button>
-                <button id="btn-correos" onclick="cambiarModulo('correos')" class="menu-btn w-full">
+
+                <button id="btn-correos" class="menu-btn" onclick="cambiarModulo('correos')">
                     <i data-lucide="mail" class="h-4 w-4"></i>
                     8. Borradores correo
                 </button>
-                <button id="btn-amonestaciones" onclick="cambiarModulo('amonestaciones')" class="menu-btn w-full">
+
+                <button id="btn-amonestaciones" class="menu-btn" onclick="cambiarModulo('amonestaciones')">
                     <i data-lucide="folder-alert" class="h-4 w-4"></i>
                     9. Amonestaciones
                 </button>
-                <button id="btn-reportes" onclick="cambiarModulo('reportes')" class="menu-btn w-full">
+
+                <button id="btn-reportes" class="menu-btn" onclick="cambiarModulo('reportes')">
                     <i data-lucide="bar-chart-3" class="h-4 w-4"></i>
                     10. Reportes
                 </button>
-                <button id="btn-usuarios" onclick="cambiarModulo('usuarios')" class="menu-btn w-full">
+
+                <button id="btn-usuarios" class="menu-btn" onclick="cambiarModulo('usuarios')">
                     <i data-lucide="shield-check" class="h-4 w-4"></i>
                     11. Usuarios y roles
                 </button>
-                <button id="btn-auditoria" onclick="cambiarModulo('auditoria')" class="menu-btn w-full">
+
+                <button id="btn-auditoria" class="menu-btn" onclick="cambiarModulo('auditoria')">
                     <i data-lucide="history" class="h-4 w-4"></i>
                     12. Auditoría
                 </button>
@@ -261,287 +266,452 @@
         </aside>
 
         <main class="flex min-w-0 flex-1 flex-col overflow-y-auto">
-            <header class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 sm:px-8">
+            <header
+                class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 sm:px-8"
+            >
                 <div class="flex items-center gap-3">
                     <button
                         class="rounded-lg border border-slate-200 p-2 lg:hidden"
                         onclick="toggleSidebar(true)"
-                        aria-label="Abrir menú"
                     >
                         <i data-lucide="menu" class="h-5 w-5"></i>
                     </button>
-                    <h2 id="header-title" class="text-xl font-bold tracking-tight text-slate-900">
+
+                    <h2
+                        id="header-title"
+                        class="text-xl font-bold text-slate-900"
+                    >
                         1. Dashboard
                     </h2>
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <span class="hidden items-center gap-1 text-sm font-semibold text-slate-600 sm:flex">
-                        <i data-lucide="user-circle" class="h-5 w-5 text-simiNavy"></i>
-                        <span id="user-email-display">Cargando...</span>
+                    <span
+                        id="user-email-display"
+                        class="hidden text-sm font-semibold text-slate-600 sm:inline"
+                    >
+                        Cargando...
                     </span>
-                    <button onclick="cerrarSesion()" class="text-xs font-bold text-simiRed hover:underline">
+
+                    <button
+                        onclick="cerrarSesion()"
+                        class="text-xs font-bold text-simiRed hover:underline"
+                    >
                         Cerrar sesión
                     </button>
                 </div>
             </header>
 
-            <!-- Dashboard -->
+            <!-- DASHBOARD -->
             <section id="view-dashboard" class="space-y-6 p-4 sm:p-8">
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     <div class="ui-card flex items-start justify-between p-5">
                         <div>
-                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Colaboradores</p>
-                            <h3 id="kpi-colaboradores" class="mt-2 text-3xl font-extrabold text-slate-900">--</h3>
+                            <p class="text-xs font-semibold uppercase text-slate-500">
+                                Colaboradores
+                            </p>
+
+                            <h3 id="kpi-colaboradores" class="mt-2 text-3xl font-black">
+                                --
+                            </h3>
                         </div>
-                        <div class="rounded-xl bg-red-50 p-2.5 text-simiRed">
-                            <i data-lucide="users" class="h-5 w-5"></i>
-                        </div>
+
+                        <i data-lucide="users" class="h-6 w-6 text-simiRed"></i>
                     </div>
 
                     <div class="ui-card flex items-start justify-between p-5">
                         <div>
-                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Sucursales</p>
-                            <h3 id="kpi-sucursales" class="mt-2 text-3xl font-extrabold text-slate-900">--</h3>
+                            <p class="text-xs font-semibold uppercase text-slate-500">
+                                Sucursales
+                            </p>
+
+                            <h3 id="kpi-sucursales" class="mt-2 text-3xl font-black">
+                                --
+                            </h3>
                         </div>
-                        <div class="rounded-xl bg-blue-50 p-2.5 text-simiNavy">
-                            <i data-lucide="building-2" class="h-5 w-5"></i>
-                        </div>
+
+                        <i data-lucide="building-2" class="h-6 w-6 text-simiNavy"></i>
                     </div>
 
                     <div class="ui-card flex items-start justify-between p-5">
                         <div>
-                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Asistencias</p>
-                            <h3 id="kpi-asistencia" class="mt-2 text-3xl font-extrabold text-slate-900">--</h3>
+                            <p class="text-xs font-semibold uppercase text-slate-500">
+                                Asistencias
+                            </p>
+
+                            <h3 id="kpi-asistencia" class="mt-2 text-3xl font-black">
+                                --
+                            </h3>
                         </div>
-                        <div class="rounded-xl bg-amber-50 p-2.5 text-amber-600">
-                            <i data-lucide="clock" class="h-5 w-5"></i>
-                        </div>
+
+                        <i data-lucide="clock" class="h-6 w-6 text-amber-600"></i>
                     </div>
 
                     <div class="ui-card flex items-start justify-between p-5">
                         <div>
-                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Ausentismos / Licencias</p>
-                            <h3 id="kpi-licencias" class="mt-2 text-3xl font-extrabold text-slate-900">--</h3>
+                            <p class="text-xs font-semibold uppercase text-slate-500">
+                                Licencias
+                            </p>
+
+                            <h3 id="kpi-licencias" class="mt-2 text-3xl font-black">
+                                --
+                            </h3>
                         </div>
-                        <div class="rounded-xl bg-indigo-50 p-2.5 text-indigo-600">
-                            <i data-lucide="file-heart" class="h-5 w-5"></i>
-                        </div>
+
+                        <i data-lucide="file-heart" class="h-6 w-6 text-indigo-600"></i>
                     </div>
                 </div>
 
                 <div class="ui-card p-6">
-                    <h3 class="mb-2 text-base font-bold text-slate-900">Estado general del sistema</h3>
-                    <div id="connection-box" class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                        Autenticando con Supabase...
+                    <h3 class="mb-2 font-bold text-slate-900">
+                        Estado general
+                    </h3>
+
+                    <div
+                        id="connection-box"
+                        class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600"
+                    >
+                        Conectando con Supabase...
                     </div>
                 </div>
             </section>
 
-            <!-- Colaboradores -->
+            <!-- COLABORADORES -->
             <section id="view-colaboradores" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
-                    <h3 class="text-base font-bold text-slate-900">Nómina general de colaboradores</h3>
-                    <div class="flex items-center gap-2">
-                        <label class="ui-button flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700">
-                            <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
-                            Cargar Excel empleados
-                            <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarExcelGenerico(event, 'colaboradores')">
+                <div class="ui-card flex items-center justify-between gap-3 p-4">
+                    <h3 class="font-bold text-slate-900">
+                        Nómina de colaboradores
+                    </h3>
+
+                    <div class="flex gap-2">
+                        <label
+                            class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white"
+                        >
+                            <i data-lucide="upload" class="h-4 w-4"></i>
+                            Cargar Excel
+
+                            <input
+                                type="file"
+                                accept=".xlsx,.xls,.csv"
+                                class="hidden"
+                                onchange="procesarExcelGenerico(event, 'colaboradores')"
+                            >
                         </label>
-                        <button onclick="toggleModalColaborador(true)" class="ui-button flex items-center gap-1.5 rounded-lg bg-simiRed px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-700">
-                            <i data-lucide="plus" class="h-4 w-4"></i>
+
+                        <button
+                            onclick="toggleModalColaborador(true)"
+                            class="rounded-lg bg-simiRed px-4 py-2 text-xs font-semibold text-white"
+                        >
                             Nuevo
                         </button>
                     </div>
                 </div>
 
-                <div class="ui-card table-wrapper">
-                    <table class="w-full min-w-[850px] border-collapse text-left">
-                        <thead>
-                            <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <div class="ui-card table-scroll">
+                    <table class="w-full min-w-[850px] text-left">
+                        <thead class="bg-slate-50 text-[11px] uppercase text-slate-500">
+                            <tr>
                                 <th class="p-4">RUT</th>
-                                <th class="p-4">Nombre completo</th>
+                                <th class="p-4">Nombre</th>
                                 <th class="p-4">Cargo</th>
                                 <th class="p-4">Sucursal</th>
-                                <th class="p-4 text-simiNavy">Supervisor zonal</th>
+                                <th class="p-4">Supervisor</th>
                                 <th class="p-4">Estado</th>
                             </tr>
                         </thead>
-                        <tbody id="tabla-colaboradores-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
-                            <tr><td colspan="6" class="p-6 text-center text-slate-400">Cargando datos...</td></tr>
+
+                        <tbody id="tabla-colaboradores-body" class="divide-y divide-slate-100 text-sm">
+                            <tr>
+                                <td colspan="6" class="p-8 text-center text-slate-400">
+                                    Cargando...
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- Sucursales -->
+            <!-- SUCURSALES -->
             <section id="view-sucursales" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
-                    <h3 class="text-base font-bold text-slate-900">Directorio de sucursales</h3>
-                    <label class="ui-button flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700">
-                        <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
-                        Cargar Excel directorio
-                        <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarExcelGenerico(event, 'sucursales')">
+                <div class="ui-card flex items-center justify-between gap-3 p-4">
+                    <h3 class="font-bold text-slate-900">
+                        Directorio de sucursales
+                    </h3>
+
+                    <label
+                        class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white"
+                    >
+                        <i data-lucide="upload" class="h-4 w-4"></i>
+                        Cargar Excel
+
+                        <input
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            class="hidden"
+                            onchange="procesarExcelGenerico(event, 'sucursales')"
+                        >
                     </label>
                 </div>
 
-                <div class="ui-card table-wrapper">
-                    <table class="w-full min-w-[800px] border-collapse text-left">
-                        <thead>
-                            <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <div class="ui-card table-scroll">
+                    <table class="w-full min-w-[800px] text-left">
+                        <thead class="bg-slate-50 text-[11px] uppercase text-slate-500">
+                            <tr>
                                 <th class="p-4">Unidad</th>
                                 <th class="p-4">Sucursal</th>
                                 <th class="p-4">Dirección</th>
-                                <th class="p-4 text-simiNavy">Supervisor zonal</th>
+                                <th class="p-4">Supervisor</th>
                                 <th class="p-4">Mapa</th>
                             </tr>
                         </thead>
-                        <tbody id="tabla-sucursales-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
-                            <tr><td colspan="5" class="p-6 text-center text-slate-400">Cargando directorio...</td></tr>
+
+                        <tbody id="tabla-sucursales-body" class="divide-y divide-slate-100 text-sm">
+                            <tr>
+                                <td colspan="5" class="p-8 text-center text-slate-400">
+                                    Cargando...
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- Asistencia -->
+            <!-- ASISTENCIA -->
             <section id="view-asistencia" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
                     <div>
-                        <h3 class="text-base font-bold text-slate-900">Control de asistencia, atrasos y anomalías</h3>
-                        <p class="mt-0.5 text-xs text-slate-500">Los datos se validan, se guardan en Supabase y se vuelven a consultar para confirmar su persistencia.</p>
+                        <h3 class="font-bold text-slate-900">
+                            Control de asistencia, atrasos y anomalías
+                        </h3>
+
+                        <p class="mt-1 text-xs text-slate-500">
+                            El sistema consolida duplicados antes de dividir el archivo en lotes.
+                        </p>
                     </div>
-                    <label id="btn-upload-container" class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700">
+
+                    <label
+                        id="btn-upload-container"
+                        class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white"
+                    >
                         <i data-lucide="upload-cloud" class="h-4 w-4"></i>
-                        Cargar reporte de jornadas
-                        <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarReporteAsistencia(event)">
+                        Cargar reporte
+
+                        <input
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            class="hidden"
+                            onchange="procesarReporteAsistencia(event)"
+                        >
                     </label>
                 </div>
 
-                <div class="ui-card grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="ui-card grid grid-cols-1 gap-4 p-4 sm:grid-cols-3">
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Sucursal</label>
-                        <select id="filtro-sucursal-asistencia" onchange="renderizarAnalisisAsistencia()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-simiRed">
-                            <option value="TODAS">Todas las sucursales</option>
+                        <label class="mb-1 block text-xs font-semibold">
+                            Sucursal
+                        </label>
+
+                        <select
+                            id="filtro-sucursal-asistencia"
+                            onchange="renderizarAnalisisAsistencia()"
+                            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                        >
+                            <option value="TODAS">Todas</option>
                         </select>
                     </div>
+
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Anomalía / Estado</label>
-                        <select id="filtro-tipo-anomalia" onchange="renderizarAnalisisAsistencia()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-simiRed">
-                            <option value="TODOS">Todos los registros</option>
-                            <option value="ATRASOS">Solo atrasos</option>
-                            <option value="TEMPRANAS">Solo salidas tempranas</option>
+                        <label class="mb-1 block text-xs font-semibold">
+                            Anomalía
+                        </label>
+
+                        <select
+                            id="filtro-tipo-anomalia"
+                            onchange="renderizarAnalisisAsistencia()"
+                            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                        >
+                            <option value="TODOS">Todos</option>
+                            <option value="ATRASOS">Atrasos</option>
+                            <option value="TEMPRANAS">Salidas tempranas</option>
                             <option value="INCOMPLETAS">Marcas incompletas</option>
                             <option value="SIN_MARCAS">Sin marcas</option>
-                            <option value="SIN_TURNO">Sin turno con marcas</option>
+                            <option value="SIN_TURNO">Sin turno</option>
                         </select>
                     </div>
+
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Buscar persona</label>
-                        <input id="busqueda-asistencia" oninput="renderizarAnalisisAsistencia()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-simiRed" placeholder="Nombre o RUT">
+                        <label class="mb-1 block text-xs font-semibold">
+                            Buscar
+                        </label>
+
+                        <input
+                            id="busqueda-asistencia"
+                            oninput="renderizarAnalisisAsistencia()"
+                            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                            placeholder="Nombre o RUT"
+                        >
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                    <button onclick="seleccionarFiltroAnomaliaCard('SIN_MARCAS')" class="ui-card border-l-4 border-l-red-500 p-4 text-left transition hover:bg-red-50/50">
-                        <p class="text-xs font-semibold uppercase text-slate-500">Sin marcas</p>
-                        <h4 id="stat-sin-marcas" class="mt-1 text-2xl font-black text-slate-900">0</h4>
+                    <button class="ui-card border-l-4 border-red-500 p-4 text-left" onclick="seleccionarFiltroAnomaliaCard('SIN_MARCAS')">
+                        <p class="text-xs uppercase text-slate-500">Sin marcas</p>
+                        <h4 id="stat-sin-marcas" class="text-2xl font-black">0</h4>
                     </button>
-                    <button onclick="seleccionarFiltroAnomaliaCard('INCOMPLETAS')" class="ui-card border-l-4 border-l-amber-500 p-4 text-left transition hover:bg-amber-50/50">
-                        <p class="text-xs font-semibold uppercase text-slate-500">Incompletas</p>
-                        <h4 id="stat-incompletas" class="mt-1 text-2xl font-black text-slate-900">0</h4>
+
+                    <button class="ui-card border-l-4 border-amber-500 p-4 text-left" onclick="seleccionarFiltroAnomaliaCard('INCOMPLETAS')">
+                        <p class="text-xs uppercase text-slate-500">Incompletas</p>
+                        <h4 id="stat-incompletas" class="text-2xl font-black">0</h4>
                     </button>
-                    <button onclick="seleccionarFiltroAnomaliaCard('ATRASOS')" class="ui-card border-l-4 border-l-orange-500 p-4 text-left transition hover:bg-orange-50/50">
-                        <p class="text-xs font-semibold uppercase text-slate-500">Atrasos</p>
-                        <h4 id="stat-atrasos" class="mt-1 text-2xl font-black text-slate-900">0</h4>
+
+                    <button class="ui-card border-l-4 border-orange-500 p-4 text-left" onclick="seleccionarFiltroAnomaliaCard('ATRASOS')">
+                        <p class="text-xs uppercase text-slate-500">Atrasos</p>
+                        <h4 id="stat-atrasos" class="text-2xl font-black">0</h4>
                     </button>
-                    <button onclick="seleccionarFiltroAnomaliaCard('TEMPRANAS')" class="ui-card border-l-4 border-l-blue-500 p-4 text-left transition hover:bg-blue-50/50">
-                        <p class="text-xs font-semibold uppercase text-slate-500">Salidas tempranas</p>
-                        <h4 id="stat-tempranas" class="mt-1 text-2xl font-black text-slate-900">0</h4>
+
+                    <button class="ui-card border-l-4 border-blue-500 p-4 text-left" onclick="seleccionarFiltroAnomaliaCard('TEMPRANAS')">
+                        <p class="text-xs uppercase text-slate-500">Salida temprana</p>
+                        <h4 id="stat-tempranas" class="text-2xl font-black">0</h4>
                     </button>
-                    <button onclick="seleccionarFiltroAnomaliaCard('SIN_TURNO')" class="ui-card border-l-4 border-l-purple-500 p-4 text-left transition hover:bg-purple-50/50">
-                        <p class="text-xs font-semibold uppercase text-slate-500">Sin turno</p>
-                        <h4 id="stat-sin-turno-marcas" class="mt-1 text-2xl font-black text-slate-900">0</h4>
+
+                    <button class="ui-card border-l-4 border-purple-500 p-4 text-left" onclick="seleccionarFiltroAnomaliaCard('SIN_TURNO')">
+                        <p class="text-xs uppercase text-slate-500">Sin turno</p>
+                        <h4 id="stat-sin-turno-marcas" class="text-2xl font-black">0</h4>
                     </button>
                 </div>
 
                 <div class="ui-card overflow-hidden">
-                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 p-4">
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-600">Detalle de asistencia</span>
-                        <span id="contador-asistencia" class="font-mono text-xs text-simiNavy">0 registros</span>
+                    <div class="flex justify-between border-b bg-slate-50 p-4 text-xs font-bold uppercase">
+                        <span>Detalle de asistencia</span>
+                        <span id="contador-asistencia">0 registros</span>
                     </div>
-                    <div class="table-wrapper">
-                        <table class="w-full min-w-[1100px] border-collapse text-left">
-                            <thead>
-                                <tr class="border-b border-slate-200 bg-white text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+
+                    <div class="table-scroll">
+                        <table class="w-full min-w-[1100px] text-left">
+                            <thead class="text-[11px] uppercase text-slate-500">
+                                <tr>
                                     <th class="p-3">Fecha</th>
                                     <th class="p-3">Sucursal</th>
-                                    <th class="p-3">RUT / Colaborador</th>
+                                    <th class="p-3">Colaborador</th>
                                     <th class="p-3">Turno</th>
-                                    <th class="p-3">Entrada / Salida</th>
-                                    <th class="p-3 text-amber-600">Atraso</th>
-                                    <th class="p-3 text-blue-600">Salida temprana</th>
+                                    <th class="p-3">Entrada / salida</th>
+                                    <th class="p-3">Atraso</th>
+                                    <th class="p-3">Salida temprana</th>
                                     <th class="p-3">Estado</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabla-asistencia-body" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
-                                <tr><td colspan="8" class="p-8 text-center text-slate-400">Cargando registros...</td></tr>
+
+                            <tbody id="tabla-asistencia-body" class="divide-y divide-slate-100 text-xs">
+                                <tr>
+                                    <td colspan="8" class="p-8 text-center text-slate-400">
+                                        Cargando...
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </section>
 
-            <!-- Licencias -->
+            <!-- LICENCIAS -->
             <section id="view-licencias" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
                     <div>
-                        <h3 class="text-base font-bold text-slate-900">Consolidado histórico de licencias y ausentismos</h3>
-                        <p class="mt-0.5 text-xs text-slate-500">El archivo se normaliza y se guarda con una clave única para evitar duplicados.</p>
+                        <h3 class="font-bold text-slate-900">
+                            Consolidado histórico de licencias y ausentismos
+                        </h3>
+
+                        <p class="mt-1 text-xs text-slate-500">
+                            No existe límite de 900. El archivo completo se consolida antes de cargar los lotes.
+                        </p>
                     </div>
-                    <label id="btn-upload-licencias" class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700">
+
+                    <label
+                        id="btn-upload-licencias"
+                        class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white"
+                    >
                         <i data-lucide="upload-cloud" class="h-4 w-4"></i>
-                        Cargar histórico de licencias
-                        <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarHistorialLicencias(event)">
+                        Cargar histórico
+
+                        <input
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            class="hidden"
+                            onchange="procesarHistorialLicencias(event)"
+                        >
                     </label>
                 </div>
 
                 <div class="ui-card grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Colaborador</label>
-                        <select id="filtro-colaborador-licencia" onchange="renderizarTablaLicencias()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="TODOS">Todos los colaboradores</option>
+                        <label class="mb-1 block text-xs font-semibold">
+                            Colaborador
+                        </label>
+
+                        <select
+                            id="filtro-colaborador-licencia"
+                            onchange="renderizarTablaLicencias()"
+                            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                        >
+                            <option value="TODOS">Todos</option>
                         </select>
                     </div>
+
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Tipo de ausencia</label>
-                        <select id="filtro-tipo-ausencia-licencia" onchange="renderizarTablaLicencias()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500">
-                            <option value="TODOS">Todos los tipos</option>
+                        <label class="mb-1 block text-xs font-semibold">
+                            Tipo de ausencia
+                        </label>
+
+                        <select
+                            id="filtro-tipo-ausencia-licencia"
+                            onchange="renderizarTablaLicencias()"
+                            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                        >
+                            <option value="TODOS">Todos</option>
                         </select>
                     </div>
+
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Vigencia</label>
-                        <select id="filtro-vigencia-licencia" onchange="renderizarTablaLicencias()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500">
+                        <label class="mb-1 block text-xs font-semibold">
+                            Vigencia
+                        </label>
+
+                        <select
+                            id="filtro-vigencia-licencia"
+                            onchange="renderizarTablaLicencias()"
+                            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                        >
                             <option value="TODOS">Todos los estados</option>
-                            <option value="VIGENTE">Solo vigentes</option>
-                            <option value="CADUCADA">Solo caducadas</option>
+                            <option value="VIGENTE">Vigentes</option>
+                            <option value="CADUCADA">Caducadas</option>
                         </select>
                     </div>
+
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-700">Buscar</label>
-                        <input id="busqueda-licencias" oninput="renderizarTablaLicencias()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Nombre, RUT o motivo">
+                        <label class="mb-1 block text-xs font-semibold">
+                            Buscar
+                        </label>
+
+                        <input
+                            id="busqueda-licencias"
+                            oninput="renderizarTablaLicencias()"
+                            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                            placeholder="Nombre, RUT o motivo"
+                        >
                     </div>
                 </div>
 
                 <div class="ui-card overflow-hidden">
-                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 p-4">
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-600">Registros históricos</span>
-                        <span id="contador-licencias-filtradas" class="font-mono text-xs text-indigo-600">Mostrando 0 registros</span>
+                    <div class="flex justify-between border-b bg-slate-50 p-4 text-xs font-bold uppercase">
+                        <span>Registros históricos</span>
+                        <span id="contador-licencias-filtradas">0 registros</span>
                     </div>
-                    <div class="table-wrapper">
-                        <table class="w-full min-w-[1000px] border-collapse text-left">
-                            <thead>
-                                <tr class="border-b border-slate-200 bg-white text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                                    <th class="p-3">RUT / Colaborador</th>
+
+                    <div class="table-scroll">
+                        <table class="w-full min-w-[1000px] text-left">
+                            <thead class="text-[11px] uppercase text-slate-500">
+                                <tr>
+                                    <th class="p-3">Colaborador</th>
                                     <th class="p-3">Sucursal</th>
                                     <th class="p-3">Tipo</th>
                                     <th class="p-3">Motivo</th>
@@ -550,55 +720,65 @@
                                     <th class="p-3">Vigencia</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabla-licencias-body" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
-                                <tr><td colspan="7" class="p-8 text-center text-slate-400">Cargando registros...</td></tr>
+
+                            <tbody id="tabla-licencias-body" class="divide-y divide-slate-100 text-xs">
+                                <tr>
+                                    <td colspan="7" class="p-8 text-center text-slate-400">
+                                        Cargando...
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </section>
 
-            <!-- Genérico -->
-            <section id="view-generic" class="hidden p-4 sm:p-8">
-                <div class="ui-card mx-auto mt-8 max-w-lg p-12 text-center">
-                    <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-simiRed">
-                        <i data-lucide="wrench" class="h-6 w-6"></i>
-                    </div>
-                    <h3 id="generic-title" class="text-lg font-bold text-slate-900">Módulo en desarrollo</h3>
-                    <p class="mt-2 text-xs text-slate-500">Este módulo está preparado en la plataforma.</p>
+            <!-- GENÉRICO -->
+            <section id="view-generic" class="hidden p-8">
+                <div class="ui-card mx-auto mt-10 max-w-xl p-12 text-center">
+                    <i data-lucide="wrench" class="mx-auto mb-4 h-10 w-10 text-simiRed"></i>
+                    <h3 id="generic-title" class="text-lg font-bold">Módulo en desarrollo</h3>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Modal colaborador -->
-    <div id="modal-colaborador" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-        <div class="w-full max-w-md space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl">
-            <h3 class="border-b border-slate-100 pb-3 text-base font-bold text-slate-900">Nuevo colaborador</h3>
-            <form id="form-nuevo-colaborador" onsubmit="guardarColaborador(event)" class="space-y-3">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700">RUT</label>
-                    <input id="input-rut" required class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-simiRed">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700">Nombres</label>
-                    <input id="input-nombres" required class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-simiRed">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700">Apellidos</label>
-                    <input id="input-apellidos" required class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-simiRed">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700">Cargo</label>
-                    <input id="input-cargo" required class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-simiRed">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700">Sucursal</label>
-                    <input id="input-sucursal" required class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-simiRed">
-                </div>
-                <div class="flex justify-end gap-2 border-t border-slate-100 pt-3">
-                    <button type="button" onclick="toggleModalColaborador(false)" class="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button>
-                    <button type="submit" class="rounded-lg bg-simiNavy px-4 py-2 text-xs font-semibold text-white hover:bg-simiNavyHover">Guardar</button>
+    <!-- MODAL COLABORADOR -->
+    <div
+        id="modal-colaborador"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4"
+    >
+        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <h3 class="mb-4 border-b pb-3 font-bold">
+                Nuevo colaborador
+            </h3>
+
+            <form
+                id="form-nuevo-colaborador"
+                class="space-y-3"
+                onsubmit="guardarColaborador(event)"
+            >
+                <input id="input-rut" required class="w-full rounded-lg border p-2" placeholder="RUT">
+                <input id="input-nombres" required class="w-full rounded-lg border p-2" placeholder="Nombres">
+                <input id="input-apellidos" required class="w-full rounded-lg border p-2" placeholder="Apellidos">
+                <input id="input-cargo" required class="w-full rounded-lg border p-2" placeholder="Cargo">
+                <input id="input-sucursal" required class="w-full rounded-lg border p-2" placeholder="Sucursal">
+
+                <div class="flex justify-end gap-2 pt-3">
+                    <button
+                        type="button"
+                        onclick="toggleModalColaborador(false)"
+                        class="rounded-lg border px-4 py-2 text-xs font-semibold"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="rounded-lg bg-simiNavy px-4 py-2 text-xs font-semibold text-white"
+                    >
+                        Guardar
+                    </button>
                 </div>
             </form>
         </div>
@@ -606,18 +786,19 @@
 
     <script>
         // ============================================================
-        // CONFIGURACIÓN
+        // CONFIGURACIÓN GENERAL
         // ============================================================
         const SUPABASE_URL = 'https://zcfbglbhqhysnptkfwba.supabase.co';
         const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_EoJWhc0HPqIyTNiwU53FDw_prK9gYx2';
+
         const _supabase = supabase.createClient(
             SUPABASE_URL,
             SUPABASE_PUBLISHABLE_KEY
         );
 
-        const LIMITE_RENDER = 300;
         const TAMANO_LOTE = 300;
-        const TAMANO_PAGINA_SUPABASE = 1000;
+        const TAMANO_PAGINA = 1000;
+        const LIMITE_RENDER = 300;
 
         let datosAsistenciaGlobal = [];
         let datosLicenciasGlobal = [];
@@ -639,7 +820,7 @@
             'auditoria'
         ];
 
-        const titleMap = {
+        const titulos = {
             dashboard: '1. Dashboard',
             colaboradores: '2. Colaboradores',
             sucursales: '3. Sucursales',
@@ -658,7 +839,10 @@
         // UTILIDADES
         // ============================================================
         function texto(valor, defecto = '') {
-            if (valor === undefined || valor === null) return defecto;
+            if (valor === undefined || valor === null) {
+                return defecto;
+            }
+
             return String(valor).trim();
         }
 
@@ -678,7 +862,7 @@
                 .toUpperCase();
         }
 
-        function normalizarNombreColumna(valor) {
+        function normalizarEncabezado(valor) {
             return texto(valor)
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '')
@@ -688,76 +872,20 @@
 
         function obtenerCampo(fila, alternativas, defecto = '') {
             const mapa = {};
+
             Object.keys(fila).forEach(clave => {
-                mapa[normalizarNombreColumna(clave)] = fila[clave];
+                mapa[normalizarEncabezado(clave)] = fila[clave];
             });
 
             for (const alternativa of alternativas) {
-                const claveNormalizada = normalizarNombreColumna(alternativa);
-                if (Object.prototype.hasOwnProperty.call(mapa, claveNormalizada)) {
-                    return mapa[claveNormalizada];
+                const clave = normalizarEncabezado(alternativa);
+
+                if (Object.prototype.hasOwnProperty.call(mapa, clave)) {
+                    return mapa[clave];
                 }
             }
 
             return defecto;
-        }
-
-        function fechaISODesdeExcel(valor) {
-            if (valor === undefined || valor === null || valor === '') return null;
-
-            if (valor instanceof Date && !Number.isNaN(valor.getTime())) {
-                return [
-                    valor.getFullYear(),
-                    String(valor.getMonth() + 1).padStart(2, '0'),
-                    String(valor.getDate()).padStart(2, '0')
-                ].join('-');
-            }
-
-            if (typeof valor === 'number') {
-                const partes = XLSX.SSF.parse_date_code(valor);
-                if (!partes) return null;
-                return [
-                    String(partes.y).padStart(4, '0'),
-                    String(partes.m).padStart(2, '0'),
-                    String(partes.d).padStart(2, '0')
-                ].join('-');
-            }
-
-            const cadena = texto(valor);
-
-            let coincidencia = cadena.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
-            if (coincidencia) {
-                return [
-                    coincidencia[3],
-                    coincidencia[2].padStart(2, '0'),
-                    coincidencia[1].padStart(2, '0')
-                ].join('-');
-            }
-
-            coincidencia = cadena.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-            if (coincidencia) {
-                return [
-                    coincidencia[1],
-                    coincidencia[2].padStart(2, '0'),
-                    coincidencia[3].padStart(2, '0')
-                ].join('-');
-            }
-
-            const fecha = new Date(cadena);
-            if (Number.isNaN(fecha.getTime())) return null;
-
-            return [
-                fecha.getFullYear(),
-                String(fecha.getMonth() + 1).padStart(2, '0'),
-                String(fecha.getDate()).padStart(2, '0')
-            ].join('-');
-        }
-
-        function parsearFechaExcel(valor) {
-            const iso = fechaISODesdeExcel(valor);
-            if (!iso) return null;
-            const [anio, mes, dia] = iso.split('-').map(Number);
-            return new Date(anio, mes - 1, dia);
         }
 
         function convertirHoraExcel(valor) {
@@ -770,91 +898,199 @@
                 return '-';
             }
 
-            if (valor instanceof Date && !Number.isNaN(valor.getTime())) {
-                return [
-                    String(valor.getHours()).padStart(2, '0'),
-                    String(valor.getMinutes()).padStart(2, '0'),
-                    String(valor.getSeconds()).padStart(2, '0')
-                ].join(':');
-            }
-
-            if (typeof valor === 'string' && valor.includes(':')) {
+            if (
+                typeof valor === 'string' &&
+                valor.includes(':')
+            ) {
                 const partes = valor.trim().split(':');
                 const hora = String(Number(partes[0])).padStart(2, '0');
-                const minuto = String(Number(partes[1] ?? 0)).padStart(2, '0');
-                const segundo = String(Number(partes[2] ?? 0)).padStart(2, '0');
+                const minuto = String(Number(partes[1] || 0)).padStart(2, '0');
+                const segundo = String(Number(partes[2] || 0)).padStart(2, '0');
+
                 return `${hora}:${minuto}:${segundo}`;
             }
 
             const numero = Number(valor);
-            if (Number.isFinite(numero) && numero >= 0 && numero < 1) {
-                const totalSegundos = Math.round(numero * 24 * 60 * 60) % 86400;
-                const horas = Math.floor(totalSegundos / 3600);
-                const minutos = Math.floor((totalSegundos % 3600) / 60);
-                const segundos = totalSegundos % 60;
-                return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+
+            if (
+                Number.isFinite(numero) &&
+                numero >= 0 &&
+                numero < 1
+            ) {
+                const total = Math.round(numero * 86400) % 86400;
+                const horas = Math.floor(total / 3600);
+                const minutos = Math.floor((total % 3600) / 60);
+                const segundos = total % 60;
+
+                return [
+                    String(horas).padStart(2, '0'),
+                    String(minutos).padStart(2, '0'),
+                    String(segundos).padStart(2, '0')
+                ].join(':');
             }
 
             return texto(valor, '-');
         }
 
-        function mostrarToast(mensaje, tipo = 'info', duracion = 7000) {
+        function fechaISODesdeExcel(valor) {
+            if (
+                valor === undefined ||
+                valor === null ||
+                valor === ''
+            ) {
+                return null;
+            }
+
+            if (typeof valor === 'number') {
+                const partes = XLSX.SSF.parse_date_code(valor);
+
+                if (!partes) {
+                    return null;
+                }
+
+                return [
+                    String(partes.y).padStart(4, '0'),
+                    String(partes.m).padStart(2, '0'),
+                    String(partes.d).padStart(2, '0')
+                ].join('-');
+            }
+
+            const cadena = texto(valor);
+
+            let match = cadena.match(
+                /^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/
+            );
+
+            if (match) {
+                return [
+                    match[3],
+                    match[2].padStart(2, '0'),
+                    match[1].padStart(2, '0')
+                ].join('-');
+            }
+
+            match = cadena.match(
+                /^(\d{4})-(\d{1,2})-(\d{1,2})$/
+            );
+
+            if (match) {
+                return [
+                    match[1],
+                    match[2].padStart(2, '0'),
+                    match[3].padStart(2, '0')
+                ].join('-');
+            }
+
+            const fecha = new Date(cadena);
+
+            if (Number.isNaN(fecha.getTime())) {
+                return null;
+            }
+
+            return [
+                fecha.getFullYear(),
+                String(fecha.getMonth() + 1).padStart(2, '0'),
+                String(fecha.getDate()).padStart(2, '0')
+            ].join('-');
+        }
+
+        function parsearFechaExcel(valor) {
+            const iso = fechaISODesdeExcel(valor);
+
+            if (!iso) {
+                return null;
+            }
+
+            const [anio, mes, dia] = iso.split('-').map(Number);
+
+            return new Date(
+                anio,
+                mes - 1,
+                dia
+            );
+        }
+
+        function mostrarToast(mensaje, tipo = 'info', duracion = 9000) {
             const contenedor = document.getElementById('toast-container');
+
             const colores = {
                 success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
-                error: 'border-red-200 bg-red-50 text-red-800',
                 warning: 'border-amber-200 bg-amber-50 text-amber-800',
+                error: 'border-red-200 bg-red-50 text-red-800',
                 info: 'border-blue-200 bg-blue-50 text-blue-800'
-            };
-            const iconos = {
-                success: 'check-circle-2',
-                error: 'alert-circle',
-                warning: 'triangle-alert',
-                info: 'info'
             };
 
             const elemento = document.createElement('div');
-            elemento.className = `toast-enter flex items-start gap-3 rounded-xl border p-4 text-sm font-medium shadow-lg ${colores[tipo] || colores.info}`;
+
+            elemento.className = `flex items-start gap-3 rounded-xl border p-4 text-sm font-semibold shadow-lg ${colores[tipo] || colores.info}`;
+
             elemento.innerHTML = `
-                <i data-lucide="${iconos[tipo] || iconos.info}" class="mt-0.5 h-5 w-5 flex-shrink-0"></i>
-                <div class="min-w-0 flex-1 whitespace-pre-wrap break-words">${escaparHTML(mensaje)}</div>
-                <button class="opacity-60 hover:opacity-100" aria-label="Cerrar">
+                <div class="min-w-0 flex-1 whitespace-pre-wrap break-words">
+                    ${escaparHTML(mensaje)}
+                </div>
+
+                <button class="opacity-60 hover:opacity-100">
                     <i data-lucide="x" class="h-4 w-4"></i>
                 </button>
             `;
-            elemento.querySelector('button').addEventListener('click', () => elemento.remove());
+
+            elemento.querySelector('button').addEventListener(
+                'click',
+                () => elemento.remove()
+            );
+
             contenedor.appendChild(elemento);
             lucide.createIcons();
-            if (duracion > 0) setTimeout(() => elemento.remove(), duracion);
+
+            if (duracion > 0) {
+                setTimeout(
+                    () => elemento.remove(),
+                    duracion
+                );
+            }
         }
 
-        function construirErrorSupabase(contexto, error) {
+        function errorSupabase(contexto, error) {
             console.error(contexto, error);
-            const detalles = [
+
+            const detalle = [
                 error?.message,
                 error?.details,
                 error?.hint,
                 error?.code ? `Código ${error.code}` : ''
-            ].filter(Boolean).join(' | ');
-            return new Error(`${contexto}: ${detalles || 'Error desconocido'}`);
+            ]
+                .filter(Boolean)
+                .join(' | ');
+
+            return new Error(
+                `${contexto}: ${detalle || 'Error desconocido'}`
+            );
         }
 
-        async function leerArchivoExcel(file) {
+        async function leerExcel(file) {
             const buffer = await file.arrayBuffer();
-            const workbook = XLSX.read(buffer, {
-                type: 'array',
-                cellDates: false
-            });
+
+            const workbook = XLSX.read(
+                buffer,
+                {
+                    type: 'array',
+                    cellDates: false
+                }
+            );
 
             if (!workbook.SheetNames.length) {
                 throw new Error('El archivo no contiene hojas.');
             }
 
             const hoja = workbook.Sheets[workbook.SheetNames[0]];
-            const filas = XLSX.utils.sheet_to_json(hoja, {
-                defval: '',
-                raw: true
-            });
+
+            const filas = XLSX.utils.sheet_to_json(
+                hoja,
+                {
+                    defval: '',
+                    raw: true
+                }
+            );
 
             if (!filas.length) {
                 throw new Error('La primera hoja no contiene registros.');
@@ -863,134 +1099,231 @@
             return filas;
         }
 
+        // Esta función resuelve el error 21000.
+        // Conserva la última aparición de cada clave dentro del Excel completo.
+        function deduplicarRegistros(registros, generarClave) {
+            const mapa = new Map();
+            const duplicados = [];
+            const sinClave = [];
+
+            registros.forEach((registro, indice) => {
+                const clave = generarClave(registro);
+                const filaExcel = indice + 2;
+
+                if (!clave) {
+                    sinClave.push(filaExcel);
+                    return;
+                }
+
+                if (mapa.has(clave)) {
+                    duplicados.push({
+                        clave,
+                        filaAnterior: mapa.get(clave)._filaExcel,
+                        filaActual: filaExcel
+                    });
+                }
+
+                mapa.set(
+                    clave,
+                    {
+                        ...registro,
+                        _filaExcel: filaExcel
+                    }
+                );
+            });
+
+            const unicos = Array.from(mapa.values()).map(registro => {
+                const copia = { ...registro };
+                delete copia._filaExcel;
+                return copia;
+            });
+
+            return {
+                registros: unicos,
+                duplicados,
+                sinClave
+            };
+        }
+
         async function guardarLotes(tabla, registros, opciones = {}) {
             if (!registros.length) {
-                throw new Error(`No hay registros válidos para guardar en ${tabla}.`);
+                throw new Error(`No hay registros para guardar en ${tabla}.`);
             }
 
-            let totalConfirmado = 0;
+            let confirmados = 0;
+            let lotesProcesados = 0;
 
-            for (let inicio = 0; inicio < registros.length; inicio += TAMANO_LOTE) {
-                const lote = registros.slice(inicio, inicio + TAMANO_LOTE);
+            for (
+                let inicio = 0;
+                inicio < registros.length;
+                inicio += TAMANO_LOTE
+            ) {
+                const lote = registros.slice(
+                    inicio,
+                    inicio + TAMANO_LOTE
+                );
+
                 const { data, error } = await _supabase
                     .from(tabla)
-                    .upsert(lote, opciones)
+                    .upsert(
+                        lote,
+                        opciones
+                    )
                     .select('id');
 
                 if (error) {
-                    throw construirErrorSupabase(
-                        `Error en ${tabla}, filas ${inicio + 1} a ${inicio + lote.length}`,
+                    throw errorSupabase(
+                        `Error en ${tabla}, filas únicas ${inicio + 1} a ${inicio + lote.length}`,
                         error
                     );
                 }
 
-                totalConfirmado += data?.length ?? lote.length;
+                confirmados += data?.length ?? lote.length;
+                lotesProcesados++;
             }
 
-            return totalConfirmado;
+            return {
+                confirmados,
+                lotesProcesados
+            };
         }
 
-        async function cargarTablaCompleta(tabla, orden = null) {
-            const acumulado = [];
+        async function leerTablaCompleta(tabla, columnaOrden = null) {
+            const resultado = [];
 
-            for (let desde = 0; ; desde += TAMANO_PAGINA_SUPABASE) {
+            for (
+                let inicio = 0;
+                ;
+                inicio += TAMANO_PAGINA
+            ) {
                 let consulta = _supabase
                     .from(tabla)
                     .select('*');
 
-                if (orden?.columna) {
-                    consulta = consulta.order(orden.columna, {
-                        ascending: orden.ascending ?? false
-                    });
+                if (columnaOrden) {
+                    consulta = consulta.order(
+                        columnaOrden,
+                        {
+                            ascending: false
+                        }
+                    );
                 }
 
                 const { data, error } = await consulta.range(
-                    desde,
-                    desde + TAMANO_PAGINA_SUPABASE - 1
+                    inicio,
+                    inicio + TAMANO_PAGINA - 1
                 );
 
                 if (error) {
-                    throw construirErrorSupabase(`No se pudo leer ${tabla}`, error);
+                    throw errorSupabase(
+                        `No se pudo leer ${tabla}`,
+                        error
+                    );
                 }
 
-                if (!data?.length) break;
+                if (!data?.length) {
+                    break;
+                }
 
-                acumulado.push(...data);
+                resultado.push(...data);
 
-                if (data.length < TAMANO_PAGINA_SUPABASE) break;
+                if (data.length < TAMANO_PAGINA) {
+                    break;
+                }
             }
 
-            return acumulado;
+            return resultado;
         }
 
-        function toggleSidebar(abierto) {
-            document.getElementById('sidebar').classList.toggle('mobile-open', abierto);
+        function toggleSidebar(abrir) {
+            document
+                .getElementById('sidebar')
+                .classList
+                .toggle('open', abrir);
         }
 
         // ============================================================
-        // AUTENTICACIÓN
+        // INICIO Y AUTENTICACIÓN
         // ============================================================
-        document.addEventListener('DOMContentLoaded', async () => {
-            document.querySelectorAll('.menu-btn').forEach(btn => {
-                btn.className = 'menu-btn ui-button flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-slate-300 transition hover:bg-simiNavyHover hover:text-white';
-            });
+        document.addEventListener(
+            'DOMContentLoaded',
+            async () => {
+                document
+                    .querySelectorAll('.menu-btn')
+                    .forEach(boton => {
+                        boton.className = 'menu-btn ui-button flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white';
+                    });
 
-            lucide.createIcons();
-            cambiarModulo('dashboard', false);
+                lucide.createIcons();
+                await cambiarModulo('dashboard', false);
 
-            const { data, error } = await _supabase.auth.getSession();
+                const { data, error } = await _supabase.auth.getSession();
 
-            if (error) {
-                mostrarToast(`No se pudo comprobar la sesión: ${error.message}`, 'error');
-                return;
+                if (error) {
+                    mostrarToast(
+                        `No se pudo comprobar la sesión: ${error.message}`,
+                        'error'
+                    );
+                    return;
+                }
+
+                if (data.session) {
+                    document
+                        .getElementById('login-overlay')
+                        .classList
+                        .add('hidden');
+
+                    document.getElementById('user-email-display').innerText =
+                        data.session.user.email;
+
+                    await inicializarDashboard();
+                }
             }
-
-            const session = data.session;
-            if (session) {
-                document.getElementById('login-overlay').classList.add('hidden');
-                document.getElementById('user-email-display').innerText = session.user.email;
-                await inicializarDashboard();
-            }
-        });
+        );
 
         async function iniciarSesion(event) {
             event.preventDefault();
 
             const boton = document.getElementById('btn-login');
             const errorBox = document.getElementById('login-error');
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-pass').value;
 
             boton.disabled = true;
-            boton.innerHTML = '<i data-lucide="loader-2" class="h-5 w-5 animate-spin"></i> Autenticando...';
+            boton.textContent = 'Autenticando...';
             errorBox.classList.add('hidden');
-            lucide.createIcons();
 
             try {
                 const { data, error } = await _supabase.auth.signInWithPassword({
-                    email,
-                    password
+                    email: document.getElementById('login-email').value.trim(),
+                    password: document.getElementById('login-pass').value
                 });
 
-                if (error) throw error;
+                if (error) {
+                    throw error;
+                }
 
-                document.getElementById('login-overlay').classList.add('hidden');
-                document.getElementById('user-email-display').innerText = data.user.email;
+                document
+                    .getElementById('login-overlay')
+                    .classList
+                    .add('hidden');
+
+                document.getElementById('user-email-display').innerText =
+                    data.user.email;
+
                 await inicializarDashboard();
             } catch (error) {
-                document.getElementById('login-error-text').innerText = error.message || 'Credenciales incorrectas.';
+                errorBox.textContent = error.message || 'Credenciales incorrectas.';
                 errorBox.classList.remove('hidden');
             } finally {
                 boton.disabled = false;
-                boton.innerHTML = '<i data-lucide="log-in" class="h-5 w-5"></i> Ingresar al sistema';
-                lucide.createIcons();
+                boton.textContent = 'Ingresar al sistema';
             }
         }
 
         async function cerrarSesion() {
             const { error } = await _supabase.auth.signOut();
+
             if (error) {
-                mostrarToast(`No se pudo cerrar la sesión: ${error.message}`, 'error');
+                mostrarToast(error.message, 'error');
                 return;
             }
 
@@ -998,114 +1331,162 @@
             datosLicenciasGlobal = [];
             asistenciaCargada = false;
             licenciasCargadas = false;
-            document.getElementById('login-pass').value = '';
-            document.getElementById('login-overlay').classList.remove('hidden');
+
+            document
+                .getElementById('login-overlay')
+                .classList
+                .remove('hidden');
         }
 
         // ============================================================
-        // NAVEGACIÓN Y DASHBOARD
+        // NAVEGACIÓN
         // ============================================================
         async function cambiarModulo(modulo, cargar = true) {
             modulos.forEach(nombre => {
                 const boton = document.getElementById(`btn-${nombre}`);
+
                 if (boton) {
-                    const activo = nombre === modulo;
-                    boton.className = `menu-btn ui-button flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 transition ${activo ? 'bg-simiRed font-semibold text-white shadow-sm' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'}`;
+                    boton.className = `menu-btn ui-button flex w-full items-center gap-3 rounded-lg px-3 py-2.5 ${nombre === modulo ? 'bg-simiRed font-semibold text-white' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'}`;
                 }
 
                 const vista = document.getElementById(`view-${nombre}`);
-                if (vista) vista.classList.add('hidden');
+
+                if (vista) {
+                    vista.classList.add('hidden');
+                }
             });
 
-            document.getElementById('view-generic').classList.add('hidden');
+            document
+                .getElementById('view-generic')
+                .classList
+                .add('hidden');
 
-            const titulo = titleMap[modulo] || modulo;
-            document.getElementById('header-title').innerText = titulo;
+            document.getElementById('header-title').innerText =
+                titulos[modulo] || modulo;
 
-            const destino = document.getElementById(`view-${modulo}`);
-            if (destino) {
-                destino.classList.remove('hidden');
+            const vista = document.getElementById(`view-${modulo}`);
+
+            if (vista) {
+                vista.classList.remove('hidden');
             } else {
-                document.getElementById('view-generic').classList.remove('hidden');
-                document.getElementById('generic-title').innerText = `${titulo} - Módulo en desarrollo`;
+                document
+                    .getElementById('view-generic')
+                    .classList
+                    .remove('hidden');
+
+                document.getElementById('generic-title').innerText =
+                    `${titulos[modulo]} - Módulo en desarrollo`;
             }
 
             toggleSidebar(false);
             lucide.createIcons();
 
-            if (!cargar) return;
+            if (!cargar) {
+                return;
+            }
 
             try {
-                if (modulo === 'colaboradores') await cargarTablaColaboradores();
-                if (modulo === 'sucursales') await cargarTablaSucursales();
-                if (modulo === 'asistencia') {
-                    if (!asistenciaCargada) await cargarAsistenciaDesdeNube();
-                    else renderizarFiltrosYAnalisisAsistencia();
+                if (modulo === 'colaboradores') {
+                    await cargarTablaColaboradores();
                 }
+
+                if (modulo === 'sucursales') {
+                    await cargarTablaSucursales();
+                }
+
+                if (modulo === 'asistencia') {
+                    if (!asistenciaCargada) {
+                        await cargarAsistenciaDesdeNube();
+                    } else {
+                        renderizarFiltrosAsistencia();
+                    }
+                }
+
                 if (modulo === 'licencias') {
-                    if (!licenciasCargadas) await cargarLicenciasDesdeNube();
-                    else poblarFiltrosLicencias();
+                    if (!licenciasCargadas) {
+                        await cargarLicenciasDesdeNube();
+                    } else {
+                        poblarFiltrosLicencias();
+                    }
                 }
             } catch (error) {
-                mostrarToast(error.message, 'error', 12000);
+                mostrarToast(error.message, 'error', 15000);
             }
         }
 
         async function inicializarDashboard() {
             const box = document.getElementById('connection-box');
-            box.className = 'rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600';
+
             box.textContent = 'Consultando Supabase...';
 
             try {
-                const resultados = await Promise.all([
+                const respuestas = await Promise.all([
                     _supabase.from('colaboradores').select('id', { count: 'exact', head: true }),
                     _supabase.from('sucursales').select('id', { count: 'exact', head: true }),
                     _supabase.from('registros_asistencia').select('id', { count: 'exact', head: true }),
                     _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true })
                 ]);
 
-                const nombres = [
-                    'colaboradores',
-                    'sucursales',
-                    'registros_asistencia',
-                    'licencias_medicas'
-                ];
-
-                resultados.forEach((resultado, indice) => {
-                    if (resultado.error) {
-                        throw construirErrorSupabase(`Error consultando ${nombres[indice]}`, resultado.error);
+                for (const respuesta of respuestas) {
+                    if (respuesta.error) {
+                        throw respuesta.error;
                     }
-                });
+                }
 
-                document.getElementById('kpi-colaboradores').innerText = resultados[0].count ?? 0;
-                document.getElementById('kpi-sucursales').innerText = resultados[1].count ?? 0;
-                document.getElementById('kpi-asistencia').innerText = resultados[2].count ?? 0;
-                document.getElementById('kpi-licencias').innerText = resultados[3].count ?? 0;
+                document.getElementById('kpi-colaboradores').innerText = respuestas[0].count ?? 0;
+                document.getElementById('kpi-sucursales').innerText = respuestas[1].count ?? 0;
+                document.getElementById('kpi-asistencia').innerText = respuestas[2].count ?? 0;
+                document.getElementById('kpi-licencias').innerText = respuestas[3].count ?? 0;
 
-                box.className = 'rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800';
-                box.innerHTML = '<strong>Base de datos conectada.</strong> Lectura y autenticación disponibles.';
+                box.className = 'rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800';
+                box.textContent = 'Base de datos conectada y disponible.';
             } catch (error) {
-                box.className = 'rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800';
+                box.className = 'rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800';
                 box.textContent = error.message;
             }
         }
 
         // ============================================================
-        // MÓDULO 4: ASISTENCIA Y ATRASOS
+        // MÓDULO 4: ASISTENCIA
         // ============================================================
         function analizarFilaAsistencia(fila) {
-            const entrada = convertirHoraExcel(obtenerCampo(fila, ['Entrada']));
-            const salida = convertirHoraExcel(obtenerCampo(fila, ['Salida']));
+            const entrada = convertirHoraExcel(
+                obtenerCampo(fila, ['Entrada'])
+            );
+
+            const salida = convertirHoraExcel(
+                obtenerCampo(fila, ['Salida'])
+            );
+
             const atraso = texto(
-                obtenerCampo(fila, ['Horas de Atraso', 'Atraso'], '00:00'),
+                obtenerCampo(
+                    fila,
+                    ['Horas de Atraso', 'Atraso'],
+                    '00:00'
+                ),
                 '00:00'
             ) || '00:00';
-            const turnoOriginal = texto(obtenerCampo(fila, ['Turno']));
-            const fecha = fechaISODesdeExcel(obtenerCampo(fila, ['Fecha']));
-            const rut = normalizarRut(obtenerCampo(fila, ['Rut', 'RUT']));
 
-            const sinMarca = entrada === '-' && salida === '-';
-            const marcaIncompleta = (entrada === '-' || salida === '-') && !sinMarca;
+            const turnoCrudo = texto(
+                obtenerCampo(fila, ['Turno'])
+            );
+
+            const fecha = fechaISODesdeExcel(
+                obtenerCampo(fila, ['Fecha'])
+            );
+
+            const rut = normalizarRut(
+                obtenerCampo(fila, ['Rut', 'RUT'])
+            );
+
+            const sinMarca =
+                entrada === '-' &&
+                salida === '-';
+
+            const marcaIncompleta =
+                (entrada === '-' || salida === '-') &&
+                !sinMarca;
+
             const tieneAtraso = ![
                 '',
                 '0',
@@ -1113,42 +1494,80 @@
                 '00:00',
                 '00:00:00'
             ].includes(atraso);
-            const sinTurnoConMarcas = (!turnoOriginal || turnoOriginal === '-') && !sinMarca;
+
+            const sinTurnoConMarcas =
+                (!turnoCrudo || turnoCrudo === '-') &&
+                !sinMarca;
 
             let salidaTemprana = '-';
-            const coincidenciaTurno = turnoOriginal.match(
+
+            const match = turnoCrudo.match(
                 /(\d{1,2}:\d{2})\s*(?:-|a)\s*(\d{1,2}:\d{2})/i
             );
 
-            if (!sinMarca && !marcaIncompleta && coincidenciaTurno) {
-                const [horaSalida, minutoSalida] = salida.slice(0, 5).split(':').map(Number);
-                const [horaProgramada, minutoProgramado] = coincidenciaTurno[2].split(':').map(Number);
-                const salidaMinutos = horaSalida * 60 + minutoSalida;
-                const programadaMinutos = horaProgramada * 60 + minutoProgramado;
+            if (
+                !sinMarca &&
+                !marcaIncompleta &&
+                match
+            ) {
+                const [hSalida, mSalida] = salida
+                    .slice(0, 5)
+                    .split(':')
+                    .map(Number);
+
+                const [hProgramada, mProgramada] = match[2]
+                    .split(':')
+                    .map(Number);
+
+                const real = hSalida * 60 + mSalida;
+                const programada = hProgramada * 60 + mProgramada;
 
                 if (
-                    Number.isFinite(salidaMinutos) &&
-                    Number.isFinite(programadaMinutos) &&
-                    salidaMinutos < programadaMinutos
+                    Number.isFinite(real) &&
+                    Number.isFinite(programada) &&
+                    real < programada
                 ) {
-                    const diferencia = programadaMinutos - salidaMinutos;
+                    const diferencia = programada - real;
                     const horas = Math.floor(diferencia / 60);
                     const minutos = diferencia % 60;
+
                     salidaTemprana = `Se retiró ${horas ? `${horas}h ` : ''}${minutos}m antes`;
                 }
             }
 
             return {
                 rut,
-                nombre: texto(obtenerCampo(fila, ['Nombre', 'Nombre Completo'])),
-                sucursal: texto(obtenerCampo(fila, ['Sucursal'], 'Sin Sucursal')) || 'Sin Sucursal',
+                nombre: texto(
+                    obtenerCampo(
+                        fila,
+                        ['Nombre', 'Nombre Completo']
+                    )
+                ),
+                sucursal: texto(
+                    obtenerCampo(
+                        fila,
+                        ['Sucursal'],
+                        'Sin Sucursal'
+                    )
+                ) || 'Sin Sucursal',
                 fecha,
-                turno: turnoOriginal || 'Sin Turno',
+                turno: turnoCrudo || 'Sin Turno',
                 entrada,
                 salida,
                 atraso,
-                tipo_ausentismo: texto(obtenerCampo(fila, ['Tipo de Ausentismo', 'Ausentismo'])),
-                estado: texto(obtenerCampo(fila, ['Estado'], 'OK')) || 'OK',
+                tipo_ausentismo: texto(
+                    obtenerCampo(
+                        fila,
+                        ['Tipo de Ausentismo', 'Ausentismo']
+                    )
+                ),
+                estado: texto(
+                    obtenerCampo(
+                        fila,
+                        ['Estado'],
+                        'OK'
+                    )
+                ) || 'OK',
                 salida_temprana: salidaTemprana,
                 sin_marca: sinMarca,
                 marca_incompleta: marcaIncompleta,
@@ -1160,30 +1579,58 @@
         async function procesarReporteAsistencia(event) {
             const input = event.target;
             const file = input.files?.[0];
-            if (!file) return;
+
+            if (!file) {
+                return;
+            }
 
             const boton = document.getElementById('btn-upload-container');
 
             try {
-                boton.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Procesando...';
-                lucide.createIcons();
+                boton.textContent = 'Procesando y consolidando...';
 
-                const filas = await leerArchivoExcel(file);
-                const procesadas = filas.map(analizarFilaAsistencia);
-                const invalidas = procesadas.filter(registro => !registro.rut || !registro.fecha);
+                const filas = await leerExcel(file);
+
+                const originales = filas.map(
+                    analizarFilaAsistencia
+                );
+
+                const invalidas = originales.filter(registro => {
+                    return !registro.rut || !registro.fecha;
+                });
 
                 if (invalidas.length) {
-                    throw new Error(`${invalidas.length} fila(s) no tienen RUT o fecha válida. No se guardó el archivo.`);
+                    throw new Error(
+                        `${invalidas.length} fila(s) no tienen RUT o fecha válida. No se guardó el archivo.`
+                    );
                 }
+
+                // Una fila diaria por RUT. Si hay repetidos, conserva el último.
+                const consolidado = deduplicarRegistros(
+                    originales,
+                    registro => [
+                        normalizarRut(registro.rut),
+                        registro.fecha
+                    ].join('|')
+                );
+
+                const procesadas = consolidado.registros;
 
                 datosAsistenciaGlobal = procesadas;
                 asistenciaCargada = true;
-                renderizarFiltrosYAnalisisAsistencia();
+                renderizarFiltrosAsistencia();
 
-                boton.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Guardando en Supabase...';
-                lucide.createIcons();
+                if (consolidado.duplicados.length) {
+                    mostrarToast(
+                        `Asistencia: se detectaron ${consolidado.duplicados.length} fila(s) repetidas por RUT y fecha. Se conservó la última aparición.`,
+                        'warning',
+                        12000
+                    );
+                }
 
-                const confirmados = await guardarLotes(
+                boton.textContent = 'Guardando todos los lotes...';
+
+                const resultado = await guardarLotes(
                     'registros_asistencia',
                     procesadas,
                     {
@@ -1193,73 +1640,62 @@
 
                 await cargarAsistenciaDesdeNube(false);
                 await inicializarDashboard();
-                mostrarToast(`Asistencia guardada correctamente. Supabase confirmó ${confirmados} registro(s).`, 'success');
+
+                mostrarToast(
+                    `Carga de asistencia finalizada. Excel: ${originales.length} filas. Registros únicos: ${procesadas.length}. Duplicados consolidados: ${consolidado.duplicados.length}. Supabase confirmó ${resultado.confirmados} registros en ${resultado.lotesProcesados} lote(s).`,
+                    'success',
+                    16000
+                );
             } catch (error) {
-                mostrarToast(`No se pudo guardar asistencia. ${error.message}`, 'error', 15000);
+                mostrarToast(
+                    `No se pudo guardar asistencia. ${error.message}`,
+                    'error',
+                    18000
+                );
             } finally {
-                boton.innerHTML = '<i data-lucide="upload-cloud" class="h-4 w-4"></i> Cargar reporte de jornadas<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarReporteAsistencia(event)">';
+                boton.innerHTML = `
+                    <i data-lucide="upload-cloud" class="h-4 w-4"></i>
+                    Cargar reporte
+                    <input
+                        type="file"
+                        accept=".xlsx,.xls,.csv"
+                        class="hidden"
+                        onchange="procesarReporteAsistencia(event)"
+                    >
+                `;
+
                 input.value = '';
                 lucide.createIcons();
             }
         }
 
-        async function cargarAsistenciaDesdeNube(soloConteo = false) {
-            if (!soloConteo) {
-                document.getElementById('tabla-asistencia-body').innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400">Cargando desde Supabase...</td></tr>';
-            }
-
-            const filas = await cargarTablaCompleta(
+        async function cargarAsistenciaDesdeNube() {
+            datosAsistenciaGlobal = await leerTablaCompleta(
                 'registros_asistencia',
-                {
-                    columna: 'fecha',
-                    ascending: false
-                }
+                'fecha'
             );
 
-            datosAsistenciaGlobal = filas.map(registro => {
-                const sinMarcaCalculada = registro.entrada === '-' && registro.salida === '-';
-                const incompletaCalculada = (
-                    registro.entrada === '-' ||
-                    registro.salida === '-'
-                ) && !sinMarcaCalculada;
-
-                return {
-                    fecha: registro.fecha || '',
-                    rut: registro.rut || '',
-                    nombre: registro.nombre || '',
-                    sucursal: registro.sucursal || 'Sin Sucursal',
-                    turno: registro.turno || 'Sin Turno',
-                    entrada: registro.entrada || '-',
-                    salida: registro.salida || '-',
-                    atraso: registro.atraso || '00:00',
-                    tipo_ausentismo: registro.tipo_ausentismo || '',
-                    estado: registro.estado || 'OK',
-                    salida_temprana: registro.salida_temprana || '-',
-                    sin_marca: registro.sin_marca ?? sinMarcaCalculada,
-                    marca_incompleta: registro.marca_incompleta ?? incompletaCalculada,
-                    tiene_atraso: registro.tiene_atraso ?? !['', '0', '-', '00:00', '00:00:00'].includes(registro.atraso || '00:00'),
-                    sin_turno_marcas: registro.sin_turno_marcas ?? false
-                };
-            });
-
             asistenciaCargada = true;
-            document.getElementById('kpi-asistencia').innerText = datosAsistenciaGlobal.length;
+            document.getElementById('kpi-asistencia').innerText =
+                datosAsistenciaGlobal.length;
 
-            if (!soloConteo) {
-                renderizarFiltrosYAnalisisAsistencia();
-            }
+            renderizarFiltrosAsistencia();
         }
 
-        function renderizarFiltrosYAnalisisAsistencia() {
+        function renderizarFiltrosAsistencia() {
             const select = document.getElementById('filtro-sucursal-asistencia');
             const actual = select.value;
+
             const sucursales = [...new Set(
                 datosAsistenciaGlobal
                     .map(registro => registro.sucursal)
                     .filter(Boolean)
-            )].sort((a, b) => a.localeCompare(b, 'es'));
+            )].sort(
+                (a, b) => a.localeCompare(b, 'es')
+            );
 
-            select.innerHTML = '<option value="TODAS">Todas las sucursales</option>';
+            select.innerHTML = '<option value="TODAS">Todas</option>';
+
             sucursales.forEach(sucursal => {
                 const option = document.createElement('option');
                 option.value = sucursal;
@@ -1267,7 +1703,10 @@
                 select.appendChild(option);
             });
 
-            select.value = sucursales.includes(actual) ? actual : 'TODAS';
+            select.value = sucursales.includes(actual)
+                ? actual
+                : 'TODAS';
+
             renderizarAnalisisAsistencia();
         }
 
@@ -1278,143 +1717,243 @@
 
         function renderizarAnalisisAsistencia() {
             const sucursal = document.getElementById('filtro-sucursal-asistencia').value;
-            const anomalia = document.getElementById('filtro-tipo-anomalia').value;
-            const busqueda = document.getElementById('busqueda-asistencia').value.trim().toLowerCase();
+            const tipo = document.getElementById('filtro-tipo-anomalia').value;
+            const buscar = document.getElementById('busqueda-asistencia').value.trim().toLowerCase();
 
-            let baseIndicadores = [...datosAsistenciaGlobal];
+            let base = [...datosAsistenciaGlobal];
 
             if (sucursal !== 'TODAS') {
-                baseIndicadores = baseIndicadores.filter(registro => registro.sucursal === sucursal);
+                base = base.filter(
+                    registro => registro.sucursal === sucursal
+                );
             }
 
-            document.getElementById('stat-sin-marcas').innerText = baseIndicadores.filter(registro => registro.sin_marca && !registro.tipo_ausentismo).length;
-            document.getElementById('stat-incompletas').innerText = baseIndicadores.filter(registro => registro.marca_incompleta).length;
-            document.getElementById('stat-atrasos').innerText = baseIndicadores.filter(registro => registro.tiene_atraso).length;
-            document.getElementById('stat-tempranas').innerText = baseIndicadores.filter(registro => registro.salida_temprana !== '-').length;
-            document.getElementById('stat-sin-turno-marcas').innerText = baseIndicadores.filter(registro => registro.sin_turno_marcas).length;
+            document.getElementById('stat-sin-marcas').innerText =
+                base.filter(registro => registro.sin_marca && !registro.tipo_ausentismo).length;
 
-            let filtrados = baseIndicadores;
+            document.getElementById('stat-incompletas').innerText =
+                base.filter(registro => registro.marca_incompleta).length;
 
-            if (busqueda) {
+            document.getElementById('stat-atrasos').innerText =
+                base.filter(registro => registro.tiene_atraso).length;
+
+            document.getElementById('stat-tempranas').innerText =
+                base.filter(registro => registro.salida_temprana && registro.salida_temprana !== '-').length;
+
+            document.getElementById('stat-sin-turno-marcas').innerText =
+                base.filter(registro => registro.sin_turno_marcas).length;
+
+            let filtrados = base;
+
+            if (buscar) {
                 filtrados = filtrados.filter(registro => {
-                    return `${registro.nombre} ${registro.rut}`.toLowerCase().includes(busqueda);
+                    return `${registro.nombre || ''} ${registro.rut || ''}`
+                        .toLowerCase()
+                        .includes(buscar);
                 });
             }
 
-            if (anomalia === 'ATRASOS') filtrados = filtrados.filter(registro => registro.tiene_atraso);
-            if (anomalia === 'TEMPRANAS') filtrados = filtrados.filter(registro => registro.salida_temprana !== '-');
-            if (anomalia === 'INCOMPLETAS') filtrados = filtrados.filter(registro => registro.marca_incompleta);
-            if (anomalia === 'SIN_MARCAS') filtrados = filtrados.filter(registro => registro.sin_marca && !registro.tipo_ausentismo);
-            if (anomalia === 'SIN_TURNO') filtrados = filtrados.filter(registro => registro.sin_turno_marcas);
+            if (tipo === 'ATRASOS') {
+                filtrados = filtrados.filter(registro => registro.tiene_atraso);
+            }
 
-            document.getElementById('contador-asistencia').innerText = `Mostrando ${Math.min(filtrados.length, LIMITE_RENDER)} de ${filtrados.length} registros`;
+            if (tipo === 'TEMPRANAS') {
+                filtrados = filtrados.filter(registro => registro.salida_temprana && registro.salida_temprana !== '-');
+            }
+
+            if (tipo === 'INCOMPLETAS') {
+                filtrados = filtrados.filter(registro => registro.marca_incompleta);
+            }
+
+            if (tipo === 'SIN_MARCAS') {
+                filtrados = filtrados.filter(registro => registro.sin_marca && !registro.tipo_ausentismo);
+            }
+
+            if (tipo === 'SIN_TURNO') {
+                filtrados = filtrados.filter(registro => registro.sin_turno_marcas);
+            }
+
+            document.getElementById('contador-asistencia').innerText =
+                `Mostrando ${Math.min(filtrados.length, LIMITE_RENDER)} de ${filtrados.length}`;
 
             const tbody = document.getElementById('tabla-asistencia-body');
 
             if (!filtrados.length) {
-                tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400">No hay registros que coincidan con los filtros.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400">Sin registros.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = filtrados.slice(0, LIMITE_RENDER).map(registro => {
-                let estado = `<span class="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">${escaparHTML(registro.estado || 'OK')}</span>`;
+            tbody.innerHTML = filtrados
+                .slice(0, LIMITE_RENDER)
+                .map(registro => {
+                    let estado = escaparHTML(registro.estado || 'OK');
 
-                if (registro.tipo_ausentismo) {
-                    estado = `<span class="rounded bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-700">${escaparHTML(registro.tipo_ausentismo)}</span>`;
-                } else if (registro.sin_turno_marcas) {
-                    estado = '<span class="rounded bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-800">Sin turno con marcas</span>';
-                } else if (registro.sin_marca) {
-                    estado = '<span class="rounded bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700">Sin marcas</span>';
-                } else if (registro.marca_incompleta) {
-                    estado = '<span class="rounded bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Incompleta</span>';
-                }
+                    if (registro.tipo_ausentismo) {
+                        estado = escaparHTML(registro.tipo_ausentismo);
+                    } else if (registro.sin_marca) {
+                        estado = 'Sin marcas';
+                    } else if (registro.marca_incompleta) {
+                        estado = 'Marca incompleta';
+                    } else if (registro.sin_turno_marcas) {
+                        estado = 'Sin turno con marcas';
+                    }
 
-                return `
-                    <tr class="border-b border-slate-100 transition hover:bg-slate-50">
-                        <td class="p-3 font-mono text-slate-500">${escaparHTML(registro.fecha)}</td>
-                        <td class="p-3 font-semibold text-slate-800">${escaparHTML(registro.sucursal)}</td>
-                        <td class="p-3">
-                            <div class="font-bold text-slate-900">${escaparHTML(registro.nombre || 'N/A')}</div>
-                            <div class="font-mono text-[10px] text-slate-400">${escaparHTML(registro.rut)}</div>
-                        </td>
-                        <td class="p-3 text-slate-600">${escaparHTML(registro.turno)}</td>
-                        <td class="p-3 font-mono">
-                            <span class="text-emerald-700">Entrada: ${escaparHTML(registro.entrada)}</span><br>
-                            <span class="text-indigo-700">Salida: ${escaparHTML(registro.salida)}</span>
-                        </td>
-                        <td class="p-3 font-mono font-bold text-amber-600">${escaparHTML(['00:00', '00:00:00'].includes(registro.atraso) ? '-' : registro.atraso)}</td>
-                        <td class="p-3 font-mono text-blue-600">${escaparHTML(registro.salida_temprana)}</td>
-                        <td class="p-3">${estado}</td>
-                    </tr>
-                `;
-            }).join('');
+                    return `
+                        <tr>
+                            <td class="p-3 font-mono">${escaparHTML(registro.fecha)}</td>
+                            <td class="p-3">${escaparHTML(registro.sucursal)}</td>
+                            <td class="p-3">
+                                <div class="font-bold">${escaparHTML(registro.nombre || 'N/A')}</div>
+                                <div class="text-[10px] text-slate-400">${escaparHTML(registro.rut)}</div>
+                            </td>
+                            <td class="p-3">${escaparHTML(registro.turno || 'Sin Turno')}</td>
+                            <td class="p-3 font-mono">
+                                Entrada: ${escaparHTML(registro.entrada || '-')}<br>
+                                Salida: ${escaparHTML(registro.salida || '-')}
+                            </td>
+                            <td class="p-3">${escaparHTML(registro.atraso || '-')}</td>
+                            <td class="p-3">${escaparHTML(registro.salida_temprana || '-')}</td>
+                            <td class="p-3">${estado}</td>
+                        </tr>
+                    `;
+                })
+                .join('');
         }
 
         // ============================================================
-        // MÓDULO 5: LICENCIAS Y AUSENTISMO
+        // MÓDULO 5: LICENCIAS
         // ============================================================
         function analizarFilaLicencia(fila) {
-            const fechaInicio = fechaISODesdeExcel(
-                obtenerCampo(fila, ['Fecha Inicio Ausencia', 'Fecha Inicio', 'Desde'])
-            );
-            const fechaFin = fechaISODesdeExcel(
-                obtenerCampo(fila, ['Fecha Fin Ausencia', 'Fecha Fin', 'Hasta'])
-            );
-            const diasOriginal = obtenerCampo(
-                fila,
-                ['Número de días de Ausencia', 'Numero de dias de Ausencia', 'Días', 'Dias'],
-                1
-            );
-
             return {
-                rut: normalizarRut(obtenerCampo(fila, ['Rut', 'RUT'])),
-                nombre: texto(obtenerCampo(fila, ['Nombre', 'Nombre Completo'])),
-                empresa: texto(obtenerCampo(fila, ['Empresa'])),
-                cargo: texto(obtenerCampo(fila, ['Cargo'])),
-                sucursal: texto(obtenerCampo(fila, ['Sucursal'])),
+                rut: normalizarRut(
+                    obtenerCampo(fila, ['Rut', 'RUT'])
+                ),
+                nombre: texto(
+                    obtenerCampo(fila, ['Nombre', 'Nombre Completo'])
+                ),
+                empresa: texto(
+                    obtenerCampo(fila, ['Empresa'])
+                ),
+                cargo: texto(
+                    obtenerCampo(fila, ['Cargo'])
+                ),
+                sucursal: texto(
+                    obtenerCampo(fila, ['Sucursal'])
+                ),
                 tipo_ausencia: texto(
-                    obtenerCampo(fila, ['Tipo de Ausencia', 'Tipo Ausencia'], 'Permiso'),
+                    obtenerCampo(
+                        fila,
+                        ['Tipo de Ausencia', 'Tipo Ausencia'],
+                        'Permiso'
+                    ),
                     'Permiso'
                 ) || 'Permiso',
                 motivo_ausencia: texto(
-                    obtenerCampo(fila, ['Motivo de Ausencia', 'Motivo'])
+                    obtenerCampo(
+                        fila,
+                        ['Motivo de Ausencia', 'Motivo']
+                    )
                 ),
-                dias_ausencia: Number(diasOriginal) || 1,
-                fecha_inicio: fechaInicio,
-                fecha_fin: fechaFin,
-                observaciones: texto(obtenerCampo(fila, ['Observaciones']))
+                dias_ausencia: Number(
+                    obtenerCampo(
+                        fila,
+                        [
+                            'Número de días de Ausencia',
+                            'Numero de dias de Ausencia',
+                            'Días',
+                            'Dias'
+                        ],
+                        1
+                    )
+                ) || 1,
+                fecha_inicio: fechaISODesdeExcel(
+                    obtenerCampo(
+                        fila,
+                        [
+                            'Fecha Inicio Ausencia',
+                            'Fecha Inicio',
+                            'Desde'
+                        ]
+                    )
+                ),
+                fecha_fin: fechaISODesdeExcel(
+                    obtenerCampo(
+                        fila,
+                        [
+                            'Fecha Fin Ausencia',
+                            'Fecha Fin',
+                            'Hasta'
+                        ]
+                    )
+                ),
+                observaciones: texto(
+                    obtenerCampo(fila, ['Observaciones'])
+                )
             };
         }
 
         async function procesarHistorialLicencias(event) {
             const input = event.target;
             const file = input.files?.[0];
-            if (!file) return;
+
+            if (!file) {
+                return;
+            }
 
             const boton = document.getElementById('btn-upload-licencias');
 
             try {
-                boton.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Procesando...';
-                lucide.createIcons();
+                boton.textContent = 'Procesando archivo completo...';
 
-                const filas = await leerArchivoExcel(file);
-                const procesadas = filas.map(analizarFilaLicencia);
-                const invalidas = procesadas.filter(registro => {
-                    return !registro.rut || !registro.fecha_inicio || !registro.fecha_fin;
+                const filas = await leerExcel(file);
+
+                const originales = filas.map(
+                    analizarFilaLicencia
+                );
+
+                const invalidas = originales.filter(registro => {
+                    return (
+                        !registro.rut ||
+                        !registro.fecha_inicio ||
+                        !registro.fecha_fin
+                    );
                 });
 
                 if (invalidas.length) {
-                    throw new Error(`${invalidas.length} fila(s) no tienen RUT, fecha de inicio o fecha de fin válida. No se guardó el archivo.`);
+                    throw new Error(
+                        `${invalidas.length} fila(s) no tienen RUT, fecha de inicio o fecha de fin válida. No se guardó el archivo.`
+                    );
                 }
+
+                // Consolidación global ANTES de dividir en lotes.
+                // Esto evita que el lote 901-1200 caiga completo por código 21000.
+                const consolidado = deduplicarRegistros(
+                    originales,
+                    registro => [
+                        normalizarRut(registro.rut),
+                        registro.fecha_inicio,
+                        registro.fecha_fin,
+                        texto(registro.tipo_ausencia).toLowerCase()
+                    ].join('|')
+                );
+
+                const procesadas = consolidado.registros;
 
                 datosLicenciasGlobal = procesadas;
                 licenciasCargadas = true;
                 poblarFiltrosLicencias();
 
-                boton.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Guardando en Supabase...';
-                lucide.createIcons();
+                if (consolidado.duplicados.length) {
+                    mostrarToast(
+                        `Licencias: se detectaron ${consolidado.duplicados.length} fila(s) repetidas. Se conservó la última aparición de cada combinación RUT + fecha inicio + fecha fin + tipo.`,
+                        'warning',
+                        14000
+                    );
+                }
 
-                const confirmados = await guardarLotes(
+                boton.textContent = 'Guardando todos los lotes...';
+
+                const resultado = await guardarLotes(
                     'licencias_medicas',
                     procesadas,
                     {
@@ -1424,65 +1963,82 @@
 
                 await cargarLicenciasDesdeNube(false);
                 await inicializarDashboard();
-                mostrarToast(`Licencias guardadas correctamente. Supabase confirmó ${confirmados} registro(s).`, 'success');
+
+                mostrarToast(
+                    `Carga de licencias finalizada. Excel: ${originales.length} filas. Registros únicos: ${procesadas.length}. Duplicados consolidados: ${consolidado.duplicados.length}. Supabase confirmó ${resultado.confirmados} registros en ${resultado.lotesProcesados} lote(s). Las 900 filas anteriores se actualizaron y las restantes se insertaron.`,
+                    'success',
+                    18000
+                );
             } catch (error) {
-                mostrarToast(`No se pudieron guardar las licencias. ${error.message}`, 'error', 15000);
+                mostrarToast(
+                    `No se pudieron guardar las licencias. ${error.message}`,
+                    'error',
+                    20000
+                );
             } finally {
-                boton.innerHTML = '<i data-lucide="upload-cloud" class="h-4 w-4"></i> Cargar histórico de licencias<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarHistorialLicencias(event)">';
+                boton.innerHTML = `
+                    <i data-lucide="upload-cloud" class="h-4 w-4"></i>
+                    Cargar histórico
+                    <input
+                        type="file"
+                        accept=".xlsx,.xls,.csv"
+                        class="hidden"
+                        onchange="procesarHistorialLicencias(event)"
+                    >
+                `;
+
                 input.value = '';
                 lucide.createIcons();
             }
         }
 
-        async function cargarLicenciasDesdeNube(soloConteo = false) {
-            if (!soloConteo) {
-                document.getElementById('tabla-licencias-body').innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">Cargando desde Supabase...</td></tr>';
-            }
-
-            datosLicenciasGlobal = await cargarTablaCompleta(
+        async function cargarLicenciasDesdeNube() {
+            datosLicenciasGlobal = await leerTablaCompleta(
                 'licencias_medicas',
-                {
-                    columna: 'fecha_fin',
-                    ascending: false
-                }
+                'fecha_fin'
             );
 
             licenciasCargadas = true;
-            document.getElementById('kpi-licencias').innerText = datosLicenciasGlobal.length;
+            document.getElementById('kpi-licencias').innerText =
+                datosLicenciasGlobal.length;
 
-            if (!soloConteo) {
-                poblarFiltrosLicencias();
-            }
+            poblarFiltrosLicencias();
         }
 
         function poblarFiltrosLicencias() {
-            const selectColaborador = document.getElementById('filtro-colaborador-licencia');
+            const selectPersona = document.getElementById('filtro-colaborador-licencia');
             const selectTipo = document.getElementById('filtro-tipo-ausencia-licencia');
-            const colaboradorActual = selectColaborador.value;
+            const personaActual = selectPersona.value;
             const tipoActual = selectTipo.value;
-            const colaboradores = new Map();
+            const personas = new Map();
             const tipos = new Set();
 
             datosLicenciasGlobal.forEach(registro => {
                 if (registro.rut) {
-                    colaboradores.set(registro.rut, registro.nombre || 'Sin nombre');
+                    personas.set(
+                        registro.rut,
+                        registro.nombre || 'Sin nombre'
+                    );
                 }
+
                 if (registro.tipo_ausencia) {
                     tipos.add(registro.tipo_ausencia);
                 }
             });
 
-            selectColaborador.innerHTML = '<option value="TODOS">Todos los colaboradores</option>';
-            [...colaboradores.entries()]
+            selectPersona.innerHTML = '<option value="TODOS">Todos</option>';
+
+            [...personas.entries()]
                 .sort((a, b) => a[1].localeCompare(b[1], 'es'))
                 .forEach(([rut, nombre]) => {
                     const option = document.createElement('option');
                     option.value = rut;
                     option.textContent = `${nombre} (${rut})`;
-                    selectColaborador.appendChild(option);
+                    selectPersona.appendChild(option);
                 });
 
-            selectTipo.innerHTML = '<option value="TODOS">Todos los tipos</option>';
+            selectTipo.innerHTML = '<option value="TODOS">Todos</option>';
+
             [...tipos]
                 .sort((a, b) => a.localeCompare(b, 'es'))
                 .forEach(tipo => {
@@ -1492,118 +2048,175 @@
                     selectTipo.appendChild(option);
                 });
 
-            selectColaborador.value = colaboradores.has(colaboradorActual) ? colaboradorActual : 'TODOS';
-            selectTipo.value = tipos.has(tipoActual) ? tipoActual : 'TODOS';
+            selectPersona.value = personas.has(personaActual)
+                ? personaActual
+                : 'TODOS';
+
+            selectTipo.value = tipos.has(tipoActual)
+                ? tipoActual
+                : 'TODOS';
+
             renderizarTablaLicencias();
         }
 
         function renderizarTablaLicencias() {
-            const colaborador = document.getElementById('filtro-colaborador-licencia').value;
+            const persona = document.getElementById('filtro-colaborador-licencia').value;
             const tipo = document.getElementById('filtro-tipo-ausencia-licencia').value;
             const vigencia = document.getElementById('filtro-vigencia-licencia').value;
-            const busqueda = document.getElementById('busqueda-licencias').value.trim().toLowerCase();
+            const buscar = document.getElementById('busqueda-licencias').value.trim().toLowerCase();
+
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
 
             let filtrados = datosLicenciasGlobal.map(registro => {
                 const fechaFin = parsearFechaExcel(registro.fecha_fin);
-                const esVigente = Boolean(fechaFin && fechaFin >= hoy);
+
                 return {
                     ...registro,
-                    esVigente
+                    esVigente: Boolean(
+                        fechaFin &&
+                        fechaFin >= hoy
+                    )
                 };
             });
 
-            if (colaborador !== 'TODOS') filtrados = filtrados.filter(registro => registro.rut === colaborador);
-            if (tipo !== 'TODOS') filtrados = filtrados.filter(registro => registro.tipo_ausencia === tipo);
-            if (vigencia === 'VIGENTE') filtrados = filtrados.filter(registro => registro.esVigente);
-            if (vigencia === 'CADUCADA') filtrados = filtrados.filter(registro => !registro.esVigente);
+            if (persona !== 'TODOS') {
+                filtrados = filtrados.filter(
+                    registro => registro.rut === persona
+                );
+            }
 
-            if (busqueda) {
+            if (tipo !== 'TODOS') {
+                filtrados = filtrados.filter(
+                    registro => registro.tipo_ausencia === tipo
+                );
+            }
+
+            if (vigencia === 'VIGENTE') {
+                filtrados = filtrados.filter(
+                    registro => registro.esVigente
+                );
+            }
+
+            if (vigencia === 'CADUCADA') {
+                filtrados = filtrados.filter(
+                    registro => !registro.esVigente
+                );
+            }
+
+            if (buscar) {
                 filtrados = filtrados.filter(registro => {
-                    const contenido = [
+                    return [
                         registro.nombre,
                         registro.rut,
                         registro.motivo_ausencia,
                         registro.sucursal
-                    ].join(' ').toLowerCase();
-                    return contenido.includes(busqueda);
+                    ]
+                        .join(' ')
+                        .toLowerCase()
+                        .includes(buscar);
                 });
             }
 
-            document.getElementById('contador-licencias-filtradas').innerText = `Mostrando ${Math.min(filtrados.length, LIMITE_RENDER)} de ${filtrados.length} registros`;
+            document.getElementById('contador-licencias-filtradas').innerText =
+                `Mostrando ${Math.min(filtrados.length, LIMITE_RENDER)} de ${filtrados.length}`;
 
             const tbody = document.getElementById('tabla-licencias-body');
 
             if (!filtrados.length) {
-                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">No hay registros que coincidan con los filtros.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">Sin registros.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = filtrados.slice(0, LIMITE_RENDER).map(registro => {
-                const badge = registro.esVigente
-                    ? '<span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Vigente</span>'
-                    : '<span class="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[10px] font-bold text-red-700"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>No vigente</span>';
+            tbody.innerHTML = filtrados
+                .slice(0, LIMITE_RENDER)
+                .map(registro => {
+                    const estado = registro.esVigente
+                        ? '<span class="rounded-full bg-emerald-50 px-2 py-1 font-bold text-emerald-700">Vigente</span>'
+                        : '<span class="rounded-full bg-red-50 px-2 py-1 font-bold text-red-700">No vigente</span>';
 
-                return `
-                    <tr class="border-b border-slate-100 transition hover:bg-slate-50">
-                        <td class="p-3">
-                            <div class="font-bold text-slate-900">${escaparHTML(registro.nombre || 'N/A')}</div>
-                            <div class="font-mono text-[10px] text-slate-400">${escaparHTML(registro.rut)}</div>
-                        </td>
-                        <td class="p-3 font-medium text-slate-700">${escaparHTML(registro.sucursal || 'N/A')}</td>
-                        <td class="p-3"><span class="rounded bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">${escaparHTML(registro.tipo_ausencia || 'Permiso')}</span></td>
-                        <td class="p-3 text-slate-600">${escaparHTML(registro.motivo_ausencia || 'N/A')}</td>
-                        <td class="p-3 font-mono font-bold text-slate-900">${escaparHTML(registro.dias_ausencia)} día(s)</td>
-                        <td class="p-3 font-mono text-xs text-slate-500">${escaparHTML(registro.fecha_inicio)} al ${escaparHTML(registro.fecha_fin)}</td>
-                        <td class="p-3">${badge}</td>
-                    </tr>
-                `;
-            }).join('');
+                    return `
+                        <tr>
+                            <td class="p-3">
+                                <div class="font-bold">${escaparHTML(registro.nombre || 'N/A')}</div>
+                                <div class="text-[10px] text-slate-400">${escaparHTML(registro.rut)}</div>
+                            </td>
+                            <td class="p-3">${escaparHTML(registro.sucursal || 'N/A')}</td>
+                            <td class="p-3">${escaparHTML(registro.tipo_ausencia || 'Permiso')}</td>
+                            <td class="p-3">${escaparHTML(registro.motivo_ausencia || 'N/A')}</td>
+                            <td class="p-3">${escaparHTML(registro.dias_ausencia)}</td>
+                            <td class="p-3 font-mono">${escaparHTML(registro.fecha_inicio)} al ${escaparHTML(registro.fecha_fin)}</td>
+                            <td class="p-3">${estado}</td>
+                        </tr>
+                    `;
+                })
+                .join('');
         }
 
         // ============================================================
         // COLABORADORES Y SUCURSALES
         // ============================================================
-        async function procesarExcelGenerico(event, tablaDestino) {
+        async function procesarExcelGenerico(event, tabla) {
             const input = event.target;
             const file = input.files?.[0];
-            if (!file) return;
+
+            if (!file) {
+                return;
+            }
 
             try {
-                const filas = await leerArchivoExcel(file);
+                const filas = await leerExcel(file);
                 let datos = [];
 
-                if (tablaDestino === 'colaboradores') {
-                    datos = filas.map(fila => ({
-                        rut: normalizarRut(obtenerCampo(fila, ['RUT', 'Rut'])),
-                        nombres: texto(obtenerCampo(fila, ['Nombre', 'Nombres'])),
-                        apellidos: `${texto(obtenerCampo(fila, ['Apellido Paterno']))} ${texto(obtenerCampo(fila, ['Apellido Materno']))}`.trim(),
-                        cargo: texto(obtenerCampo(fila, ['Cargo'])),
-                        sucursal: texto(obtenerCampo(fila, ['Sucursal']))
-                    })).filter(registro => registro.rut);
+                if (tabla === 'colaboradores') {
+                    datos = filas
+                        .map(fila => ({
+                            rut: normalizarRut(obtenerCampo(fila, ['RUT', 'Rut'])),
+                            nombres: texto(obtenerCampo(fila, ['Nombre', 'Nombres'])),
+                            apellidos: `${texto(obtenerCampo(fila, ['Apellido Paterno']))} ${texto(obtenerCampo(fila, ['Apellido Materno']))}`.trim(),
+                            cargo: texto(obtenerCampo(fila, ['Cargo'])),
+                            sucursal: texto(obtenerCampo(fila, ['Sucursal']))
+                        }))
+                        .filter(registro => registro.rut);
                 }
 
-                if (tablaDestino === 'sucursales') {
-                    datos = filas.map(fila => ({
-                        unidad: texto(obtenerCampo(fila, ['UNIDAD', 'Unidad'])),
-                        nombre: texto(obtenerCampo(fila, ['NOMBRE SUCURSAL', 'Nombre Sucursal', 'Sucursal'])),
-                        direccion: texto(obtenerCampo(fila, ['DIRECCIÓN', 'DIRECCION', 'Dirección'])),
-                        comuna: texto(obtenerCampo(fila, ['COMUNA', 'Comuna'])),
-                        supervisor: texto(obtenerCampo(fila, ['SUPERVISOR', 'Supervisor'])),
-                        geolocalizacion: texto(obtenerCampo(fila, ['GEOLOCALIZACION', 'Geolocalización']))
-                    })).filter(registro => registro.nombre);
+                if (tabla === 'sucursales') {
+                    datos = filas
+                        .map(fila => ({
+                            unidad: texto(obtenerCampo(fila, ['UNIDAD', 'Unidad'])),
+                            nombre: texto(obtenerCampo(fila, ['NOMBRE SUCURSAL', 'Nombre Sucursal'])),
+                            direccion: texto(obtenerCampo(fila, ['DIRECCIÓN', 'DIRECCION', 'Dirección'])),
+                            comuna: texto(obtenerCampo(fila, ['COMUNA', 'Comuna'])),
+                            supervisor: texto(obtenerCampo(fila, ['SUPERVISOR', 'Supervisor'])),
+                            geolocalizacion: texto(obtenerCampo(fila, ['GEOLOCALIZACION', 'Geolocalización']))
+                        }))
+                        .filter(registro => registro.nombre);
                 }
 
-                const { error } = await _supabase.from(tablaDestino).upsert(datos);
-                if (error) throw construirErrorSupabase(`No se pudo guardar ${tablaDestino}`, error);
+                const { error } = await _supabase
+                    .from(tabla)
+                    .upsert(datos);
 
-                mostrarToast(`Se guardaron ${datos.length} registros en ${tablaDestino}.`, 'success');
+                if (error) {
+                    throw errorSupabase(`No se pudo guardar ${tabla}`, error);
+                }
+
+                mostrarToast(
+                    `Se guardaron ${datos.length} registros en ${tabla}.`,
+                    'success'
+                );
+
                 await inicializarDashboard();
-                if (tablaDestino === 'colaboradores') await cargarTablaColaboradores();
-                if (tablaDestino === 'sucursales') await cargarTablaSucursales();
+
+                if (tabla === 'colaboradores') {
+                    await cargarTablaColaboradores();
+                }
+
+                if (tabla === 'sucursales') {
+                    await cargarTablaSucursales();
+                }
             } catch (error) {
-                mostrarToast(error.message, 'error', 12000);
+                mostrarToast(error.message, 'error', 15000);
             } finally {
                 input.value = '';
             }
@@ -1611,19 +2224,18 @@
 
         async function cargarTablaColaboradores() {
             const tbody = document.getElementById('tabla-colaboradores-body');
-            tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">Cargando...</td></tr>';
 
             const [colaboradores, sucursales] = await Promise.all([
                 _supabase.from('colaboradores').select('*'),
                 _supabase.from('sucursales').select('nombre,supervisor')
             ]);
 
-            if (colaboradores.error) throw construirErrorSupabase('No se pudieron cargar colaboradores', colaboradores.error);
-            if (sucursales.error) throw construirErrorSupabase('No se pudieron cargar sucursales', sucursales.error);
+            if (colaboradores.error) {
+                throw colaboradores.error;
+            }
 
-            if (!colaboradores.data?.length) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">No hay colaboradores registrados.</td></tr>';
-                return;
+            if (sucursales.error) {
+                throw sucursales.error;
             }
 
             const mapa = new Map(
@@ -1633,47 +2245,66 @@
                 ])
             );
 
-            tbody.innerHTML = colaboradores.data.map(colaborador => {
-                const nombre = `${colaborador.nombres || ''} ${colaborador.apellidos || ''}`.trim();
-                const supervisor = mapa.get(texto(colaborador.sucursal).toLowerCase()) || 'No asignado';
-                return `
-                    <tr class="border-b border-slate-100 transition hover:bg-slate-50">
-                        <td class="p-4 font-mono text-xs text-slate-500">${escaparHTML(colaborador.rut || 'N/A')}</td>
-                        <td class="p-4 font-semibold text-slate-900">${escaparHTML(nombre || 'N/A')}</td>
-                        <td class="p-4 text-slate-600">${escaparHTML(colaborador.cargo || 'N/A')}</td>
-                        <td class="p-4 font-medium text-slate-800">${escaparHTML(colaborador.sucursal || 'Central')}</td>
-                        <td class="p-4 text-[11px] font-semibold text-simiNavy">${escaparHTML(supervisor)}</td>
-                        <td class="p-4"><span class="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">Activo</span></td>
-                    </tr>
-                `;
-            }).join('');
+            if (!colaboradores.data?.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center">Sin colaboradores.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = colaboradores.data
+                .map(registro => {
+                    const nombre = `${registro.nombres || ''} ${registro.apellidos || ''}`.trim();
+                    const supervisor = mapa.get(texto(registro.sucursal).toLowerCase()) || 'No asignado';
+
+                    return `
+                        <tr>
+                            <td class="p-4 font-mono">${escaparHTML(registro.rut)}</td>
+                            <td class="p-4 font-bold">${escaparHTML(nombre)}</td>
+                            <td class="p-4">${escaparHTML(registro.cargo)}</td>
+                            <td class="p-4">${escaparHTML(registro.sucursal)}</td>
+                            <td class="p-4">${escaparHTML(supervisor)}</td>
+                            <td class="p-4 text-emerald-700">Activo</td>
+                        </tr>
+                    `;
+                })
+                .join('');
         }
 
         async function cargarTablaSucursales() {
             const tbody = document.getElementById('tabla-sucursales-body');
-            tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Cargando...</td></tr>';
 
-            const { data, error } = await _supabase.from('sucursales').select('*');
-            if (error) throw construirErrorSupabase('No se pudieron cargar sucursales', error);
+            const { data, error } = await _supabase
+                .from('sucursales')
+                .select('*');
+
+            if (error) {
+                throw error;
+            }
 
             if (!data?.length) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">No hay sucursales registradas.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center">Sin sucursales.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = data.map(sucursal => {
-                const direccion = `${sucursal.direccion || ''}, ${sucursal.comuna || ''}, Chile`;
-                const mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccion)}`;
-                return `
-                    <tr class="border-b border-slate-100 transition hover:bg-slate-50">
-                        <td class="p-4 font-mono text-xs text-slate-500">${escaparHTML(sucursal.unidad || '')}</td>
-                        <td class="p-4 font-semibold text-slate-900">${escaparHTML(sucursal.nombre || '')}</td>
-                        <td class="p-4 text-xs text-slate-600">${escaparHTML(`${sucursal.direccion || ''}, ${sucursal.comuna || ''}`)}</td>
-                        <td class="p-4 text-[11px] font-semibold text-simiNavy">${escaparHTML(sucursal.supervisor || 'N/A')}</td>
-                        <td class="p-4"><a href="${mapa}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1 text-[11px] font-bold text-simiRed hover:underline">Ver mapa</a></td>
-                    </tr>
-                `;
-            }).join('');
+            tbody.innerHTML = data
+                .map(registro => {
+                    const direccion = `${registro.direccion || ''}, ${registro.comuna || ''}, Chile`;
+                    const mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccion)}`;
+
+                    return `
+                        <tr>
+                            <td class="p-4">${escaparHTML(registro.unidad)}</td>
+                            <td class="p-4 font-bold">${escaparHTML(registro.nombre)}</td>
+                            <td class="p-4">${escaparHTML(direccion)}</td>
+                            <td class="p-4">${escaparHTML(registro.supervisor)}</td>
+                            <td class="p-4">
+                                <a href="${mapa}" target="_blank" rel="noopener noreferrer" class="font-bold text-simiRed">
+                                    Ver mapa
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                })
+                .join('');
         }
 
         function toggleModalColaborador(mostrar) {
@@ -1693,10 +2324,12 @@
                 sucursal: texto(document.getElementById('input-sucursal').value)
             };
 
-            const { error } = await _supabase.from('colaboradores').insert([registro]);
+            const { error } = await _supabase
+                .from('colaboradores')
+                .insert([registro]);
 
             if (error) {
-                mostrarToast(construirErrorSupabase('No se pudo guardar el colaborador', error).message, 'error');
+                mostrarToast(error.message, 'error');
                 return;
             }
 
@@ -1704,117 +2337,28 @@
             document.getElementById('form-nuevo-colaborador').reset();
             await cargarTablaColaboradores();
             await inicializarDashboard();
-            mostrarToast('Colaborador guardado correctamente.', 'success');
+            mostrarToast('Colaborador guardado.', 'success');
         }
     </script>
 
     <!--
-    ================================================================
-    SQL OBLIGATORIO PARA SUPABASE
-    ================================================================
-    Ejecutar una sola vez en Supabase > SQL Editor.
+    SQL QUE YA DEBE EXISTIR EN SUPABASE:
 
-    alter table public.registros_asistencia
-      add column if not exists turno text,
-      add column if not exists tipo_ausentismo text,
-      add column if not exists salida_temprana text,
-      add column if not exists sin_marca boolean not null default false,
-      add column if not exists marca_incompleta boolean not null default false,
-      add column if not exists tiene_atraso boolean not null default false,
-      add column if not exists sin_turno_marcas boolean not null default false;
+    CREATE UNIQUE INDEX registros_asistencia_rut_fecha_uk
+    ON public.registros_asistencia (rut, fecha);
 
-    delete from public.registros_asistencia a
-    using public.registros_asistencia b
-    where a.rut = b.rut
-      and a.fecha = b.fecha
-      and a.id < b.id;
-
-    create unique index if not exists registros_asistencia_rut_fecha_uk
-    on public.registros_asistencia (rut, fecha);
-
-    delete from public.licencias_medicas a
-    using public.licencias_medicas b
-    where a.rut = b.rut
-      and a.fecha_inicio = b.fecha_inicio
-      and a.fecha_fin = b.fecha_fin
-      and a.tipo_ausencia = b.tipo_ausencia
-      and a.id < b.id;
-
-    create unique index if not exists licencias_medicas_registro_uk
-    on public.licencias_medicas (
-      rut,
-      fecha_inicio,
-      fecha_fin,
-      tipo_ausencia
+    CREATE UNIQUE INDEX licencias_medicas_registro_uk
+    ON public.licencias_medicas (
+        rut,
+        fecha_inicio,
+        fecha_fin,
+        tipo_ausencia
     );
 
-    alter table public.registros_asistencia enable row level security;
-    alter table public.licencias_medicas enable row level security;
+    NOTIFY pgrst, 'reload schema';
 
-    drop policy if exists "asistencia_select_authenticated"
-    on public.registros_asistencia;
-
-    drop policy if exists "asistencia_insert_authenticated"
-    on public.registros_asistencia;
-
-    drop policy if exists "asistencia_update_authenticated"
-    on public.registros_asistencia;
-
-    create policy "asistencia_select_authenticated"
-    on public.registros_asistencia
-    for select
-    to authenticated
-    using (true);
-
-    create policy "asistencia_insert_authenticated"
-    on public.registros_asistencia
-    for insert
-    to authenticated
-    with check (true);
-
-    create policy "asistencia_update_authenticated"
-    on public.registros_asistencia
-    for update
-    to authenticated
-    using (true)
-    with check (true);
-
-    drop policy if exists "licencias_select_authenticated"
-    on public.licencias_medicas;
-
-    drop policy if exists "licencias_insert_authenticated"
-    on public.licencias_medicas;
-
-    drop policy if exists "licencias_update_authenticated"
-    on public.licencias_medicas;
-
-    create policy "licencias_select_authenticated"
-    on public.licencias_medicas
-    for select
-    to authenticated
-    using (true);
-
-    create policy "licencias_insert_authenticated"
-    on public.licencias_medicas
-    for insert
-    to authenticated
-    with check (true);
-
-    create policy "licencias_update_authenticated"
-    on public.licencias_medicas
-    for update
-    to authenticated
-    using (true)
-    with check (true);
-
-    grant select, insert, update
-    on public.registros_asistencia
-    to authenticated;
-
-    grant select, insert, update
-    on public.licencias_medicas
-    to authenticated;
-    ================================================================
+    La deduplicación de este HTML ocurre ANTES de dividir en lotes.
+    Por eso el error 21000 ya no debería detener los registros posteriores a 900.
     -->
 </body>
 </html>
