@@ -230,7 +230,7 @@
                 <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
                     <div>
                         <h3 class="font-bold text-slate-900 text-base">Control de Asistencia, Atrasos y Anomalías</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Sube el reporte de jornadas para análisis local y respaldo en la nube.</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Sube el reporte de jornadas (procesamiento local instantáneo y respaldo en la nube).</p>
                     </div>
                     <label id="btn-upload-container" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-2 shadow-sm ui-button">
                         <i data-lucide="upload-cloud" class="w-4 h-4"></i> Cargar Reporte de Jornadas (Excel)
@@ -302,7 +302,7 @@
                             </tr>
                         </thead>
                         <tbody id="tabla-asistencia-body" class="text-xs divide-y divide-slate-100 font-medium text-slate-700">
-                            <tr><td colspan="8" class="p-8 text-center text-slate-400">Sube un archivo Excel o espera la carga desde la nube.</td></tr>
+                            <tr><td colspan="8" class="p-8 text-center text-slate-400">Cargando registros...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -381,6 +381,8 @@
 
         let datosAsistenciaGlobal = [];
         let datosLicenciasGlobal = [];
+        let asistenciaCargada = false;
+        let licenciasCargadas = false;
 
         function convertirHoraExcel(val) {
             if (val === undefined || val === null || val === '-' || val === '') return '-';
@@ -456,8 +458,14 @@
 
             if(mod === 'colaboradores') cargarTablaColaboradores();
             if(mod === 'sucursales') cargarTablaSucursales();
-            if(mod === 'asistencia') cargarAsistenciaDesdeNube();
-            if(mod === 'licencias') cargarLicenciasDesdeNube();
+            if(mod === 'asistencia') {
+                if(!asistenciaCargada) cargarAsistenciaDesdeNube();
+                else renderizarFiltrosYAnalisisAsistencia();
+            }
+            if(mod === 'licencias') {
+                if(!licenciasCargadas) cargarLicenciasDesdeNube();
+                else renderizarTablaLicencias();
+            }
             lucide.createIcons();
         }
 
@@ -481,8 +489,9 @@
                 box.className = "p-4 rounded-xl text-sm bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium";
                 box.innerHTML = `<strong>✔ Base de datos conectada.</strong> Listos para trabajar.`;
 
-                cargarAsistenciaDesdeNube();
-                cargarLicenciasDesdeNube(true);
+                // Precargar de fondo si está vacío
+                if(!asistenciaCargada) cargarAsistenciaDesdeNube(true);
+                if(!licenciasCargadas) cargarLicenciasDesdeNube(true);
             } catch (err) {
                 box.className = "p-4 rounded-xl text-sm bg-yellow-50 border border-yellow-200 text-yellow-800 font-medium";
                 box.innerHTML = `<strong>⚠️ Problema de conexión a Supabase:</strong> ${err.message}`;
@@ -554,9 +563,9 @@
                         };
                     });
 
+                    asistenciaCargada = true;
                     renderizarFiltrosYAnalisisAsistencia();
 
-                    // Guardar en la nube en segundo plano
                     btnContainer.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Guardando en la nube...`;
                     const loteParaNube = datosAsistenciaGlobal.map(d => ({
                         rut: d.rut,
@@ -587,10 +596,12 @@
             reader.readAsArrayBuffer(file);
         }
 
-        async function cargarAsistenciaDesdeNube() {
-            const tbody = document.getElementById('tabla-asistencia-body');
-            tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando registros desde la nube...</td></tr>`;
-            lucide.createIcons();
+        async function cargarAsistenciaDesdeNube(soloConteo = false) {
+            if(!soloConteo) {
+                const tbody = document.getElementById('tabla-asistencia-body');
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando registros desde la nube...</td></tr>`;
+                lucide.createIcons();
+            }
 
             let allData = [];
             let step = 1000;
@@ -632,6 +643,8 @@
                 };
             });
 
+            asistenciaCargada = true;
+            if (soloConteo) return;
             renderizarFiltrosYAnalisisAsistencia();
         }
 
@@ -733,9 +746,9 @@
                         observaciones: String(r['Observaciones'] || '')
                     })).filter(l => l.rut);
 
+                    licenciasCargadas = true;
                     renderizarTablaLicencias();
 
-                    // Guardar en la nube en lotes
                     btnContainer.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Subiendo a la nube...`;
                     for (let i = 0; i < datosLicenciasGlobal.length; i += 500) {
                         let chunk = datosLicenciasGlobal.slice(i, i + 500);
@@ -781,6 +794,7 @@
             datosLicenciasGlobal = allData;
             document.getElementById('kpi-licencias').innerText = datosLicenciasGlobal.length;
 
+            licenciasCargadas = true;
             if (soloConteo) return;
             renderizarTablaLicencias();
         }
