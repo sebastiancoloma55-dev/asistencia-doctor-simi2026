@@ -3969,7 +3969,8 @@ body{overflow-x:hidden}
   if(typeof originalRoute==='function')window.mostrarRutaMapa14=function(){var r=originalRoute.apply(this,arguments);setTimeout(estimateRoute,0);return r;};
   function enhanceMapNote(){var frame=document.getElementById('mapa14-frame');if(!frame||document.getElementById('mapa14-estimacion-2026'))return;var box=document.createElement('div');box.id='mapa14-estimacion-2026';box.className='map-estimate-2026';box.innerHTML='<div><strong>Estimación aproximada</strong><span>Selecciona dos sucursales con GPS para ver distancia y tiempo orientativos.</span></div>';frame.parentNode.insertBefore(box,frame);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setupSelectors();enhanceMapNote();});else{setupSelectors();enhanceMapNote();}
-  var mo=new MutationObserver(function(){setupSelectors();updateSelectorCounts();});mo.observe(document.body,{childList:true,subtree:true});
+  // No observar todo el documento: setupSelectors modifica nodos y podía disparar un bucle de mutaciones que bloqueaba el navegador.
+  // Los selectores son estáticos y se inicializan al cargar; sus contadores se actualizan desde sus eventos.
   var oldLogout=window.cerrarSesion;
   if(typeof oldLogout==='function')window.cerrarSesion=async function(){allowed=new Set(['dashboard']);paintPermissions();return oldLogout.apply(this,arguments);};
   window.addEventListener('load',function(){setupSelectors();enhanceMapNote();});
