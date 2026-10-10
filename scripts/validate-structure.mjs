@@ -52,6 +52,21 @@ const gemini = readFileSync(path.join(root, 'api/gemini.js'), 'utf8');
 const geo = readFileSync(path.join(root, 'api/geocodificar.js'), 'utf8');
 if (!gemini.includes("requireModuleAccess(req, 'reportes')")) fail('La API de IA no valida el permiso reportes.');
 if (!geo.includes("requireModuleAccess(req, 'mapas')")) fail('La API de geocodificación no valida el permiso mapas.');
+const userAuth = readFileSync(path.join(root, 'api/usuarios-auth.js'), 'utf8');
+if (!userAuth.includes('Acceso restringido al administrador principal')) fail('La API de administración no restringe el acceso al administrador principal.');
+const cron = readFileSync(path.join(root, 'api/cron-alertas.js'), 'utf8');
+if (!cron.includes('authorization !== `Bearer ${cronSecret}`')) fail('El cron de alertas no valida CRON_SECRET.');
+const vercelConfig = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8'));
+if (!vercelConfig.crons?.some(job => job.path === '/api/cron-alertas' && job.schedule === '0 * * * *')) fail('El cron de alertas debe ejecutarse cada hora.');
+for (const endpoint of ['api/gemini.js', 'api/geocodificar.js']) {
+  const source = readFileSync(path.join(root, endpoint), 'utf8');
+  if (!source.includes('req.method')) fail(`Falta validar el método HTTP en ${endpoint}.`);
+}
+const requiredModules = ['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
+for (const moduleName of requiredModules) {
+  if (!buttons.has(moduleName)) fail(`El módulo ${moduleName} no tiene botón de navegación.`);
+  if (!views.has(moduleName)) fail(`El módulo ${moduleName} no tiene vista registrada.`);
+}
 
 const frontendFiles = ['index.html', ...jsFiles.map(file => path.relative(root, file)).filter(file => file.startsWith('js/'))];
 for (const file of frontendFiles) {
