@@ -75,14 +75,15 @@
             line-height: 1.35;
         }
 
-        .tabla-asistencia .col-fecha { width: 9%; }
-        .tabla-asistencia .col-sucursal { width: 16%; }
-        .tabla-asistencia .col-colaborador { width: 22%; }
-        .tabla-asistencia .col-turno { width: 7%; }
-        .tabla-asistencia .col-marcas { width: 14%; }
-        .tabla-asistencia .col-atraso { width: 7%; }
-        .tabla-asistencia .col-temprana { width: 12%; }
-        .tabla-asistencia .col-estado { width: 13%; }
+        .tabla-asistencia .col-fecha { width: 8%; }
+        .tabla-asistencia .col-sucursal { width: 13%; }
+        .tabla-asistencia .col-supervisor { width: 12%; }
+        .tabla-asistencia .col-colaborador { width: 20%; }
+        .tabla-asistencia .col-turno { width: 6%; }
+        .tabla-asistencia .col-marcas { width: 13%; }
+        .tabla-asistencia .col-atraso { width: 6%; }
+        .tabla-asistencia .col-temprana { width: 10%; }
+        .tabla-asistencia .col-estado { width: 12%; }
 
         .estado-asistencia {
             display: inline-block;
@@ -1021,6 +1022,7 @@ body{overflow-x:hidden}
                                 <tr>
                                     <th class="col-fecha">Fecha</th>
                                     <th class="col-sucursal">Sucursal</th>
+                                    <th class="col-supervisor">Supervisor</th>
                                     <th class="col-colaborador">Colaborador</th>
                                     <th class="col-turno">Turno</th>
                                     <th class="col-marcas">Entrada / salida</th>
@@ -1142,6 +1144,7 @@ body{overflow-x:hidden}
                                 <tr>
                                     <th class="p-3">Colaborador</th>
                                     <th class="p-3">Sucursal</th>
+                                    <th class="p-3">Supervisor del directorio</th>
                                     <th class="p-3">Tipo</th>
                                     <th class="p-3">Motivo</th>
                                     <th class="p-3">Días</th>
@@ -2280,6 +2283,46 @@ body{overflow-x:hidden}
             }
         }
 
+        // El supervisor se obtiene del directorio oficial de sucursales.
+        // No se modifica el histórico cuando no existe una coincidencia segura.
+        let mapaSupervisoresDirectorio = null;
+        let cargaMapaSupervisoresDirectorio = null;
+        function claveSucursalDirectorio(valor) {
+            return String(valor || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim()
+                .replace(/\s+/g, ' ');
+        }
+        async function obtenerMapaSupervisoresDirectorio() {
+            if (mapaSupervisoresDirectorio) return mapaSupervisoresDirectorio;
+            if (!cargaMapaSupervisoresDirectorio) {
+                cargaMapaSupervisoresDirectorio = (async () => {
+                    const { data, error } = await _supabase
+                        .from('sucursales')
+                        .select('nombre,supervisor');
+                    if (error) throw errorSupabase('No se pudo cargar el directorio de sucursales', error);
+                    const mapa = new Map();
+                    (data || []).forEach(item => {
+                        const clave = claveSucursalDirectorio(item.nombre);
+                        if (clave) mapa.set(clave, texto(item.supervisor) || 'Sin supervisor asignado');
+                    });
+                    mapaSupervisoresDirectorio = mapa;
+                    return mapa;
+                })();
+            }
+            try { return await cargaMapaSupervisoresDirectorio; }
+            catch (error) { cargaMapaSupervisoresDirectorio = null; throw error; }
+        }
+        function supervisorDeSucursal(nombre) {
+            const clave = claveSucursalDirectorio(nombre);
+            if (!clave) return 'Sin sucursal';
+            if (!mapaSupervisoresDirectorio) return 'Directorio no cargado';
+            return mapaSupervisoresDirectorio.get(clave) || 'No figura en directorio';
+        }
+
         // ============================================================
         // MÓDULO 4: ASISTENCIA
         // ============================================================
@@ -2505,6 +2548,7 @@ body{overflow-x:hidden}
         }
 
         async function cargarAsistenciaDesdeNube() {
+            await obtenerMapaSupervisoresDirectorio();
             datosAsistenciaGlobal = await leerTablaCompleta(
                 'registros_asistencia',
                 'fecha'
@@ -2614,7 +2658,7 @@ body{overflow-x:hidden}
             const tbody = document.getElementById('tabla-asistencia-body');
 
             if (!filtrados.length) {
-                tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400">Sin registros.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-slate-400">Sin registros.</td></tr>';
                 return;
             }
 
@@ -2637,6 +2681,7 @@ body{overflow-x:hidden}
                         <tr>
                             <td class="col-fecha font-mono">${escaparHTML(registro.fecha)}</td>
                             <td class="col-sucursal font-semibold">${escaparHTML(registro.sucursal)}</td>
+                            <td class="col-supervisor">${escaparHTML(supervisorDeSucursal(registro.sucursal))}</td>
                             <td class="col-colaborador">
                                 <div class="font-bold">${escaparHTML(registro.nombre || 'N/A')}</div>
                                 <div class="text-[10px] text-slate-400">${escaparHTML(registro.rut)}</div>
@@ -2829,6 +2874,7 @@ body{overflow-x:hidden}
         }
 
         async function cargarLicenciasDesdeNube() {
+            await obtenerMapaSupervisoresDirectorio();
             datosLicenciasGlobal = await leerTablaCompleta(
                 'licencias_medicas',
                 'fecha_fin'
@@ -2960,7 +3006,7 @@ body{overflow-x:hidden}
             const tbody = document.getElementById('tabla-licencias-body');
 
             if (!filtrados.length) {
-                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">Sin registros.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400">Sin registros.</td></tr>';
                 return;
             }
 
@@ -2978,6 +3024,7 @@ body{overflow-x:hidden}
                                 <div class="text-[10px] text-slate-400">${escaparHTML(registro.rut)}</div>
                             </td>
                             <td class="p-3">${escaparHTML(registro.sucursal || 'N/A')}</td>
+                            <td class="p-3">${escaparHTML(supervisorDeSucursal(registro.sucursal))}</td>
                             <td class="p-3">${escaparHTML(registro.tipo_ausencia || 'Permiso')}</td>
                             <td class="p-3">${escaparHTML(registro.motivo_ausencia || 'N/A')}</td>
                             <td class="p-3">${escaparHTML(registro.dias_ausencia)}</td>
