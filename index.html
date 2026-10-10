@@ -380,26 +380,28 @@
         async function inicializarDashboard() {
             const box = document.getElementById('connection-box');
             try {
-                // Se buscan las 4 métricas, tolerando si asistencia o licencias no existen aún.
+                // CORRECCIÓN: Se retiran los .catch() que causaban el error en la promesa y se extraen los valores uno por uno.
                 const [colabRes, sucRes, asisRes, licRes] = await Promise.all([
                     _supabase.from('colaboradores').select('id', { count: 'exact', head: true }),
                     _supabase.from('sucursales').select('id', { count: 'exact', head: true }),
-                    _supabase.from('registros_asistencia').select('id', { count: 'exact', head: true }).catch(() => ({count: 0})),
-                    _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true }).catch(() => ({count: 0}))
+                    _supabase.from('registros_asistencia').select('id', { count: 'exact', head: true }),
+                    _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true })
                 ]);
                 
                 if (colabRes.error) throw new Error(colabRes.error.message);
 
                 document.getElementById('kpi-colaboradores').innerText = colabRes.count || '0';
                 document.getElementById('kpi-sucursales').innerText = sucRes.count || '0';
-                document.getElementById('kpi-asistencia').innerText = asisRes.count || '0';
-                document.getElementById('kpi-licencias').innerText = licRes.count || '0';
+                
+                // Si la tabla no existe aún, asisRes/licRes tendrán un ".error", así que mostramos 0.
+                document.getElementById('kpi-asistencia').innerText = asisRes.error ? '0' : (asisRes.count || '0');
+                document.getElementById('kpi-licencias').innerText = licRes.error ? '0' : (licRes.count || '0');
                 
                 box.className = "p-4 rounded-xl text-sm bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium";
                 box.innerHTML = `<strong>✔ Base de datos conectada.</strong> Listos para trabajar.`;
             } catch (err) {
                 box.className = "p-4 rounded-xl text-sm bg-yellow-50 border border-yellow-200 text-yellow-800 font-medium";
-                box.innerHTML = `<strong>⚠️ Problema de conexión a Supabase:</strong> ${err.message}.`;
+                box.innerHTML = `<strong>⚠️ Problema de conexión a Supabase:</strong> ${err.message}`;
             }
         }
 
@@ -561,7 +563,6 @@
             const { data } = await _supabase.from('sucursales').select('*');
             if (data && data.length > 0) {
                 tbody.innerHTML = data.map(s => {
-                    // AQUÍ ESTÁ LA CORRECCIÓN DE GOOGLE MAPS PARA EVITAR EL ERROR 404
                     let linkMapa = s.geolocalizacion;
                     if (linkMapa && !linkMapa.startsWith('http')) {
                         linkMapa = 'https://' + linkMapa;
