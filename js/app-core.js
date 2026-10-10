@@ -754,6 +754,7 @@
             lista.innerHTML=items.map(x=>'<div class="integ-row flex flex-col gap-3 sm:flex-row sm:items-start"><span class="integ-status '+x.kind+'">'+opsEsc(x.status)+'</span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm">'+opsEsc(x.name)+'</strong><span class="text-xs text-slate-400">'+opsEsc(x.type)+'</span></div><p class="mt-1 text-sm text-slate-600">'+opsEsc(x.detail)+'</p></div></div>').join('');
             const stamp=document.getElementById('integ-actualizado');if(stamp)stamp.textContent='Comprobado '+new Date().toLocaleString('es-CL');
             if(window.lucide)lucide.createIcons();
+            if(window.cargarPanelBotTalana) await window.cargarPanelBotTalana();
         }
 
         // ============================================================
