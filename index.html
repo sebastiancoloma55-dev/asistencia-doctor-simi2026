@@ -639,12 +639,11 @@ body{overflow-x:hidden}
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <span
-                        id="user-email-display"
-                        class="hidden text-sm font-semibold text-slate-600 sm:inline"
-                    >
-                        Cargando...
-                    </span>
+                    <button type="button" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('tareas');setTimeout(()=>document.getElementById('tarea-titulo')?.focus(),250)">
+                        <i data-lucide="plus" class="h-4 w-4"></i><span>Nueva tarea rápida</span>
+                    </button>
+                    <span class="topbar-divider hidden sm:block"></span>
+                    <span id="user-email-display" class="topbar-user-email hidden text-sm font-semibold text-slate-600 sm:inline">Cargando...</span>
 
                     <button
                         onclick="cerrarSesion()"
@@ -4176,6 +4175,97 @@ table tbody tr{transition:background .14s ease}
 table tbody tr:hover{background:#f6fbfd}
 button:focus-visible,a:focus-visible{outline:3px solid rgba(8,145,178,.35);outline-offset:2px}
 input[type="checkbox"],input[type="radio"]{accent-color:#0785a2}
+
+/* =========================================================
+   DOCTOR SIMI · SISTEMA VISUAL NOVA 2026
+   Aplicación transversal: navegación, encabezado, formularios,
+   reportes, KPIs y seguimiento de tareas.
+   ========================================================= */
+:root{
+ --nova-ink:#101d49;--nova-muted:#61708e;--nova-blue:#0868e8;
+ --nova-blue-2:#07529b;--nova-cyan:#05a9c2;--nova-line:#dce7f5;
+ --nova-panel:#ffffff;--nova-bg:#f4f8fd;--nova-shadow:0 12px 32px rgba(17,48,92,.065);
+ --nova-radius:18px;
+}
+html{background:var(--nova-bg)}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--nova-ink);letter-spacing:-.012em}
+body>div.flex.h-screen{background:radial-gradient(ellipse at 70% 0%,rgba(220,239,255,.55),transparent 38%),var(--nova-bg)}
+#sidebar{background:linear-gradient(180deg,#073a79 0%,#064e9c 48%,#063b7a 100%)!important;box-shadow:10px 0 36px rgba(8,43,90,.13);border-right:1px solid rgba(255,255,255,.1);width:280px;max-width:84vw}
+#sidebar>div:first-child{min-height:102px;padding:20px 18px!important;background:linear-gradient(130deg,rgba(255,255,255,.09),rgba(255,255,255,0));border-bottom:1px solid rgba(255,255,255,.13)!important}
+#sidebar>div:first-child img{border-radius:15px;box-shadow:0 7px 20px rgba(0,0,0,.15)}
+#sidebar h1{font-size:15px;letter-spacing:.04em}
+#sidebar nav{padding:14px 12px 20px!important;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.38) transparent}
+#sidebar .menu-btn{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:43px;padding:11px 12px;margin:3px 0;border:1px solid transparent;border-radius:12px;color:rgba(255,255,255,.88);font-size:13px;font-weight:520;line-height:1.3;transition:background .18s ease,border-color .18s ease,transform .18s ease,color .18s ease}
+#sidebar .menu-btn svg{width:17px;height:17px;flex:0 0 auto;opacity:.94}
+#sidebar .menu-btn:hover{background:rgba(255,255,255,.105);border-color:rgba(255,255,255,.12);color:#fff;transform:translateX(2px)}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{background:linear-gradient(110deg,#078df4,#0870e8);color:white;border-color:rgba(255,255,255,.24);box-shadow:0 8px 20px rgba(0,20,65,.22),inset 0 1px 0 rgba(255,255,255,.2);font-weight:800}
+main.flex{background:transparent}
+main>header{min-height:68px;padding:12px 26px!important;background:rgba(255,255,255,.88)!important;backdrop-filter:blur(18px);border-bottom:1px solid #e0eaf5!important;box-shadow:0 5px 18px rgba(20,51,93,.035)}
+#header-title{font-size:19px;letter-spacing:-.035em;color:var(--nova-ink);font-weight:850}
+.topbar-quick-action{align-items:center;gap:8px;border:1px solid #d8e7fc;border-radius:11px;padding:10px 13px;background:linear-gradient(135deg,#087bf4,#075ed0);color:#fff;font-size:12px;font-weight:800;box-shadow:0 6px 15px rgba(8,104,232,.17);transition:transform .18s,box-shadow .18s}
+.topbar-quick-action:hover{transform:translateY(-1px);box-shadow:0 9px 22px rgba(8,104,232,.24)}
+.topbar-divider{height:26px;width:1px;background:#dce5f0}
+.topbar-user-email{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px!important;color:#415273!important}
+#view-dashboard,#view-colaboradores,#view-sucursales,#view-asistencia,#view-licencias,#view-vacaciones,#view-papeletas,#view-correos,#view-amonestaciones,#view-reportes,#view-usuarios,#view-auditoria,#view-configcorreos,#view-mapas,#view-tareas{padding:26px!important}
+.ui-card{border:1px solid var(--nova-line)!important;border-radius:var(--nova-radius)!important;background:rgba(255,255,255,.96);box-shadow:var(--nova-shadow)!important;transition:box-shadow .2s ease,border-color .2s ease,transform .2s ease}
+.ui-card:focus-within{border-color:#b9d5fa!important;box-shadow:0 12px 30px rgba(17,48,92,.09)!important}
+.module-intro{position:relative;overflow:hidden;border:1px solid #d7e6f7!important;border-radius:22px!important;padding:24px!important;background:linear-gradient(118deg,#fff 0%,#f0f7ff 58%,#eefbfc 100%)!important;box-shadow:0 8px 24px rgba(17,48,92,.045)}
+.module-intro:after{content:"";position:absolute;right:-52px;top:-85px;width:230px;height:230px;border-radius:50%;background:radial-gradient(circle,rgba(5,169,194,.11),rgba(8,104,232,.035) 60%,transparent 70%);pointer-events:none}
+.module-intro h3{position:relative;z-index:1;color:var(--nova-ink)!important;font-size:clamp(22px,2.1vw,30px)!important;letter-spacing:-.045em;line-height:1.15}
+.module-intro p{position:relative;z-index:1;color:#5d6e8c!important;font-size:13px!important}
+.module-kicker{position:relative;z-index:1;background:#eaf4ff!important;border:1px solid #d1e5ff;color:#0863bd!important;border-radius:999px;padding:6px 10px;font-size:10px;letter-spacing:.09em}
+.corp-button,.corp-button-dark,.ui-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:11px!important;min-height:42px;padding:10px 16px!important;font-size:12px;font-weight:800;transition:transform .16s,box-shadow .16s,filter .16s}
+.corp-button{background:linear-gradient(135deg,#08a8bf,#0088a8)!important;box-shadow:0 7px 16px rgba(0,151,178,.16)}
+.corp-button-dark{background:linear-gradient(135deg,#0759a7,#073c7c)!important;box-shadow:0 7px 16px rgba(7,65,133,.14)}
+.corp-button:hover,.corp-button-dark:hover{transform:translateY(-1px);filter:saturate(1.12);box-shadow:0 10px 22px rgba(7,65,133,.2)}
+.form-field{min-height:43px!important;border:1px solid #d5e2f1!important;border-radius:11px!important;padding:10px 12px!important;background:#fff!important;color:#1b2b4c!important;font-size:13px!important;transition:border-color .16s,box-shadow .16s}
+.form-field:focus{outline:none!important;border-color:#70aaf6!important;box-shadow:0 0 0 3px rgba(8,104,232,.11)!important}
+label{color:#4d5f7e}
+table{border-collapse:separate;border-spacing:0}
+table thead th{padding:13px 12px;background:#f3f7fc;color:#65738d;font-size:10px;font-weight:850;letter-spacing:.065em;text-transform:uppercase;border-bottom:1px solid #e1eaf4}
+table tbody td{padding:12px;border-bottom:1px solid #edf2f8;color:#30415f;font-size:12px}
+table tbody tr:last-child td{border-bottom:0}
+table tbody tr:hover{background:#f7fbff}
+.table-scroll{border-radius:0 0 var(--nova-radius) var(--nova-radius)}
+/* Task center: KPI row, form, filters, team performance and list */
+#view-tareas{gap:22px!important}
+#view-tareas>.module-intro{padding:28px!important;min-height:150px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+#view-tareas>.module-intro h3{font-size:clamp(26px,2.5vw,34px)!important}
+#view-tareas #form-tarea{position:relative;border:1px solid #d7e6f7!important;padding:22px!important;gap:16px!important;background:linear-gradient(140deg,#fff,#f8fbff)!important}
+#view-tareas #form-tarea:before{content:"CREACIÓN Y ASIGNACIÓN";display:block;grid-column:1/-1;color:#0870c9;font-size:10px;font-weight:900;letter-spacing:.13em;padding-bottom:12px;border-bottom:1px solid #e5edf7}
+#view-tareas #form-tarea>div{min-width:0}
+#view-tareas #form-tarea label{display:block;margin-bottom:7px;color:#415573;font-size:11px;font-weight:800;letter-spacing:.025em}
+#view-tareas #form-tarea textarea{min-height:88px}
+#view-tareas #form-tarea>div:last-child{display:flex;justify-content:flex-end;border-top:1px solid #e7eef7;padding-top:14px}
+#view-tareas #form-tarea>div:last-child button{min-width:150px}
+#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8>.ui-card{position:relative;overflow:hidden;min-height:105px;padding:17px!important;border-radius:16px!important;color:#64728b;font-size:11px;font-weight:700;line-height:1.5}
+#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8>.ui-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(#1688f8,#08a7c0)}
+#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8>.ui-card b{margin-top:8px;color:var(--nova-ink);font-size:29px;font-weight:850;letter-spacing:-.06em;line-height:1.15}
+#view-tareas .grid.grid-cols-1.gap-3.p-4.md\:grid-cols-5{align-items:center;padding:15px!important;gap:10px!important;background:rgba(255,255,255,.9)}
+#view-tareas #tabla-kpi-usuarios{padding:16px!important}
+#view-tareas #tabla-kpi-usuarios>div{border:1px solid #e6edf6;border-radius:12px;background:linear-gradient(90deg,#fff,#f8fbff);padding:12px}
+#view-tareas #tabla-kpi-usuarios .kpi-persona-row{gap:12px}
+#view-tareas .ui-card.overflow-hidden>.border-b.bg-slate-50{background:linear-gradient(100deg,#f7faff,#eff7ff)!important;border-bottom:1px solid #e1eaf5!important;padding:18px 20px!important}
+#view-tareas .ui-card.overflow-hidden>.border-b.bg-slate-50 h4{color:var(--nova-ink);font-size:14px}
+#view-tareas .ui-card.overflow-hidden>.border-b.bg-slate-50 p{color:#71809a}
+#view-tareas #tabla-tareas tr td:first-child{font-weight:650}
+#view-tareas #tabla-tareas button{border-radius:9px;border:1px solid #dbe6f3;padding:7px;background:#fff;transition:all .15s}
+#view-tareas #tabla-tareas button:hover{border-color:#90baf3;background:#f0f7ff;transform:translateY(-1px)}
+/* Report center */
+#view-reportes .rep-tipo{width:18px;height:18px;accent-color:#0875e8}
+#view-reportes label:has(.rep-tipo){border-radius:15px;border-color:#dce7f5;background:linear-gradient(145deg,#fff,#f7faff);padding:14px;transition:all .18s}
+#view-reportes label:has(.rep-tipo):hover{border-color:#9bc5fa;background:#f1f8ff;transform:translateY(-1px)}
+#rep-kpis>div{border:1px solid #dce7f5;border-radius:15px;background:linear-gradient(145deg,#fff,#f4f9ff);padding:17px}
+#rep-kpis>div b{color:var(--nova-ink)}
+/* Maps and data-rich surfaces */
+.map-canvas-shell{overflow:hidden;border:1px solid #dce7f5;border-radius:20px;background:#fff;box-shadow:var(--nova-shadow)}
+.map-canvas-heading{padding:15px 18px;background:linear-gradient(100deg,#f7faff,#eef8fc);border-bottom:1px solid #e3ecf6}
+#mapa14-frame.map-frame{height:clamp(420px,58vh,700px);min-height:420px;border:0;border-radius:0}
+.map-estimate-2026>div{border-radius:15px;border-color:#dce7f5;box-shadow:0 6px 16px rgba(17,48,92,.045)}
+@media(min-width:1200px){#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8{grid-template-columns:repeat(8,minmax(0,1fr))}}
+@media(max-width:900px){#sidebar{width:250px}#view-dashboard,#view-colaboradores,#view-sucursales,#view-asistencia,#view-licencias,#view-vacaciones,#view-papeletas,#view-correos,#view-amonestaciones,#view-reportes,#view-usuarios,#view-auditoria,#view-configcorreos,#view-mapas,#view-tareas{padding:17px!important}#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8{grid-template-columns:repeat(2,minmax(0,1fr))}main>header{padding:12px 16px!important}}
+@media(max-width:560px){#view-tareas #form-tarea{padding:15px!important}#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8{grid-template-columns:repeat(2,minmax(0,1fr))}#view-tareas>.module-intro{padding:20px!important}#header-title{font-size:16px}.topbar-quick-action{padding:9px!important}}
 </style>
 <script>
 (function(){
