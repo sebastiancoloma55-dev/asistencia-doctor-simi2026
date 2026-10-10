@@ -2341,28 +2341,39 @@ body{overflow-x:hidden}
                 return {disponible:true,data:r.data||[],count:r.count??(r.data||[]).length,error:null};
             }catch(e){return {disponible:false,data:[],count:null,error:e.message};}
         }
+        async function opsContar(tabla,permisos,configurar){
+            if(!opsTiene(...permisos))return {disponible:false,count:null,error:null};
+            try{let q=_supabase.from(tabla).select('id',{count:'exact',head:true});if(configurar)q=configurar(q);const r=await q;return r.error?{disponible:false,count:null,error:r.error.message}:{disponible:true,count:r.count??0,error:null};}
+            catch(e){return {disponible:false,count:null,error:e.message};}
+        }
         async function cargarCentroOperaciones(){
             const kpis=document.getElementById('ops-kpis'),alertas=document.getElementById('ops-alertas'),accesos=document.getElementById('ops-accesos');
             if(!kpis||!alertas||!accesos)return;
             kpis.innerHTML='<div class="ui-card p-5"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>'.repeat(4);
             alertas.innerHTML='<p class="text-sm text-slate-500">Consultando fuentes autorizadas...</p>';
+            const ahoraIso=new Date().toISOString();
             const consultas=await Promise.all([
                 opsConsultar('tareas','id,titulo,estado,fecha_limite,prioridad,responsable:usuarios_roles!tareas_responsable_rol_id_fkey(nombre,email),sucursal:sucursales(nombre)',['tareas'],q=>q.order('fecha_limite',{ascending:true})),
                 opsConsultar('gestiones_correo','id,asunto,estado,plazo_respuesta,supervisor',['correos'],q=>q.order('plazo_respuesta',{ascending:true})),
                 opsConsultar('registros_asistencia','id,sin_marca,marca_incompleta,sin_turno_marcas',['asistencia','reportes'],q=>q.order('id',{ascending:false})),
-                opsConsultar('licencias_medicas','id,fecha_fin,fecha_inicio,estado',['licencias','reportes'],q=>q.order('id',{ascending:false})),
-                opsConsultar('notificaciones','id,titulo,mensaje,leida,created_at',['tareas','correos','asistencia','licencias','reportes'],q=>q.eq('leida',false).order('created_at',{ascending:false}))
+                opsConsultar('notificaciones','id,titulo,mensaje,leida,created_at',['tareas'],q=>q.eq('leida',false).order('created_at',{ascending:false})),
+                opsContar('tareas',['tareas'],q=>q.not('estado','in','("APROBADA","CANCELADA")')),
+                opsContar('tareas',['tareas'],q=>q.not('estado','in','("APROBADA","CANCELADA")').lt('fecha_limite',ahoraIso)),
+                opsContar('gestiones_correo',['correos'],q=>q.not('estado','in','("RESPONDIDO","CERRADO","CANCELADO")')),
+                opsContar('gestiones_correo',['correos'],q=>q.not('estado','in','("RESPONDIDO","CERRADO","CANCELADO")').lt('plazo_respuesta',ahoraIso)),
+                opsContar('registros_asistencia',['asistencia','reportes'],q=>q.or('sin_marca.eq.true,marca_incompleta.eq.true,sin_turno_marcas.eq.true')),
+                opsContar('notificaciones',['tareas'],q=>q.eq('leida',false))
             ]);
-            const [t,c,a,l,n]=consultas,disponible=x=>x.disponible,now=new Date();
+            const [t,c,a,n,tp,tv,cp,cv,incidencias,notificacionesSinLeer]=consultas,disponible=x=>x.disponible,now=new Date();
             const tareas=t.data||[],tPend=tareas.filter(x=>!['APROBADA','CANCELADA'].includes(String(x.estado||'').toUpperCase())),tVenc=tPend.filter(x=>x.fecha_limite&&new Date(x.fecha_limite)<now);
             const correos=c.data||[],cPend=correos.filter(x=>!['RESPONDIDO','CERRADO','CANCELADO'].includes(String(x.estado||'').toUpperCase())),cVenc=cPend.filter(x=>x.plazo_respuesta&&new Date(x.plazo_respuesta)<now);
-            const asist=a.data||[],sinMarca=asist.filter(x=>x.sin_marca||x.marca_incompleta||x.sin_turno_marcas).length;
+            const asist=a.data||[],sinMarca=incidencias.disponible?incidencias.count:null;
             const notis=n.data||[];
             const metricas=[
-                {label:'Tareas abiertas',value:disponible(t)?tPend.length:'—',desc:disponible(t)?tVenc.length+' vencidas':'Sin permiso de tareas',icon:'list-checks',color:'blue',module:'tareas'},
-                {label:'Gestiones de correo abiertas',value:disponible(c)?cPend.length:'—',desc:disponible(c)?cVenc.length+' con plazo vencido':'Sin permiso de correos',icon:'mail-clock',color:'cyan',module:'correos'},
-                {label:'Incidencias de asistencia',value:disponible(a)?sinMarca:'—',desc:disponible(a)?'Marcas o turnos por revisar':'Sin permiso de asistencia',icon:'clock-alert',color:'amber',module:'asistencia'},
-                {label:'Notificaciones sin leer',value:disponible(n)?notis.length:'—',desc:disponible(n)?'Notificaciones visibles para tu usuario':'Fuente no disponible',icon:'bell-ring',color:'violet',module:'tareas'}
+                {label:'Tareas abiertas',value:tp.disponible?tp.count:'—',desc:tp.disponible?(tv.disponible?tv.count+' vencidas':'Plazos vencidos no disponibles'):'Sin permiso de tareas',icon:'list-checks',color:'blue',module:'tareas'},
+                {label:'Gestiones de correo abiertas',value:cp.disponible?cp.count:'—',desc:cp.disponible?(cv.disponible?cv.count+' con plazo vencido':'Plazos vencidos no disponibles'):'Sin permiso de correos',icon:'mail-clock',color:'cyan',module:'correos'},
+                {label:'Incidencias de asistencia',value:incidencias.disponible?incidencias.count:'—',desc:incidencias.disponible?'Marcas o turnos por revisar':'Sin permiso de asistencia',icon:'clock-alert',color:'amber',module:'asistencia'},
+                {label:'Notificaciones sin leer',value:notificacionesSinLeer.disponible?notificacionesSinLeer.count:'—',desc:notificacionesSinLeer.disponible?'Notificaciones visibles para tu usuario':'Sin permiso de tareas',icon:'bell-ring',color:'violet',module:'tareas'}
             ];
             kpis.innerHTML=metricas.map(m=>'<button type="button" '+(tienePermisoModulo(m.module)?'onclick="cambiarModulo(\''+m.module+'\')"':'disabled')+' class="ui-card ops-kpi text-left p-5"><div class="flex items-start justify-between gap-3"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">'+opsEsc(m.label)+'</span><span class="ops-icon '+m.color+'"><i data-lucide="'+m.icon+'" class="h-5 w-5"></i></span></div><strong class="mt-3 block text-3xl font-black text-slate-900">'+opsEsc(m.value)+'</strong><span class="mt-2 block text-xs text-slate-500">'+opsEsc(m.desc)+'</span></button>').join('');
             const items=[];
@@ -4578,6 +4589,9 @@ table tbody tr:hover{background:#f7fbff}
 .integ-status.ok{background:#e8fbf1;color:#087443;border:1px solid #bcebd0}.integ-status.warn{background:#fff5e4;color:#965b00;border:1px solid #f3d9a6}.integ-status.info{background:#eaf3ff;color:#0759b0;border:1px solid #cfe2ff}
 
 .nav-count{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;margin-left:auto;padding:0 6px;border-radius:999px;background:#ffcf5a;color:#3f2d00;font-size:10px;font-weight:900;box-shadow:0 2px 8px rgba(0,0,0,.14)}
+
+/* Cifras del centro: separar totales exactos de la muestra usada para alertas */
+#view-operaciones .ops-kpi strong{font-variant-numeric:tabular-nums}
 </style>
 <script>
 (function(){
