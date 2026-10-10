@@ -1,0 +1,19 @@
+name: Validar aplicación
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validacion:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validar estructura, permisos y sintaxis
+        run: npm run check
