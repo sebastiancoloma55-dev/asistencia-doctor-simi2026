@@ -341,6 +341,17 @@ body{overflow-x:hidden}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.ui-card{transition:none}}
 
+
+/* UX 2026: selectors de rutas y marca Doctor Simi */
+#map14-buscar-origen,#map14-buscar-destino{width:100%;min-height:42px}
+#map14-origen,#map14-destino{width:100%;min-height:44px}
+.map-estimate-2026{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0;padding:12px;border:1px solid #dbeafe;border-radius:14px;background:#f8fbff}
+.map-estimate-2026>div{min-width:0;padding:10px;border-radius:10px;background:#fff;border:1px solid #e5edf6}
+.map-estimate-2026 strong{display:block;font-size:clamp(16px,2vw,22px);font-weight:850;color:#075985;line-height:1.3}
+.map-estimate-2026 span{display:block;margin-top:5px;font-size:11px;line-height:1.45;color:#64748b}
+#mapa14-frame.map-frame{display:block;width:100%;height:clamp(340px,52vw,560px);border:0;border-radius:12px;background:#eef4f8}
+@media(max-width:700px){.map-estimate-2026{grid-template-columns:1fr}#mapa14-frame.map-frame{height:360px}}
+
 </style>
 </head>
 
@@ -359,7 +370,7 @@ body{overflow-x:hidden}
         <div class="login-shell">
             <section class="login-hero" aria-label="Bienvenida a Recursos Humanos">
                 <div class="login-brand">
-                    <div class="login-brand-mark"><img class="login-brand-logo" src="data:image/jpeg;base64,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" alt="Logo Doctor Simi"></div>
+                    <div class="login-brand-mark"><img class="login-brand-logo" src="/doctor-simi-logo.svg" alt="Logo Doctor Simi"></div>
                     <div>
                         <div class="login-brand-name">DOCTOR SIMI</div>
                         <div class="login-brand-sub">Recursos Humanos · Chile</div>
@@ -419,7 +430,7 @@ body{overflow-x:hidden}
 
             <section class="login-form-panel" aria-label="Inicio de sesión">
                 <div class="login-form-inner">
-                    <div class="login-form-logo-wrap"><img class="login-form-logo" src="data:image/jpeg;base64,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" alt="Logo Doctor Simi"></div>
+                    <div class="login-form-logo-wrap"><img class="login-form-logo" src="/doctor-simi-logo.svg" alt="Logo Doctor Simi"></div>
                     <div class="login-kicker">Bienvenido de vuelta</div>
                     <h1 class="login-title">Inicia sesión</h1>
                     <p class="login-description">Ingresa con tu cuenta autorizada para acceder al panel de gestión de Recursos Humanos.</p>
@@ -471,10 +482,8 @@ body{overflow-x:hidden}
         >
             <div class="flex items-center justify-between border-b border-blue-900/60 p-5">
                 <div class="flex items-center gap-3">
-                    <div
-                        class="flex h-9 w-9 items-center justify-center rounded-xl bg-simiRed font-black"
-                    >
-                        DS
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-0.5 shadow-md">
+                        <img src="/doctor-simi-logo.svg" alt="Logo Doctor Simi" class="h-full w-full object-contain" width="44" height="44">
                     </div>
 
                     <div>
@@ -1326,7 +1335,7 @@ body{overflow-x:hidden}
             <!-- MAPA Y DISTANCIAS -->
             <section id="view-mapas" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro"><span class="module-kicker">Punto 14 · Traslados</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Mapa, rutas y distancias</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Selecciona las sucursales de origen y destino. Se priorizan las coordenadas guardadas; si faltan, se usa la dirección registrada. Google Maps calcula la ruta según el medio de transporte.</p><div class="mt-4 grid gap-3 sm:grid-cols-3"><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 1</span><b class="mt-1 block text-sm">Origen</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 2</span><b class="mt-1 block text-sm">Destino y transporte</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 3</span><b class="mt-1 block text-sm">Ver ruta y distancia</b></div></div></div>
-                <div class="ui-card grid grid-cols-1 gap-4 p-5 lg:grid-cols-4"><div><label class="text-xs font-bold text-slate-600">Sucursal de origen</label><select id="map14-origen" class="form-field mt-1"><option value="">Seleccione origen</option></select></div><div><label class="text-xs font-bold text-slate-600">Sucursal de destino</label><select id="map14-destino" class="form-field mt-1"><option value="">Seleccione destino</option></select></div><div><label class="text-xs font-bold text-slate-600">Medio de transporte</label><select id="map14-modo" class="form-field mt-1"><option value="d">🚗 Auto</option><option value="r">🚌 Transporte público</option><option value="w">🚶 Caminando</option></select></div><div class="flex flex-wrap items-end gap-2"><button onclick="mostrarRutaMapa14()" class="corp-button min-h-11 flex-1"><i data-lucide="route" class="mr-2 inline h-4 w-4"></i>Ver ruta</button><button onclick="buscarCoordenadasPorDireccion()" class="corp-button-dark min-h-11" title="Buscar coordenadas faltantes"><i data-lucide="map-pin" class="inline h-4 w-4"></i></button></div></div>
+                <div class="ui-card grid grid-cols-1 gap-4 p-5 lg:grid-cols-4"><div><label class="text-xs font-bold text-slate-600" for="map14-buscar-origen">1. Buscar sucursal de origen</label><input id="map14-buscar-origen" type="search" class="form-field mt-1" placeholder="Escribe nombre o comuna…" autocomplete="off"><select id="map14-origen" class="form-field mt-2"><option value="">Selecciona el origen</option></select><p class="mt-1 text-[11px] text-slate-500">Escribe para filtrar las sucursales.</p></div><div><label class="text-xs font-bold text-slate-600" for="map14-buscar-destino">2. Buscar sucursal de destino</label><input id="map14-buscar-destino" type="search" class="form-field mt-1" placeholder="Escribe nombre o comuna…" autocomplete="off"><select id="map14-destino" class="form-field mt-2"><option value="">Selecciona el destino</option></select><p class="mt-1 text-[11px] text-slate-500">Elige una sucursal distinta del origen.</p></div><div><label class="text-xs font-bold text-slate-600">Medio de transporte</label><select id="map14-modo" class="form-field mt-1"><option value="d">🚗 Auto</option><option value="r">🚌 Transporte público</option><option value="w">🚶 Caminando</option></select></div><div class="flex flex-wrap items-end gap-2"><button onclick="mostrarRutaMapa14()" class="corp-button min-h-11 flex-1"><i data-lucide="route" class="mr-2 inline h-4 w-4"></i>Ver ruta</button><button onclick="buscarCoordenadasPorDireccion()" class="corp-button-dark min-h-11" title="Buscar coordenadas faltantes"><i data-lucide="map-pin" class="inline h-4 w-4"></i></button></div></div>
                 <div class="ui-card overflow-hidden p-3 sm:p-4"><div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ruta seleccionada</p><div id="mapa14-resumen" class="mt-1 text-sm font-bold text-slate-800">Selecciona origen, destino y medio de transporte.</div><p class="mt-1 text-xs text-slate-500">La distancia y duración exactas se muestran en Google Maps; no se estiman artificialmente.</p></div><a id="mapa14-externo" target="_blank" rel="noopener noreferrer" class="corp-button-dark hidden">Abrir Google Maps <i data-lucide="external-link" class="ml-1 inline h-4 w-4"></i></a></div><iframe id="mapa14-frame" title="Mapa de ruta entre sucursales" class="map-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
             </section>
 
@@ -3518,6 +3527,24 @@ body{overflow-x:hidden}
             } catch (e) { mostrarToast(e.message, 'error'); }
             finally { event.target.value = ''; }
         }
+        window.filtrarSucursalesMapa14 = function(tipo) {
+            const input = document.getElementById(tipo === 'origen' ? 'map14-buscar-origen' : 'map14-buscar-destino');
+            const select = document.getElementById(tipo === 'origen' ? 'map14-origen' : 'map14-destino');
+            if (!input || !select) return;
+            const q = input.value.trim().toLocaleLowerCase('es-CL');
+            let visibles = 0;
+            Array.from(select.options).forEach((op, i) => {
+                if (i === 0) { op.hidden = false; return; }
+                const match = !q || op.textContent.toLocaleLowerCase('es-CL').includes(q) || String(op.dataset.direccion||'').toLocaleLowerCase('es-CL').includes(q);
+                op.hidden = !match;
+                if (match) visibles++;
+            });
+            if (q && visibles === 1) {
+                const op = Array.from(select.options).find((x,i)=>i>0&&!x.hidden);
+                if (op) select.value = op.value;
+            }
+        }
+
         function puntoMapaSucursal(x) {
             const lat = Number(x.latitud), lon = Number(x.longitud);
             if (Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180 && (lat !== 0 || lon !== 0)) return `${lat},${lon}`;
@@ -3525,11 +3552,11 @@ body{overflow-x:hidden}
         }
         async function prepararMapa14() {
             const lista = await obtenerSucursalesConfig();
-            const opciones = '<option value="">Seleccione sucursal</option>' + lista.map(x => `<option value="${escaparHTML(puntoMapaSucursal(x))}" data-nombre="${escaparHTML(x.nombre)}">${escaparHTML(x.nombre)}${x.direccion ? ' · '+escaparHTML(x.direccion) : ''}${Number.isFinite(Number(x.latitud)) && Number.isFinite(Number(x.longitud)) ? ' · GPS' : ' · Dirección'}</option>`).join('');
+            const opciones = '<option value="">Selecciona sucursal</option>' + lista.map(x => `<option value="${escaparHTML(puntoMapaSucursal(x))}" data-nombre="${escaparHTML(x.nombre)}" data-direccion="${escaparHTML(x.direccion||'')}" data-comuna="${escaparHTML(x.comuna||'')}" data-lat="${escaparHTML(x.latitud??'')}" data-lon="${escaparHTML(x.longitud??'')}">${escaparHTML(x.nombre)}${x.comuna ? ' · '+escaparHTML(x.comuna) : ''}${Number.isFinite(Number(x.latitud)) && Number.isFinite(Number(x.longitud)) && Number(x.latitud)!==0 && Number(x.longitud)!==0 ? ' · GPS' : ''}</option>`).join('');
             document.getElementById('map14-origen').innerHTML = opciones;
             document.getElementById('map14-destino').innerHTML = opciones;
             const frame = document.getElementById('mapa14-frame');
-            if (frame && !frame.src) frame.src = 'https://www.google.com/maps?output=embed&q=Farmacias+Doctor+Simi+Chile';
+            if (frame && !frame.dataset.rutaCargada) frame.removeAttribute('src');
             if (window.lucide) lucide.createIcons();
         }
         function mostrarRutaMapa14() {
@@ -3541,8 +3568,8 @@ body{overflow-x:hidden}
             if (origen === destino) return mostrarToast('El origen y el destino deben ser diferentes.', 'warning');
             const travelmode = modo === 'w' ? 'walking' : modo === 'r' ? 'transit' : 'driving';
             const externo = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origen)}&destination=${encodeURIComponent(destino)}&travelmode=${travelmode}`;
-            const embed = `https://www.google.com/maps?output=embed&saddr=${encodeURIComponent(origen)}&daddr=${encodeURIComponent(destino)}&dirflg=${modo}`;
-            document.getElementById('mapa14-frame').src = embed;
+            const embed = `https://maps.google.com/maps?saddr=${encodeURIComponent(origen)}&daddr=${encodeURIComponent(destino)}&dirflg=${modo}&output=embed`;
+            document.getElementById('mapa14-frame').src = embed; document.getElementById('mapa14-frame').dataset.rutaCargada = '1';
             const enlace = document.getElementById('mapa14-externo');
             enlace.href = externo; enlace.classList.remove('hidden');
             const modoTexto = modo === 'w' ? 'Caminando' : modo === 'r' ? 'Transporte público' : 'Auto';
@@ -3966,14 +3993,44 @@ body{overflow-x:hidden}
     var route=direct*factor,min=Math.max(1,Math.round(route/speed*60)),max=Math.max(min+3,Math.round(min*1.35)),fmt=function(n){return n.toLocaleString('es-CL',{maximumFractionDigits:1});};
     box.innerHTML='<div><strong>'+fmt(direct)+' km</strong><span>Distancia en línea recta según GPS</span></div><div><strong>'+fmt(route)+' km aprox.</strong><span>Recorrido estimado por calles; puede variar</span></div><div><strong>'+min+'–'+max+' min</strong><span>Tiempo orientativo; confirma en Google Maps</span></div>';
   }
-  if(typeof originalRoute==='function')window.mostrarRutaMapa14=function(){var r=originalRoute.apply(this,arguments);setTimeout(estimateRoute,0);return r;};
+  async function geocodificarOpcionMapa14(op){
+    if(!op)return false;
+    var lat=Number(op.dataset.lat),lon=Number(op.dataset.lon);
+    if(Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0))return true;
+    var address=[op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', ');
+    if(!address)return false;
+    try{
+      var r=await fetch('/api/geocodificar?direccion='+encodeURIComponent(address));
+      if(!r.ok)return false;
+      var j=await r.json();
+      if(!Number.isFinite(Number(j.latitud))||!Number.isFinite(Number(j.longitud)))return false;
+      op.dataset.lat=String(j.latitud);op.dataset.lon=String(j.longitud);return true;
+    }catch(e){return false;}
+  }
+  if(typeof originalRoute==='function')window.mostrarRutaMapa14=async function(){
+    var a=document.getElementById('map14-origen'),b=document.getElementById('map14-destino');
+    var r=originalRoute.apply(this,arguments);
+    if(!a||!b||!a.value||!b.value||a.value===b.value)return r;
+    var box=document.getElementById('mapa14-estimacion-2026');
+    if(box){box.innerHTML='<div><strong>Calculando estimación…</strong><span>Buscando coordenadas para las sucursales seleccionadas.</span></div>';}
+    await geocodificarOpcionMapa14(a.selectedOptions[0]);
+    await geocodificarOpcionMapa14(b.selectedOptions[0]);
+    estimateRoute();
+    return r;
+  };
+  function conectarBuscadoresMapa14(){
+    [['map14-buscar-origen','origen'],['map14-buscar-destino','destino']].forEach(function(x){
+      var el=document.getElementById(x[0]);if(el&&!el.dataset.filtroConectado){el.dataset.filtroConectado='1';el.addEventListener('input',function(){if(window.filtrarSucursalesMapa14)window.filtrarSucursalesMapa14(x[1]);});}
+    });
+    ['map14-origen','map14-destino','map14-modo'].forEach(function(id){var el=document.getElementById(id);if(el&&!el.dataset.estimacionConectada){el.dataset.estimacionConectada='1';el.addEventListener('change',function(){if(id==='map14-origen'||id==='map14-destino')estimateRoute();});}});
+  }
   function enhanceMapNote(){var frame=document.getElementById('mapa14-frame');if(!frame||document.getElementById('mapa14-estimacion-2026'))return;var box=document.createElement('div');box.id='mapa14-estimacion-2026';box.className='map-estimate-2026';box.innerHTML='<div><strong>Estimación aproximada</strong><span>Selecciona dos sucursales con GPS para ver distancia y tiempo orientativos.</span></div>';frame.parentNode.insertBefore(box,frame);}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setupSelectors();enhanceMapNote();});else{setupSelectors();enhanceMapNote();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setupSelectors();enhanceMapNote();conectarBuscadoresMapa14();});else{setupSelectors();enhanceMapNote();conectarBuscadoresMapa14();}
   // No observar todo el documento: setupSelectors modifica nodos y podía disparar un bucle de mutaciones que bloqueaba el navegador.
   // Los selectores son estáticos y se inicializan al cargar; sus contadores se actualizan desde sus eventos.
   var oldLogout=window.cerrarSesion;
   if(typeof oldLogout==='function')window.cerrarSesion=async function(){allowed=new Set(['dashboard']);paintPermissions();return oldLogout.apply(this,arguments);};
-  window.addEventListener('load',function(){setupSelectors();enhanceMapNote();});
+  window.addEventListener('load',function(){setupSelectors();enhanceMapNote();conectarBuscadoresMapa14();});
 })();
 </script>
 
