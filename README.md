@@ -18,7 +18,7 @@ Plataforma web interna para apoyar la operación de Asistencia y Ausentismo, con
 - `lib/server-auth.js`: validación compartida de sesión, perfil activo y permisos para endpoints del servidor.
 
 Los archivos JavaScript se cargan como scripts clásicos en el orden definido en `index.html`; se están separando por dominio funcional para facilitar mantenimiento sin cambiar de golpe el comportamiento existente.
-- `vercel.json`: programación horaria del proceso de alertas; revisa tareas vencidas y próximas a vencer cada hora.
+- `vercel.json`: programación diaria del proceso de alertas. En planes de Vercel que admiten mayor frecuencia, puede ajustarse a una ejecución horaria.
 - Supabase: autenticación, datos, políticas RLS y almacenamiento persistente.
 
 ## Módulos de la aplicación
@@ -75,7 +75,7 @@ No publicar valores de estas variables en commits, capturas, archivos descargabl
 5. En el módulo 19, distinguir la conexión comprobada en vivo de las rutas que solo están presentes en el código.
 6. Probar los endpoints de IA y geocodificación con un usuario autorizado y otro sin permiso; el segundo debe recibir 403.
 7. Revisar la consola del navegador, registros de Vercel y errores de Supabase.
-8. Verificar que `/api/cron-alertas` rechace llamadas sin `CRON_SECRET` (401) y que una ejecución autorizada responda con `ok: true`; el cron de Vercel se programa cada hora.
+8. Verificar que `/api/cron-alertas` rechace llamadas sin `CRON_SECRET` (401) y que una ejecución autorizada responda con `ok: true`; la frecuencia efectiva depende del plan de Vercel configurado.
 9. Para cada endpoint protegido, probar una sesión ausente (401), un perfil inactivo o sin permiso (403) y una sesión con permiso (200, si las variables y el proveedor externo están disponibles). Repetir con datos de prueba, sin modificar registros laborales reales.
 10. No realizar pruebas destructivas con datos laborales reales; usar registros de prueba o un entorno separado.
 
