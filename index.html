@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistencia Doctor Simi - RRHH (v3.0)</title>
+    <title>Asistencia Doctor Simi - RRHH</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client -->
@@ -12,8 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Marked (Markdown a HTML para la IA) -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -31,9 +29,6 @@
         .ui-card { background: #ffffff; border: 1px solid #E5E7EB; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); }
         .ui-button { transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
         .ui-button:active { transform: scale(0.98); }
-        .prose p { margin-bottom: 0.75rem; }
-        .prose ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.75rem; }
-        .prose strong { color: #002B49; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans antialiased text-slate-800">
@@ -78,7 +73,7 @@
 
     <!-- APLICACIÓN PRINCIPAL -->
     <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar Corporativo (12 MENÚS) -->
+        <!-- Sidebar Corporativo -->
         <aside class="w-64 bg-simiNavy text-white flex flex-col flex-shrink-0 border-r border-slate-800">
             <div class="p-5 border-b border-blue-900/60 flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -93,9 +88,6 @@
             <nav class="flex-1 overflow-y-auto p-3 space-y-1 text-sm font-medium" id="main-menu">
                 <button onclick="cambiarModulo('dashboard')" id="btn-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 bg-simiRed text-white rounded-lg shadow-sm font-semibold transition ui-button border border-transparent">
                     <i data-lucide="layout-dashboard" class="w-4 h-4"></i> 1. Dashboard
-                </button>
-                <button onclick="cambiarModulo('ia')" id="btn-ia" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button border border-transparent hover:border-blue-800">
-                    <i data-lucide="sparkles" class="w-4 h-4 text-yellow-400"></i> Asistente IA
                 </button>
                 <div class="my-2 border-t border-blue-900/50"></div>
                 <button onclick="cambiarModulo('colaboradores')" id="btn-colaboradores" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button border border-transparent">
@@ -173,49 +165,13 @@
                 </div>
             </div>
 
-            <!-- VISTA IA: ASISTENTE INTELIGENTE -->
-            <div id="view-ia" class="p-8 space-y-6 hidden">
-                <div class="ui-card p-6 border-l-4 border-l-yellow-400">
-                    <div class="flex items-start gap-4">
-                        <div class="p-3 bg-yellow-50 text-yellow-600 rounded-xl"><i data-lucide="sparkles" class="w-6 h-6"></i></div>
-                        <div>
-                            <h3 class="font-bold text-slate-900 text-lg">Asistente de Recursos Humanos (Gemini IA)</h3>
-                            <p class="text-sm text-slate-500 mt-1">Sube un dictamen en PDF o un Excel para analizarlo.</p>
-                            <button onclick="limpiarAPIKey()" class="mt-2 text-xs font-bold text-simiRed hover:underline"><i data-lucide="key" class="inline w-3 h-3"></i> Cambiar o Limpiar API Key</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="ui-card p-6 space-y-4">
-                        <form id="form-ia" onsubmit="consultarGemini(event)">
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">1. Adjunta el documento (PDF o Excel)</label>
-                                <input type="file" id="ia-file" accept=".pdf, .xlsx, .xls, .csv" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-simiNavy hover:file:bg-blue-100 cursor-pointer" required>
-                            </div>
-                            <div class="mt-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">2. ¿Qué necesitas saber?</label>
-                                <textarea id="ia-prompt" rows="4" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-simiNavy focus:outline-none resize-none" required placeholder="Ej: ¿Cuántas sucursales son de la región metropolitana?"></textarea>
-                            </div>
-                            <button type="submit" id="btn-submit-ia" class="mt-4 w-full bg-simiNavy hover:bg-simiNavyHover text-white px-4 py-3 rounded-lg text-sm font-bold shadow-sm transition flex items-center justify-center gap-2 ui-button">
-                                <i data-lucide="brain-circuit" class="w-4 h-4"></i> Analizar con IA
-                            </button>
-                        </form>
-                    </div>
-                    <div class="ui-card p-6 bg-slate-50 border-dashed">
-                        <h4 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2"><i data-lucide="message-square-text" class="w-4 h-4"></i> Respuesta de la IA</h4>
-                        <div id="ia-result" class="text-sm text-slate-600 bg-white p-4 rounded-xl border border-slate-100 min-h-[200px] overflow-y-auto prose">La respuesta aparecerá aquí...</div>
-                    </div>
-                </div>
-            </div>
-
             <!-- VISTA 2: COLABORADORES -->
             <div id="view-colaboradores" class="p-8 space-y-6 hidden">
                 <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
                     <h3 class="font-bold text-slate-900 text-base">Nómina General de Colaboradores</h3>
                     <div class="flex items-center gap-2">
                         <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-1.5 shadow-sm ui-button">
-                            <i data-lucide="file-spread-sheet" class="w-4 h-4"></i> Cargar Excel Empleados
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Cargar Excel Empleados
                             <input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarExcelGenerico(event, 'colaboradores')">
                         </label>
                         <button onclick="toggleModalColaborador(true)" class="bg-simiRed hover:bg-red-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm ui-button">
@@ -247,7 +203,7 @@
                 <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
                     <h3 class="font-bold text-slate-900 text-base">Directorio de Sucursales</h3>
                     <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-1.5 shadow-sm ui-button">
-                        <i data-lucide="file-spread-sheet" class="w-4 h-4"></i> Cargar Excel Directorio
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Cargar Excel Directorio
                         <input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarExcelGenerico(event, 'sucursales')">
                     </label>
                 </div>
@@ -259,7 +215,7 @@
                                 <th class="p-4">Sucursal</th>
                                 <th class="p-4">Dirección</th>
                                 <th class="p-4 text-simiNavy">Supervisor Zonal</th>
-                                <th class="p-4">Geo</th>
+                                <th class="p-4">Mapa</th>
                             </tr>
                         </thead>
                         <tbody id="tabla-sucursales-body" class="text-sm divide-y divide-slate-100 font-medium text-slate-700">
@@ -269,12 +225,78 @@
                 </div>
             </div>
 
-            <!-- VISTA GENÉRICA PARA EL RESTO -->
+            <!-- VISTA 4: ASISTENCIA Y ATRASOS (NUEVO MÓDULO DE ANÁLISIS DE JORNADAS) -->
+            <div id="view-asistencia" class="p-8 space-y-6 hidden">
+                <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-base">Control de Asistencia, Atrasos y Anomalías</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Sube el reporte de jornadas original para analizar marcas faltantes, atrasos y salidas tempranas por sucursal.</p>
+                    </div>
+                    <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-2 shadow-sm ui-button">
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> Cargar Reporte de Jornadas (Excel)
+                        <input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarReporteAsistencia(event)">
+                    </label>
+                </div>
+
+                <!-- Filtro por Sucursal -->
+                <div class="ui-card p-4 flex items-center gap-4">
+                    <label class="text-xs font-semibold text-slate-700">Filtrar por Sucursal:</label>
+                    <select id="filtro-sucursal-asistencia" onchange="renderizarAnalisisAsistencia()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white font-medium text-slate-700 focus:ring-2 focus:ring-simiRed outline-none">
+                        <option value="TODAS">Todas las sucursales</option>
+                    </select>
+                </div>
+
+                <!-- Resumen de Indicadores -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="ui-card p-4 border-l-4 border-l-red-500">
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Sin Marcas / Inasistencias</p>
+                        <h4 id="stat-sin-marcas" class="text-2xl font-black text-slate-900 mt-1">0</h4>
+                    </div>
+                    <div class="ui-card p-4 border-l-4 border-l-amber-500">
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Marcas Incompletas</p>
+                        <h4 id="stat-incompletas" class="text-2xl font-black text-slate-900 mt-1">0</h4>
+                    </div>
+                    <div class="ui-card p-4 border-l-4 border-l-orange-500">
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Con Atrasos</p>
+                        <h4 id="stat-atrasos" class="text-2xl font-black text-slate-900 mt-1">0</h4>
+                    </div>
+                    <div class="ui-card p-4 border-l-4 border-l-blue-500">
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Salidas Tempranas</p>
+                        <h4 id="stat-tempranas" class="text-2xl font-black text-slate-900 mt-1">0</h4>
+                    </div>
+                </div>
+
+                <!-- Tabla de Resultados Detallados -->
+                <div class="ui-card overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50 font-bold text-xs uppercase text-slate-600 tracking-wider">
+                        Detalle de Anomalías y Asistencias por Colaborador y Sucursal
+                    </div>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white border-b border-slate-200 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
+                                <th class="p-3">Fecha</th>
+                                <th class="p-3">Sucursal</th>
+                                <th class="p-3">RUT / Colaborador</th>
+                                <th class="p-3">Turno</th>
+                                <th class="p-3">Entrada / Salida</th>
+                                <th class="p-3 text-amber-600">Atraso</th>
+                                <th class="p-3 text-blue-600">Salida Temprana</th>
+                                <th class="p-3">Observación / Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-asistencia-body" class="text-xs divide-y divide-slate-100 font-medium text-slate-700">
+                            <tr><td colspan="8" class="p-8 text-center text-slate-400">Sube el archivo Excel de reporte de jornadas para comenzar el análisis.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VISTA GENÉRICA PARA EL RESTO DE MÓDULOS -->
             <div id="view-generic" class="p-8 hidden">
                 <div class="ui-card p-12 text-center max-w-lg mx-auto mt-8">
                     <div class="w-12 h-12 bg-red-50 text-simiRed rounded-2xl flex items-center justify-center mx-auto mb-4"><i data-lucide="wrench" class="w-6 h-6"></i></div>
                     <h3 id="generic-title" class="font-bold text-lg text-slate-900">Módulo en Desarrollo</h3>
-                    <p class="text-slate-500 text-xs mt-2">Este módulo está preparado en el código, pero requiere configuración adicional en Supabase.</p>
+                    <p class="text-slate-500 text-xs mt-2">Este módulo está preparado en la plataforma.</p>
                 </div>
             </div>
         </main>
@@ -303,6 +325,8 @@
         const SUPABASE_URL = 'https://zcfbglbhqhysnptkfwba.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_EoJWhc0HPqIyTNiwU53FDw_prK9gYx2';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let datosAsistenciaGlobal = [];
 
         // ==========================================
         // SISTEMA DE LOGIN Y SESIÓN
@@ -354,7 +378,7 @@
         // ==========================================
         // RUTEO DE MENÚS Y DASHBOARD
         // ==========================================
-        const modulos = ['dashboard', 'ia', 'colaboradores', 'sucursales', 'asistencia', 'licencias', 'vacaciones', 'papeletas', 'correos', 'amonestaciones', 'reportes', 'usuarios', 'auditoria'];
+        const modulos = ['dashboard', 'colaboradores', 'sucursales', 'asistencia', 'licencias', 'vacaciones', 'papeletas', 'correos', 'amonestaciones', 'reportes', 'usuarios', 'auditoria'];
 
         function cambiarModulo(mod) {
             modulos.forEach(m => {
@@ -365,7 +389,7 @@
             });
             document.getElementById('view-generic').classList.add('hidden');
 
-            const titleMap = { 'dashboard': '1. Dashboard', 'ia': '✨ Asistente IA', 'colaboradores': '2. Colaboradores', 'sucursales': '3. Sucursales' };
+            const titleMap = { 'dashboard': '1. Dashboard', 'colaboradores': '2. Colaboradores', 'sucursales': '3. Sucursales', 'asistencia': '4. Asistencia y atrasos' };
             document.getElementById('header-title').innerText = titleMap[mod] || (mod.charAt(0).toUpperCase() + mod.slice(1));
 
             const targetView = document.getElementById(`view-${mod}`);
@@ -391,7 +415,6 @@
 
                 document.getElementById('kpi-colaboradores').innerText = colabRes.count || '0';
                 document.getElementById('kpi-sucursales').innerText = sucRes.count || '0';
-                
                 document.getElementById('kpi-asistencia').innerText = asisRes.error ? '0' : (asisRes.count || '0');
                 document.getElementById('kpi-licencias').innerText = licRes.error ? '0' : (licRes.count || '0');
                 
@@ -404,84 +427,130 @@
         }
 
         // ==========================================
-        // LÓGICA IA (SISTEMA MULTI-MODELO BLINDADO)
+        // ANÁLISIS DE ASISTENCIA Y ATRASOS DESDE EXCEL
         // ==========================================
-        const fileToBase64 = (f) => new Promise((r, j) => { const rd = new FileReader(); rd.readAsDataURL(f); rd.onload = () => r(rd.result.split(',')[1]); rd.onerror = e => j(e); });
-        
-        const excelToText = (f) => new Promise((r, j) => { 
-            const rd = new FileReader(); 
-            rd.onload = e => {
-                const csv = XLSX.utils.sheet_to_csv(XLSX.read(new Uint8Array(e.target.result), { type: 'array' }).Sheets[XLSX.read(new Uint8Array(e.target.result), { type: 'array' }).SheetNames[0]]);
-                r(csv.substring(0, 100000)); 
-            }; 
-            rd.readAsArrayBuffer(f); 
-        });
+        async function procesarReporteAsistencia(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
 
-        function limpiarAPIKey() {
-            localStorage.removeItem('simi_gemini_key');
-            alert("✅ Se ha borrado tu API Key antigua.\n\nPor favor, ingresa una nueva al intentar analizar.");
-        }
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const filas = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                    
+                    datosAsistenciaGlobal = filas.map(r => {
+                        const entrada = r['Entrada'] ? String(r['Entrada']).trim() : '-';
+                        const salida = r['Salida'] ? String(r['Salida']).trim() : '-';
+                        const atraso = r['Horas de Atraso'] ? String(r['Horas de Atraso']).trim() : '00:00';
+                        const turno = r['Turno'] ? String(r['Turno']).trim() : '';
 
-        async function consultarGemini(e) {
-            e.preventDefault();
-            let GEMINI_API_KEY = localStorage.getItem('simi_gemini_key');
-            if (!GEMINI_API_KEY) {
-                GEMINI_API_KEY = prompt('🔒 Ingresa tu API Key de Gemini válida:');
-                if (GEMINI_API_KEY) {
-                    GEMINI_API_KEY = GEMINI_API_KEY.trim(); 
-                    localStorage.setItem('simi_gemini_key', GEMINI_API_KEY);
-                } else return;
-            }
+                        // Detección de anomalías
+                        let sinMarca = (entrada === '-' && salida === '-');
+                        let marcaIncompleta = (entrada === '-' || salida === '-') && !sinMarca;
+                        let tieneAtraso = (atraso !== '00:00' && atraso !== '-' && atraso !== '0');
 
-            const btn = document.getElementById('btn-submit-ia');
-            const resultBox = document.getElementById('ia-result');
-            const file = document.getElementById('ia-file').files[0];
-            const promptValue = document.getElementById('ia-prompt').value;
+                        // Cálculo de salida temprana comparando con la hora programada del turno
+                        let salidaTemprana = '-';
+                        if (!sinMarca && !marcaIncompleta && salida !== '-') {
+                            let matchTurno = turno.match(/\d{2}:\d{2}-(\d{2}:\d{2})/);
+                            if (matchTurno) {
+                                let horaProgramadaSalida = matchTurno[1]; // ej 17:30
+                                if (salida < horaProgramadaSalida) {
+                                    salidaTemprana = `Anticipada (${salida} vs ${horaProgramadaSalida})`;
+                                }
+                            }
+                        }
 
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Analizando...`;
-            btn.disabled = true;
-            resultBox.innerHTML = '<span class="text-blue-600 font-semibold animate-pulse">Enviando archivo a Google Gemini...</span>';
-
-            try {
-                const extension = file.name.split('.').pop().toLowerCase();
-                let contentsParts = [{ text: promptValue }];
-
-                if (extension === 'pdf') contentsParts.push({ inline_data: { mime_type: 'application/pdf', data: await fileToBase64(file) } });
-                else if (['xlsx', 'xls', 'csv'].includes(extension)) contentsParts.push({ text: `\n\n--- DATOS EXCEL ---\n${await excelToText(file)}` });
-                else throw new Error("Documento no válido. Usa PDF o Excel.");
-
-                // Probamos de manera inteligente varios modelos disponibles en la API de Google
-                const modelosAProbar = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash'];
-                let response = null;
-                let data = null;
-
-                for (let modelo of modelosAProbar) {
-                    response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${GEMINI_API_KEY}`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: contentsParts }] })
+                        return {
+                            fecha: r['Fecha'] || '',
+                            rut: r['Rut'] || '',
+                            nombre: r['Nombre'] || '',
+                            sucursal: r['Sucursal'] || 'Sin Sucursal',
+                            turno: turno,
+                            entrada: entrada,
+                            salida: salida,
+                            atraso: atraso,
+                            tipoAusentismo: r['Tipo de Ausentismo'] || '',
+                            estado: r['Estado'] || '',
+                            sinMarca,
+                            marcaIncompleta,
+                            tieneAtraso,
+                            salidaTemprana
+                        };
                     });
-                    data = await response.json();
-                    if (response.ok && !data.error) break; // Si uno funciona, salimos del ciclo con éxito
-                }
-                
-                if (!response || !response.ok || (data && data.error)) {
-                     const errorMsg = data?.error?.message || "Error desconocido de API";
-                     localStorage.removeItem('simi_gemini_key'); 
-                     throw new Error(`Google rechazó la clave o archivo (Detalle: ${errorMsg}). Tu API Key fue borrada por seguridad, ingresa una nueva.`);
-                }
 
-                resultBox.innerHTML = marked.parse(data.candidates[0].content.parts[0].text);
-            } catch (error) {
-                resultBox.innerHTML = `<div class="bg-red-50 text-red-600 p-3 rounded-lg border border-red-200 font-semibold text-xs"><i data-lucide="alert-triangle" class="inline w-4 h-4 mr-1"></i> ${error.message}</div>`;
-            } finally {
-                btn.innerHTML = `<i data-lucide="brain-circuit" class="w-4 h-4"></i> Analizar con IA`;
-                btn.disabled = false;
-                lucide.createIcons();
+                    // Poblar el selector de sucursales
+                    const sucursalesUnicas = [...new Set(datosAsistenciaGlobal.map(d => d.sucursal))].sort();
+                    const select = document.getElementById('filtro-sucursal-asistencia');
+                    select.innerHTML = `<option value="TODAS">Todas las sucursales (${datosAsistenciaGlobal.length} registros)</option>` + 
+                        sucursalesUnicas.map(s => `<option value="${s}">${s}</option>`).join('');
+
+                    renderizarAnalisisAsistencia();
+                    alert(`✅ ¡Reporte de jornadas analizado con éxito! Total de registros procesados: ${datosAsistenciaGlobal.length}.`);
+
+                } catch (err) {
+                    alert("Error al leer el reporte de asistencia: " + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function renderizarAnalisisAsistencia() {
+            const sucursalFiltro = document.getElementById('filtro-sucursal-asistencia').value;
+            let datosFiltrados = datosAsistenciaGlobal;
+
+            if (sucursalFiltro !== 'TODAS') {
+                datosFiltrados = datosAsistenciaGlobal.filter(d => d.sucursal === sucursalFiltro);
             }
+
+            // Contadores para KPIs
+            let cSinMarcas = datosFiltrados.filter(d => d.sinMarca && !d.tipoAusentismo).length;
+            let cIncompletas = datosFiltrados.filter(d => d.marcaIncompleta).length;
+            let cAtrasos = datosFiltrados.filter(d => d.tieneAtraso).length;
+            let cTempranas = datosFiltrados.filter(d => d.salidaTemprana !== '-').length;
+
+            document.getElementById('stat-sin-marcas').innerText = cSinMarcas;
+            document.getElementById('stat-incompletas').innerText = cIncompletas;
+            document.getElementById('stat-atrasos').innerText = cAtrasos;
+            document.getElementById('stat-tempranas').innerText = cTempranas;
+
+            const tbody = document.getElementById('tabla-asistencia-body');
+            if (datosFiltrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">No hay registros para mostrar en esta sucursal.</td></tr>`;
+                return;
+            }
+
+            // Mostramos los primeros 300 registros para mantener la fluidez visual
+            tbody.innerHTML = datosFiltrados.slice(0, 300).map(d => {
+                let badgeEstado = `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-semibold">${d.estado || 'OK'}</span>`;
+                if (d.tipoAusentismo) badgeEstado = `<span class="px-2 py-0.5 bg-purple-50 text-purple-700 rounded text-[10px] font-semibold">${d.tipoAusentismo}</span>`;
+                else if (d.sinMarca) badgeEstado = `<span class="px-2 py-0.5 bg-red-50 text-red-700 rounded text-[10px] font-semibold">Sin Marcas</span>`;
+                else if (d.marcaIncompleta) badgeEstado = `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-semibold">Incompleta</span>`;
+
+                return `<tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                    <td class="p-3 font-mono text-slate-500">${d.fecha}</td>
+                    <td class="p-3 font-semibold text-slate-800">${d.sucursal}</td>
+                    <td class="p-3">
+                        <div class="font-bold text-slate-900">${d.nombre}</div>
+                        <div class="text-[10px] font-mono text-slate-400">${d.rut}</div>
+                    </td>
+                    <td class="p-3 text-slate-600">${d.turno || 'N/A'}</td>
+                    <td class="p-3 font-mono text-xs">
+                        <span class="text-emerald-700">Entrada: ${d.entrada}</span><br>
+                        <span class="text-indigo-700">Salida: ${d.salida}</span>
+                    </td>
+                    <td class="p-3 font-mono font-bold text-amber-600">${d.atraso !== '00:00' ? d.atraso : '-'}</td>
+                    <td class="p-3 font-mono text-blue-600">${d.salidaTemprana}</td>
+                    <td class="p-3">${badgeEstado}</td>
+                </tr>`;
+            }).join('');
+            lucide.createIcons();
         }
 
         // ==========================================
-        // EXTRACCIÓN FILTRADA DE EXCEL
+        // EXTRACCIÓN Y SUBIDA DE OTROS EXCEL
         // ==========================================
         async function procesarExcelGenerico(event, tablaDestino) {
             const file = event.target.files[0];
@@ -519,19 +588,19 @@
                     const { error } = await _supabase.from(tablaDestino).upsert(datosMapeados);
                     if (error) throw new Error(error.message);
                     
-                    alert(`¡Perfecto! Se subieron ${datosMapeados.length} datos a ${tablaDestino}.`);
+                    alert(`¡Perfecto! Se subieron ${datosMapeados.length} registros a ${tablaDestino}.`);
                     inicializarDashboard();
                     if(tablaDestino === 'colaboradores') cargarTablaColaboradores();
                     if(tablaDestino === 'sucursales') cargarTablaSucursales();
                     
-                } catch (err) { alert("Error en Supabase: " + err.message); }
+                } catch (err) { alert("Error al procesar el Excel: " + err.message); }
             };
             reader.readAsArrayBuffer(file);
         }
 
         async function cargarTablaColaboradores() {
             const tbody = document.getElementById('tabla-colaboradores-body');
-            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Procesando datos...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando...</td></tr>`;
             lucide.createIcons();
 
             const [colabRes, sucRes] = await Promise.all([
@@ -540,7 +609,7 @@
             ]);
 
             if (!colabRes.data || colabRes.data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Sube el Excel de Empleados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No hay colaboradores registrados. Sube el Excel.</td></tr>`;
                 return;
             }
 
@@ -567,7 +636,6 @@
             const { data } = await _supabase.from('sucursales').select('*');
             if (data && data.length > 0) {
                 tbody.innerHTML = data.map(s => {
-                    // GENERACIÓN DE MAPA BASADA EN DIRECCIÓN Y COMUNA
                     let direccionBusqueda = `${s.direccion || ''}, ${s.comuna || ''}, Chile`.trim();
                     let linkMapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccionBusqueda)}`;
 
@@ -576,10 +644,12 @@
                         <td class="p-4 font-semibold text-slate-900">${s.nombre || ''}</td>
                         <td class="p-4 text-slate-600 text-xs">${s.direccion || ''}, ${s.comuna || ''}</td>
                         <td class="p-4 text-simiNavy font-semibold text-[11px]"><i data-lucide="user-check" class="inline w-3 h-3 mr-1 text-emerald-600"></i> ${s.supervisor || 'N/A'}</td>
-                        <td class="p-4"><a href="${linkMapa}" target="_blank" rel="noopener noreferrer" class="text-simiRed font-bold hover:underline text-[11px]">Ver Mapa</a></td>
+                        <td class="p-4"><a href="${linkMapa}" target="_blank" rel="noopener noreferrer" class="text-simiRed font-bold hover:underline text-[11px] flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Ver Mapa</a></td>
                     </tr>`;
                 }).join('');
-            } else tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Sube el Directorio Excel.</td></tr>`;
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">No hay sucursales registradas. Sube el Excel del Directorio.</td></tr>`;
+            }
             lucide.createIcons();
         }
 
