@@ -2846,20 +2846,122 @@
             const {data,error}=await _supabase.from('usuarios_roles').select('*,usuarios_supervisores(supervisor),usuarios_sucursales(sucursal_id)').order('email');
             const tbody=document.getElementById('tabla-usuarios-body');if(error){tbody.innerHTML=`<tr><td colspan="6" class="p-8 text-center text-red-600">${escaparHTML(error.message)}</td></tr>`;return;}
             usuariosSistemaGlobal=data||[];
-            tbody.innerHTML=data?.length?data.map((u,i)=>`<tr><td class="p-3">${escaparHTML(u.email)}</td><td class="p-3">${escaparHTML(u.nombre)}</td><td class="p-3 font-bold">${escaparHTML(u.rol)}</td><td class="p-3"><b>Módulos:</b> ${escaparHTML((u.permisos||[]).join(', '))}<br><b>Supervisores:</b> ${escaparHTML((u.usuarios_supervisores||[]).map(x=>x.supervisor).join(', '))}</td><td class="p-3">${u.activo?'Activo':'Inactivo'}</td><td class="p-3">
-<div class="flex flex-wrap gap-2">
-  <button onclick="editarUsuarioRol(${i})"
-    class="rounded-lg bg-blue-600 px-3 py-1.5 font-bold text-white">
-    Editar perfil
-  </button>
-  <button onclick="toggleUsuario('${escaparHTML(u.email)}',${!u.activo})"
-    class="font-bold text-simiNavy">
-    ${u.activo?'Desactivar':'Activar'}
-  </button>
-</div>
-<button onclick="eliminarUsuarioCreado('${escaparHTML(u.email)}','${escaparHTML(u.nombre||u.email)}')" class="font-bold text-rose-700">Eliminar acceso</button></div></td></tr>`).join(''):'<tr><td colspan="6" class="p-8 text-center text-slate-400">Sin usuarios.</td></tr>';
+
+            tbody.innerHTML = data?.length
+                ? data.map((u, i) => `
+                    <tr>
+                        <td class="p-3">${escaparHTML(u.email)}</td>
+                        <td class="p-3">${escaparHTML(u.nombre || '')}</td>
+                        <td class="p-3 font-bold">${escaparHTML(u.rol || '')}</td>
+                        <td class="p-3">
+                            <b>Módulos:</b>
+                            ${escaparHTML((u.permisos || []).join(', '))}
+                            <br>
+                            <b>Supervisores:</b>
+                            ${escaparHTML((u.usuarios_supervisores || []).map(x => x.supervisor).join(', '))}
+                            <br>
+                            <b>Sucursales:</b>
+                            ${(u.usuarios_sucursales || []).length}
+                        </td>
+                        <td class="p-3">${u.activo ? 'Activo' : 'Inactivo'}</td>
+                        <td class="p-3">
+                            <div class="flex flex-wrap gap-2">
+                                <button
+                                    onclick="editarUsuarioRol(${i})"
+                                    class="rounded-lg bg-blue-600 px-3 py-1.5 font-bold text-white">
+                                    Editar perfil
+                                </button>
+
+                                <button
+                                    onclick="toggleUsuario('${escaparHTML(u.email)}',${!u.activo})"
+                                    class="font-bold text-simiNavy">
+                                    ${u.activo ? 'Desactivar' : 'Activar'}
+                                </button>
+
+                                <button
+                                    onclick="eliminarUsuarioCreado('${escaparHTML(u.email)}','${escaparHTML(u.nombre || u.email)}')"
+                                    class="font-bold text-rose-700">
+                                    Eliminar acceso
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="6" class="p-8 text-center">Sin usuarios registrados</td></tr>';
         }
-        async function toggleUsuario(email,activo){try{const j=await llamarApiAdmin('/api/usuarios-auth',{accion:'CAMBIAR_ESTADO',email,activo});mostrarToast(j.message,'success');await cargarUsuariosRoles()}catch(e){mostrarToast(e.message,'error',15000)}}
+
+        async function toggleUsuario(email, activo) {
+            try {
+                const j = await llamarApiAdmin('/api/usuarios-auth', {
+                    accion: 'CAMBIAR_ESTADO',
+                    email,
+                    activo
+                });
+
+                mostrarToast(j.message, 'success');
+                await cargarUsuariosRoles();
+            } catch (e) {
+                mostrarToast(e.message, 'error', 15000);
+            }
+        }
+
+        function editarUsuarioRol(indice) {
+            const u = usuariosSistemaGlobal[indice];
+
+            if (!u) {
+                mostrarToast('No se encontró el usuario.', 'error');
+                return;
+            }
+
+            document.getElementById('usr-email').value = u.email || '';
+            document.getElementById('usr-nombre').value = u.nombre || '';
+            document.getElementById('usr-rol').value = u.rol || 'CONSULTA';
+
+            construirChecksPermisos();
+
+            document.querySelectorAll('.usr-check').forEach(check => {
+                check.checked = (u.permisos || []).includes(check.value);
+            });
+
+            const supervisores = (u.usuarios_supervisores || [])
+                .map(x => String(x.supervisor));
+
+            const sucursales = (u.usuarios_sucursales || [])
+                .map(x => String(x.sucursal_id));
+
+            document.querySelectorAll('#usr-supervisores option').forEach(op => {
+                op.selected = supervisores.includes(op.value);
+            });
+
+            document.querySelectorAll('#usr-sucursales option').forEach(op => {
+                op.selected = sucursales.includes(op.value);
+            });
+
+            document.getElementById('usr-puede-asignar').checked =
+                !!u.puede_asignar_tareas;
+
+            document.getElementById('usr-puede-revisar').checked =
+                !!u.puede_revisar_tareas;
+
+            document.getElementById('usr-puede-correos').checked =
+                !!u.puede_preparar_correos;
+
+            document.getElementById('usr-acceso-global').checked =
+                !!u.acceso_global;
+
+            document.getElementById('usr-clave').value = '';
+            document.getElementById('usr-clave-repetir').value = '';
+
+            document.getElementById('view-usuarios').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+
+            mostrarToast(
+                'Perfil cargado. Revisa los cambios y pulsa Guardar permisos.',
+                'success'
+            );
+        }
         async function guardarTarea(event){
             event.preventDefault();const {data:{session}}=await _supabase.auth.getSession();
             const registro={titulo:document.getElementById('tarea-titulo').value.trim(),descripcion:document.getElementById('tarea-descripcion').value.trim(),responsable_rol_id:Number(document.getElementById('tarea-responsable').value),revisor_rol_id:document.getElementById('tarea-revisor').value?Number(document.getElementById('tarea-revisor').value):null,prioridad:document.getElementById('tarea-prioridad').value,fecha_limite:new Date(document.getElementById('tarea-vencimiento').value).toISOString(),recurrencia:document.getElementById('tarea-recurrencia').value,sucursal_id:document.getElementById('tarea-sucursal').value||null,estado:'PENDIENTE',creado_por_email:session?.user?.email||''};
