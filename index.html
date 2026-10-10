@@ -3866,7 +3866,8 @@
   }
   var originalInit=window.inicializarDashboard;
   if(typeof originalInit==='function'){
-    function maskDashboardKpis(){[{k:'kpi-colaboradores',c:'bar-count-colaboradores',b:'bar-colaboradores',p:'colaboradores'},{k:'kpi-sucursales',c:'bar-count-sucursales',b:'bar-sucursales',p:'sucursales'},{k:'kpi-asistencia',c:'bar-count-asistencia',b:'bar-asistencia',p:'asistencia'},{k:'kpi-licencias',c:'bar-count-licencias',b:'bar-licencias',p:'licencias'}].forEach(function(x){if(allowed.has(x.p))return;var k=document.getElementById(x.k),c=document.getElementById(x.c),b=document.getElementById(x.b);if(k)k.textContent='—';if(c)c.textContent='Sin permiso';if(b)b.style.width='0%';});}\n  window.inicializarDashboard=async function(){await loadPermissions();var result=await originalInit.apply(this,arguments);maskDashboardKpis();return result;};
+    function maskDashboardKpis(){[{k:'kpi-colaboradores',c:'bar-count-colaboradores',b:'bar-colaboradores',p:'colaboradores'},{k:'kpi-sucursales',c:'bar-count-sucursales',b:'bar-sucursales',p:'sucursales'},{k:'kpi-asistencia',c:'bar-count-asistencia',b:'bar-asistencia',p:'asistencia'},{k:'kpi-licencias',c:'bar-count-licencias',b:'bar-licencias',p:'licencias'}].forEach(function(x){if(allowed.has(x.p))return;var k=document.getElementById(x.k),c=document.getElementById(x.c),b=document.getElementById(x.b);if(k)k.textContent='—';if(c)c.textContent='Sin permiso';if(b)b.style.width='0%';});}
+  window.inicializarDashboard=async function(){await loadPermissions();var result=await originalInit.apply(this,arguments);maskDashboardKpis();return result;};
   }
   var originalRoute=window.mostrarRutaMapa14;
   function estimateRoute(){
