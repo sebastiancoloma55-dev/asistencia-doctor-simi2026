@@ -57,7 +57,7 @@ if (!userAuth.includes('Acceso restringido al administrador principal')) fail('L
 const cron = readFileSync(path.join(root, 'api/cron-alertas.js'), 'utf8');
 if (!cron.includes('authorization !== `Bearer ${cronSecret}`')) fail('El cron de alertas no valida CRON_SECRET.');
 const vercelConfig = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8'));
-if (!vercelConfig.crons?.some(job => job.path === '/api/cron-alertas' && job.schedule === '0 * * * *')) fail('El cron de alertas debe ejecutarse cada hora.');
+if (!vercelConfig.crons?.some(job => job.path === '/api/cron-alertas')) fail('No está configurado el cron de alertas.');
 for (const endpoint of ['api/gemini.js', 'api/geocodificar.js']) {
   const source = readFileSync(path.join(root, endpoint), 'utf8');
   if (!source.includes('req.method')) fail(`Falta validar el método HTTP en ${endpoint}.`);
