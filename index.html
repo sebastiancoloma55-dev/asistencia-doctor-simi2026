@@ -180,7 +180,8 @@
                         <div class="p-3 bg-yellow-50 text-yellow-600 rounded-xl"><i data-lucide="sparkles" class="w-6 h-6"></i></div>
                         <div>
                             <h3 class="font-bold text-slate-900 text-lg">Asistente de Recursos Humanos (Gemini IA)</h3>
-                            <p class="text-sm text-slate-500 mt-1">Sube un dictamen en PDF o un reporte y haz tu consulta. Sistema Antibloqueo activado.</p>
+                            <p class="text-sm text-slate-500 mt-1">Sube un dictamen en PDF o un reporte y haz tu consulta.</p>
+                            <button onclick="limpiarAPIKey()" class="mt-2 text-xs text-simiRed hover:underline">Limpiar API Key actual</button>
                         </div>
                     </div>
                 </div>
@@ -194,7 +195,7 @@
                             </div>
                             <div class="mt-4">
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">2. ¿Qué necesitas saber?</label>
-                                <textarea id="ia-prompt" rows="4" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-simiNavy focus:outline-none resize-none" required placeholder="Ej: ¿A quién pertenece esta licencia médica?"></textarea>
+                                <textarea id="ia-prompt" rows="4" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-simiNavy focus:outline-none resize-none" required placeholder="Ej: ¿Cuántas sucursales son de la metropolitana?"></textarea>
                             </div>
                             <button type="submit" id="btn-submit-ia" class="mt-4 w-full bg-simiNavy hover:bg-simiNavyHover text-white px-4 py-3 rounded-lg text-sm font-bold shadow-sm transition flex items-center justify-center gap-2 ui-button">
                                 <i data-lucide="brain-circuit" class="w-4 h-4"></i> Analizar con IA
@@ -268,7 +269,7 @@
                 </div>
             </div>
 
-            <!-- VISTA GENÉRICA -->
+            <!-- VISTA GENÉRICA PARA EL RESTO -->
             <div id="view-generic" class="p-8 hidden">
                 <div class="ui-card p-12 text-center max-w-lg mx-auto mt-8">
                     <div class="w-12 h-12 bg-red-50 text-simiRed rounded-2xl flex items-center justify-center mx-auto mb-4"><i data-lucide="wrench" class="w-6 h-6"></i></div>
@@ -379,12 +380,15 @@
         async function inicializarDashboard() {
             const box = document.getElementById('connection-box');
             try {
+                // Hacemos una consulta rápida a Supabase para verificar que RLS permite leer datos
                 const [colabRes, sucRes] = await Promise.all([
-                    _supabase.from('colaboradores').select('*', { count: 'exact', head: true }),
-                    _supabase.from('sucursales').select('*', { count: 'exact', head: true })
+                    _supabase.from('colaboradores').select('id', { count: 'exact', head: true }),
+                    _supabase.from('sucursales').select('id', { count: 'exact', head: true })
                 ]);
                 
-                if (colabRes.error) throw new Error(colabRes.error.message);
+                if (colabRes.error) {
+                    throw new Error("No se pudo obtener el conteo de colaboradores. Verifica permisos RLS.");
+                }
 
                 document.getElementById('kpi-colaboradores').innerText = colabRes.count || '0';
                 document.getElementById('kpi-sucursales').innerText = sucRes.count || '0';
@@ -392,16 +396,26 @@
                 document.getElementById('db-status-badge').innerHTML = "● Sistema Online";
                 document.getElementById('db-status-badge').className = "text-emerald-400 font-semibold inline-flex items-center gap-1 mt-0.5";
                 box.className = "p-4 rounded-xl text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium";
-                box.innerHTML = `<strong>✔ Base de datos enlazada con éxito.</strong> Tablas sincronizadas con Supabase.`;
-            } catch (err) { }
+                box.innerHTML = `<strong>✔ Base de datos conectada.</strong> Listos para trabajar.`;
+            } catch (err) {
+                document.getElementById('db-status-badge').innerHTML = "● Sin conexión completa";
+                document.getElementById('db-status-badge').className = "text-yellow-400 font-semibold inline-flex items-center gap-1 mt-0.5";
+                box.className = "p-4 rounded-xl text-xs bg-yellow-50 border border-yellow-200 text-yellow-800 font-medium";
+                box.innerHTML = `<strong>⚠️ Problema de conexión a Supabase:</strong> ${err.message}.`;
+            }
             lucide.createIcons();
         }
 
         // ==========================================
-        // LÓGICA IA (SISTEMA ANTIBLOQUEO)
+        // LÓGICA IA (MODELO FIJO Y LIMPIEZA DE API KEY)
         // ==========================================
         const fileToBase64 = (f) => new Promise((r, j) => { const rd = new FileReader(); rd.readAsDataURL(f); rd.onload = () => r(rd.result.split(',')[1]); rd.onerror = e => j(e); });
         const excelToText = (f) => new Promise((r, j) => { const rd = new FileReader(); rd.onload = e => r(XLSX.utils.sheet_to_csv(XLSX.read(new Uint8Array(e.target.result), { type: 'array' }).Sheets[XLSX.read(new Uint8Array(e.target.result), { type: 'array' }).SheetNames[0]])); rd.readAsArrayBuffer(f); });
+
+        function limpiarAPIKey() {
+            localStorage.removeItem('simi_gemini_key');
+            alert("API Key borrada. Al intentar analizar de nuevo, se te pedirá una nueva clave.");
+        }
 
         async function consultarGemini(e) {
             e.preventDefault();
@@ -429,25 +443,23 @@
                 else if (['xlsx', 'xls', 'csv'].includes(extension)) contentsParts.push({ text: `\n\n--- DATOS ---\n${await excelToText(file)}` });
                 else throw new Error("Documento no válido. Usa PDF o Excel.");
 
-                let successData = null;
-                const modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro'];
+                // Forzamos el uso del modelo 'gemini-1.5-flash-latest' sin intentar otros que puedan dar error 404.
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: contentsParts }] })
+                });
                 
-                for (let model of modelsToTry) {
-                    try {
-                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
-                            method: 'POST', headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ contents: [{ parts: contentsParts }] })
-                        });
-                        const data = await response.json();
-                        if (!data.error) { successData = data; break; }
-                    } catch(err) { } 
+                const data = await response.json();
+                
+                if (data.error) {
+                     // Si Google devuelve un error, limpiamos la key para forzar al usuario a meter una nueva.
+                     localStorage.removeItem('simi_gemini_key');
+                     throw new Error(`${data.error.message} (Tu API Key ha sido borrada por seguridad, ingresa una nueva).`);
                 }
 
-                if (!successData) throw new Error("Google rechazó tu API KEY. Puede que no tenga permisos o esté mal escrita.");
-                resultBox.innerHTML = marked.parse(successData.candidates[0].content.parts[0].text);
+                resultBox.innerHTML = marked.parse(data.candidates[0].content.parts[0].text);
             } catch (error) {
                 resultBox.innerHTML = `<div class="bg-red-50 text-red-600 p-3 rounded-lg border border-red-200 font-semibold text-xs"><i data-lucide="alert-triangle" class="inline w-4 h-4 mr-1"></i> Error: ${error.message}</div>`;
-                if(error.message.includes("API key")) localStorage.removeItem('simi_gemini_key');
             } finally {
                 btn.innerHTML = `<i data-lucide="brain-circuit" class="w-4 h-4"></i> Analizar con IA`;
                 btn.disabled = false;
