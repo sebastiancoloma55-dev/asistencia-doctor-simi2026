@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistencia Doctor Simi</title>
-    <!-- Tailwind CSS desde CDN para estilos corporativos -->
+    <title>Asistencia Doctor Simi - RRHH</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- SheetJS CDN para lectura de Excel y CSV -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Lucide Icons (Íconos modernos estilo React) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -15,131 +19,358 @@
                     colors: {
                         simiRed: '#E31837',
                         simiNavy: '#002B49',
+                        simiNavyHover: '#001D33',
+                        borderBg: '#E5E7EB'
+                    },
+                    borderRadius: {
+                        'xl': '0.75rem',
+                        '2xl': '1rem'
                     }
                 }
             }
         }
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Estilos finos estilo shadcn/ui */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .ui-card { background: #ffffff; border: 1px solid #E5E7EB; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); }
+        .ui-button { transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+        .ui-button:active { transform: scale(0.98); }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans antialiased text-gray-800">
+<body class="bg-slate-50 font-sans antialiased text-slate-800">
 
     <div class="flex h-screen overflow-hidden">
-        <!-- Menú Lateral -->
-        <aside class="w-64 bg-simiNavy text-white flex flex-col flex-shrink-0">
-            <div class="p-4 border-b border-blue-900 flex items-center gap-3">
-                <div class="bg-simiRed p-2 rounded font-bold text-lg">DS</div>
-                <div>
-                    <h1 class="font-bold text-sm leading-tight">DOCTOR SIMI</h1>
-                    <p class="text-xs text-gray-300">Recursos Humanos</p>
+        <!-- Sidebar estilo shadcn/ui -->
+        <aside class="w-64 bg-simiNavy text-white flex flex-col flex-shrink-0 border-r border-slate-800">
+            <div class="p-5 border-b border-blue-900/60 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-simiRed h-9 w-9 rounded-xl flex items-center justify-center font-black text-white text-base shadow-md">DS</div>
+                    <div>
+                        <h1 class="font-bold text-sm tracking-wide">DOCTOR SIMI</h1>
+                        <p class="text-[11px] text-slate-300 font-medium">Recursos Humanos</p>
+                    </div>
                 </div>
             </div>
 
-            <nav class="flex-1 overflow-y-auto p-3 space-y-1">
-                <a href="#" class="flex items-center gap-3 px-3 py-2 bg-simiRed text-white rounded font-medium text-sm">
-                    <i class="fas fa-chart-line w-5"></i> 1. Dashboard
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
-                    <i class="fas fa-users w-5"></i> 2. Colaboradores
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
-                    <i class="fas fa-store w-5"></i> 3. Sucursales
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
-                    <i class="fas fa-clock w-5"></i> 4. Asistencia y atrasos
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
-                    <i class="fas fa-notes-medical w-5"></i> 5. Licencias médicas
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
-                    <i class="fas fa-umbrella-beach w-5"></i> 6. Vacaciones
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
-                    <i class="fas fa-file-alt w-5"></i> 7. Papeletas
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
-                    <i class="fas fa-envelope w-5"></i> 8. Borradores correo
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
-                    <i class="fas fa-folder-open w-5"></i> 9. Amonestaciones
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
-                    <i class="fas fa-file-invoice w-5"></i> 10. Reportes
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
-                    <i class="fas fa-user-shield w-5"></i> 11. Usuarios y roles
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
-                    <i class="fas fa-history w-5"></i> 12. Auditoría
-                </a>
+            <nav class="flex-1 overflow-y-auto p-3 space-y-1 text-sm font-medium" id="main-menu">
+                <button onclick="cambiarModulo('dashboard')" id="btn-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 bg-simiRed text-white rounded-lg shadow-sm font-semibold transition ui-button">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> 1. Dashboard
+                </button>
+                <button onclick="cambiarModulo('colaboradores')" id="btn-colaboradores" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button">
+                    <i data-lucide="users" class="w-4 h-4"></i> 2. Colaboradores
+                </button>
+                <button onclick="cambiarModulo('sucursales')" id="btn-sucursales" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button">
+                    <i data-lucide="building-2" class="w-4 h-4"></i> 3. Sucursales
+                </button>
+                <button onclick="cambiarModulo('asistencia')" id="btn-asistencia" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button">
+                    <i data-lucide="clock" class="w-4 h-4"></i> 4. Asistencia y atrasos
+                </button>
+                <button onclick="cambiarModulo('licencias')" id="btn-licencias" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button">
+                    <i data-lucide="file-heart" class="w-4 h-4"></i> 5. Licencias médicas
+                </button>
+                <button onclick="cambiarModulo('vacaciones')" id="btn-vacaciones" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button">
+                    <i data-lucide="palmtree" class="w-4 h-4"></i> 6. Vacaciones
+                </button>
+                <button onclick="cambiarModulo('papeletas')" id="btn-papeletas" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> 7. Papeletas
+                </button>
+                <button onclick="cambiarModulo('correos')" id="btn-correos" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button">
+                    <i data-lucide="mail" class="w-4 h-4"></i> 8. Borradores correo
+                </button>
+                <button onclick="cambiarModulo('amonestaciones')" id="btn-amonestaciones" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button">
+                    <i data-lucide="folder-alert" class="w-4 h-4"></i> 9. Amonestaciones
+                </button>
+                <button onclick="cambiarModulo('reportes')" id="btn-reportes" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i> 10. Reportes
+                </button>
+                <button onclick="cambiarModulo('usuarios')" id="btn-usuarios" class="w-full text-left flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i> 11. Usuarios y roles
+                </button>
+                <button onclick="cambiarModulo('auditoria')" id="btn-auditoria" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button">
+                    <i data-lucide="history" class="w-4 h-4"></i> 12. Auditoría
+                </button>
             </nav>
 
-            <div class="p-3 bg-blue-950 text-xs text-gray-400 text-center border-t border-blue-900">
+            <div class="p-3.5 bg-blue-950/80 text-[11px] text-slate-400 text-center border-t border-blue-900/50">
                 Farmacias de Similares Chile S.A.<br>
-                <span id="db-status-badge" class="text-yellow-400 font-semibold">Conectando a Supabase...</span>
+                <span id="db-status-badge" class="text-emerald-400 font-semibold inline-flex items-center gap-1 mt-0.5">● Conectando...</span>
             </div>
         </aside>
 
-        <!-- Contenido Principal -->
+        <!-- Main Content View -->
         <main class="flex-1 overflow-y-auto flex flex-col">
-            <!-- Encabezado Superior -->
-            <header class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
-                <h2 class="text-xl font-bold text-simiNavy">ASISTENCIA DOCTOR SIMI - Control de RRHH</h2>
+            <!-- Header Topbar -->
+            <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10">
+                <div class="flex items-center gap-2">
+                    <h2 id="header-title" class="text-xl font-bold tracking-tight text-slate-900">1. Dashboard</h2>
+                </div>
                 <div class="flex items-center gap-3">
-                    <span class="text-sm text-gray-600">Estado: <strong id="auth-status" class="text-simiNavy">Público / Sesión de prueba</strong></span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Supabase Cloud Active
+                    </span>
                 </div>
             </header>
 
-            <!-- Dashboard Content -->
-            <div class="p-6 space-y-6">
-                <!-- Tarjetas KPI con datos reales de Supabase -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-simiRed">
-                        <p class="text-xs text-gray-500 font-semibold uppercase">Colaboradores Registrados</p>
-                        <h3 id="kpi-colaboradores" class="text-2xl font-bold text-gray-800 mt-1">--</h3>
-                        <p class="text-xs text-gray-500 mt-1">Total en tabla <code>colaboradores</code></p>
+            <!-- VISTA 1: DASHBOARD -->
+            <div id="view-dashboard" class="p-8 space-y-6">
+                <!-- Stat Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div class="ui-card p-5 relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Colaboradores</p>
+                                <h3 id="kpi-colaboradores" class="text-3xl font-extrabold text-slate-900 mt-2">--</h3>
+                            </div>
+                            <div class="p-2.5 bg-red-50 text-simiRed rounded-xl"><i data-lucide="users" class="w-5 h-5"></i></div>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-3 font-medium">Registrados en la nube</p>
                     </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-simiNavy">
-                        <p class="text-xs text-gray-500 font-semibold uppercase">Sucursales Registradas</p>
-                        <h3 id="kpi-sucursales" class="text-2xl font-bold text-gray-800 mt-1">--</h3>
-                        <p class="text-xs text-gray-500 mt-1">Total en tabla <code>sucursales</code></p>
+
+                    <div class="ui-card p-5 relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Sucursales</p>
+                                <h3 id="kpi-sucursales" class="text-3xl font-extrabold text-slate-900 mt-2">--</h3>
+                            </div>
+                            <div class="p-2.5 bg-blue-50 text-simiNavy rounded-xl"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-3 font-medium">Sucursales activas</p>
                     </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-500">
-                        <p class="text-xs text-gray-500 font-semibold uppercase">Registros Asistencia</p>
-                        <h3 id="kpi-asistencia" class="text-2xl font-bold text-gray-800 mt-1">--</h3>
-                        <p class="text-xs text-gray-500 mt-1">Total marcaciones guardadas</p>
+
+                    <div class="ui-card p-5 relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Asistencias</p>
+                                <h3 id="kpi-asistencia" class="text-3xl font-extrabold text-slate-900 mt-2">--</h3>
+                            </div>
+                            <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="clock" class="w-5 h-5"></i></div>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-3 font-medium">Marcaciones grabadas</p>
                     </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-                        <p class="text-xs text-gray-500 font-semibold uppercase">Licencias Médicas</p>
-                        <h3 id="kpi-licencias" class="text-2xl font-bold text-gray-800 mt-1">--</h3>
-                        <p class="text-xs text-gray-500 mt-1">Total en base de datos</p>
+
+                    <div class="ui-card p-5 relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Licencias</p>
+                                <h3 id="kpi-licencias" class="text-3xl font-extrabold text-slate-900 mt-2">--</h3>
+                            </div>
+                            <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl"><i data-lucide="file-heart" class="w-5 h-5"></i></div>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-3 font-medium">Licencias con PDF</p>
                     </div>
                 </div>
 
-                <!-- Estado de la base de datos -->
-                <div class="bg-white p-5 rounded-lg shadow">
-                    <h3 class="font-bold text-simiNavy text-lg mb-3">Conexión con Supabase</h3>
-                    <div id="connection-box" class="p-4 rounded-lg text-sm bg-gray-100 text-gray-700">
-                        Consultando tablas de la base de datos...
+                <!-- Main Status Box -->
+                <div class="ui-card p-6">
+                    <h3 class="font-bold text-slate-900 text-base mb-2">Estado General del Sistema</h3>
+                    <div id="connection-box" class="p-4 rounded-xl text-sm bg-slate-50 border border-slate-200 text-slate-600">
+                        Cargando estado de la base de datos...
                     </div>
+                </div>
+            </div>
+
+            <!-- VISTA 2: COLABORADORES -->
+            <div id="view-colaboradores" class="p-8 space-y-6 hidden">
+                <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
+                    <h3 class="font-bold text-slate-900 text-base">Nómina General de Colaboradores</h3>
+                    <div class="flex items-center gap-2">
+                        <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-1.5 shadow-sm ui-button">
+                            <i data-lucide="file-spread-sheet" class="w-4 h-4"></i> Cargar Excel
+                            <input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarExcelGenerico(event, 'colaboradores')">
+                        </label>
+                        <button onclick="toggleModalColaborador(true)" class="bg-simiRed hover:bg-red-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm ui-button">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Nuevo
+                        </button>
+                    </div>
+                </div>
+
+                <div class="ui-card overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
+                                <th class="p-4">RUT / ID</th>
+                                <th class="p-4">Nombre Completo</th>
+                                <th class="p-4">Cargo</th>
+                                <th class="p-4">Sucursal</th>
+                                <th class="p-4">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-colaboradores-body" class="text-sm divide-y divide-slate-100 font-medium text-slate-700">
+                            <tr><td colspan="5" class="p-6 text-center text-slate-400">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VISTA 4: ASISTENCIA -->
+            <div id="view-asistencia" class="p-8 space-y-6 hidden">
+                <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
+                    <h3 class="font-bold text-slate-900 text-base">Marcaciones de Asistencia Diaria</h3>
+                    <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-1.5 shadow-sm ui-button">
+                        <i data-lucide="file-spread-sheet" class="w-4 h-4"></i> Cargar Excel de Asistencia
+                        <input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarExcelGenerico(event, 'registros_asistencia')">
+                    </label>
+                </div>
+
+                <div class="ui-card overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
+                                <th class="p-4">Fecha / Hora</th>
+                                <th class="p-4">RUT Colaborador</th>
+                                <th class="p-4">Tipo Marcación</th>
+                                <th class="p-4">Sucursal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-asistencia-body" class="text-sm divide-y divide-slate-100 font-medium text-slate-700">
+                            <tr><td colspan="4" class="p-6 text-center text-slate-400">Cargando marcaciones...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VISTA 5: LICENCIAS -->
+            <div id="view-licencias" class="p-8 space-y-6 hidden">
+                <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
+                    <h3 class="font-bold text-slate-900 text-base">Licencias Médicas</h3>
+                    <button onclick="toggleModalLicencia(true)" class="bg-simiRed hover:bg-red-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm ui-button">
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> Adjuntar PDF / Registro
+                    </button>
+                </div>
+
+                <div class="ui-card overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
+                                <th class="p-4">RUT Colaborador</th>
+                                <th class="p-4">Días</th>
+                                <th class="p-4">Documento PDF</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-licencias-body" class="text-sm divide-y divide-slate-100 font-medium text-slate-700">
+                            <tr><td colspan="3" class="p-6 text-center text-slate-400">Cargando licencias...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VISTA GENÉRICA -->
+            <div id="view-generic" class="p-8 hidden">
+                <div class="ui-card p-12 text-center max-w-lg mx-auto mt-8">
+                    <div class="w-12 h-12 bg-red-50 text-simiRed rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="wrench" class="w-6 h-6"></i>
+                    </div>
+                    <h3 id="generic-title" class="font-bold text-lg text-slate-900">Módulo en Desarrollo</h3>
+                    <p class="text-slate-500 text-xs mt-2">Módulo vinculado al diseño corporativo. Listo para recibir funcionalidades.</p>
                 </div>
             </div>
         </main>
     </div>
 
+    <!-- Modales Flotantes Estilo shadcn/ui -->
+    <div id="modal-colaborador" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-slate-100">
+            <h3 class="font-bold text-base text-slate-900 border-b border-slate-100 pb-3">Nuevo Colaborador</h3>
+            <form id="form-nuevo-colaborador" onsubmit="guardarColaborador(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700">RUT</label>
+                    <input type="text" id="input-rut" required placeholder="12.345.678-9" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mt-1 focus:ring-2 focus:ring-simiRed focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700">Nombre Completo</label>
+                    <input type="text" id="input-nombre" required placeholder="Ej: Juan Pérez" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mt-1 focus:ring-2 focus:ring-simiRed focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700">Cargo</label>
+                    <input type="text" id="input-cargo" required placeholder="Ej: Químico Farmacéutico" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mt-1 focus:ring-2 focus:ring-simiRed focus:outline-none">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="toggleModalColaborador(false)" class="px-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-simiNavy text-white rounded-lg text-xs font-semibold hover:bg-simiNavyHover">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-licencia" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-slate-100">
+            <h3 class="font-bold text-base text-slate-900 border-b border-slate-100 pb-3">Adjuntar Licencia Médica (PDF)</h3>
+            <form id="form-licencia" onsubmit="guardarLicenciaConPDF(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700">RUT Colaborador</label>
+                    <input type="text" id="lic-rut" required placeholder="12.345.678-9" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mt-1 focus:ring-2 focus:ring-simiRed focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700">Días de Licencia</label>
+                    <input type="number" id="lic-dias" required placeholder="15" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mt-1 focus:ring-2 focus:ring-simiRed focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700">Adjuntar Archivo PDF</label>
+                    <input type="file" id="lic-pdf" accept=".pdf" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs mt-1 text-slate-500">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="toggleModalLicencia(false)" class="px-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-simiRed text-white rounded-lg text-xs font-semibold hover:bg-red-700">Subir PDF</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // Configuración del cliente Supabase
         const SUPABASE_URL = 'https://zcfbglbhqhysnptkfwba.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_EoJWhc0HPqIyTNiwU53FDw_prK9gYx2';
-
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const modulos = ['dashboard', 'colaboradores', 'sucursales', 'asistencia', 'licencias', 'vacaciones', 'papeletas', 'correos', 'amonestaciones', 'reportes', 'usuarios', 'auditoria'];
+
+        function cambiarModulo(mod) {
+            modulos.forEach(m => {
+                const btn = document.getElementById(`btn-${m}`);
+                if(btn) {
+                    btn.className = `w-full flex items-center gap-3 px-3 py-2.5 ${m === mod ? 'bg-simiRed text-white shadow-sm font-semibold' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'} rounded-lg transition ui-button`;
+                }
+            });
+
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-colaboradores').classList.add('hidden');
+            document.getElementById('view-asistencia').classList.add('hidden');
+            document.getElementById('view-licencias').classList.add('hidden');
+            document.getElementById('view-generic').classList.add('hidden');
+
+            const titleMap = {
+                'dashboard': '1. Dashboard', 'colaboradores': '2. Colaboradores', 'sucursales': '3. Sucursales',
+                'asistencia': '4. Asistencia y atrasos', 'licencias': '5. Licencias médicas', 'vacaciones': '6. Vacaciones',
+                'papeletas': '7. Papeletas', 'correos': '8. Borradores de correo', 'amonestaciones': '9. Amonestaciones',
+                'reportes': '10. Reportes', 'usuarios': '11. Usuarios y roles', 'auditoria': '12. Auditoría'
+            };
+
+            document.getElementById('header-title').innerText = titleMap[mod] || mod;
+
+            if (mod === 'dashboard') {
+                document.getElementById('view-dashboard').classList.remove('hidden');
+            } else if (mod === 'colaboradores') {
+                document.getElementById('view-colaboradores').classList.remove('hidden');
+                cargarTablaColaboradores();
+            } else if (mod === 'asistencia') {
+                document.getElementById('view-asistencia').classList.remove('hidden');
+                cargarTablaAsistencia();
+            } else if (mod === 'licencias') {
+                document.getElementById('view-licencias').classList.remove('hidden');
+                cargarTablaLicencias();
+            } else {
+                document.getElementById('generic-title').innerText = titleMap[mod];
+                document.getElementById('view-generic').classList.remove('hidden');
+            }
+            lucide.createIcons();
+        }
 
         async function inicializarDashboard() {
             const badge = document.getElementById('db-status-badge');
             const box = document.getElementById('connection-box');
 
             try {
-                // Consultas a las tablas en paralelo
                 const [colabRes, sucRes, asisRes, licRes] = await Promise.all([
                     _supabase.from('colaboradores').select('*', { count: 'exact', head: true }),
                     _supabase.from('sucursales').select('*', { count: 'exact', head: true }),
@@ -147,31 +378,176 @@
                     _supabase.from('licencias_medicas').select('*', { count: 'exact', head: true })
                 ]);
 
-                // Actualizar indicadores KPI
                 document.getElementById('kpi-colaboradores').innerText = colabRes.count !== null ? colabRes.count : '0';
                 document.getElementById('kpi-sucursales').innerText = sucRes.count !== null ? sucRes.count : '0';
                 document.getElementById('kpi-asistencia').innerText = asisRes.count !== null ? asisRes.count : '0';
                 document.getElementById('kpi-licencias').innerText = licRes.count !== null ? licRes.count : '0';
 
-                badge.innerText = "Conectado a Supabase";
-                badge.className = "text-green-400 font-semibold";
-
-                box.className = "p-4 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800";
-                box.innerHTML = `<strong> Conexión exitosa a Supabase.</strong><br>
-                                 La base de datos está respondiendo correctamente a las consultas RLS públicas/autenticadas.`;
-
+                badge.innerHTML = "● Supabase Conectado";
+                badge.className = "text-emerald-400 font-semibold inline-flex items-center gap-1 mt-0.5";
+                box.className = "p-4 rounded-xl text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium";
+                box.innerHTML = `<strong>✔ Base de datos en tiempo real vinculada.</strong> Toda importación desde Excel o subida de PDF actualizará las métricas instantáneamente.`;
             } catch (err) {
-                console.error("Error al conectar:", err);
-                badge.innerText = "Error de Conexión";
-                badge.className = "text-red-400 font-semibold";
+                badge.innerText = "● Desconectado";
+                badge.className = "text-rose-400 font-semibold";
+            }
+            lucide.createIcons();
+        }
 
-                box.className = "p-4 rounded-lg text-sm bg-red-50 border border-red-200 text-red-800";
-                box.innerHTML = `<strong>⚠️ Ocurrió un detalle al consultar Supabase.</strong><br>
-                                 Asegúrate de que las políticas RLS permitan lectura pública o que el usuario haya iniciado sesión.`;
+        async function procesarExcelGenerico(event, tablaDestino) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const filas = XLSX.utils.sheet_to_json(firstSheet);
+
+                    const { error } = await _supabase.from(tablaDestino).insert(filas);
+
+                    if (error) alert("Error: " + error.message);
+                    else {
+                        alert(`¡Éxito! Se procesaron e insertaron ${filas.length} registros desde el Excel.`);
+                        inicializarDashboard();
+                        if (tablaDestino === 'colaboradores') cargarTablaColaboradores();
+                        if (tablaDestino === 'registros_asistencia') cargarTablaAsistencia();
+                    }
+                } catch (err) { alert("Error al leer el archivo: " + err.message); }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        async function cargarTablaColaboradores() {
+            const tbody = document.getElementById('tabla-colaboradores-body');
+            tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Cargando datos...</td></tr>`;
+
+            const { data } = await _supabase.from('colaboradores').select('*');
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">No hay registros en la tabla <code>colaboradores</code>[cite: 1]. Carga una planilla Excel o presiona 'Nuevo'.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(c => `
+                <tr class="hover:bg-slate-50/80 transition">
+                    <td class="p-4 font-mono text-xs text-slate-600">${c.rut || c.id || 'N/A'}</td>
+                    <td class="p-4 font-semibold text-slate-900">${c.nombre || c.nombre_completo || 'Sin Nombre'}</td>
+                    <td class="p-4 text-slate-600">${c.cargo || 'General'}</td>
+                    <td class="p-4 text-slate-600">${c.sucursal || 'Sucursal Central'}</td>
+                    <td class="p-4"><span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[11px] font-semibold">Activo</span></td>
+                </tr>
+            `).join('');
+        }
+
+        async function cargarTablaAsistencia() {
+            const tbody = document.getElementById('tabla-asistencia-body');
+            tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400">Cargando marcaciones...</td></tr>`;
+
+            const { data } = await _supabase.from('registros_asistencia').select('*');
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400">Sin marcaciones grabadas hoy[cite: 1]. Carga la planilla diaria Excel.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(a => `
+                <tr class="hover:bg-slate-50/80 transition">
+                    <td class="p-4 text-xs font-medium text-slate-500">${a.fecha || a.created_at || 'N/A'}</td>
+                    <td class="p-4 font-mono text-xs text-slate-700">${a.rut || a.colaborador_id || 'N/A'}</td>
+                    <td class="p-4 text-slate-800 font-medium">${a.tipo || 'Entrada'}</td>
+                    <td class="p-4 text-slate-600">${a.sucursal || 'Central'}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function cargarTablaLicencias() {
+            const tbody = document.getElementById('tabla-licencias-body');
+            tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-400">Cargando licencias...</td></tr>`;
+
+            const { data } = await _supabase.from('licencias_medicas').select('*');
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-400">Sin licencias grabadas[cite: 1]. Presiona 'Adjuntar PDF'.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(l => `
+                <tr class="hover:bg-slate-50/80 transition">
+                    <td class="p-4 font-semibold text-slate-900">${l.colaborador_rut || l.rut || 'N/A'}</td>
+                    <td class="p-4 text-slate-600 font-medium">${l.dias || '--'} días</td>
+                    <td class="p-4">
+                        ${l.url_pdf ? `<a href="${l.url_pdf}" target="_blank" class="inline-flex items-center gap-1 text-simiRed font-bold hover:underline text-xs"><i data-lucide="file-text" class="w-4 h-4"></i> Abrir Documento PDF</a>` : '<span class="text-slate-300 text-xs">Sin PDF</span>'}
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function toggleModalColaborador(show) {
+            const modal = document.getElementById('modal-colaborador');
+            if (show) modal.classList.replace('hidden', 'flex');
+            else modal.classList.replace('flex', 'hidden');
+        }
+
+        function toggleModalLicencia(show) {
+            const modal = document.getElementById('modal-licencia');
+            if (show) modal.classList.replace('hidden', 'flex');
+            else modal.classList.replace('flex', 'hidden');
+        }
+
+        async function guardarColaborador(e) {
+            e.preventDefault();
+            const rut = document.getElementById('input-rut').value;
+            const nombre = document.getElementById('input-nombre').value;
+            const cargo = document.getElementById('input-cargo').value;
+
+            const { error } = await _supabase.from('colaboradores').insert([{ rut, nombre, cargo }]);
+
+            if (error) alert("Error: " + error.message);
+            else {
+                toggleModalColaborador(false);
+                document.getElementById('form-nuevo-colaborador').reset();
+                cargarTablaColaboradores();
+                inicializarDashboard();
             }
         }
 
-        document.addEventListener('DOMContentLoaded', inicializarDashboard);
+        async function guardarLicenciaConPDF(e) {
+            e.preventDefault();
+            const rut = document.getElementById('lic-rut').value;
+            const dias = document.getElementById('lic-dias').value;
+            const fileInput = document.getElementById('lic-pdf');
+            let url_pdf = null;
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileName = `licencia_${Date.now()}_${file.name}`;
+                const { data, error: storageErr } = await _supabase.storage.from('documentos-rrhh').upload(fileName, file);
+
+                if (!storageErr && data) {
+                    const { data: publicData } = _supabase.storage.from('documentos-rrhh').getPublicUrl(fileName);
+                    url_pdf = publicData.publicUrl;
+                }
+            }
+
+            const { error } = await _supabase.from('licencias_medicas').insert([{ colaborador_rut: rut, dias, url_pdf }]);
+
+            if (error) alert("Error al subir: " + error.message);
+            else {
+                toggleModalLicencia(false);
+                document.getElementById('form-licencia').reset();
+                cargarTablaLicencias();
+                inicializarDashboard();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            inicializarDashboard();
+        });
     </script>
 </body>
 </html>
