@@ -1939,6 +1939,7 @@ body{overflow-x:hidden}
                         await inicializarDashboard();
                     }catch(perfilError){
                         await _supabase.auth.signOut();
+                        perfilActualSistema=null;modulosPermitidosActuales=[];
                         document.getElementById('login-overlay').classList.remove('hidden');
                         const eb=document.getElementById('login-error');if(eb){eb.textContent=perfilError.message;eb.classList.remove('hidden');}
                     }
@@ -1976,7 +1977,8 @@ body{overflow-x:hidden}
                 await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
                 await inicializarDashboard();
             } catch (error) {
-                if(!perfilActualSistema){try{await _supabase.auth.signOut();}catch(_){}}
+                try{await _supabase.auth.signOut();}catch(_){}
+                perfilActualSistema=null;modulosPermitidosActuales=[];
                 errorBox.textContent = error.message || 'Credenciales incorrectas.';
                 errorBox.classList.remove('hidden');
             } finally {
@@ -3181,6 +3183,7 @@ body{overflow-x:hidden}
             const {data,error}=await _supabase.from('usuarios_roles').select('*').eq('email',email).maybeSingle();
             if(error)throw new Error('No se pudieron comprobar tus permisos: '+error.message);
             if(email===EMAIL_ADMIN_PRINCIPAL){
+                if(data&&data.activo===false)throw new Error('La cuenta administradora está desactivada en el sistema.');
                 perfilActualSistema=data||{email,nombre:'Administrador principal',rol:'ADMIN',activo:true,permisos:listaPermisos,acceso_global:true,puede_asignar_tareas:true,puede_revisar_tareas:true,puede_preparar_correos:true};
                 modulosPermitidosActuales=[...modulos];
             }else{
