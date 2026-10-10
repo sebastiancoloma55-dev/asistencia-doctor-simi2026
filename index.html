@@ -314,6 +314,33 @@
  .login-form-logo,.login-glow,.login-runner,.login-runner svg{animation:none!important}
 }
 
+
+/* SISTEMA VISUAL RESPONSIVE PARA LOS 15 MODULOS */
+html{scroll-behavior:smooth}
+body{overflow-x:hidden}
+[id^="view-"]{width:100%;max-width:100%;min-width:0;overflow-wrap:anywhere}
+[id^="view-"] *{min-width:0}
+[id^="view-"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+[id^="view-"] select,[id^="view-"] textarea{max-width:100%;box-sizing:border-box}
+[id^="view-"] .overflow-x-auto,[id^="view-"] [style*="overflow-x:auto"]{max-width:100%;-webkit-overflow-scrolling:touch}
+[id^="view-"] table{max-width:100%;border-collapse:separate;border-spacing:0}
+[id^="view-"] th{font-size:.72rem;letter-spacing:.025em}
+[id^="view-"] td,[id^="view-"] th{vertical-align:middle}
+[id^="view-"] button:focus-visible,[id^="view-"] a:focus-visible,
+#sidebar button:focus-visible{outline:3px solid rgba(0,151,178,.42);outline-offset:2px}
+.ui-card{min-width:0;transition:box-shadow .18s ease,border-color .18s ease}
+@media(hover:hover){.ui-card:hover{box-shadow:0 10px 28px rgba(15,41,64,.07)}}
+@media(max-width:640px){
+ [id^="view-"]{padding:1rem!important}
+ [id^="view-"] .grid.grid-cols-2,[id^="view-"] .grid.grid-cols-3,[id^="view-"] .grid.grid-cols-4{grid-template-columns:minmax(0,1fr)!important}
+ [id^="view-"] .flex.items-center.justify-between{gap:.65rem;flex-wrap:wrap}
+ [id^="view-"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+ [id^="view-"] select,[id^="view-"] textarea{font-size:16px}
+ #header-title{font-size:1rem;line-height:1.35}
+ #user-email-display{overflow-wrap:anywhere}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.ui-card{transition:none}}
+
 </style>
 </head>
 
