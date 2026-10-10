@@ -313,7 +313,7 @@
                 <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
                     <div>
                         <h3 class="font-bold text-slate-900 text-base">Consolidado Histórico de Licencias y Ausentismos</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Sube el archivo histórico completo. Se almacenará y consolidará permanentemente en la nube.</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Sube el archivo histórico completo (más de 19k registros). Se almacenará y consolidará permanentemente en la nube.</p>
                     </div>
                     <label id="btn-upload-licencias" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-2 shadow-sm ui-button">
                         <i data-lucide="upload-cloud" class="w-4 h-4"></i> Cargar Histórico de Licencias (Excel)
@@ -338,7 +338,7 @@
                             </tr>
                         </thead>
                         <tbody id="tabla-licencias-body" class="text-xs divide-y divide-slate-100 font-medium text-slate-700">
-                            <tr><td colspan="6" class="p-8 text-center text-slate-400">Cargando historial de licencias desde Supabase...</td></tr>
+                            <tr><td colspan="6" class="p-8 text-center text-slate-400">Cargando histórico de licencias desde Supabase...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -493,8 +493,9 @@
                 box.className = "p-4 rounded-xl text-sm bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium";
                 box.innerHTML = `<strong>✔ Base de datos conectada.</strong> Listos para trabajar.`;
 
-                // Cargar datos iniciales en memoria para análisis automático
+                // Cargar datos en segundo plano para análisis
                 cargarAsistenciaDesdeNube();
+                cargarLicenciasDesdeNube(true); // Solo contar / precargar
             } catch (err) {
                 box.className = "p-4 rounded-xl text-sm bg-yellow-50 border border-yellow-200 text-yellow-800 font-medium";
                 box.innerHTML = `<strong>⚠️ Problema de conexión a Supabase:</strong> ${err.message}`;
@@ -512,7 +513,6 @@
             btnContainer.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Subiendo a la nube...`;
 
             const reader = new FileReader();
-
             reader.onload = async function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
@@ -529,7 +529,6 @@
                         let sinMarca = (entrada === '-' && salida === '-');
                         let marcaIncompleta = (entrada === '-' || salida === '-') && !sinMarca;
                         let tieneAtraso = (atraso !== '00:00' && atraso !== '-' && atraso !== '0');
-                        
                         let sinTurnoConMarcas = (turno === '' || turno === '-') && !sinMarca;
 
                         let salidaTemprana = '-';
@@ -543,7 +542,6 @@
                                     let diffMin = (hProg * 60 + mProg) - (hSal * 60 + mSal);
                                     let horasDiff = Math.floor(diffMin / 60);
                                     let minsDiff = diffMin % 60;
-                                    
                                     let tiempoTxt = horasDiff > 0 ? `${horasDiff}h ${minsDiff}m` : `${minsDiff} min`;
                                     salidaTemprana = `Se retiró ${tiempoTxt} antes (${salida} / prog: ${horaProgSalida})`;
                                 }
@@ -582,10 +580,11 @@
 
                     for (let i = 0; i < loteParaNube.length; i += 500) {
                         let chunk = loteParaNube.slice(i, i + 500);
-                        await _supabase.from('registros_asistencia').upsert(chunk);
+                        await _supabase.from('registros_asistencia').upsert(chunk, { onConflict: 'rut,fecha' });
                     }
 
                     renderizarFiltrosYAnalisisAsistencia();
+                    inicializarDashboard();
                     alert(`✅ ¡Reporte analizado y respaldado en la nube! Total procesados: ${datosAsistenciaGlobal.length}.`);
 
                 } catch (err) {
@@ -599,10 +598,27 @@
         }
 
         async function cargarAsistenciaDesdeNube() {
-            const { data, error } = await _supabase.from('registros_asistencia').select('*').limit(5000);
-            if (error || !data) return;
+            const tbody = document.getElementById('tabla-asistencia-body');
+            tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando registros de asistencia desde la nube...</td></tr>`;
+            lucide.createIcons();
 
-            datosAsistenciaGlobal = data.map(r => {
+            let allData = [];
+            let step = 1000;
+            let from = 0;
+            let keepFetching = true;
+
+            while(keepFetching) {
+                let { data, error } = await _supabase.from('registros_asistencia').select('*').range(from, from + step - 1);
+                if (error || !data || data.length === 0) {
+                    keepFetching = false;
+                } else {
+                    allData = allData.concat(data);
+                    if (data.length < step) keepFetching = false;
+                    from += step;
+                }
+            }
+
+            datosAsistenciaGlobal = allData.map(r => {
                 let sinMarca = (r.entrada === '-' && r.salida === '-');
                 let marcaIncompleta = (r.entrada === '-' || r.salida === '-') && !sinMarca;
                 let tieneAtraso = (r.atraso !== '00:00' && r.atraso !== '-' && r.atraso !== '0');
@@ -727,13 +743,14 @@
                         observaciones: String(r['Observaciones'] || '')
                     })).filter(l => l.rut);
 
-                    // Guardar masivamente en Supabase (tabla licencias_medicas)
+                    // Subir en lotes de 500 para manejar los 19k+ registros de forma segura
                     for (let i = 0; i < licenciasMapeadas.length; i += 500) {
                         let chunk = licenciasMapeadas.slice(i, i + 500);
                         await _supabase.from('licencias_medicas').upsert(chunk);
                     }
 
                     await cargarLicenciasDesdeNube();
+                    inicializarDashboard();
                     alert(`✅ ¡Histórico de licencias y ausentismos consolidado con éxito en la nube! Total de registros: ${licenciasMapeadas.length}.`);
 
                 } catch (err) {
@@ -746,21 +763,41 @@
             reader.readAsArrayBuffer(file);
         }
 
-        async function cargarLicenciasDesdeNube() {
-            const tbody = document.getElementById('tabla-licencias-body');
-            tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando histórico desde la nube...</td></tr>`;
-            lucide.createIcons();
+        async function cargarLicenciasDesdeNube(soloConteo = false) {
+            if(!soloConteo) {
+                const tbody = document.getElementById('tabla-licencias-body');
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando más de 19k registros históricos desde la nube...</td></tr>`;
+                lucide.createIcons();
+            }
 
-            const { data, error } = await _supabase.from('licencias_medicas').select('*').limit(2000);
-            if (error || !data || data.length === 0) {
+            let allData = [];
+            let step = 1000;
+            let from = 0;
+            let keepFetching = true;
+
+            while(keepFetching) {
+                let { data, error } = await _supabase.from('licencias_medicas').select('*').range(from, from + step - 1);
+                if (error || !data || data.length === 0) {
+                    keepFetching = false;
+                } else {
+                    allData = allData.concat(data);
+                    if (data.length < step) keepFetching = false;
+                    from += step;
+                }
+            }
+
+            datosLicenciasGlobal = allData;
+            document.getElementById('kpi-licencias').innerText = datosLicenciasGlobal.length;
+
+            if (soloConteo) return;
+
+            const tbody = document.getElementById('tabla-licencias-body');
+            if (datosLicenciasGlobal.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">No hay registros de licencias o ausentismos en la nube. Sube el archivo histórico.</td></tr>`;
                 return;
             }
 
-            datosLicenciasGlobal = data;
-            document.getElementById('kpi-licencias').innerText = datosLicenciasGlobal.length;
-
-            tbody.innerHTML = datosLicenciasGlobal.map(l => {
+            tbody.innerHTML = datosLicenciasGlobal.slice(0, 300).map(l => {
                 return `<tr class="hover:bg-slate-50 transition border-b border-slate-100">
                     <td class="p-3">
                         <div class="font-bold text-slate-900">${l.nombre || 'N/A'}</div>
