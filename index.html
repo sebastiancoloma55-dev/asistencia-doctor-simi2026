@@ -1886,7 +1886,13 @@ body.search-open{overflow:hidden}
   var originalChange=window.cambiarModulo;
   if(typeof originalChange==='function'){
     window.cambiarModulo=async function(modulo,cargar){
-      if(!hasModulePermission(modulo)){if(window.mostrarToast)mostrarToast('Este apartado no está habilitado para tu usuario. Solicita al administrador que lo autorice en Usuarios y roles.','warning');return;}
+      // Releer la sesión y los permisos justo antes de validar cada navegación evita usar el Set inicial
+      // (solo Dashboard) si la restauración de sesión o la carga del perfil todavía no terminó.
+      await loadPermissions();
+      if(!hasModulePermission(modulo)){
+        if(window.mostrarToast)mostrarToast('Este apartado no está habilitado para tu usuario. Solicita al administrador que lo autorice en Usuarios y roles.','warning');
+        return;
+      }
       var resultado=await originalChange.apply(this,arguments);
       if(modulo==='mapas'){setTimeout(function(){var mapa=asegurarMapaLeaflet();if(mapa)mapa.invalidateSize();},220);}
       return resultado;
