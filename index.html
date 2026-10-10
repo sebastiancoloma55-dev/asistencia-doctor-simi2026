@@ -3454,6 +3454,7 @@ body{overflow-x:hidden}
             return `Estimados/as,\n\nJunto con saludar, se informa el siguiente detalle de incumplimientos detectados en asistencia para ${nombreGrupo}, correspondiente al periodo ${desde} al ${hasta}.\n\n${filas}\n\nFavor revisar y gestionar los casos indicados. Para cada registro, agradeceremos confirmar el motivo y adjuntar el respaldo correspondiente.\n\n${firma}`;
         }
         async function prepararCorreosAsistencia() {
+            if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para preparar correos.','warning');
             const desde = document.getElementById('correo-desde').value;
             const hasta = document.getElementById('correo-hasta').value;
             const minimo = Number(document.getElementById('correo-min-atraso').value) || 0;
