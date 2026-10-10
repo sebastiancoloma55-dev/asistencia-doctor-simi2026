@@ -230,7 +230,7 @@
                 <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
                     <div>
                         <h3 class="font-bold text-slate-900 text-base">Control de Asistencia, Atrasos y Anomalías</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Sube el reporte de jornadas (almacenado y consolidado en la nube).</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Sube el reporte de jornadas para análisis local y respaldo en la nube.</p>
                     </div>
                     <label id="btn-upload-container" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-2 shadow-sm ui-button">
                         <i data-lucide="upload-cloud" class="w-4 h-4"></i> Cargar Reporte de Jornadas (Excel)
@@ -302,7 +302,7 @@
                             </tr>
                         </thead>
                         <tbody id="tabla-asistencia-body" class="text-xs divide-y divide-slate-100 font-medium text-slate-700">
-                            <tr><td colspan="8" class="p-8 text-center text-slate-400">Cargando registros almacenados en la nube...</td></tr>
+                            <tr><td colspan="8" class="p-8 text-center text-slate-400">Sube un archivo Excel o espera la carga desde la nube.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -313,7 +313,7 @@
                 <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
                     <div>
                         <h3 class="font-bold text-slate-900 text-base">Consolidado Histórico de Licencias y Ausentismos</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Sube el archivo histórico completo (más de 19k registros). Se almacenará y consolidará permanentemente en la nube.</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Sube el archivo histórico (más de 19k registros). Se procesará localmente y se guardará en la nube.</p>
                     </div>
                     <label id="btn-upload-licencias" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-2 shadow-sm ui-button">
                         <i data-lucide="upload-cloud" class="w-4 h-4"></i> Cargar Histórico de Licencias (Excel)
@@ -321,10 +321,10 @@
                     </label>
                 </div>
 
-                <!-- Tabla de Licencias en Nube -->
+                <!-- Tabla de Licencias -->
                 <div class="ui-card overflow-hidden">
                     <div class="p-4 border-b border-slate-100 bg-slate-50 font-bold text-xs uppercase text-slate-600 tracking-wider">
-                        Registros Históricos de Ausentismos y Permisos en la Nube
+                        Registros Históricos de Ausentismos y Permisos
                     </div>
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -338,7 +338,7 @@
                             </tr>
                         </thead>
                         <tbody id="tabla-licencias-body" class="text-xs divide-y divide-slate-100 font-medium text-slate-700">
-                            <tr><td colspan="6" class="p-8 text-center text-slate-400">Cargando histórico de licencias desde Supabase...</td></tr>
+                            <tr><td colspan="6" class="p-8 text-center text-slate-400">Cargando registros...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -382,11 +382,9 @@
         let datosAsistenciaGlobal = [];
         let datosLicenciasGlobal = [];
 
-        // CONVERTIR HORA DECIMAL DE EXCEL A HH:MM:SS
         function convertirHoraExcel(val) {
             if (val === undefined || val === null || val === '-' || val === '') return '-';
             if (typeof val === 'string' && val.includes(':')) return val.trim();
-            
             let num = parseFloat(val);
             if (!isNaN(num) && num >= 0 && num < 1) {
                 let totalSegundos = Math.round(num * 24 * 60 * 60);
@@ -398,9 +396,6 @@
             return String(val);
         }
 
-        // ==========================================
-        // SISTEMA DE LOGIN Y SESIÓN
-        // ==========================================
         document.addEventListener('DOMContentLoaded', () => { 
             lucide.createIcons(); 
             _supabase.auth.getSession().then(({ data: { session } }) => {
@@ -418,15 +413,11 @@
             e.preventDefault();
             const btn = document.getElementById('btn-login');
             const errBox = document.getElementById('login-error');
-            
             btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Autenticando...`;
             errBox.classList.add('hidden');
-            
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-pass').value;
-
             const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-            
             if (error) {
                 document.getElementById('login-error-text').innerText = "Credenciales incorrectas.";
                 errBox.classList.remove('hidden');
@@ -445,9 +436,6 @@
             document.getElementById('login-pass').value = '';
         }
 
-        // ==========================================
-        // RUTEO DE MENÚS Y DASHBOARD
-        // ==========================================
         const modulos = ['dashboard', 'colaboradores', 'sucursales', 'asistencia', 'licencias', 'vacaciones', 'papeletas', 'correos', 'amonestaciones', 'reportes', 'usuarios', 'auditoria'];
 
         function cambiarModulo(mod) {
@@ -493,9 +481,8 @@
                 box.className = "p-4 rounded-xl text-sm bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium";
                 box.innerHTML = `<strong>✔ Base de datos conectada.</strong> Listos para trabajar.`;
 
-                // Cargar datos en segundo plano para análisis
                 cargarAsistenciaDesdeNube();
-                cargarLicenciasDesdeNube(true); // Solo contar / precargar
+                cargarLicenciasDesdeNube(true);
             } catch (err) {
                 box.className = "p-4 rounded-xl text-sm bg-yellow-50 border border-yellow-200 text-yellow-800 font-medium";
                 box.innerHTML = `<strong>⚠️ Problema de conexión a Supabase:</strong> ${err.message}`;
@@ -503,14 +490,14 @@
         }
 
         // ==========================================
-        // MÓDULO ASISTENCIA (CARGA Y NUBE)
+        // PROCESAMIENTO LOCAL Y SUBIDA A NUBE: ASISTENCIA
         // ==========================================
         async function procesarReporteAsistencia(event) {
             const file = event.target.files[0];
             if (!file) return;
             
             const btnContainer = document.getElementById('btn-upload-container');
-            btnContainer.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Subiendo a la nube...`;
+            btnContainer.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procesando archivo local...`;
 
             const reader = new FileReader();
             reader.onload = async function(e) {
@@ -567,6 +554,10 @@
                         };
                     });
 
+                    renderizarFiltrosYAnalisisAsistencia();
+
+                    // Guardar en la nube en segundo plano
+                    btnContainer.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Guardando en la nube...`;
                     const loteParaNube = datosAsistenciaGlobal.map(d => ({
                         rut: d.rut,
                         nombre: d.nombre,
@@ -583,12 +574,11 @@
                         await _supabase.from('registros_asistencia').upsert(chunk, { onConflict: 'rut,fecha' });
                     }
 
-                    renderizarFiltrosYAnalisisAsistencia();
                     inicializarDashboard();
-                    alert(`✅ ¡Reporte analizado y respaldado en la nube! Total procesados: ${datosAsistenciaGlobal.length}.`);
+                    alert(`✅ ¡Archivo procesado localmente y respaldado en la nube con éxito! Total: ${datosAsistenciaGlobal.length}.`);
 
                 } catch (err) {
-                    alert("Error al procesar o guardar asistencia: " + err.message);
+                    alert("Error al procesar archivo: " + err.message);
                 } finally {
                     btnContainer.innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i> Cargar Reporte de Jornadas (Excel)<input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarReporteAsistencia(event)">`;
                     lucide.createIcons();
@@ -599,7 +589,7 @@
 
         async function cargarAsistenciaDesdeNube() {
             const tbody = document.getElementById('tabla-asistencia-body');
-            tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando registros de asistencia desde la nube...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando registros desde la nube...</td></tr>`;
             lucide.createIcons();
 
             let allData = [];
@@ -713,14 +703,14 @@
         }
 
         // ==========================================
-        // MÓDULO 5: LICENCIAS Y AUSENTISMO HISTÓRICO
+        // PROCESAMIENTO LOCAL Y SUBIDA A NUBE: LICENCIAS
         // ==========================================
         async function procesarHistorialLicencias(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const btnContainer = document.getElementById('btn-upload-licencias');
-            btnContainer.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Subiendo histórico a la nube...`;
+            btnContainer.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procesando histórico localmente...`;
 
             const reader = new FileReader();
             reader.onload = async function(e) {
@@ -729,7 +719,7 @@
                     const workbook = XLSX.read(data, { type: 'array' });
                     const filas = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-                    let licenciasMapeadas = filas.map(r => ({
+                    datosLicenciasGlobal = filas.map(r => ({
                         rut: String(r['Rut'] || ''),
                         nombre: String(r['Nombre'] || ''),
                         empresa: String(r['Empresa'] || ''),
@@ -743,18 +733,20 @@
                         observaciones: String(r['Observaciones'] || '')
                     })).filter(l => l.rut);
 
-                    // Subir en lotes de 500 para manejar los 19k+ registros de forma segura
-                    for (let i = 0; i < licenciasMapeadas.length; i += 500) {
-                        let chunk = licenciasMapeadas.slice(i, i + 500);
+                    renderizarTablaLicencias();
+
+                    // Guardar en la nube en lotes
+                    btnContainer.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Subiendo a la nube...`;
+                    for (let i = 0; i < datosLicenciasGlobal.length; i += 500) {
+                        let chunk = datosLicenciasGlobal.slice(i, i + 500);
                         await _supabase.from('licencias_medicas').upsert(chunk);
                     }
 
-                    await cargarLicenciasDesdeNube();
                     inicializarDashboard();
-                    alert(`✅ ¡Histórico de licencias y ausentismos consolidado con éxito en la nube! Total de registros: ${licenciasMapeadas.length}.`);
+                    alert(`✅ ¡Histórico de licencias procesado y guardado en la nube con éxito! Total: ${datosLicenciasGlobal.length}.`);
 
                 } catch (err) {
-                    alert("Error al procesar el histórico de licencias: " + err.message);
+                    alert("Error al procesar archivo: " + err.message);
                 } finally {
                     btnContainer.innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i> Cargar Histórico de Licencias (Excel)<input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarHistorialLicencias(event)">`;
                     lucide.createIcons();
@@ -766,7 +758,7 @@
         async function cargarLicenciasDesdeNube(soloConteo = false) {
             if(!soloConteo) {
                 const tbody = document.getElementById('tabla-licencias-body');
-                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando más de 19k registros históricos desde la nube...</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando registros desde la nube...</td></tr>`;
                 lucide.createIcons();
             }
 
@@ -790,10 +782,13 @@
             document.getElementById('kpi-licencias').innerText = datosLicenciasGlobal.length;
 
             if (soloConteo) return;
+            renderizarTablaLicencias();
+        }
 
+        function renderizarTablaLicencias() {
             const tbody = document.getElementById('tabla-licencias-body');
             if (datosLicenciasGlobal.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">No hay registros de licencias o ausentismos en la nube. Sube el archivo histórico.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">No hay registros de licencias o ausentismos. Sube el archivo histórico.</td></tr>`;
                 return;
             }
 
@@ -820,13 +815,11 @@
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            
             reader.onload = async function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
                     const filas = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                    
                     let datosMapeados = [];
 
                     if (tablaDestino === 'colaboradores') {
@@ -837,8 +830,7 @@
                             cargo: r['Cargo'] ? String(r['Cargo']).trim() : null,
                             sucursal: r['Sucursal'] ? String(r['Sucursal']).trim() : null
                         })).filter(c => c.rut);
-                    } 
-                    else if (tablaDestino === 'sucursales') {
+                    } else if (tablaDestino === 'sucursales') {
                         datosMapeados = filas.map(r => ({
                             unidad: r['UNIDAD '] ? String(r['UNIDAD ']).trim() : null,
                             nombre: r['NOMBRE SUCURSAL'],
@@ -856,7 +848,6 @@
                     inicializarDashboard();
                     if(tablaDestino === 'colaboradores') cargarTablaColaboradores();
                     if(tablaDestino === 'sucursales') cargarTablaSucursales();
-                    
                 } catch (err) { alert("Error al procesar el Excel: " + err.message); }
             };
             reader.readAsArrayBuffer(file);
@@ -866,20 +857,16 @@
             const tbody = document.getElementById('tabla-colaboradores-body');
             tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando...</td></tr>`;
             lucide.createIcons();
-
             const [colabRes, sucRes] = await Promise.all([
                 _supabase.from('colaboradores').select('*'),
                 _supabase.from('sucursales').select('nombre, supervisor')
             ]);
-
             if (!colabRes.data || colabRes.data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No hay colaboradores registrados. Sube el Excel.</td></tr>`;
                 return;
             }
-
             const sucursalesMap = {};
             if (sucRes.data) sucRes.data.forEach(s => { sucursalesMap[s.nombre] = s.supervisor; });
-
             tbody.innerHTML = colabRes.data.map(c => {
                 const supZonal = sucursalesMap[c.sucursal] || 'No asignado';
                 const nombreCompleto = `${c.nombres || ''} ${c.apellidos || ''}`.trim();
@@ -902,7 +889,6 @@
                 tbody.innerHTML = data.map(s => {
                     let direccionBusqueda = `${s.direccion || ''}, ${s.comuna || ''}, Chile`.trim();
                     let linkMapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccionBusqueda)}`;
-
                     return `<tr class="hover:bg-slate-50/80 transition border-b border-slate-100">
                         <td class="p-4 font-mono text-xs text-slate-500">${s.unidad || ''}</td>
                         <td class="p-4 font-semibold text-slate-900">${s.nombre || ''}</td>
