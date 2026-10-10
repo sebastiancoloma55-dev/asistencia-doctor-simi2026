@@ -5,12 +5,19 @@ Plataforma web interna para apoyar la operación de Asistencia y Ausentismo, con
 ## Arquitectura actual
 
 - `index.html`: estructura de la interfaz y estilos.
-- `app.js`: lógica de los módulos y navegación. Se separó del HTML como primer paso de la modularización; aún está pendiente dividirlo por dominios funcionales.
+- `js/app-config.js`: configuración del cliente, variables globales y catálogo de módulos.
+- `js/app-core.js`: utilidades, autenticación, permisos, navegación, buscador global, centro de operaciones, notificaciones y paneles administrativos.
+- `js/attendance-leave.js`: asistencia, atrasos y licencias médicas.
+- `js/workflows.js`: vacaciones, papeletas, reportes, usuarios y auditoría.
+- `js/maps-communications.js`: mapas, sucursales, correo, coberturas y análisis con IA.
+- `js/people-directory.js`: colaboradores y directorio de sucursales.
 - `api/usuarios-auth.js`: operaciones de administración de cuentas, reservadas a la cuenta administradora principal.
 - `api/gemini.js`: análisis asistido por IA. Requiere sesión válida y permiso de reportes.
 - `api/geocodificar.js`: búsqueda de coordenadas. Requiere sesión válida y permiso de mapas.
 - `api/cron-alertas.js`: proceso programado que genera notificaciones para tareas vencidas o próximas a vencer.
 - `lib/server-auth.js`: validación compartida de sesión, perfil activo y permisos para endpoints del servidor.
+
+Los archivos JavaScript se cargan como scripts clásicos en el orden definido en `index.html`; se están separando por dominio funcional para facilitar mantenimiento sin cambiar de golpe el comportamiento existente.
 - `vercel.json`: programación del proceso de alertas.
 - Supabase: autenticación, datos, políticas RLS y almacenamiento persistente.
 
@@ -72,7 +79,7 @@ No publicar valores de estas variables en commits, capturas, archivos descargabl
 
 ## Próximas mejoras técnicas recomendadas
 
-- Separar `app.js` en módulos mantenibles (dashboard, asistencia, licencias, tareas, reportes, usuarios, mapas y servicios).
+- Seguir dividiendo los módulos funcionales grandes en componentes y servicios reutilizables, manteniendo pruebas de regresión para cada cambio.
 - Añadir pruebas automatizadas de permisos, cálculos, filtros, exportaciones y flujos críticos.
 - Crear un entorno de staging y un procedimiento de reversión.
 - Verificar copias de seguridad y restauración.
