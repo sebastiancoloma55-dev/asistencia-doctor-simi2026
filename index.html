@@ -246,7 +246,9 @@
                 transform: translateX(0);
             }
         }
-    </style>
+    
+        #login-overlay.login-overlay-modern{padding:12px!important;overflow:auto!important}.login-shell{height:min(650px,calc(100dvh - 24px))!important;max-width:1040px!important}.login-form-panel{padding:22px 32px!important}.login-form-logo{width:58px!important;height:58px!important}.login-form-logo-wrap{margin-bottom:5px!important}.login-title{font-size:2rem!important}.login-description{margin-bottom:18px!important}.login-field{margin-bottom:12px!important}.login-input{padding-top:11px!important;padding-bottom:11px!important}.login-form-meta{margin-bottom:14px!important}.login-security-note{margin-top:14px!important}.login-footer{margin-top:8px!important}@media(max-height:700px) and (min-width:851px){.login-simi-stage{display:none!important}.login-hero-copy{margin-bottom:25px!important}.login-shell{height:calc(100dvh - 16px)!important}}
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -2838,19 +2840,24 @@
         async function cambiarClaveUsuario(){const email=texto(document.getElementById('usr-email').value).toLowerCase();if(!email)return mostrarToast('Ingresa el correo.','warning');try{const password=validarClaveUsuario();const j=await llamarApiAdmin('/api/usuarios-auth',{accion:'CAMBIAR_CLAVE',email,password});document.getElementById('usr-clave').value='';document.getElementById('usr-clave-repetir').value='';mostrarToast(j.message,'success',12000)}catch(e){mostrarToast(e.message,'error',15000)}}
         async function eliminarUsuarioCreado(email,nombre){if(!confirm(`¿Eliminar el acceso de ${nombre||email}? El historial se conservará.`))return;if(prompt('Escribe ELIMINAR para confirmar')!=='ELIMINAR')return mostrarToast('Eliminación cancelada.','warning');try{const j=await llamarApiAdmin('/api/usuarios-auth',{accion:'ELIMINAR',email});mostrarToast(j.message,'success',12000);await cargarUsuariosRoles()}catch(e){mostrarToast(e.message,'error',15000)}}
         async function guardarUsuarioRol(){
-            const email=texto(document.getElementById('usr-email').value).toLowerCase(),nombre=texto(document.getElementById('usr-nombre').value),rol=document.getElementById('usr-rol').value,permisos=[...document.querySelectorAll('.usr-check:checked')].map(x=>x.value);
-            if(!email){mostrarToast('Ingresa un correo.','warning');return;}
-            const registro={email,nombre,rol,permisos,activo:true,puede_asignar_tareas:document.getElementById('usr-puede-asignar').checked,puede_revisar_tareas:document.getElementById('usr-puede-revisar').checked,puede_preparar_correos:document.getElementById('usr-puede-correos').checked,acceso_global:document.getElementById('usr-acceso-global').checked};
-            const {data,error}=await _supabase.from('usuarios_roles').upsert([registro],{onConflict:'email'}).select('id').single();
-            if(error){mostrarToast(error.message,'error');return;}
-            await _supabase.from('usuarios_supervisores').delete().eq('usuario_rol_id',data.id);
-            await _supabase.from('usuarios_sucursales').delete().eq('usuario_rol_id',data.id);
-            const sup=opcionesSeleccionadas('usr-supervisores').map(supervisor=>({usuario_rol_id:data.id,supervisor}));
-            const suc=opcionesSeleccionadas('usr-sucursales').map(sucursal_id=>({usuario_rol_id:data.id,sucursal_id:String(sucursal_id)}));
-            if(sup.length){const r=await _supabase.from('usuarios_supervisores').insert(sup);if(r.error)return mostrarToast(r.error.message,'error');}
-            if(suc.length){const r=await _supabase.from('usuarios_sucursales').insert(suc);if(r.error)return mostrarToast(r.error.message,'error');}
-            await registrarAuditoria('usuarios','CAMBIA_PERMISOS',`${email} · ${rol} · Supervisores: ${sup.map(x=>x.supervisor).join(', ')}`);
-            await cargarUsuariosRoles();mostrarToast('Usuario, supervisores y permisos guardados.','success');
+            const email=texto(document.getElementById('usr-email').value).toLowerCase();
+            const nombre=texto(document.getElementById('usr-nombre').value);
+            const rol=document.getElementById('usr-rol').value;
+            const permisos=[...document.querySelectorAll('.usr-check:checked')].map(x=>x.value);
+            if(!email) throw new Error('Ingresa un correo.');
+            const payload={
+                accion:'GUARDAR_FICHA', email, nombre, rol, permisos, activo:true,
+                supervisores:opcionesSeleccionadas('usr-supervisores'),
+                sucursales:opcionesSeleccionadas('usr-sucursales'),
+                puede_asignar_tareas:document.getElementById('usr-puede-asignar').checked,
+                puede_revisar_tareas:document.getElementById('usr-puede-revisar').checked,
+                puede_preparar_correos:document.getElementById('usr-puede-correos').checked,
+                acceso_global:document.getElementById('usr-acceso-global').checked
+            };
+            const json=await llamarApiAdmin('/api/usuarios-auth',payload);
+            await cargarUsuariosRoles();
+            mostrarToast(json.message||'Usuario, supervisores y permisos guardados.','success');
+            return json;
         }
         async function cargarUsuariosRoles(){
             construirChecksPermisos();await prepararSelectoresUsuarios();
