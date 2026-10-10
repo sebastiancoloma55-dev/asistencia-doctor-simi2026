@@ -588,10 +588,46 @@
 
                     <div
                         id="connection-box"
+                        role="status"
+                        aria-live="polite"
                         class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600"
                     >
                         Conectando con Supabase...
                     </div>
+                    <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h4 class="font-bold text-slate-900">Volumen de información por módulo</h4>
+                            <p class="mt-1 text-xs text-slate-500">Resumen de registros disponibles en la base de datos.</p>
+                        </div>
+                        <button type="button" onclick="inicializarDashboard()" class="ui-button inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                            <i data-lucide="refresh-cw" class="h-4 w-4"></i> Actualizar datos
+                        </button>
+                    </div>
+                    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
+                            <div class="mb-2 flex items-center justify-between gap-3"><span class="text-sm font-semibold text-slate-700">Colaboradores</span><strong id="bar-count-colaboradores" class="text-sm text-slate-900">--</strong></div>
+                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-200"><div id="bar-colaboradores" class="h-full rounded-full bg-cyan-600 transition-all duration-500" style="width:0%"></div></div>
+                        </div>
+                        <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
+                            <div class="mb-2 flex items-center justify-between gap-3"><span class="text-sm font-semibold text-slate-700">Sucursales</span><strong id="bar-count-sucursales" class="text-sm text-slate-900">--</strong></div>
+                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-200"><div id="bar-sucursales" class="h-full rounded-full bg-blue-700 transition-all duration-500" style="width:0%"></div></div>
+                        </div>
+                        <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
+                            <div class="mb-2 flex items-center justify-between gap-3"><span class="text-sm font-semibold text-slate-700">Registros de asistencia</span><strong id="bar-count-asistencia" class="text-sm text-slate-900">--</strong></div>
+                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-200"><div id="bar-asistencia" class="h-full rounded-full bg-amber-500 transition-all duration-500" style="width:0%"></div></div>
+                        </div>
+                        <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
+                            <div class="mb-2 flex items-center justify-between gap-3"><span class="text-sm font-semibold text-slate-700">Licencias médicas</span><strong id="bar-count-licencias" class="text-sm text-slate-900">--</strong></div>
+                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-200"><div id="bar-licencias" class="h-full rounded-full bg-violet-600 transition-all duration-500" style="width:0%"></div></div>
+                        </div>
+                    </div>
+                    <div class="mt-5 flex flex-wrap gap-2">
+                        <button type="button" onclick="cambiarModulo('colaboradores')" class="ui-button rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200">Ver colaboradores</button>
+                        <button type="button" onclick="cambiarModulo('sucursales')" class="ui-button rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200">Ver sucursales</button>
+                        <button type="button" onclick="cambiarModulo('asistencia')" class="ui-button rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200">Ver asistencia</button>
+                        <button type="button" onclick="cambiarModulo('licencias')" class="ui-button rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200">Ver licencias</button>
+                    </div>
+                    <p id="dashboard-updated-at" class="mt-4 text-right text-[11px] text-slate-400">Datos pendientes de actualización</p>
                 </div>
             </section>
 
@@ -1892,7 +1928,9 @@
 
         async function inicializarDashboard() {
             const box = document.getElementById('connection-box');
+            if (!box) return;
 
+            box.className = 'rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600';
             box.textContent = 'Consultando Supabase...';
 
             try {
@@ -1904,21 +1942,36 @@
                 ]);
 
                 for (const respuesta of respuestas) {
-                    if (respuesta.error) {
-                        throw respuesta.error;
-                    }
+                    if (respuesta.error) throw respuesta.error;
                 }
 
-                document.getElementById('kpi-colaboradores').innerText = respuestas[0].count ?? 0;
-                document.getElementById('kpi-sucursales').innerText = respuestas[1].count ?? 0;
-                document.getElementById('kpi-asistencia').innerText = respuestas[2].count ?? 0;
-                document.getElementById('kpi-licencias').innerText = respuestas[3].count ?? 0;
+                const metricas = [
+                    { clave: 'colaboradores', kpi: 'kpi-colaboradores', count: 'bar-count-colaboradores', bar: 'bar-colaboradores', valor: respuestas[0].count ?? 0 },
+                    { clave: 'sucursales', kpi: 'kpi-sucursales', count: 'bar-count-sucursales', bar: 'bar-sucursales', valor: respuestas[1].count ?? 0 },
+                    { clave: 'asistencia', kpi: 'kpi-asistencia', count: 'bar-count-asistencia', bar: 'bar-asistencia', valor: respuestas[2].count ?? 0 },
+                    { clave: 'licencias', kpi: 'kpi-licencias', count: 'bar-count-licencias', bar: 'bar-licencias', valor: respuestas[3].count ?? 0 }
+                ];
+                const maximo = Math.max(1, ...metricas.map(m => Number(m.valor) || 0));
+
+                metricas.forEach(m => {
+                    const kpi = document.getElementById(m.kpi);
+                    const contador = document.getElementById(m.count);
+                    const barra = document.getElementById(m.bar);
+                    if (kpi) kpi.innerText = Number(m.valor).toLocaleString('es-CL');
+                    if (contador) contador.innerText = Number(m.valor).toLocaleString('es-CL');
+                    if (barra) barra.style.width = Math.max(0, Math.min(100, (Number(m.valor) / maximo) * 100)) + '%';
+                });
 
                 box.className = 'rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800';
-                box.textContent = 'Base de datos conectada y disponible.';
+                box.textContent = 'Base de datos conectada y disponible. Los indicadores se actualizaron correctamente.';
+                const actualizado = document.getElementById('dashboard-updated-at');
+                if (actualizado) actualizado.textContent = 'Última actualización: ' + new Date().toLocaleString('es-CL');
+                if (window.lucide) lucide.createIcons();
             } catch (error) {
                 box.className = 'rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800';
-                box.textContent = error.message;
+                box.textContent = 'No se pudieron actualizar los indicadores: ' + (error?.message || 'Error de conexión');
+                const actualizado = document.getElementById('dashboard-updated-at');
+                if (actualizado) actualizado.textContent = 'Actualización fallida. Intenta nuevamente.';
             }
         }
 
