@@ -2710,12 +2710,33 @@
             await registrarAuditoria('usuarios','CAMBIA_PERMISOS',`${email} · ${rol} · Supervisores: ${sup.map(x=>x.supervisor).join(', ')}`);
             await cargarUsuariosRoles();mostrarToast('Usuario, supervisores y permisos guardados.','success');
         }
+        async function eliminarUsuarioCreado(email, nombre) {
+            const etiqueta = nombre || email;
+            const primera = confirm(`¿Eliminar el acceso de ${etiqueta}?\n\nSe eliminará la cuenta de inicio de sesión. La ficha quedará inactiva para conservar el historial y la auditoría.`);
+            if (!primera) return;
+            const segunda = prompt('Para confirmar, escribe ELIMINAR');
+            if (segunda !== 'ELIMINAR') {
+                mostrarToast('Eliminación cancelada.', 'warning');
+                return;
+            }
+            try {
+                const json = await llamarApiAdmin('/api/usuarios-auth', {
+                    accion: 'ELIMINAR',
+                    email
+                });
+                await cargarUsuariosRoles();
+                mostrarToast(json.message || 'Acceso eliminado correctamente.', 'success', 12000);
+            } catch (error) {
+                mostrarToast(error.message, 'error', 15000);
+            }
+        }
+
         async function cargarUsuariosRoles(){
             construirChecksPermisos();await prepararSelectoresUsuarios();
             const {data,error}=await _supabase.from('usuarios_roles').select('*,usuarios_supervisores(supervisor),usuarios_sucursales(sucursal_id)').order('email');
             const tbody=document.getElementById('tabla-usuarios-body');if(error){tbody.innerHTML=`<tr><td colspan="6" class="p-8 text-center text-red-600">${escaparHTML(error.message)}</td></tr>`;return;}
             usuariosSistemaGlobal=data||[];
-            tbody.innerHTML=data?.length?data.map(u=>`<tr><td class="p-3">${escaparHTML(u.email)}</td><td class="p-3">${escaparHTML(u.nombre)}</td><td class="p-3 font-bold">${escaparHTML(u.rol)}</td><td class="p-3"><b>Módulos:</b> ${escaparHTML((u.permisos||[]).join(', '))}<br><b>Supervisores:</b> ${escaparHTML((u.usuarios_supervisores||[]).map(x=>x.supervisor).join(', '))}</td><td class="p-3">${u.activo?'Activo':'Inactivo'}</td><td class="p-3"><button onclick="toggleUsuario('${escaparHTML(u.email)}',${!u.activo})" class="text-simiRed font-bold">${u.activo?'Desactivar':'Activar'}</button></td></tr>`).join(''):'<tr><td colspan="6" class="p-8 text-center text-slate-400">Sin usuarios.</td></tr>';
+            tbody.innerHTML=data?.length?data.map(u=>`<tr><td class="p-3">${escaparHTML(u.email)}</td><td class="p-3">${escaparHTML(u.nombre)}</td><td class="p-3 font-bold">${escaparHTML(u.rol)}</td><td class="p-3"><b>Módulos:</b> ${escaparHTML((u.permisos||[]).join(', '))}<br><b>Supervisores:</b> ${escaparHTML((u.usuarios_supervisores||[]).map(x=>x.supervisor).join(', '))}</td><td class="p-3">${u.activo?'Activo':'Inactivo'}</td><td class="p-3"><div class="flex flex-wrap gap-2"><button onclick="toggleUsuario('${escaparHTML(u.email)}',${!u.activo})" class="font-bold text-simiNavy">${u.activo?'Desactivar':'Activar'}</button><button onclick="eliminarUsuarioCreado('${escaparHTML(u.email)}','${escaparHTML(u.nombre||u.email)}')" class="font-bold text-rose-700">Eliminar acceso</button></div></td></tr>`).join(''):'<tr><td colspan="6" class="p-8 text-center text-slate-400">Sin usuarios.</td></tr>';
         }
         async function toggleUsuario(email,activo){const {error}=await _supabase.from('usuarios_roles').update({activo}).eq('email',email);if(error)mostrarToast(error.message,'error');else{await registrarAuditoria('usuarios',activo?'ACTIVA_USUARIO':'DESACTIVA_USUARIO',email);await cargarUsuariosRoles();}}
 
