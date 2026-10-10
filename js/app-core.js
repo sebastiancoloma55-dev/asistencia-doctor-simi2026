@@ -634,14 +634,26 @@
             integraciones:['talana','imed','supabase','vercel','gemini','outlook']
         };
         function abrirBuscadorGlobal(){
-            const ov=document.getElementById('global-search-overlay'),inp=document.getElementById('global-search-input');if(!ov||!inp)return;
-            ov.classList.remove('hidden');document.body.classList.add('search-open');inp.value='';renderBuscadorGlobal();setTimeout(()=>inp.focus(),30);
+            const ov=document.getElementById('global-search-overlay'),inp=document.getElementById('global-search-input');
+            if(!ov||!inp)return;
+            // No abrir la paleta sobre el login ni antes de cargar el perfil.
+            if(typeof perfilActualSistema!=='undefined'&&!perfilActualSistema)return;
+            ov.classList.remove('hidden');ov.removeAttribute('aria-hidden');ov.style.display='flex';
+            document.body.classList.add('search-open');inp.value='';renderBuscadorGlobal();
+            window.requestAnimationFrame(()=>inp.focus());
         }
-        function cerrarBuscadorGlobal(){document.getElementById('global-search-overlay')?.classList.add('hidden');document.body.classList.remove('search-open');}
+        function cerrarBuscadorGlobal(){
+            const ov=document.getElementById('global-search-overlay');
+            if(ov){ov.classList.add('hidden');ov.setAttribute('aria-hidden','true');ov.style.display='none';}
+            document.body.classList.remove('search-open');
+        }
         function renderBuscadorGlobal(){
             const out=document.getElementById('global-search-results'),q=texto(document.getElementById('global-search-input')?.value).toLowerCase();if(!out)return;
             const found=modulos.filter(m=>tienePermisoModulo(m)&&((String(titulos[m]||m)+' '+m+' '+(etiquetasBusquedaGlobal[m]||[]).join(' ')).toLowerCase().includes(q)));
             out.innerHTML=found.length?found.map((m,i)=>'<button type="button" data-search-module="'+opsEsc(m)+'" onclick="navegarBuscadorGlobal(\''+opsEsc(m)+'\')" class="global-search-result '+(i===0?'selected':'')+'"><span class="global-search-result-icon"><i data-lucide="'+({dashboard:'layout-dashboard',colaboradores:'users',sucursales:'building-2',asistencia:'clock',licencias:'file-heart',vacaciones:'palmtree',papeletas:'file-text',correos:'mail',amonestaciones:'folder-alert',reportes:'chart-no-axes-combined',usuarios:'shield-check',auditoria:'history',configcorreos:'mail-cog',mapas:'map-pinned',tareas:'list-checks',operaciones:'gauge',calidad:'shield-check',notificaciones:'bell-ring',integraciones:'plug-zap'}[m]||'arrow-right')+'" class="h-4 w-4"></i></span><span class="min-w-0 flex-1"><strong class="block text-sm">'+opsEsc(titulos[m]||m)+'</strong><span class="mt-0.5 block text-xs text-slate-500">'+opsEsc((etiquetasBusquedaGlobal[m]||[]).slice(0,4).join(' · '))+'</span></span><i data-lucide="corner-down-left" class="h-4 w-4 text-slate-400"></i></button>').join(''):'<div class="p-8 text-center"><i data-lucide="search-x" class="mx-auto h-7 w-7 text-slate-300"></i><p class="mt-2 text-sm font-bold text-slate-600">No hay resultados</p><p class="mt-1 text-xs text-slate-400">Prueba con otro término o revisa tus permisos.</p></div>';
+            if(!found.length&&typeof perfilActualSistema!=='undefined'&&perfilActualSistema){
+                out.innerHTML='<div class="p-8 text-center"><i data-lucide="shield-alert" class="mx-auto h-7 w-7 text-amber-500"></i><p class="mt-2 text-sm font-bold text-slate-700">No hay módulos disponibles</p><p class="mt-1 text-xs text-slate-500">Solicita al administrador que revise los permisos de tu perfil.</p></div>';
+            }
             if(window.lucide)lucide.createIcons();
         }
         function moverBuscadorGlobal(delta){
@@ -650,7 +662,10 @@
         }
         function navegarBuscadorGlobal(modulo){if(!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para abrir este módulo.','warning');return;}cerrarBuscadorGlobal();cambiarModulo(modulo);}
         document.addEventListener('keydown',function(e){
-            if((e.ctrlKey||e.metaKey)&&String(e.key).toLowerCase()==='k'){e.preventDefault();abrirBuscadorGlobal();return;}
+            if((e.ctrlKey||e.metaKey)&&String(e.key).toLowerCase()==='k'){
+                if(typeof perfilActualSistema!=='undefined'&&!perfilActualSistema)return;
+                e.preventDefault();abrirBuscadorGlobal();return;
+            }
             const overlay=document.getElementById('global-search-overlay'),abierto=overlay&&!overlay.classList.contains('hidden');
             if(e.key==='Escape'&&abierto){cerrarBuscadorGlobal();return;}
             if(abierto&&e.target?.id!=='global-search-input'&&(e.key==='ArrowDown'||e.key==='ArrowUp')){e.preventDefault();moverBuscadorGlobal(e.key==='ArrowDown'?1:-1);}
