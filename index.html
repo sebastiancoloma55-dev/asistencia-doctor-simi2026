@@ -615,6 +615,16 @@ body{overflow-x:hidden}
                     <i data-lucide="list-checks" class="h-4 w-4"></i>
                     15. Tareas diarias
                 </button>
+
+                <div class="nova-nav-divider"><span>GESTIÓN Y CONTROL</span></div>
+                <button id="btn-operaciones" class="menu-btn" onclick="cambiarModulo('operaciones')">
+                    <i data-lucide="gauge" class="h-4 w-4"></i>
+                    16. Centro de operaciones
+                </button>
+                <button id="btn-calidad" class="menu-btn" onclick="cambiarModulo('calidad')">
+                    <i data-lucide="shield-check" class="h-4 w-4"></i>
+                    17. Calidad de datos
+                </button>
             </nav>
         </aside>
 
@@ -1416,6 +1426,54 @@ body{overflow-x:hidden}
             </section>
 
             <!-- GENÉRICO -->
+            <section id="view-operaciones" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="module-intro">
+                    <span class="module-kicker"><i data-lucide="activity" class="h-3 w-3"></i> Centro de mando RR. HH.</span>
+                    <h3 class="mt-3">Centro de operaciones</h3>
+                    <p class="mt-2 max-w-3xl">Una vista priorizada de pendientes y alertas de los módulos que tienes autorizados. Los indicadores se consultan desde la base de datos; si no tienes acceso a una fuente, se muestra como no disponible.</p>
+                    <div class="mt-5 flex flex-wrap gap-2">
+                        <button type="button" class="corp-button-dark" onclick="cargarCentroOperaciones()"><i data-lucide="refresh-cw" class="h-4 w-4"></i> Actualizar centro</button>
+                        <span id="ops-actualizado" class="self-center text-xs text-slate-500">Sin actualizar</span>
+                    </div>
+                </div>
+                <div id="ops-kpis" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <div class="ui-card p-5"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                    <div class="ui-card p-5"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                    <div class="ui-card p-5"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                    <div class="ui-card p-5"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                </div>
+                <div class="grid grid-cols-1 gap-5 xl:grid-cols-[1.25fr_.75fr]">
+                    <div class="ui-card overflow-hidden">
+                        <div class="border-b bg-slate-50 p-5"><h4 class="font-extrabold">Atención prioritaria</h4><p class="mt-1 text-xs text-slate-500">Tareas y gestiones con fecha límite vencida o próxima.</p></div>
+                        <div id="ops-alertas" class="divide-y divide-slate-100 p-4"><p class="text-sm text-slate-500">Cargando alertas...</p></div>
+                    </div>
+                    <div class="ui-card p-5">
+                        <h4 class="font-extrabold">Accesos de trabajo</h4>
+                        <p class="mt-1 text-xs text-slate-500">Abre directamente el módulo donde puedes actuar.</p>
+                        <div id="ops-accesos" class="mt-4 grid gap-2"></div>
+                    </div>
+                </div>
+                <div class="helper-note"><strong>Importante:</strong> las alertas dependen de los registros y permisos disponibles en la sesión. Este panel no envía correos ni modifica tareas automáticamente.</div>
+            </section>
+
+            <section id="view-calidad" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="module-intro">
+                    <span class="module-kicker"><i data-lucide="shield-check" class="h-3 w-3"></i> Administración técnica</span>
+                    <h3 class="mt-3">Calidad de datos y control de importaciones</h3>
+                    <p class="mt-2 max-w-3xl">Panel de solo lectura para revisar integridad básica de los datos, coordenadas de sucursales y errores registrados en importaciones. No cambia ni elimina registros.</p>
+                    <div class="mt-5 flex flex-wrap gap-2">
+                        <button type="button" class="corp-button-dark" onclick="cargarPanelCalidad()"><i data-lucide="refresh-cw" class="h-4 w-4"></i> Ejecutar revisión</button>
+                        <span id="calidad-actualizado" class="self-center text-xs text-slate-500">Sin revisar</span>
+                    </div>
+                </div>
+                <div id="calidad-kpis" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"></div>
+                <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                    <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-5"><h4 class="font-extrabold">Estado de importaciones</h4><p class="mt-1 text-xs text-slate-500">Últimos procesos registrados en la base de datos.</p></div><div id="calidad-importaciones" class="table-scroll"><p class="p-5 text-sm text-slate-500">Pendiente de revisión.</p></div></div>
+                    <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-5"><h4 class="font-extrabold">Recomendaciones de calidad</h4><p class="mt-1 text-xs text-slate-500">Hallazgos basados en datos disponibles.</p></div><div id="calidad-hallazgos" class="divide-y divide-slate-100 p-5"><p class="text-sm text-slate-500">Pendiente de revisión.</p></div></div>
+                </div>
+                <div class="helper-note">Este módulo solo puede abrirlo la cuenta administradora principal. Los controles automáticos no sustituyen la revisión de los datos de origen.</div>
+            </section>
+
             <section id="view-generic" class="hidden p-8">
                 <div class="ui-card mx-auto mt-10 max-w-xl p-12 text-center">
                     <i data-lucide="wrench" class="mx-auto mb-4 h-10 w-10 text-simiRed"></i>
@@ -1516,7 +1574,9 @@ body{overflow-x:hidden}
             'auditoria',
             'configcorreos',
             'mapas',
-            'tareas'
+            'tareas',
+            'operaciones',
+            'calidad'
         ];
 
         const titulos = {
@@ -1534,7 +1594,9 @@ body{overflow-x:hidden}
             auditoria: '12. Auditoría',
             configcorreos: '13. Correos sucursales',
             mapas: '14. Mapa y distancias',
-            tareas: '15. Tareas diarias'
+            tareas: '15. Tareas diarias',
+            operaciones: '16. Centro de operaciones',
+            calidad: '17. Calidad de datos'
         };
 
         // ============================================================
@@ -2134,11 +2196,106 @@ body{overflow-x:hidden}
                 if (modulo === 'configcorreos') await prepararConfiguracionCorreos();
                 if (modulo === 'mapas') await prepararMapa14();
                 if (modulo === 'tareas') await prepararModuloTareas();
+                if (modulo === 'operaciones') await cargarCentroOperaciones();
+                if (modulo === 'calidad') await cargarPanelCalidad();
                 if (modulo === 'usuarios') await cargarUsuariosRoles();
                 if (modulo === 'auditoria') await cargarAuditoria();
             } catch (error) {
                 mostrarToast(error.message, 'error', 15000);
             }
+        }
+
+
+        // ============================================================
+        // CENTRO DE OPERACIONES · Indicadores limitados por permisos
+        // ============================================================
+        function opsEsc(v){return escaparHTML(v==null?'':String(v));}
+        function opsTiene(...permisos){return esAdminPrincipalActual()||permisos.some(p=>tienePermisoModulo(p));}
+        async function opsConsultar(tabla,campos,permisos,configurar){
+            if(!opsTiene(...permisos))return {disponible:false,data:[],count:null,error:null};
+            try{
+                let q=_supabase.from(tabla).select(campos||'id',{count:'exact'});
+                if(configurar)q=configurar(q);
+                const r=await q.limit(500);
+                if(r.error)return {disponible:false,data:[],count:null,error:r.error.message};
+                return {disponible:true,data:r.data||[],count:r.count??(r.data||[]).length,error:null};
+            }catch(e){return {disponible:false,data:[],count:null,error:e.message};}
+        }
+        async function cargarCentroOperaciones(){
+            const kpis=document.getElementById('ops-kpis'),alertas=document.getElementById('ops-alertas'),accesos=document.getElementById('ops-accesos');
+            if(!kpis||!alertas||!accesos)return;
+            kpis.innerHTML='<div class="ui-card p-5"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>'.repeat(4);
+            alertas.innerHTML='<p class="text-sm text-slate-500">Consultando fuentes autorizadas...</p>';
+            const consultas=await Promise.all([
+                opsConsultar('tareas','id,titulo,estado,fecha_limite,prioridad,responsable:usuarios_roles!tareas_responsable_rol_id_fkey(nombre,email),sucursal:sucursales(nombre)',['tareas'],q=>q.order('fecha_limite',{ascending:true})),
+                opsConsultar('gestiones_correo','id,asunto,estado,plazo_respuesta,supervisor',['correos'],q=>q.order('plazo_respuesta',{ascending:true})),
+                opsConsultar('registros_asistencia','id,sin_marca,marca_incompleta,sin_turno_marcas',['asistencia','reportes'],q=>q.order('id',{ascending:false})),
+                opsConsultar('licencias_medicas','id,fecha_fin,fecha_inicio,estado',['licencias','reportes'],q=>q.order('id',{ascending:false})),
+                opsConsultar('notificaciones','id,titulo,mensaje,leida,created_at',['tareas','correos','asistencia','licencias','reportes'],q=>q.eq('leida',false).order('created_at',{ascending:false}))
+            ]);
+            const [t,c,a,l,n]=consultas,disponible=x=>x.disponible,now=new Date();
+            const tareas=t.data||[],tPend=tareas.filter(x=>!['APROBADA','CANCELADA'].includes(String(x.estado||'').toUpperCase())),tVenc=tPend.filter(x=>x.fecha_limite&&new Date(x.fecha_limite)<now);
+            const correos=c.data||[],cPend=correos.filter(x=>!['RESPONDIDO','CERRADO','CANCELADO'].includes(String(x.estado||'').toUpperCase())),cVenc=cPend.filter(x=>x.plazo_respuesta&&new Date(x.plazo_respuesta)<now);
+            const asist=a.data||[],sinMarca=asist.filter(x=>x.sin_marca||x.marca_incompleta||x.sin_turno_marcas).length;
+            const notis=n.data||[];
+            const metricas=[
+                {label:'Tareas abiertas',value:disponible(t)?tPend.length:'—',desc:disponible(t)?tVenc.length+' vencidas':'Sin permiso de tareas',icon:'list-checks',color:'blue',module:'tareas'},
+                {label:'Gestiones de correo abiertas',value:disponible(c)?cPend.length:'—',desc:disponible(c)?cVenc.length+' con plazo vencido':'Sin permiso de correos',icon:'mail-clock',color:'cyan',module:'correos'},
+                {label:'Incidencias de asistencia',value:disponible(a)?sinMarca:'—',desc:disponible(a)?'Marcas o turnos por revisar':'Sin permiso de asistencia',icon:'clock-alert',color:'amber',module:'asistencia'},
+                {label:'Notificaciones sin leer',value:disponible(n)?notis.length:'—',desc:disponible(n)?'Notificaciones visibles para tu usuario':'Fuente no disponible',icon:'bell-ring',color:'violet',module:'tareas'}
+            ];
+            kpis.innerHTML=metricas.map(m=>'<button type="button" '+(tienePermisoModulo(m.module)?'onclick="cambiarModulo(\''+m.module+'\')"':'disabled')+' class="ui-card ops-kpi text-left p-5"><div class="flex items-start justify-between gap-3"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">'+opsEsc(m.label)+'</span><span class="ops-icon '+m.color+'"><i data-lucide="'+m.icon+'" class="h-5 w-5"></i></span></div><strong class="mt-3 block text-3xl font-black text-slate-900">'+opsEsc(m.value)+'</strong><span class="mt-2 block text-xs text-slate-500">'+opsEsc(m.desc)+'</span></button>').join('');
+            const items=[];
+            tVenc.slice(0,5).forEach(x=>items.push({tipo:'Tarea vencida',titulo:x.titulo,detalle:(x.responsable?.nombre||x.responsable?.email||'Sin responsable')+' · '+(x.sucursal?.nombre||'Sin sucursal'),fecha:x.fecha_limite,modulo:'tareas',urgente:true}));
+            cVenc.slice(0,5).forEach(x=>items.push({tipo:'Correo fuera de plazo',titulo:x.asunto,detalle:x.supervisor||'Gestión de correo',fecha:x.plazo_respuesta,modulo:'correos',urgente:true}));
+            tPend.filter(x=>x.fecha_limite&&new Date(x.fecha_limite)>=now&&new Date(x.fecha_limite)-now<48*60*60*1000).slice(0,3).forEach(x=>items.push({tipo:'Tarea próxima a vencer',titulo:x.titulo,detalle:x.responsable?.nombre||x.responsable?.email||'Sin responsable',fecha:x.fecha_limite,modulo:'tareas',urgente:false}));
+            cPend.filter(x=>x.plazo_respuesta&&new Date(x.plazo_respuesta)>=now&&new Date(x.plazo_respuesta)-now<48*60*60*1000).slice(0,3).forEach(x=>items.push({tipo:'Respuesta próxima a vencer',titulo:x.asunto,detalle:x.supervisor||'Gestión de correo',fecha:x.plazo_respuesta,modulo:'correos',urgente:false}));
+            items.sort((x,y)=>new Date(x.fecha)-new Date(y.fecha));
+            alertas.innerHTML=items.length?items.slice(0,10).map(x=>'<button type="button" onclick="cambiarModulo(\''+x.modulo+'\')" class="ops-alert-row flex w-full items-start gap-3 rounded-xl p-3 text-left"><span class="ops-alert-dot '+(x.urgente?'urgent':'soon')+'"></span><span class="min-w-0 flex-1"><strong class="block truncate text-sm">'+opsEsc(x.titulo||x.tipo)+'</strong><span class="mt-1 block text-xs text-slate-500">'+opsEsc(x.tipo)+' · '+opsEsc(x.detalle)+'</span></span><span class="shrink-0 text-right text-xs '+(x.urgente?'text-rose-600':'text-amber-700')+'">'+opsEsc(new Date(x.fecha).toLocaleDateString('es-CL'))+'</span></button>').join(''):'<div class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-800"><strong>No se detectan vencimientos próximos en los datos consultados.</strong><p class="mt-1 text-xs">Si alguna fuente no está autorizada o no tiene datos, su indicador aparecerá como no disponible.</p></div>';
+            const links=[['Asistencia','clock','asistencia'],['Licencias','file-heart','licencias'],['Correos y seguimiento','mail','correos'],['Tareas diarias','list-checks','tareas'],['Reportes','chart-no-axes-combined','reportes'],['Mapa de sucursales','map-pinned','mapas']];
+            accesos.innerHTML=links.filter(x=>tienePermisoModulo(x[2])).map(x=>'<button type="button" onclick="cambiarModulo(\''+x[2]+'\')" class="ops-shortcut flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-left"><span class="ops-shortcut-icon"><i data-lucide="'+x[1]+'" class="h-4 w-4"></i></span><span class="flex-1 text-sm font-bold">'+opsEsc(x[0])+'</span><i data-lucide="arrow-up-right" class="h-4 w-4 text-slate-400"></i></button>').join('')||'<p class="text-sm text-slate-500">No hay accesos disponibles para los permisos actuales.</p>';
+            const stamp=document.getElementById('ops-actualizado');if(stamp)stamp.textContent='Actualizado '+now.toLocaleString('es-CL');
+            if(window.lucide)lucide.createIcons();
+        }
+
+        // ============================================================
+        // CALIDAD DE DATOS · Solo lectura y solo administrador principal
+        // ============================================================
+        async function calidadCount(tabla,configurar){
+            try{let q=_supabase.from(tabla).select('id',{count:'exact',head:true});if(configurar)q=configurar(q);const r=await q;return r.error?{ok:false,count:null,error:r.error.message}:{ok:true,count:r.count??0};}
+            catch(e){return {ok:false,count:null,error:e.message};}
+        }
+        async function cargarPanelCalidad(){
+            if(!esAdminPrincipalActual()){mostrarToast('Este panel está reservado para la cuenta administradora principal.','warning');return;}
+            const k=document.getElementById('calidad-kpis'),im=document.getElementById('calidad-importaciones'),h=document.getElementById('calidad-hallazgos');if(!k||!im||!h)return;
+            k.innerHTML='<div class="ui-card p-5">Revisando...</div>'.repeat(4);im.innerHTML='<p class="p-5 text-sm text-slate-500">Consultando historial...</p>';h.innerHTML='<p class="text-sm text-slate-500">Analizando...</p>';
+            const [suc,coords,asist,marcas,turnos,errs,imports]=await Promise.all([
+                calidadCount('sucursales'),
+                calidadCount('sucursales',q=>q.or('latitud.is.null,longitud.is.null')),
+                calidadCount('registros_asistencia'),
+                calidadCount('registros_asistencia',q=>q.eq('sin_marca',true)),
+                calidadCount('registros_asistencia',q=>q.eq('sin_turno_marcas',true)),
+                calidadCount('importaciones_errores'),
+                _supabase.from('importaciones').select('id,modulo,nombre_archivo,modo,estado,filas_totales,filas_nuevas,filas_actualizadas,filas_rechazadas,filas_error,usuario_email,created_at,finalizada_at').order('created_at',{ascending:false}).limit(12)
+            ]);
+            const card=(label,v,desc,icon)=>'<div class="ui-card p-5"><div class="flex items-center justify-between gap-3"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">'+opsEsc(label)+'</span><i data-lucide="'+icon+'" class="h-5 w-5 text-blue-600"></i></div><strong class="mt-3 block text-3xl font-black text-slate-900">'+opsEsc(v==null?'No disponible':Number(v).toLocaleString('es-CL'))+'</strong><span class="mt-2 block text-xs text-slate-500">'+opsEsc(desc)+'</span></div>';
+            k.innerHTML=card('Sucursales registradas',suc.ok?suc.count:null,'Registros disponibles','building-2')+card('Sucursales sin GPS completo',coords.ok?coords.count:null,'Requieren revisión de latitud y longitud','map-pin')+card('Marcas sin entrada registrada',marcas.ok?marcas.count:null,'Marcadas por el sistema como sin marca','clock-alert')+card('Sin turno asociado',turnos.ok?turnos.count:null,'Incidencias marcadas sin turno','calendar-x');
+            const hallazgos=[];
+            if(!coords.ok)hallazgos.push({nivel:'info',txt:'No se pudo consultar la integridad de coordenadas: '+coords.error});
+            else if(coords.count>0)hallazgos.push({nivel:'warn',txt:coords.count+' sucursales tienen latitud o longitud pendiente. Completa las coordenadas para mejorar el mapa.'});
+            else hallazgos.push({nivel:'ok',txt:'Todas las sucursales tienen latitud y longitud registradas.'});
+            if(!marcas.ok)hallazgos.push({nivel:'info',txt:'No se pudo contar incidencias de marcas: '+marcas.error});
+            else if(marcas.count>0)hallazgos.push({nivel:'warn',txt:marcas.count+' registros están marcados como sin marca; revisa el origen antes de regularizar.'});
+            if(!turnos.ok)hallazgos.push({nivel:'info',txt:'No se pudo contar incidencias sin turno: '+turnos.error});
+            else if(turnos.count>0)hallazgos.push({nivel:'warn',txt:turnos.count+' registros tienen la bandera sin turno; contrasta con la programación.'});
+            if(!errs.ok)hallazgos.push({nivel:'info',txt:'No se pudo consultar el historial de errores de importación: '+errs.error});
+            else if(errs.count>0)hallazgos.push({nivel:'warn',txt:errs.count+' errores de importación están registrados. Abre el historial y revisa las filas rechazadas.'});
+            if(imports.error)hallazgos.push({nivel:'info',txt:'No se pudo cargar el historial de importaciones: '+imports.error.message});
+            h.innerHTML=hallazgos.map(x=>'<div class="flex items-start gap-3 py-3"><span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full '+(x.nivel==='warn'?'bg-amber-500':x.nivel==='ok'?'bg-emerald-500':'bg-blue-500')+'"></span><p class="text-sm text-slate-700">'+opsEsc(x.txt)+'</p></div>').join('');
+            const rows=imports.data||[];
+            im.innerHTML=imports.error?'<p class="p-5 text-sm text-rose-600">'+opsEsc(imports.error.message)+'</p>':rows.length?'<table class="w-full min-w-[700px] text-left text-sm"><thead><tr><th>Fecha</th><th>Módulo</th><th>Archivo</th><th>Estado</th><th>Filas</th><th>Errores</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+opsEsc(x.created_at?new Date(x.created_at).toLocaleString('es-CL'):'—')+'</td><td>'+opsEsc(x.modulo)+'</td><td>'+opsEsc(x.nombre_archivo)+'</td><td><span class="rounded-full px-2 py-1 text-xs font-bold '+(/error|fall/i.test(x.estado||'')?'bg-rose-100 text-rose-700':/parcial|rechaz/i.test(x.estado||'')?'bg-amber-100 text-amber-700':'bg-emerald-100 text-emerald-700')+'">'+opsEsc(x.estado)+'</span></td><td>'+opsEsc(x.filas_totales)+'</td><td>'+opsEsc(Number(x.filas_error||0)+Number(x.filas_rechazadas||0))+'</td></tr>').join('')+'</tbody></table>':'<p class="p-5 text-sm text-slate-500">Todavía no hay importaciones registradas.</p>';
+            const stamp=document.getElementById('calidad-actualizado');if(stamp)stamp.textContent='Revisado '+new Date().toLocaleString('es-CL');
+            if(window.lucide)lucide.createIcons();
         }
 
         function mostrarFechasPersonalizadas() {
@@ -3259,7 +3416,12 @@ body{overflow-x:hidden}
         let perfilActualSistema=null, modulosPermitidosActuales=[];
         const EMAIL_ADMIN_PRINCIPAL='scoloma@farmaciasdoctorsimi.cl';
         function esAdminPrincipalActual(){return String(perfilActualSistema?.email||'').toLowerCase()===EMAIL_ADMIN_PRINCIPAL;}
-        function tienePermisoModulo(modulo){return esAdminPrincipalActual()||modulosPermitidosActuales.includes(modulo);}
+        function tienePermisoModulo(modulo){
+            if(esAdminPrincipalActual())return true;
+            if(modulo==='operaciones')return ['tareas','correos','asistencia','licencias','coberturas','reportes'].some(p=>modulosPermitidosActuales.includes(p));
+            if(modulo==='calidad')return false;
+            return modulosPermitidosActuales.includes(modulo);
+        }
         function puedeAsignarTareasActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_asignar_tareas;}
         function puedeRevisarTareasActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_revisar_tareas;}
         function puedePrepararCorreosActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_preparar_correos;}
@@ -4266,6 +4428,22 @@ table tbody tr:hover{background:#f7fbff}
 @media(min-width:1200px){#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8{grid-template-columns:repeat(8,minmax(0,1fr))}}
 @media(max-width:900px){#sidebar{width:250px}#view-dashboard,#view-colaboradores,#view-sucursales,#view-asistencia,#view-licencias,#view-vacaciones,#view-papeletas,#view-correos,#view-amonestaciones,#view-reportes,#view-usuarios,#view-auditoria,#view-configcorreos,#view-mapas,#view-tareas{padding:17px!important}#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8{grid-template-columns:repeat(2,minmax(0,1fr))}main>header{padding:12px 16px!important}}
 @media(max-width:560px){#view-tareas #form-tarea{padding:15px!important}#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8{grid-template-columns:repeat(2,minmax(0,1fr))}#view-tareas>.module-intro{padding:20px!important}#header-title{font-size:16px}.topbar-quick-action{padding:9px!important}}
+
+/* Nova HR · Operaciones y calidad */
+.nova-nav-divider{margin:15px 8px 7px;padding:12px 5px 5px;border-top:1px solid rgba(255,255,255,.17);color:rgba(255,255,255,.57);font-size:9px;font-weight:900;letter-spacing:.15em}
+.ops-kpi{display:block;width:100%;border-color:#dce7f5!important;transition:transform .18s,box-shadow .18s,border-color .18s!important}
+.ops-kpi:hover:not(:disabled){transform:translateY(-3px);border-color:#9fc7f5!important;box-shadow:0 15px 32px rgba(15,55,105,.1)!important}
+.ops-kpi:disabled{cursor:default;opacity:.7}
+.ops-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:13px}
+.ops-icon.blue{background:#e9f2ff;color:#1765c0}.ops-icon.cyan{background:#e6fbfd;color:#00869a}.ops-icon.amber{background:#fff5df;color:#b77908}.ops-icon.violet{background:#f2edff;color:#7452bd}
+.ops-alert-row{transition:background .15s}.ops-alert-row:hover{background:#f5f9ff}
+.ops-alert-dot{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:0 0 auto}.ops-alert-dot.urgent{background:#e11d48;box-shadow:0 0 0 4px #fff0f3}.ops-alert-dot.soon{background:#d97706;box-shadow:0 0 0 4px #fff7e7}
+.ops-shortcut{transition:all .16s;background:#fff}.ops-shortcut:hover{border-color:#9fc7f5;background:#f5f9ff;transform:translateX(2px)}
+.ops-shortcut-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#eaf3ff;color:#0967c8}
+.skeleton-line{height:12px;width:60%;border-radius:8px;background:linear-gradient(90deg,#e8eef7,#f6f8fc,#e8eef7);margin-bottom:14px}.skeleton-line.short{width:35%;height:24px}
+#view-calidad .ui-card{min-width:0}
+#view-calidad table th,#view-calidad table td{white-space:nowrap}
+@media(max-width:700px){.nova-nav-divider{margin-top:10px}#view-operaciones,#view-calidad{padding:15px!important}.ops-kpi{padding:16px!important}}
 </style>
 <script>
 (function(){
