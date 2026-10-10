@@ -3799,5 +3799,99 @@
     La deduplicación de este HTML ocurre ANTES de dividir en lotes.
     Por eso el error 21000 ya no debería detener los registros posteriores a 900.
     -->
+
+<!-- UX SELECTORES + PERMISOS 2026 -->
+<style>
+.selector-tools-2026{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;margin:8px 0}
+.selector-tools-2026 input{min-width:0;width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:9px 11px;font-size:12px;background:white}
+.selector-tools-2026 button{border:1px solid #dbe3ee;background:#f8fafc;color:#12314a;border-radius:9px;padding:8px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+.selector-tools-2026 button:hover{background:#e8f8fb;border-color:#0097B2}
+.selector-count-2026{font-size:11px;color:#64748b;margin:5px 0 8px}
+#usr-supervisores,#usr-sucursales,#correo-sucursales,#correo-supervisores{min-height:150px;padding:7px}
+#usr-supervisores option,#usr-sucursales option,#correo-sucursales option,#correo-supervisores option{padding:4px;border-radius:4px}
+.map-estimate-2026{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0}
+.map-estimate-2026>div{border:1px solid #dbeafe;background:linear-gradient(135deg,#eff6ff,#fff);border-radius:13px;padding:12px}
+.map-estimate-2026 strong{display:block;color:#075985;font-size:18px;font-weight:850}
+.map-estimate-2026 span{display:block;color:#64748b;font-size:11px;line-height:1.4;margin-top:3px}
+.menu-btn.permission-hidden-2026{display:none!important}
+.login-input{min-height:48px}
+.login-submit{min-height:49px;letter-spacing:.01em}
+.login-form-panel{background:linear-gradient(145deg,#fff,#f7fbff)}
+@media(max-width:700px){.selector-tools-2026{grid-template-columns:1fr 1fr}.selector-tools-2026 input{grid-column:1/-1}.selector-tools-2026 button{white-space:normal}.map-estimate-2026{grid-template-columns:1fr}}
+</style>
+<script>
+(function(){
+  function setupMultiSelect(id,label){
+    var sel=document.getElementById(id); if(!sel||sel.dataset.ux2026==='1')return;
+    sel.dataset.ux2026='1';
+    var tools=document.createElement('div');tools.className='selector-tools-2026';
+    var input=document.createElement('input');input.type='search';input.placeholder='Buscar '+label+'…';input.setAttribute('aria-label','Buscar '+label);
+    var all=document.createElement('button');all.type='button';all.textContent='Seleccionar visibles';
+    var none=document.createElement('button');none.type='button';none.textContent='Limpiar';
+    tools.append(input,all,none);sel.parentNode.insertBefore(tools,sel);
+    var count=document.createElement('div');count.className='selector-count-2026';sel.insertAdjacentElement('afterend',count);
+    function update(){var q=input.value.trim().toLocaleLowerCase('es-CL'),visible=0,chosen=0;Array.from(sel.options).forEach(function(o){var match=!q||o.textContent.toLocaleLowerCase('es-CL').indexOf(q)>=0;o.hidden=!match;if(match)visible++;if(o.selected)chosen++;});count.textContent=chosen+' seleccionados · '+visible+' de '+sel.options.length+' opciones visibles';}
+    input.addEventListener('input',update);all.addEventListener('click',function(){Array.from(sel.options).forEach(function(o){if(!o.hidden)o.selected=true;});update();});none.addEventListener('click',function(){Array.from(sel.options).forEach(function(o){o.selected=false;});update();});sel.addEventListener('change',update);sel._uxUpdate2026=update;update();
+  }
+  function setupSelectors(){
+    setupMultiSelect('usr-supervisores','supervisores');setupMultiSelect('usr-sucursales','sucursales');
+    setupMultiSelect('correo-sucursales','sucursales');setupMultiSelect('correo-supervisores','supervisores');
+  }
+  function updateSelectorCounts(){['usr-supervisores','usr-sucursales','correo-sucursales','correo-supervisores'].forEach(function(id){var el=document.getElementById(id);if(el&&el._uxUpdate2026)el._uxUpdate2026();});}
+  window.actualizarContadoresSelectores2026=updateSelectorCounts;
+  var adminEmail='scoloma@farmaciasdoctorsimi.cl';
+  var allowed=new Set(['dashboard']);
+  var moduleNames=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas'];
+  function permissionName(m){return m==='amonestaciones'?'coberturas':m;}
+  function paintPermissions(){moduleNames.forEach(function(m){var b=document.getElementById('btn-'+m);if(b)b.classList.toggle('permission-hidden-2026',!allowed.has(permissionName(m)));});}
+  async function loadPermissions(){
+    var sessionResult=await _supabase.auth.getSession();var user=sessionResult.data&&sessionResult.data.session&&sessionResult.data.session.user;
+    if(!user){allowed=new Set(['dashboard']);paintPermissions();return;}
+    if(String(user.email||'').toLowerCase()===adminEmail){allowed=new Set(['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas']);paintPermissions();return;}
+    try{
+      var result=await _supabase.from('usuarios_roles').select('email,permisos,activo,acceso_global').eq('email',String(user.email||'').toLowerCase()).maybeSingle();
+      if(result.error)throw result.error;
+      var profile=result.data;
+      if(!profile||profile.activo===false){allowed=new Set(['dashboard']);paintPermissions();if(window.mostrarToast)mostrarToast('Tu usuario no tiene un perfil activo. Contacta al administrador.','warning',10000);return;}
+      allowed=new Set(profile.acceso_global?['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas']:Array.isArray(profile.permisos)?profile.permisos:[]);
+      allowed.add('dashboard');paintPermissions();
+    }catch(e){allowed=new Set(['dashboard']);paintPermissions();if(window.mostrarToast)mostrarToast('No se pudieron verificar tus permisos. Por seguridad, solo queda habilitado el Dashboard.','error',12000);}
+  }
+  var originalChange=window.cambiarModulo;
+  if(typeof originalChange==='function'){
+    window.cambiarModulo=async function(modulo,cargar){
+      if(!allowed.has(permissionName(modulo))){if(window.mostrarToast)mostrarToast('Este apartado no está habilitado para tu usuario. Solicita al administrador que lo autorice en Usuarios y roles.','warning');return;}
+      return originalChange.apply(this,arguments);
+    };
+  }
+  var originalInit=window.inicializarDashboard;
+  if(typeof originalInit==='function'){
+    window.inicializarDashboard=async function(){var result=await originalInit.apply(this,arguments);await loadPermissions();return result;};
+  }
+  var originalRoute=window.mostrarRutaMapa14;
+  function estimateRoute(){
+    var a=document.getElementById('map14-origen'),b=document.getElementById('map14-destino'),m=document.getElementById('map14-modo'),summary=document.getElementById('mapa14-resumen');
+    if(!a||!b||!m||!summary||!a.value||!b.value)return;
+    var box=document.getElementById('mapa14-estimacion-2026');
+    if(!box){box=document.createElement('div');box.id='mapa14-estimacion-2026';box.className='map-estimate-2026';summary.parentNode.insertAdjacentElement('afterend',box);}
+    function coord(v){var p=String(v).split(',');if(p.length!==2)return null;var lat=Number(p[0]),lon=Number(p[1]);return Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180?{lat:lat,lon:lon}:null;}
+    var p1=coord(a.value),p2=coord(b.value);
+    if(!p1||!p2){box.innerHTML='<div><strong>GPS pendiente</strong><span>Para estimar distancia y tiempo, ambas sucursales deben tener coordenadas GPS. La ruta se abre igualmente por dirección en Google Maps.</span></div>';return;}
+    function rad(n){return n*Math.PI/180;}
+    var dLat=rad(p2.lat-p1.lat),dLon=rad(p2.lon-p1.lon),h=Math.pow(Math.sin(dLat/2),2)+Math.cos(rad(p1.lat))*Math.cos(rad(p2.lat))*Math.pow(Math.sin(dLon/2),2);
+    var direct=6371*2*Math.asin(Math.min(1,Math.sqrt(h))),mode=m.value,factor=mode==='w'?1.2:mode==='r'?1.3:1.25,speed=mode==='w'?4.5:mode==='r'?22:35;
+    var route=direct*factor,min=Math.max(1,Math.round(route/speed*60)),max=Math.max(min+3,Math.round(min*1.35)),fmt=function(n){return n.toLocaleString('es-CL',{maximumFractionDigits:1});};
+    box.innerHTML='<div><strong>'+fmt(direct)+' km</strong><span>Distancia en línea recta según GPS</span></div><div><strong>'+fmt(route)+' km aprox.</strong><span>Recorrido estimado por calles; puede variar</span></div><div><strong>'+min+'–'+max+' min</strong><span>Tiempo orientativo; confirma en Google Maps</span></div>';
+  }
+  if(typeof originalRoute==='function')window.mostrarRutaMapa14=function(){var r=originalRoute.apply(this,arguments);setTimeout(estimateRoute,0);return r;};
+  function enhanceMapNote(){var frame=document.getElementById('mapa14-frame');if(!frame||document.getElementById('mapa14-estimacion-2026'))return;var box=document.createElement('div');box.id='mapa14-estimacion-2026';box.className='map-estimate-2026';box.innerHTML='<div><strong>Estimación aproximada</strong><span>Selecciona dos sucursales con GPS para ver distancia y tiempo orientativos.</span></div>';frame.parentNode.insertBefore(box,frame);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setupSelectors();enhanceMapNote();});else{setupSelectors();enhanceMapNote();}
+  var mo=new MutationObserver(function(){setupSelectors();updateSelectorCounts();});mo.observe(document.body,{childList:true,subtree:true});
+  var oldLogout=window.cerrarSesion;
+  if(typeof oldLogout==='function')window.cerrarSesion=async function(){allowed=new Set(['dashboard']);paintPermissions();return oldLogout.apply(this,arguments);};
+  window.addEventListener('load',function(){setupSelectors();enhanceMapNote();});
+})();
+</script>
+
 </body>
 </html>
