@@ -352,6 +352,19 @@ body{overflow-x:hidden}
 #mapa14-frame.map-frame{display:block;width:100%;height:clamp(340px,52vw,560px);border:0;border-radius:12px;background:#eef4f8}
 @media(max-width:700px){.map-estimate-2026{grid-template-columns:1fr}#mapa14-frame.map-frame{height:360px}}
 
+
+/* Selectores desplegables para asignaciones y borradores */
+.selector-dropdown-2026{width:100%;min-width:0;margin:.25rem 0 .5rem;border:1px solid #dbe5f0;border-radius:12px;background:#fff;overflow:visible}
+.selector-dropdown-2026>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:10px 13px;cursor:pointer;list-style:none;font-size:12px;font-weight:800;color:#0f3550;background:linear-gradient(180deg,#fff,#f6faff);border-radius:12px}
+.selector-dropdown-2026>summary::-webkit-details-marker{display:none}
+.selector-dropdown-2026>summary:after{content:"▾";font-size:15px;color:#0785a4}
+.selector-dropdown-2026[open]>summary{border-bottom:1px solid #e2e8f0;border-radius:12px 12px 0 0}
+.selector-dropdown-2026[open]>summary:after{content:"▴"}
+.selector-dropdown-2026 .selector-tools-2026{padding:10px 10px 6px}
+.selector-dropdown-2026 select[multiple]{width:calc(100% - 20px);margin:0 10px 8px;min-height:130px;max-height:230px}
+.selector-dropdown-2026 .selector-count-2026{padding:0 10px 10px}
+.selector-dropdown-2026:focus-within{border-color:#38bdf8;box-shadow:0 0 0 3px rgba(14,165,233,.12)}
+
 </style>
 </head>
 
@@ -3379,7 +3392,7 @@ body{overflow-x:hidden}
             const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
             document.getElementById('correo-desde').value=iso(desde);document.getElementById('correo-hasta').value=iso(hasta);
         }
-        function seleccionarFiltroCorreo(id,seleccionar) { document.querySelectorAll(`#${id} option`).forEach(o=>o.selected=!!seleccionar); }
+        function seleccionarFiltroCorreo(id,seleccionar) { const sel=document.getElementById(id); if(!sel)return; Array.from(sel.options).forEach(o=>o.selected=!!seleccionar); sel.dispatchEvent(new Event('change',{bubbles:true})); }
         async function prepararModuloCorreos() {
             if (!asistenciaCargada) await cargarAsistenciaDesdeNube();
             sucursalesConfiguracionGlobal = await obtenerSucursalesConfig();
@@ -3939,8 +3952,11 @@ body{overflow-x:hidden}
     var none=document.createElement('button');none.type='button';none.textContent='Limpiar';
     tools.append(input,all,none);sel.parentNode.insertBefore(tools,sel);
     var count=document.createElement('div');count.className='selector-count-2026';sel.insertAdjacentElement('afterend',count);
-    function update(){var q=input.value.trim().toLocaleLowerCase('es-CL'),visible=0,chosen=0;Array.from(sel.options).forEach(function(o){var match=!q||o.textContent.toLocaleLowerCase('es-CL').indexOf(q)>=0;o.hidden=!match;if(match)visible++;if(o.selected)chosen++;});count.textContent=chosen+' seleccionados · '+visible+' de '+sel.options.length+' opciones visibles';}
-    input.addEventListener('input',update);all.addEventListener('click',function(){Array.from(sel.options).forEach(function(o){if(!o.hidden)o.selected=true;});update();});none.addEventListener('click',function(){Array.from(sel.options).forEach(function(o){o.selected=false;});update();});sel.addEventListener('change',update);sel._uxUpdate2026=update;update();
+    var panel=document.createElement('details');panel.className='selector-dropdown-2026';
+    var heading=document.createElement('summary');heading.setAttribute('aria-label','Abrir lista de '+label);panel.appendChild(heading);
+    tools.parentNode.insertBefore(panel,tools);panel.append(tools,sel,count);
+    function update(){var q=input.value.trim().toLocaleLowerCase('es-CL'),visible=0,chosen=0;Array.from(sel.options).forEach(function(o){var match=!q||o.textContent.toLocaleLowerCase('es-CL').indexOf(q)>=0;o.hidden=!match;if(match)visible++;if(o.selected)chosen++;});count.textContent=chosen+' seleccionados · '+visible+' de '+sel.options.length+' opciones visibles';heading.textContent=chosen+' seleccionados · Abrir lista de '+label;}
+    input.addEventListener('input',update);all.addEventListener('click',function(){Array.from(sel.options).forEach(function(o){if(!o.hidden)o.selected=true;});update();sel.dispatchEvent(new Event('change',{bubbles:true}));});none.addEventListener('click',function(){Array.from(sel.options).forEach(function(o){o.selected=false;});update();sel.dispatchEvent(new Event('change',{bubbles:true}));});sel.addEventListener('change',update);sel._uxUpdate2026=update;sel._uxPanel2026=panel;update();
   }
   function setupSelectors(){
     setupMultiSelect('usr-supervisores','supervisores');setupMultiSelect('usr-sucursales','sucursales');
