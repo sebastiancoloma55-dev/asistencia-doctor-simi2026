@@ -2208,12 +2208,19 @@ body{overflow-x:hidden}
             box.textContent = 'Consultando Supabase...';
 
             try {
+                const puedeVerDatos=(...permisos)=>esAdminPrincipalActual()||permisos.some(p=>tienePermisoModulo(p));
+                const contarSiPermitido=async(tabla,permisos)=>{
+                    if(!puedeVerDatos(...permisos))return {count:0,data:[],error:null};
+                    return _supabase.from(tabla).select('id',{count:'exact',head:true});
+                };
                 const respuestas = await Promise.all([
-                    _supabase.from('colaboradores').select('id', { count: 'exact', head: true }),
-                    _supabase.from('sucursales').select('id', { count: 'exact', head: true }),
-                    _supabase.from('registros_asistencia').select('id', { count: 'exact', head: true }),
-                    _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true }),
-                    _supabase.from('sucursales').select('nombre').order('nombre')
+                    contarSiPermitido('colaboradores',['colaboradores','asistencia','licencias','vacaciones','papeletas','coberturas','reportes','tareas','correos']),
+                    contarSiPermitido('sucursales',['dashboard','sucursales','configcorreos','correos','mapas','coberturas','papeletas','asistencia','licencias','vacaciones','tareas','colaboradores','reportes']),
+                    contarSiPermitido('registros_asistencia',['asistencia','correos','reportes']),
+                    contarSiPermitido('licencias_medicas',['licencias','reportes']),
+                    puedeVerDatos('dashboard','sucursales','configcorreos','correos','mapas','coberturas','papeletas','asistencia','licencias','vacaciones','tareas','colaboradores','reportes')
+                        ? _supabase.from('sucursales').select('nombre').order('nombre')
+                        : Promise.resolve({data:[],error:null})
                 ]);
 
                 for (const respuesta of respuestas) {
