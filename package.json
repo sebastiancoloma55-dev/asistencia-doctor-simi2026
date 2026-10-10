@@ -1,1 +1,1 @@
-{"name":"rrhh-dr-simi","version":"2.0.0","private":true,"type":"module"}
+{"name":"rrhh-dr-simi-integral","version":"2.0.0","private":true,"type":"module","dependencies":{"@supabase/supabase-js":"^2.57.0"}}
