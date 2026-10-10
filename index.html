@@ -2139,6 +2139,7 @@ body{overflow-x:hidden}
                 const rango = obtenerRangoDashboard();
                 const sucursal = document.getElementById('dashboard-sucursal')?.value || '';
                 const contarAsistencia = (filtro) => {
+                    if(!esAdminPrincipalActual()&&!['asistencia','correos','reportes'].some(tienePermisoModulo))return Promise.resolve({count:0,error:null});
                     let consulta = _supabase.from('registros_asistencia')
                         .select('id', { count: 'exact', head: true })
                         .gte('fecha', rango.desde).lte('fecha', rango.hasta);
@@ -2153,6 +2154,7 @@ body{overflow-x:hidden}
                 const isoFuturo = new Date(futuro.getTime() - futuro.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 
                 const contarLicencias = (filtro) => {
+                    if(!esAdminPrincipalActual()&&!['licencias','reportes'].some(tienePermisoModulo))return Promise.resolve({count:0,error:null});
                     let consulta = _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true })
                         .ilike('tipo_ausencia', '%licencia%');
                     if (sucursal) consulta = consulta.eq('sucursal', sucursal);
@@ -3348,7 +3350,7 @@ body{overflow-x:hidden}
             if(usuarios.error) throw usuarios.error;
             const activos=usuarios.data||[];
             const responsables=activos;
-            const revisores=activos.filter(u=>u.puede_revisar_tareas || ['ADMIN','RRHH'].includes(u.rol));
+            const revisores=activos.filter(u=>u.puede_revisar_tareas || String(u.email||'').toLowerCase()===EMAIL_ADMIN_PRINCIPAL);
             const opt=(u)=>`<option value="${u.id}">${escaparHTML(u.nombre||u.email)} · ${escaparHTML(u.email||'')}</option>`;
             const opcionesKpi='<option value="TODOS">Todos los usuarios</option>'+responsables.map(opt).join('');
             document.getElementById('tarea-filtro-responsable').innerHTML=opcionesKpi;
