@@ -1849,12 +1849,19 @@ body.search-open{overflow:hidden}
   var allowed=new Set(['dashboard']);
   var moduleNames=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
   var allModulePermissions=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
-  function permissionName(m){return m==='amonestaciones'?'coberturas':m;}
+  function permissionName(m){return m;}
+  function hasModulePermission(m){
+    if(allowed.has(m))return true;
+    // Compatibilidad con perfiles antiguos que guardaban "coberturas" para el módulo de amonestaciones.
+    if(m==='amonestaciones')return allowed.has('coberturas');
+    if(m==='coberturas')return allowed.has('amonestaciones');
+    return false;
+  }
   function isGlobalAdmin(profile,user){
     var role=String(profile&&profile.rol||'').trim().toUpperCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[\\s-]+/g,'_');
-    return String(user&&user.email||'').trim().toLowerCase()===adminEmail || !!(profile&&profile.acceso_global===true) || ['ADMIN','ADMINISTRADOR','SUPERADMIN','SUPER_ADMIN','ADMIN_PRINCIPAL'].includes(role);
+    return String(user&&user.email||'').trim().toLowerCase()===adminEmail || !!(profile&&profile.acceso_global===true) || ['ADMIN','ADMINISTRADOR','SUPERADMIN','SUPER_ADMIN','ADMIN_PRINCIPAL','ADMINISTRADOR_PRINCIPAL'].includes(role);
   }
-  function paintPermissions(){moduleNames.forEach(function(m){var b=document.getElementById('btn-'+m);if(b)b.classList.toggle('permission-hidden-2026',!allowed.has(permissionName(m)));});}
+  function paintPermissions(){moduleNames.forEach(function(m){var b=document.getElementById('btn-'+m);if(b)b.classList.toggle('permission-hidden-2026',!hasModulePermission(m));});}
   async function loadPermissions(){
     var sessionResult=await _supabase.auth.getSession();var user=sessionResult.data&&sessionResult.data.session&&sessionResult.data.session.user;
     if(!user){allowed=new Set(['dashboard']);paintPermissions();return;}
@@ -1879,7 +1886,7 @@ body.search-open{overflow:hidden}
   var originalChange=window.cambiarModulo;
   if(typeof originalChange==='function'){
     window.cambiarModulo=async function(modulo,cargar){
-      if(!allowed.has(permissionName(modulo))){if(window.mostrarToast)mostrarToast('Este apartado no está habilitado para tu usuario. Solicita al administrador que lo autorice en Usuarios y roles.','warning');return;}
+      if(!hasModulePermission(modulo)){if(window.mostrarToast)mostrarToast('Este apartado no está habilitado para tu usuario. Solicita al administrador que lo autorice en Usuarios y roles.','warning');return;}
       var resultado=await originalChange.apply(this,arguments);
       if(modulo==='mapas'){setTimeout(function(){var mapa=asegurarMapaLeaflet();if(mapa)mapa.invalidateSize();},220);}
       return resultado;
