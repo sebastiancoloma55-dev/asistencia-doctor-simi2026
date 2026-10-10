@@ -3773,14 +3773,18 @@ body{overflow-x:hidden}
             }
         }
 
-        function puntoMapaSucursal(x) {
-            const lat = Number(x.latitud), lon = Number(x.longitud);
-            if (Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180 && (lat !== 0 || lon !== 0)) return `${lat},${lon}`;
-            return direccionSucursal(x);
+        function coordenadasSucursalMapa(x) {
+            const lat=Number(x?.latitud),lon=Number(x?.longitud);
+            if(Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0))return {lat,lon};
+            const raw=String(x?.geolocalizacion||'').trim().replace(/[()]/g,'');
+            const m=raw.match(/(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)/);
+            if(m){const a=Number(m[1]),b=Number(m[2]);if(Math.abs(a)<=90&&Math.abs(b)<=180&&(a!==0||b!==0))return {lat:a,lon:b};}
+            return null;
         }
+        function puntoMapaSucursal(x) { const p=coordenadasSucursalMapa(x);return p?`${p.lat},${p.lon}`:direccionSucursal(x); }
         async function prepararMapa14() {
             const lista = await obtenerSucursalesConfig();
-            const opciones = '<option value="">Selecciona sucursal</option>' + lista.map(x => `<option value="${escaparHTML(puntoMapaSucursal(x))}" data-id="${escaparHTML(x.id||'')}" data-nombre="${escaparHTML(x.nombre)}" data-direccion="${escaparHTML(x.direccion||'')}" data-comuna="${escaparHTML(x.comuna||'')}" data-lat="${escaparHTML(x.latitud??'')}" data-lon="${escaparHTML(x.longitud??'')}">${escaparHTML(x.nombre)}${x.comuna ? ' · '+escaparHTML(x.comuna) : ''}${Number.isFinite(Number(x.latitud)) && Number.isFinite(Number(x.longitud)) && Number(x.latitud)!==0 && Number(x.longitud)!==0 ? ' · GPS' : ''}</option>`).join('');
+            const opciones = '<option value="">Selecciona sucursal</option>' + lista.map(x => `<option value="${escaparHTML(puntoMapaSucursal(x))}" data-id="${escaparHTML(x.id||'')}" data-nombre="${escaparHTML(x.nombre)}" data-direccion="${escaparHTML(x.direccion||'')}" data-comuna="${escaparHTML(x.comuna||'')}" data-lat="${escaparHTML(coordenadasSucursalMapa(x)?.lat??'')}" data-lon="${escaparHTML(coordenadasSucursalMapa(x)?.lon??'')}">${escaparHTML(x.nombre)}${x.comuna ? ' · '+escaparHTML(x.comuna) : ''}${Number.isFinite(Number(x.latitud)) && Number.isFinite(Number(x.longitud)) && Number(x.latitud)!==0 && Number(x.longitud)!==0 ? ' · GPS' : ''}</option>`).join('');
             document.getElementById('map14-origen').innerHTML = opciones;
             document.getElementById('map14-destino').innerHTML = opciones;
             const frame = document.getElementById('mapa14-frame');
@@ -4241,7 +4245,8 @@ body{overflow-x:hidden}
     if(!op)return false;
     var lat=Number(op.dataset.lat),lon=Number(op.dataset.lon);
     if(Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0))return true;
-    var address=[op.dataset.direccion,op.dataset.comuna,op.dataset.nombre,'Chile'].filter(Boolean).join(', ');
+    var p=String(op.value||'').split(',');if(p.length===2){lat=Number(p[0]);lon=Number(p[1]);if(Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0)){op.dataset.lat=String(lat);op.dataset.lon=String(lon);return true;}}
+    var address=[op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', ');
     if(!address)return false;
     try{
       var r=await fetch('/api/geocodificar?direccion='+encodeURIComponent([op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', '))+'&nombre='+encodeURIComponent(op.dataset.nombre||'')+'&comuna='+encodeURIComponent(op.dataset.comuna||''));
