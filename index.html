@@ -1522,7 +1522,7 @@ body{overflow-x:hidden}
                 <div class="helper-note"><strong>Seguridad:</strong> no pegues claves privadas de Talana, IMED, Google, Microsoft ni Supabase en esta pantalla. Las credenciales deben almacenarse como variables de entorno en el servidor.</div>
             </section>
 
-            <div id="global-search-overlay" class="global-search-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="global-search-title" onclick="if(event.target===this)cerrarBuscadorGlobal()">
+            <div id="global-search-overlay" class="global-search-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="global-search-title" style="display:none" onclick="if(event.target===this)cerrarBuscadorGlobal()">
                 <div class="global-search-panel">
                     <div class="flex items-center gap-3 border-b border-slate-100 p-4">
                         <i data-lucide="search" class="h-5 w-5 text-blue-600"></i>
@@ -1792,7 +1792,7 @@ table tbody tr:hover{background:#f7fbff}
 .topbar-search{align-items:center;gap:9px;border:1px solid #dce7f5;border-radius:11px;background:#f8fbff;color:#60708c;padding:9px 11px;font-size:11px;font-weight:700;transition:all .16s}
 .topbar-search:hover{border-color:#a9cafa;background:#eef6ff;color:#0759b0}
 .topbar-search kbd{border:1px solid #dbe5f1;border-radius:5px;background:#fff;padding:2px 5px;color:#8a98ad;font-size:9px;font-weight:800}
-.global-search-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding: min(13vh,110px) 18px 24px;background:rgba(7,22,48,.52);backdrop-filter:blur(7px)}
+.global-search-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:min(13vh,110px) 18px 24px;background:rgba(7,22,48,.52);backdrop-filter:blur(7px)}.global-search-overlay.hidden{display:none!important}
 .global-search-panel{width:min(640px,100%);overflow:hidden;border:1px solid rgba(255,255,255,.7);border-radius:20px;background:#fff;box-shadow:0 32px 100px rgba(3,18,44,.3);animation:searchPanelIn .16s ease-out}
 .global-search-input{min-width:0;flex:1;border:0!important;outline:0!important;box-shadow:none!important;background:transparent;font-size:15px;color:#14213d}
 .global-search-results{max-height:min(55vh,440px);overflow:auto}
