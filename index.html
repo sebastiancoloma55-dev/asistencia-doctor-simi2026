@@ -1298,6 +1298,13 @@ body{overflow-x:hidden}
                     </div>
                 </div>
                 <div id="correo-resumen-resultados" class="hidden grid grid-cols-2 gap-3 sm:grid-cols-3"><div class="ui-card p-4"><span class="text-xs text-slate-500">Borradores preparados</span><b id="correo-resumen-borradores" class="mt-1 block text-2xl">0</b></div><div class="ui-card p-4"><span class="text-xs text-slate-500">Casos detectados</span><b id="correo-resumen-casos" class="mt-1 block text-2xl">0</b></div><div class="ui-card p-4"><span class="text-xs text-slate-500">Sin destinatario</span><b id="correo-resumen-sin-destino" class="mt-1 block text-2xl">0</b></div></div>
+                <div class="ui-card mt-4 p-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div><h3 class="font-extrabold text-slate-900">Mis generaciones guardadas en la nube</h3><p class="text-xs text-slate-500">Historial privado de esta cuenta; no modifica los borradores de otros usuarios.</p></div>
+                        <button type="button" onclick="cargarHistorialBorradoresNube(true)" class="rounded-lg border px-3 py-2 text-sm font-bold">Actualizar historial</button>
+                    </div>
+                    <div id="correo-nube-historial" class="mt-3 space-y-2"><p class="text-sm text-slate-500">Genera borradores o pulsa “Actualizar historial” para consultar tus guardados.</p></div>
+                </div>
                 <div id="lista-borradores" class="space-y-4"></div>
                 <div class="helper-note">Los borradores se abren en Outlook para revisión. La aplicación no envía correos automáticamente. Antes de abrirlos, verifica destinatarios, copias y detalles de cada caso.</div>
                 <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 text-xs text-blue-900">El navegador abrirá los borradores seleccionados uno por uno. Si el navegador bloquea ventanas emergentes, autoriza ventanas para este sitio. La firma configurada en el punto 13 se agrega al cuerpo del mensaje.</div>
@@ -3467,6 +3474,35 @@ body{overflow-x:hidden}
             const firma = texto(grupo.firma) || 'Saludos cordiales,\nDepartamento de Recursos Humanos\nFarmacias de Similares Chile S.A.\nRUT: 59.111.330-5';
             return `Estimados/as,\n\nJunto con saludar, se informa el siguiente detalle de incumplimientos detectados en asistencia para ${nombreGrupo}, correspondiente al periodo ${desde} al ${hasta}.\n\n${filas}\n\nFavor revisar y gestionar los casos indicados. Para cada registro, agradeceremos confirmar el motivo y adjuntar el respaldo correspondiente.\n\n${firma}`;
         }
+        async function guardarLoteBorradoresNube(desde,hasta,agrupar,filtroSuc,filtroSup,minimo) {
+            const {data:sesion,error:errSesion}=await _supabase.auth.getUser();
+            if(errSesion||!sesion?.user?.email)throw new Error('No se pudo verificar la sesión para guardar en la nube.');
+            const borradores=(borradoresGeneradosGlobal||[]).map(b=>({id:b.id,nombre:b.nombre,para:b.para,cc:b.cc,asunto:b.asunto,cuerpo:b.cuerpo,cantidad:Number(b.cantidad||0)}));
+            const totalCasos=borradores.reduce((n,b)=>n+b.cantidad,0);
+            const fila={usuario_email:String(sesion.user.email).trim().toLowerCase(),usuario_rol_id:perfilActualSistema?.id||null,fecha_desde:desde,fecha_hasta:hasta,agrupacion:agrupar,filtros:{sucursales:filtroSuc,supervisores:filtroSup,minimo_atraso:minimo,tipos:{atraso:!!document.getElementById('correo-t-atraso')?.checked,salida_temprana:!!document.getElementById('correo-t-temprana')?.checked,sin_turno:!!document.getElementById('correo-t-sinturno')?.checked,sin_marca:!!document.getElementById('correo-t-sinmarca')?.checked}},borradores,total_borradores:borradores.length,total_casos:totalCasos};
+            const {error}=await _supabase.from('borradores_correo_usuario').insert([fila]);
+            if(error)throw new Error(error.message||'No se pudo guardar el historial de correos.');
+        }
+        async function cargarHistorialBorradoresNube(notificar=false) {
+            const cont=document.getElementById('correo-nube-historial');if(!cont)return;
+            cont.innerHTML='<p class="text-sm text-slate-500">Cargando tu historial...</p>';
+            const {data:sesion,error:errSesion}=await _supabase.auth.getUser();
+            if(errSesion||!sesion?.user?.email){cont.innerHTML='<p class="text-sm text-rose-700">No se pudo verificar la sesión.</p>';return;}
+            const {data,error}=await _supabase.from('borradores_correo_usuario').select('id,fecha_desde,fecha_hasta,agrupacion,total_borradores,total_casos,created_at').order('created_at',{ascending:false}).limit(10);
+            if(error){cont.innerHTML='<p class="text-sm text-amber-700">No se pudo cargar el historial en la nube. Revisa permisos o conexión.</p>';if(notificar)mostrarToast('No se pudo cargar el historial de borradores.','warning');return;}
+            if(!data?.length){cont.innerHTML='<p class="text-sm text-slate-500">Todavía no tienes generaciones guardadas.</p>';return;}
+            cont.innerHTML=data.map(x=>{const fecha=x.created_at?new Date(x.created_at).toLocaleString('es-CL'):'Fecha no disponible';return `<div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-3"><div><b class="text-sm">${escaparHTML(x.fecha_desde)} a ${escaparHTML(x.fecha_hasta)}</b><p class="text-xs text-slate-500">${escaparHTML(fecha)} · ${Number(x.total_borradores||0)} borradores · ${Number(x.total_casos||0)} casos · agrupado por ${escaparHTML(x.agrupacion||'sucursal')}</p></div><button type="button" onclick="restaurarBorradoresNube('${x.id}')" class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white">Restaurar</button></div>`;}).join('');
+            if(notificar)mostrarToast('Historial actualizado desde la nube.','success');
+        }
+        async function restaurarBorradoresNube(id) {
+            if(!id)return;
+            const {data,error}=await _supabase.from('borradores_correo_usuario').select('borradores').eq('id',id).maybeSingle();
+            if(error||!data){mostrarToast('No se pudo restaurar ese historial o no tienes acceso.','error');return;}
+            borradoresGeneradosGlobal=Array.isArray(data.borradores)?data.borradores:[];
+            renderizarBorradoresMasivos();
+            mostrarToast('Borradores restaurados desde tu historial privado. Revisa los destinatarios antes de abrirlos.','success',9000);
+        }
+
         async function prepararCorreosAsistencia() {
             if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para preparar correos.','warning');
             const desde = document.getElementById('correo-desde').value;
@@ -3502,6 +3538,17 @@ body{overflow-x:hidden}
                 return { id: `borrador-${indice}`, nombre, para, cc, asunto: `Importancia alta - Incumplimientos de asistencia - ${nombre} - ${desde} a ${hasta}`, cuerpo: crearCuerpoCorreo(grupo, casos, desde, hasta), cantidad: casos.length };
             });
             renderizarBorradoresMasivos();
+            if(borradoresGeneradosGlobal.length){
+                try {
+                    await guardarLoteBorradoresNube(desde,hasta,agrupar,filtroSuc,filtroSup,minimo);
+                    mostrarToast('Borradores guardados en la nube en tu historial privado. Abrirlos en Outlook no envía el correo automáticamente.','success',9000);
+                    await cargarHistorialBorradoresNube(false);
+                } catch(error) {
+                    mostrarToast('Los borradores están preparados en esta sesión, pero no se guardaron en la nube: '+(error.message||'error desconocido'),'warning',12000);
+                }
+            } else {
+                await cargarHistorialBorradoresNube(false);
+            }
         }
         function renderizarBorradoresMasivos() {
             const cont = document.getElementById('lista-borradores');
