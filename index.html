@@ -3526,40 +3526,7 @@ body{overflow-x:hidden}
         function valoresSeleccionados(id) {
             return [...document.getElementById(id).selectedOptions].map(x => x.value);
         }
-        function renderizarSelectorCasillasCorreo(id, items) {
-            const host=document.getElementById(id+'-casillas'); if(!host)return;
-            const label=id==='correo-sucursales'?'sucursales':'supervisores';
-            host.innerHTML=`<details class="selector-dropdown-2026" id="${id}-dropdown"><summary><span><span class="selector-selected-count-2026">0 seleccionados</span><small class="block font-normal text-slate-500">Marca las casillas; no necesitas mantener Ctrl</small></span></summary><div class="selector-tools-2026"><input type="search" class="form-field" placeholder="Buscar ${label}…" oninput="filtrarCasillasCorreo('${id}',this.value)"><div class="mt-2 flex gap-2"><button type="button" class="rounded-lg border px-3 py-1.5 text-xs font-bold" onclick="seleccionarFiltroCorreo('${id}',true)">Marcar todos</button><button type="button" class="rounded-lg border px-3 py-1.5 text-xs font-bold" onclick="seleccionarFiltroCorreo('${id}',false)">Limpiar</button></div></div><div class="selector-checkbox-list-2026">${items.map((v,i)=>`<label class="selector-checkbox-row-2026" data-search="${escaparHTML(String(v).toLocaleLowerCase('es-CL'))}"><input type="checkbox" value="${escaparHTML(v)}" onchange="actualizarSelectorCasillasCorreo('${id}')"><span>${escaparHTML(v)}</span><span class="selector-checkmark-2026">✓</span></label>`).join('')}</div><div class="selector-count-2026 text-xs text-slate-500">Si no marcas ninguna, se incluyen todas.</div></details>`;
-            actualizarSelectorCasillasCorreo(id);
-        }
-        function actualizarSelectorCasillasCorreo(id) {
-            const sel=document.getElementById(id),host=document.getElementById(id+'-casillas');if(!sel||!host)return;
-            const chosen=new Set([...host.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value));
-            [...sel.options].forEach(o=>o.selected=chosen.has(o.value));
-            const count=chosen.size,summary=host.querySelector('.selector-selected-count-2026');
-            if(summary)summary.textContent=count?count+' seleccionada(s)':'Ninguna seleccionada · todas incluidas';
-            const countText=host.querySelector('.selector-count-2026');
-            if(countText)countText.textContent=count?count+' seleccionada(s) de '+sel.options.length:'Si no marcas ninguna, se incluyen todas.';
-        }
-        function filtrarCasillasCorreo(id,q) {
-            const host=document.getElementById(id+'-casillas');if(!host)return;
-            const term=String(q||'').toLocaleLowerCase('es-CL').trim();
-            host.querySelectorAll('.selector-checkbox-row-2026').forEach(row=>row.hidden=!!term&&!row.dataset.search.includes(term));
-        }
-        function establecerPeriodoCorreos(dias) {
-            const hoy=new Date(),hasta=new Date(hoy),desde=new Date(hoy);
-            desde.setDate(desde.getDate()-Math.max(0,Number(dias||0)-1));
-            const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
-            document.getElementById('correo-desde').value=iso(desde);document.getElementById('correo-hasta').value=iso(hasta);
-        }
-        function seleccionarFiltroCorreo(id,seleccionar) {
-            const sel=document.getElementById(id);if(!sel)return;
-            Array.from(sel.options).forEach(o=>o.selected=!!seleccionar);
-            const host=document.getElementById(id+'-casillas');
-            if(host)host.querySelectorAll('input[type="checkbox"]').forEach(c=>c.checked=!!seleccionar);
-            actualizarSelectorCasillasCorreo(id);
-            sel.dispatchEvent(new Event('change',{bubbles:true}));
-        }
+        function seleccionarFiltroCorreo(id,seleccionar) { const sel=document.getElementById(id);if(!sel)return;Array.from(sel.options).forEach(o=>o.selected=!!seleccionar);if(sel._uxUpdate2026)sel._uxUpdate2026();sel.dispatchEvent(new Event('change',{bubbles:true})); }
         async function prepararModuloCorreos() {
             if (!asistenciaCargada) await cargarAsistenciaDesdeNube();
             sucursalesConfiguracionGlobal = await obtenerSucursalesConfig();
