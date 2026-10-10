@@ -390,6 +390,12 @@ body{overflow-x:hidden}
         .dashboard-welcome>*{position:relative;z-index:1}
         .app-watermark{position:fixed;z-index:5;right:22px;bottom:12px;pointer-events:none;user-select:none;color:#0b4778;opacity:.16;font-size:10px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;transform:rotate(-2deg);text-shadow:0 1px 0 rgba(255,255,255,.65)}
         @media(max-width:640px){.app-watermark{right:8px;bottom:5px;font-size:8px;letter-spacing:.06em}.dashboard-welcome{padding:20px}}
+
+        .dashboard-welcome{position:relative;overflow:hidden;border-radius:20px;padding:24px;background:linear-gradient(115deg,#073b70 0%,#07569a 55%,#078da7 100%);color:#fff;box-shadow:0 12px 28px rgba(7,59,112,.16)}
+        .dashboard-welcome:after{content:"SIMI";position:absolute;right:20px;bottom:-25px;font-size:clamp(76px,12vw,140px);font-weight:950;letter-spacing:-.09em;color:rgba(255,255,255,.07);pointer-events:none}
+        .dashboard-welcome>*{position:relative;z-index:1}
+        .app-watermark{position:fixed;z-index:5;right:22px;bottom:12px;pointer-events:none;user-select:none;color:#0b4778;opacity:.16;font-size:10px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;transform:rotate(-2deg);text-shadow:0 1px 0 rgba(255,255,255,.65)}
+        @media(max-width:640px){.app-watermark{right:8px;bottom:5px;font-size:8px;letter-spacing:.06em}.dashboard-welcome{padding:20px}}
 </style>
 </head>
 
