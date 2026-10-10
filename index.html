@@ -1526,7 +1526,7 @@ body{overflow-x:hidden}
                 <div class="global-search-panel">
                     <div class="flex items-center gap-3 border-b border-slate-100 p-4">
                         <i data-lucide="search" class="h-5 w-5 text-blue-600"></i>
-                        <input id="global-search-input" class="global-search-input" type="search" placeholder="Busca módulos o tareas..." autocomplete="off" oninput="renderBuscadorGlobal()" onkeydown="if(event.key==='Enter'){const first=document.querySelector('#global-search-results [data-search-module]');if(first)navegarBuscadorGlobal(first.dataset.searchModule)}">
+                        <input id="global-search-input" class="global-search-input" type="search" placeholder="Busca módulos o tareas..." autocomplete="off" oninput="renderBuscadorGlobal()" onkeydown="if(event.key==='ArrowDown'){event.preventDefault();moverBuscadorGlobal(1)}else if(event.key==='Enter'){const first=document.querySelector('#global-search-results [data-search-module]');if(first)navegarBuscadorGlobal(first.dataset.searchModule)}">
                         <button type="button" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50" onclick="cerrarBuscadorGlobal()">Esc</button>
                     </div>
                     <div class="px-4 pt-3"><h2 id="global-search-title" class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Navegación rápida</h2></div>
@@ -2310,10 +2310,16 @@ body{overflow-x:hidden}
             out.innerHTML=found.length?found.map((m,i)=>'<button type="button" data-search-module="'+opsEsc(m)+'" onclick="navegarBuscadorGlobal(\''+opsEsc(m)+'\')" class="global-search-result '+(i===0?'selected':'')+'"><span class="global-search-result-icon"><i data-lucide="'+({dashboard:'layout-dashboard',colaboradores:'users',sucursales:'building-2',asistencia:'clock',licencias:'file-heart',vacaciones:'palmtree',papeletas:'file-text',correos:'mail',amonestaciones:'folder-alert',reportes:'chart-no-axes-combined',usuarios:'shield-check',auditoria:'history',configcorreos:'mail-cog',mapas:'map-pinned',tareas:'list-checks',operaciones:'gauge',calidad:'shield-check',notificaciones:'bell-ring',integraciones:'plug-zap'}[m]||'arrow-right')+'" class="h-4 w-4"></i></span><span class="min-w-0 flex-1"><strong class="block text-sm">'+opsEsc(titulos[m]||m)+'</strong><span class="mt-0.5 block text-xs text-slate-500">'+opsEsc((etiquetasBusquedaGlobal[m]||[]).slice(0,4).join(' · '))+'</span></span><i data-lucide="corner-down-left" class="h-4 w-4 text-slate-400"></i></button>').join(''):'<div class="p-8 text-center"><i data-lucide="search-x" class="mx-auto h-7 w-7 text-slate-300"></i><p class="mt-2 text-sm font-bold text-slate-600">No hay resultados</p><p class="mt-1 text-xs text-slate-400">Prueba con otro término o revisa tus permisos.</p></div>';
             if(window.lucide)lucide.createIcons();
         }
+        function moverBuscadorGlobal(delta){
+            const items=[...document.querySelectorAll('#global-search-results [data-search-module]')];if(!items.length)return;
+            const idx=items.indexOf(document.activeElement),next=(idx+delta+items.length)%items.length;items[next].focus();
+        }
         function navegarBuscadorGlobal(modulo){if(!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para abrir este módulo.','warning');return;}cerrarBuscadorGlobal();cambiarModulo(modulo);}
         document.addEventListener('keydown',function(e){
             if((e.ctrlKey||e.metaKey)&&String(e.key).toLowerCase()==='k'){e.preventDefault();abrirBuscadorGlobal();return;}
-            if(e.key==='Escape'&&!document.getElementById('global-search-overlay')?.classList.contains('hidden'))cerrarBuscadorGlobal();
+            const overlay=document.getElementById('global-search-overlay'),abierto=overlay&&!overlay.classList.contains('hidden');
+            if(e.key==='Escape'&&abierto){cerrarBuscadorGlobal();return;}
+            if(abierto&&e.target?.id!=='global-search-input'&&(e.key==='ArrowDown'||e.key==='ArrowUp')){e.preventDefault();moverBuscadorGlobal(e.key==='ArrowDown'?1:-1);}
         });
 
         // ============================================================
