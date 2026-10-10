@@ -225,12 +225,12 @@
                 </div>
             </div>
 
-            <!-- VISTA 4: ASISTENCIA Y ATRASOS (NUEVO MÓDULO DE ANÁLISIS DE JORNADAS) -->
+            <!-- VISTA 4: ASISTENCIA Y ATRASOS -->
             <div id="view-asistencia" class="p-8 space-y-6 hidden">
                 <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
                     <div>
                         <h3 class="font-bold text-slate-900 text-base">Control de Asistencia, Atrasos y Anomalías</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Sube el reporte de jornadas original para analizar marcas faltantes, atrasos y salidas tempranas por sucursal.</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Sube el reporte de jornadas original para analizar marcas faltantes, atrasos, salidas tempranas y personal sin turno con marcas.</p>
                     </div>
                     <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-2 shadow-sm ui-button">
                         <i data-lucide="upload-cloud" class="w-4 h-4"></i> Cargar Reporte de Jornadas (Excel)
@@ -247,7 +247,7 @@
                 </div>
 
                 <!-- Resumen de Indicadores -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div class="ui-card p-4 border-l-4 border-l-red-500">
                         <p class="text-xs font-semibold text-slate-500 uppercase">Sin Marcas / Inasistencias</p>
                         <h4 id="stat-sin-marcas" class="text-2xl font-black text-slate-900 mt-1">0</h4>
@@ -263,6 +263,10 @@
                     <div class="ui-card p-4 border-l-4 border-l-blue-500">
                         <p class="text-xs font-semibold text-slate-500 uppercase">Salidas Tempranas</p>
                         <h4 id="stat-tempranas" class="text-2xl font-black text-slate-900 mt-1">0</h4>
+                    </div>
+                    <div class="ui-card p-4 border-l-4 border-l-purple-500">
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Sin Turno con Marcas</p>
+                        <h4 id="stat-sin-turno-marcas" class="text-2xl font-black text-slate-900 mt-1">0</h4>
                     </div>
                 </div>
 
@@ -327,6 +331,22 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let datosAsistenciaGlobal = [];
+
+        // CONVERTIR HORA DECIMAL DE EXCEL A HH:MM:SS
+        function convertirHoraExcel(val) {
+            if (val === undefined || val === null || val === '-' || val === '') return '-';
+            if (typeof val === 'string' && val.includes(':')) return val.trim();
+            
+            let num = parseFloat(val);
+            if (!isNaN(num) && num >= 0 && num < 1) {
+                let totalSegundos = Math.round(num * 24 * 60 * 60);
+                let horas = Math.floor(totalSegundos / 3600);
+                let minutos = Math.floor((totalSegundos % 3600) / 60);
+                let segundos = totalSegundos % 60;
+                return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+            }
+            return String(val);
+        }
 
         // ==========================================
         // SISTEMA DE LOGIN Y SESIÓN
@@ -441,22 +461,23 @@
                     const filas = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
                     
                     datosAsistenciaGlobal = filas.map(r => {
-                        const entrada = r['Entrada'] ? String(r['Entrada']).trim() : '-';
-                        const salida = r['Salida'] ? String(r['Salida']).trim() : '-';
+                        const entrada = convertirHoraExcel(r['Entrada']);
+                        const salida = convertirHoraExcel(r['Salida']);
                         const atraso = r['Horas de Atraso'] ? String(r['Horas de Atraso']).trim() : '00:00';
                         const turno = r['Turno'] ? String(r['Turno']).trim() : '';
 
-                        // Detección de anomalías
                         let sinMarca = (entrada === '-' && salida === '-');
                         let marcaIncompleta = (entrada === '-' || salida === '-') && !sinMarca;
                         let tieneAtraso = (atraso !== '00:00' && atraso !== '-' && atraso !== '0');
 
-                        // Cálculo de salida temprana comparando con la hora programada del turno
+                        // Detección de personal sin turno asignado pero con marcas registradas
+                        let sinTurnoConMarcas = (!turno || turno === '-' || turno.toUpperCase().includes('CENTRAL')) && !sinMarca;
+
                         let salidaTemprana = '-';
                         if (!sinMarca && !marcaIncompleta && salida !== '-') {
                             let matchTurno = turno.match(/\d{2}:\d{2}-(\d{2}:\d{2})/);
                             if (matchTurno) {
-                                let horaProgramadaSalida = matchTurno[1]; // ej 17:30
+                                let horaProgramadaSalida = matchTurno[1];
                                 if (salida < horaProgramadaSalida) {
                                     salidaTemprana = `Anticipada (${salida} vs ${horaProgramadaSalida})`;
                                 }
@@ -468,7 +489,7 @@
                             rut: r['Rut'] || '',
                             nombre: r['Nombre'] || '',
                             sucursal: r['Sucursal'] || 'Sin Sucursal',
-                            turno: turno,
+                            turno: turno || 'Sin Turno',
                             entrada: entrada,
                             salida: salida,
                             atraso: atraso,
@@ -477,11 +498,11 @@
                             sinMarca,
                             marcaIncompleta,
                             tieneAtraso,
-                            salidaTemprana
+                            salidaTemprana,
+                            sinTurnoConMarcas
                         };
                     });
 
-                    // Poblar el selector de sucursales
                     const sucursalesUnicas = [...new Set(datosAsistenciaGlobal.map(d => d.sucursal))].sort();
                     const select = document.getElementById('filtro-sucursal-asistencia');
                     select.innerHTML = `<option value="TODAS">Todas las sucursales (${datosAsistenciaGlobal.length} registros)</option>` + 
@@ -505,16 +526,17 @@
                 datosFiltrados = datosAsistenciaGlobal.filter(d => d.sucursal === sucursalFiltro);
             }
 
-            // Contadores para KPIs
             let cSinMarcas = datosFiltrados.filter(d => d.sinMarca && !d.tipoAusentismo).length;
             let cIncompletas = datosFiltrados.filter(d => d.marcaIncompleta).length;
             let cAtrasos = datosFiltrados.filter(d => d.tieneAtraso).length;
             let cTempranas = datosFiltrados.filter(d => d.salidaTemprana !== '-').length;
+            let cSinTurnoConMarcas = datosFiltrados.filter(d => d.sinTurnoConMarcas).length;
 
             document.getElementById('stat-sin-marcas').innerText = cSinMarcas;
             document.getElementById('stat-incompletas').innerText = cIncompletas;
             document.getElementById('stat-atrasos').innerText = cAtrasos;
             document.getElementById('stat-tempranas').innerText = cTempranas;
+            document.getElementById('stat-sin-turno-marcas').innerText = cSinTurnoConMarcas;
 
             const tbody = document.getElementById('tabla-asistencia-body');
             if (datosFiltrados.length === 0) {
@@ -522,10 +544,10 @@
                 return;
             }
 
-            // Mostramos los primeros 300 registros para mantener la fluidez visual
             tbody.innerHTML = datosFiltrados.slice(0, 300).map(d => {
                 let badgeEstado = `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-semibold">${d.estado || 'OK'}</span>`;
                 if (d.tipoAusentismo) badgeEstado = `<span class="px-2 py-0.5 bg-purple-50 text-purple-700 rounded text-[10px] font-semibold">${d.tipoAusentismo}</span>`;
+                else if (d.sinTurnoConMarcas) badgeEstado = `<span class="px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-[10px] font-bold">Sin Turno con Marcas</span>`;
                 else if (d.sinMarca) badgeEstado = `<span class="px-2 py-0.5 bg-red-50 text-red-700 rounded text-[10px] font-semibold">Sin Marcas</span>`;
                 else if (d.marcaIncompleta) badgeEstado = `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-semibold">Incompleta</span>`;
 
@@ -536,7 +558,7 @@
                         <div class="font-bold text-slate-900">${d.nombre}</div>
                         <div class="text-[10px] font-mono text-slate-400">${d.rut}</div>
                     </td>
-                    <td class="p-3 text-slate-600">${d.turno || 'N/A'}</td>
+                    <td class="p-3 text-slate-600">${d.turno}</td>
                     <td class="p-3 font-mono text-xs">
                         <span class="text-emerald-700">Entrada: ${d.entrada}</span><br>
                         <span class="text-indigo-700">Salida: ${d.salida}</span>
