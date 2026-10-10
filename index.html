@@ -481,21 +481,23 @@
                         const entrada = convertirHoraExcel(r['Entrada']);
                         const salida = convertirHoraExcel(r['Salida']);
                         const atraso = r['Horas de Atraso'] ? String(r['Horas de Atraso']).trim() : '00:00';
-                        const turno = r['Turno'] ? String(r['Turno']).trim() : '';
+                        const turnoCrudo = r['Turno'];
+                        const turno = turnoCrudo !== undefined && turnoCrudo !== null ? String(turnoCrudo).trim() : '';
 
                         let sinMarca = (entrada === '-' && salida === '-');
                         let marcaIncompleta = (entrada === '-' || salida === '-') && !sinMarca;
                         let tieneAtraso = (atraso !== '00:00' && atraso !== '-' && atraso !== '0');
-                        let sinTurnoConMarcas = (!turno || turno === '-' || turno.toUpperCase().includes('CENTRAL')) && !sinMarca;
+                        
+                        // Validar si el turno está totalmente en blanco o es un guion, pero tiene marcas registradas
+                        let sinTurnoConMarcas = (turno === '' || turno === '-') && !sinMarca;
 
                         // Cálculo exacto del tiempo de retiro anticipado
                         let salidaTemprana = '-';
                         if (!sinMarca && !marcaIncompleta && salida !== '-') {
                             let matchTurno = turno.match(/(\d{2}:\d{2})-(\d{2}:\d{2})/);
                             if (matchTurno) {
-                                let horaProgSalida = matchTurno[2]; // ej 17:30
+                                let horaProgSalida = matchTurno[2];
                                 if (salida < horaProgSalida) {
-                                    // Calcular diferencia en minutos
                                     let [hSal, mSal] = salida.split(':').map(Number);
                                     let [hProg, mProg] = horaProgSalida.split(':').map(Number);
                                     let diffMin = (hProg * 60 + mProg) - (hSal * 60 + mSal);
@@ -527,7 +529,7 @@
                         };
                     });
 
-                    // GUARDAR EN SUPABASE (Lotes de 500 para evitar saturación)
+                    // GUARDAR EN SUPABASE (Lotes de 500)
                     const loteParaNube = datosAsistenciaGlobal.map(d => ({
                         rut: d.rut,
                         nombre: d.nombre,
