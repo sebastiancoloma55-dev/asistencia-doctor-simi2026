@@ -628,6 +628,7 @@ body{overflow-x:hidden}
                 <button id="btn-notificaciones" class="menu-btn" onclick="cambiarModulo('notificaciones')">
                     <i data-lucide="bell-ring" class="h-4 w-4"></i>
                     18. Notificaciones
+                    <span id="nav-notif-count" class="nav-count hidden">0</span>
                 </button>
                 <button id="btn-integraciones" class="menu-btn" onclick="cambiarModulo('integraciones')">
                     <i data-lucide="plug-zap" class="h-4 w-4"></i>
@@ -2275,6 +2276,7 @@ body{overflow-x:hidden}
             const rows=notificacionesCentroGlobal.filter(x=>filter==='TODAS'||(filter==='PENDIENTES'?!x.leida:!!x.leida));
             const card=(t,v,d,ic)=>'<div class="ui-card p-5"><div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">'+opsEsc(t)+'</span><i data-lucide="'+ic+'" class="h-5 w-5 text-blue-600"></i></div><strong class="mt-3 block text-3xl font-black">'+opsEsc(v)+'</strong><p class="mt-1 text-xs text-slate-500">'+opsEsc(d)+'</p></div>';
             k.innerHTML=card('Total cargadas',notificacionesCentroGlobal.length,'Máximo 250 más recientes','bell')+card('Sin leer',unread,'Requieren atención','bell-dot')+card('Leídas',notificacionesCentroGlobal.length-unread,'Avisos revisados','check-check');
+            const navBadge=document.getElementById('nav-notif-count');if(navBadge){navBadge.textContent=unread>99?'99+':String(unread);navBadge.classList.toggle('hidden',unread===0);}
             lista.innerHTML=rows.length?rows.map(x=>'<article class="notif-item flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-start '+(!x.leida?'unread':'')+'"><span class="notif-symbol"><i data-lucide="'+(/error|urg|venc/i.test((x.tipo||'')+' '+(x.titulo||''))?'alert-triangle':'bell')+'" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm">'+opsEsc(x.titulo||'Notificación')+'</strong>'+(!x.leida?'<span class="notif-pill">Nueva</span>':'')+'</div><p class="mt-1 whitespace-pre-wrap text-sm text-slate-600">'+opsEsc(x.mensaje||'Sin detalle adicional')+'</p><p class="mt-2 text-xs text-slate-400">'+opsEsc(x.tipo||'Aviso')+' · '+opsEsc(x.created_at?new Date(x.created_at).toLocaleString('es-CL'):'Fecha no disponible')+'</p></div>'+(!x.leida?'<button type="button" class="notif-mark" onclick="marcarNotificacionLeida('+Number(x.id)+')"><i data-lucide="check" class="h-4 w-4"></i> Marcar leída</button>':'<span class="self-center text-xs text-slate-400">Leída</span>')+'</article>').join(''):'<div class="rounded-xl border border-dashed border-slate-300 p-8 text-center"><i data-lucide="bell-off" class="mx-auto h-8 w-8 text-slate-400"></i><p class="mt-3 font-bold text-slate-700">No hay notificaciones en esta vista</p><p class="mt-1 text-sm text-slate-500">Cuando se registren avisos para tu perfil, aparecerán aquí.</p></div>';
             if(window.lucide)lucide.createIcons();
         }
@@ -2286,9 +2288,11 @@ body{overflow-x:hidden}
         }
         async function marcarTodasNotificacionesLeidas(){
             const ids=notificacionesCentroGlobal.filter(x=>!x.leida).map(x=>x.id);if(!ids.length){mostrarToast('No hay notificaciones pendientes.','info');return;}
-            let fallos=0;
-            for(const id of ids){const {error}=await _supabase.from('notificaciones').update({leida:true,leida_at:new Date().toISOString()}).eq('id',id);if(error)fallos++;else{const x=notificacionesCentroGlobal.find(n=>Number(n.id)===Number(id));if(x){x.leida=true;x.leida_at=new Date().toISOString();}}}
-            renderizarCentroNotificaciones();mostrarToast(fallos?'Se actualizaron avisos, pero '+fallos+' no pudieron marcarse.':'Todas las notificaciones visibles están leídas.',fallos?'warning':'success');
+            const ahora=new Date().toISOString();
+            const {error}=await _supabase.from('notificaciones').update({leida:true,leida_at:ahora}).in('id',ids);
+            if(error){mostrarToast('No se pudieron actualizar las notificaciones: '+error.message,'error');return;}
+            notificacionesCentroGlobal.forEach(x=>{if(ids.includes(x.id)){x.leida=true;x.leida_at=ahora;}});
+            renderizarCentroNotificaciones();mostrarToast('Todas las notificaciones visibles están leídas.','success');
         }
 
         // ============================================================
@@ -4572,6 +4576,8 @@ table tbody tr:hover{background:#f7fbff}
 .integ-row{padding:17px 0;border-bottom:1px solid #edf2f8}.integ-row:last-child{border-bottom:0}
 .integ-status{display:inline-flex;align-items:center;justify-content:center;align-self:flex-start;min-width:145px;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:850;text-align:center}
 .integ-status.ok{background:#e8fbf1;color:#087443;border:1px solid #bcebd0}.integ-status.warn{background:#fff5e4;color:#965b00;border:1px solid #f3d9a6}.integ-status.info{background:#eaf3ff;color:#0759b0;border:1px solid #cfe2ff}
+
+.nav-count{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;margin-left:auto;padding:0 6px;border-radius:999px;background:#ffcf5a;color:#3f2d00;font-size:10px;font-weight:900;box-shadow:0 2px 8px rgba(0,0,0,.14)}
 </style>
 <script>
 (function(){
