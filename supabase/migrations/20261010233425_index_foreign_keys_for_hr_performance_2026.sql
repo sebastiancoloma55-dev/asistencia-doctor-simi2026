@@ -1,0 +1,19 @@
+-- Cover foreign-key columns identified by the Supabase performance advisor.
+CREATE INDEX IF NOT EXISTS idx_borradores_correo_usuario_usuario_rol_id ON public.borradores_correo_usuario (usuario_rol_id);
+CREATE INDEX IF NOT EXISTS idx_colaboradores_sucursal_id ON public.colaboradores (sucursal_id);
+CREATE INDEX IF NOT EXISTS idx_documentos_laborales_colaborador_id ON public.documentos_laborales (colaborador_id);
+CREATE INDEX IF NOT EXISTS idx_gestiones_correo_responsable_rol_id ON public.gestiones_correo (responsable_rol_id);
+CREATE INDEX IF NOT EXISTS idx_gestiones_correo_sucursal_id ON public.gestiones_correo (sucursal_id);
+CREATE INDEX IF NOT EXISTS idx_gestiones_correo_destinatarios_gestion_correo_id ON public.gestiones_correo_destinatarios (gestion_correo_id);
+CREATE INDEX IF NOT EXISTS idx_gestiones_correo_eventos_gestion_correo_id ON public.gestiones_correo_eventos (gestion_correo_id);
+CREATE INDEX IF NOT EXISTS idx_importaciones_errores_importacion_id ON public.importaciones_errores (importacion_id);
+CREATE INDEX IF NOT EXISTS idx_papeletas_permisos_colaborador_id ON public.papeletas_permisos (colaborador_id);
+CREATE INDEX IF NOT EXISTS idx_papeletas_permisos_solicitud_id ON public.papeletas_permisos (solicitud_id);
+CREATE INDEX IF NOT EXISTS idx_solicitudes_colaborador_id ON public.solicitudes (colaborador_id);
+CREATE INDEX IF NOT EXISTS idx_tareas_revisor_rol_id ON public.tareas (revisor_rol_id);
+CREATE INDEX IF NOT EXISTS idx_tareas_eventos_tarea_id ON public.tareas_eventos (tarea_id);
+CREATE INDEX IF NOT EXISTS idx_tareas_evidencias_tarea_id ON public.tareas_evidencias (tarea_id);
+CREATE INDEX IF NOT EXISTS idx_tareas_plantillas_responsable_rol_id ON public.tareas_plantillas (responsable_rol_id);
+CREATE INDEX IF NOT EXISTS idx_tareas_plantillas_revisor_rol_id ON public.tareas_plantillas (revisor_rol_id);
+CREATE INDEX IF NOT EXISTS idx_tareas_plantillas_sucursal_id ON public.tareas_plantillas (sucursal_id);
+CREATE INDEX IF NOT EXISTS idx_usuarios_sucursales_sucursal_id ON public.usuarios_sucursales (sucursal_id);
