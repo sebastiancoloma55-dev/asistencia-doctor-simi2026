@@ -1314,7 +1314,7 @@ body{overflow-x:hidden}
                         <button data-accion="preparar-correos" onclick="prepararCorreosAsistencia()" class="corp-button">Generar vista previa</button>
                         <button onclick="seleccionarTodosBorradores(true)" class="corp-button-dark">Seleccionar todos</button>
                         <button onclick="seleccionarTodosBorradores(false)" class="rounded-lg border px-4 py-2 text-sm font-bold">Limpiar selección</button>
-                        <button data-accion="abrir-borradores" onclick="abrirBorradoresMasivos()" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white">Abrir borradores seleccionados</button>
+                        <button data-accion="abrir-borradores" onclick="abrirBorradoresMasivos()" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white"><i data-lucide="mail-open" class="mr-1 inline h-4 w-4"></i>Abrir en Outlook</button><button type="button" onclick="descargarBorradoresOutlookZip()" class="corp-button-dark"><i data-lucide="file-archive" class="mr-1 inline h-4 w-4"></i>Descargar ZIP para Outlook</button>
                     </div>
                 </div>
                 <div id="correo-resumen-resultados" class="hidden grid grid-cols-2 gap-3 sm:grid-cols-3"><div class="ui-card p-4"><span class="text-xs text-slate-500">Borradores preparados</span><b id="correo-resumen-borradores" class="mt-1 block text-2xl">0</b></div><div class="ui-card p-4"><span class="text-xs text-slate-500">Casos detectados</span><b id="correo-resumen-casos" class="mt-1 block text-2xl">0</b></div><div class="ui-card p-4"><span class="text-xs text-slate-500">Sin destinatario</span><b id="correo-resumen-sin-destino" class="mt-1 block text-2xl">0</b></div></div>
@@ -3283,6 +3283,7 @@ body{overflow-x:hidden}
             const supervisores=[...new Set(suc.map(x=>texto(x.supervisor)).filter(Boolean))].sort();
             document.getElementById('usr-supervisores').innerHTML=supervisores.map(x=>`<option value="${escaparHTML(x)}">${escaparHTML(x)}</option>`).join('');
             document.getElementById('usr-sucursales').innerHTML=suc.map(x=>`<option value="${x.id}">${escaparHTML(x.nombre)}</option>`).join('');
+            if(window.actualizarContadoresSelectores2026)window.actualizarContadoresSelectores2026();
         }
         async function tokenSesionActual(){const {data:{session}}=await _supabase.auth.getSession();return session?.access_token||'';}
         async function llamarApiAdmin(ruta,payload){const token=await tokenSesionActual();const res=await fetch(ruta,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify(payload)});const raw=await res.text();let json;try{json=JSON.parse(raw)}catch{throw new Error(raw||`Error ${res.status}`)}if(!res.ok)throw new Error(json.error||`Error ${res.status}`);return json;}
@@ -3556,7 +3557,8 @@ body{overflow-x:hidden}
             document.getElementById('correo-sucursales').innerHTML = sucursalesConfiguracionGlobal.map(x => `<option value="${escaparHTML(x.nombre)}">${escaparHTML(x.nombre)}</option>`).join('');
             const supervisores = [...new Set(sucursalesConfiguracionGlobal.map(x => texto(x.supervisor)).filter(Boolean))].sort();
             document.getElementById('correo-supervisores').innerHTML = supervisores.map(x => `<option value="${escaparHTML(x)}">${escaparHTML(x)}</option>`).join('');
-            }
+            if(window.actualizarContadoresSelectores2026)window.actualizarContadoresSelectores2026();
+        }
         function crearCuerpoCorreo(grupo, casos, desde, hasta) {
             const nombreGrupo = grupo.tipo === 'SUPERVISOR' ? `sucursales a cargo de ${grupo.nombre}` : `sucursal ${grupo.nombre}`;
             const filas = casos.map((x, i) => {
@@ -3666,6 +3668,9 @@ body{overflow-x:hidden}
             if (!b) return;
             window.open(urlOutlookBorrador(b), '_blank', 'noopener');
         }
+        function textoMimeBase64(value){const bytes=new TextEncoder().encode(String(value||''));let binary='';for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(binary);}
+        function crearEmlOutlook(b){const safe=v=>String(v||'').replace(/[\r\n]+/g,' ').trim(),subject=textoMimeBase64(safe(b.asunto)),body=String(b.cuerpo||'').replace(/\r?\n/g,'\r\n');return 'To: '+safe(b.para)+'\r\n'+(safe(b.cc)?'Cc: '+safe(b.cc)+'\r\n':'')+'Subject: =?UTF-8?B?'+subject+'?=\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\nX-Unsent: 1\r\n\r\n'+body+'\r\n';}
+        async function descargarBorradoresOutlookZip(){const ids=[...document.querySelectorAll('.borrador-check:checked')].map(x=>x.value),list=borradoresGeneradosGlobal.filter(x=>ids.includes(x.id));if(!list.length)return mostrarToast('Selecciona uno o más borradores antes de descargar el ZIP.','warning');if(!window.JSZip)return mostrarToast('No se pudo cargar el generador ZIP. Recarga la página.','error');const zip=new JSZip(),folder=zip.folder('Borradores_Outlook');list.forEach((b,i)=>{const slug=String(b.nombre||'Borrador_'+(i+1)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').slice(0,60)||'Borrador_'+(i+1);folder.file(String(i+1).padStart(3,'0')+'_'+slug+'.eml',crearEmlOutlook(b));});zip.file('LEEME.txt','Borradores para Outlook de escritorio. Extrae el ZIP, abre los archivos .eml con Outlook, revisa destinatarios y contenido y pulsa Enviar. No se envían automáticamente.');const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Borradores_Outlook_'+new Date().toISOString().slice(0,10)+'.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);mostrarToast('ZIP descargado con '+list.length+' borradores .eml para revisar y enviar desde Outlook.','success',10000);}
         async function abrirBorradoresMasivos() {
             if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para abrir borradores.','warning');
             const ids = [...document.querySelectorAll('.borrador-check:checked')].map(x => x.value);
