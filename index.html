@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia Doctor Simi</title>
+    <!-- Tailwind CSS desde CDN para estilos corporativos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        simiRed: '#E31837',
+                        simiNavy: '#002B49',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans antialiased text-gray-800">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Menú Lateral -->
+        <aside class="w-64 bg-simiNavy text-white flex flex-col flex-shrink-0">
+            <div class="p-4 border-b border-blue-900 flex items-center gap-3">
+                <div class="bg-simiRed p-2 rounded font-bold text-lg">DS</div>
+                <div>
+                    <h1 class="font-bold text-sm leading-tight">DOCTOR SIMI</h1>
+                    <p class="text-xs text-gray-300">Recursos Humanos</p>
+                </div>
+            </div>
+
+            <nav class="flex-1 overflow-y-auto p-3 space-y-1">
+                <a href="#" class="flex items-center gap-3 px-3 py-2 bg-simiRed text-white rounded font-medium text-sm">
+                    <i class="fas fa-chart-line w-5"></i> 1. Dashboard
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
+                    <i class="fas fa-users w-5"></i> 2. Colaboradores
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
+                    <i class="fas fa-store w-5"></i> 3. Sucursales
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
+                    <i class="fas fa-clock w-5"></i> 4. Asistencia y atrasos
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
+                    <i class="fas fa-notes-medical w-5"></i> 5. Licencias médicas
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
+                    <i class="fas fa-umbrella-beach w-5"></i> 6. Vacaciones
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
+                    <i class="fas fa-file-alt w-5"></i> 7. Papeletas
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
+                    <i class="fas fa-envelope w-5"></i> 8. Borradores correo
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
+                    <i class="fas fa-folder-open w-5"></i> 9. Amonestaciones
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
+                    <i class="fas fa-file-invoice w-5"></i> 10. Reportes
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
+                    <i class="fas fa-user-shield w-5"></i> 11. Usuarios y roles
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-blue-900 rounded font-medium text-sm">
+                    <i class="fas fa-history w-5"></i> 12. Auditoría
+                </a>
+            </nav>
+
+            <div class="p-3 bg-blue-950 text-xs text-gray-400 text-center border-t border-blue-900">
+                Farmacias de Similares Chile S.A.<br>
+                <span class="text-yellow-400 font-semibold">Modo Demostración</span>
+            </div>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <main class="flex-1 overflow-y-auto flex flex-col">
+            <!-- Encabezado Superior -->
+            <header class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
+                <h2 class="text-xl font-bold text-simiNavy">ASISTENCIA DOCTOR SIMI - Control de RRHH</h2>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-gray-600">Usuario: <strong class="text-simiNavy">Administrador Demo</strong></span>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="p-6 space-y-6">
+                <!-- Tarjetas KPI -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-simiRed">
+                        <p class="text-xs text-gray-500 font-semibold uppercase">Colaboradores Activos</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1">142</h3>
+                        <p class="text-xs text-green-600 mt-1"><i class="fas fa-arrow-up"></i> +3 este mes</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-simiNavy">
+                        <p class="text-xs text-gray-500 font-semibold uppercase">Asistencia Hoy</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1">94.2%</h3>
+                        <p class="text-xs text-green-600 mt-1"><i class="fas fa-arrow-up"></i> +1.5% vs promedio</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-500">
+                        <p class="text-xs text-gray-500 font-semibold uppercase">Atrasos Registrados</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1">8</h3>
+                        <p class="text-xs text-green-600 mt-1"><i class="fas fa-arrow-down"></i> -2 que ayer</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
+                        <p class="text-xs text-gray-500 font-semibold uppercase">Licencias Activas</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1">5</h3>
+                        <p class="text-xs text-gray-500 mt-1">Sin variaciones</p>
+                    </div>
+                </div>
+
+                <!-- Paneles de Datos e Información -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Resumen -->
+                    <div class="lg:col-span-2 bg-white p-5 rounded-lg shadow">
+                        <h3 class="font-bold text-simiNavy text-lg mb-4">Estado del Sistema</h3>
+                        <div class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-sm mb-4">
+                            <strong><i class="fas fa-info-circle"></i> Aplicación Web Desplegada en la Nube</strong><br>
+                            Estructura visual corporativa lista. En el siguiente paso se conectarán las tablas de Supabase (<code>colaboradores</code>, <code>registros_asistencia</code>, etc.)[cite: 1].
+                        </div>
+                    </div>
+
+                    <!-- Alertas -->
+                    <div class="bg-white p-5 rounded-lg shadow space-y-3">
+                        <h3 class="font-bold text-simiNavy text-lg mb-2">Alertas Recientes</h3>
+                        <div class="p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 text-xs rounded">
+                            <strong>Papeletas pendientes:</strong> 3 solicitudes requieren revisión[cite: 1].
+                        </div>
+                        <div class="p-3 bg-red-50 border-l-4 border-simiRed text-red-800 text-xs rounded">
+                            <strong>Licencias médicas:</strong> 2 licencias próximas a vencer[cite: 1].
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
