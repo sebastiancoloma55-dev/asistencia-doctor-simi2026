@@ -247,7 +247,7 @@
             }
         }
     
-        #login-overlay.login-overlay-modern{padding:12px!important;overflow:auto!important}.login-shell{height:min(650px,calc(100dvh - 24px))!important;max-width:1040px!important}.login-form-panel{padding:22px 32px!important}.login-form-logo{width:58px!important;height:58px!important}.login-form-logo-wrap{margin-bottom:5px!important}.login-title{font-size:2rem!important}.login-description{margin-bottom:18px!important}.login-field{margin-bottom:12px!important}.login-input{padding-top:11px!important;padding-bottom:11px!important}.login-form-meta{margin-bottom:14px!important}.login-security-note{margin-top:14px!important}.login-footer{margin-top:8px!important}@media(max-height:700px) and (min-width:851px){.login-simi-stage{display:none!important}.login-hero-copy{margin-bottom:25px!important}.login-shell{height:calc(100dvh - 16px)!important}}
+        #login-overlay.login-overlay-modern{padding:10px!important;overflow:auto!important}.login-shell{height:min(640px,calc(100dvh - 20px))!important;max-width:1020px!important}.login-form-panel{padding:20px 30px!important}.login-form-logo{width:54px!important;height:54px!important}.login-form-logo-wrap{margin-bottom:4px!important}.login-title{font-size:1.85rem!important}.login-description{margin-bottom:14px!important}.login-field{margin-bottom:10px!important}.login-form-meta{margin-bottom:10px!important}.login-footer{margin-top:5px!important}@media(max-height:680px) and (min-width:851px){.login-simi-stage{display:none!important}.login-shell{height:calc(100dvh - 12px)!important}}
 </style>
 </head>
 
@@ -2836,29 +2836,11 @@
 
         function alternarClaveUsuario(){const a=document.getElementById('usr-clave'),b=document.getElementById('usr-clave-repetir'),v=a.type==='text';a.type=v?'password':'text';b.type=v?'password':'text';}
         function validarClaveUsuario(){const a=document.getElementById('usr-clave').value,b=document.getElementById('usr-clave-repetir').value;if(a.length<8)throw new Error('La clave debe tener al menos 8 caracteres.');if(a!==b)throw new Error('Las claves no coinciden.');return a;}
-        async function crearUsuarioConClave(){const email=texto(document.getElementById('usr-email').value).toLowerCase(),nombre=texto(document.getElementById('usr-nombre').value);if(!email)return mostrarToast('Ingresa el correo.','warning');try{const password=validarClaveUsuario();await guardarUsuarioRol();const j=await llamarApiAdmin('/api/usuarios-auth',{accion:'CREAR_CON_CLAVE',email,nombre,password});document.getElementById('usr-clave').value='';document.getElementById('usr-clave-repetir').value='';mostrarToast(j.message,'success',12000);await cargarUsuariosRoles()}catch(e){mostrarToast(e.message,'error',15000)}}
-        async function cambiarClaveUsuario(){const email=texto(document.getElementById('usr-email').value).toLowerCase();if(!email)return mostrarToast('Ingresa el correo.','warning');try{const password=validarClaveUsuario();const j=await llamarApiAdmin('/api/usuarios-auth',{accion:'CAMBIAR_CLAVE',email,password});document.getElementById('usr-clave').value='';document.getElementById('usr-clave-repetir').value='';mostrarToast(j.message,'success',12000)}catch(e){mostrarToast(e.message,'error',15000)}}
-        async function eliminarUsuarioCreado(email,nombre){if(!confirm(`¿Eliminar el acceso de ${nombre||email}? El historial se conservará.`))return;if(prompt('Escribe ELIMINAR para confirmar')!=='ELIMINAR')return mostrarToast('Eliminación cancelada.','warning');try{const j=await llamarApiAdmin('/api/usuarios-auth',{accion:'ELIMINAR',email});mostrarToast(j.message,'success',12000);await cargarUsuariosRoles()}catch(e){mostrarToast(e.message,'error',15000)}}
-        async function guardarUsuarioRol(){
-            const email=texto(document.getElementById('usr-email').value).toLowerCase();
-            const nombre=texto(document.getElementById('usr-nombre').value);
-            const rol=document.getElementById('usr-rol').value;
-            const permisos=[...document.querySelectorAll('.usr-check:checked')].map(x=>x.value);
-            if(!email) throw new Error('Ingresa un correo.');
-            const payload={
-                accion:'GUARDAR_FICHA', email, nombre, rol, permisos, activo:true,
-                supervisores:opcionesSeleccionadas('usr-supervisores'),
-                sucursales:opcionesSeleccionadas('usr-sucursales'),
-                puede_asignar_tareas:document.getElementById('usr-puede-asignar').checked,
-                puede_revisar_tareas:document.getElementById('usr-puede-revisar').checked,
-                puede_preparar_correos:document.getElementById('usr-puede-correos').checked,
-                acceso_global:document.getElementById('usr-acceso-global').checked
-            };
-            const json=await llamarApiAdmin('/api/usuarios-auth',payload);
-            await cargarUsuariosRoles();
-            mostrarToast(json.message||'Usuario, supervisores y permisos guardados.','success');
-            return json;
-        }
+        function payloadFichaUsuario(accion){return {accion,email:texto(document.getElementById('usr-email').value).toLowerCase(),nombre:texto(document.getElementById('usr-nombre').value),rol:document.getElementById('usr-rol').value,permisos:[...document.querySelectorAll('.usr-check:checked')].map(x=>x.value),supervisores:opcionesSeleccionadas('usr-supervisores'),sucursales:opcionesSeleccionadas('usr-sucursales'),activo:true,puede_asignar_tareas:document.getElementById('usr-puede-asignar').checked,puede_revisar_tareas:document.getElementById('usr-puede-revisar').checked,puede_preparar_correos:document.getElementById('usr-puede-correos').checked,acceso_global:document.getElementById('usr-acceso-global').checked};}
+        async function crearUsuarioConClave(){try{const payload=payloadFichaUsuario('CREAR_CON_CLAVE');if(!payload.email)throw new Error('Ingresa el correo.');payload.password=validarClaveUsuario();const j=await llamarApiAdmin('/api/usuarios-auth',payload);document.getElementById('usr-clave').value='';document.getElementById('usr-clave-repetir').value='';mostrarToast(j.message,'success',12000);await cargarUsuariosRoles()}catch(e){mostrarToast(e.message,'error',15000)}}
+        async function cambiarClaveUsuario(){try{const payload=payloadFichaUsuario('CAMBIAR_CLAVE');if(!payload.email)throw new Error('Ingresa el correo.');payload.password=validarClaveUsuario();const j=await llamarApiAdmin('/api/usuarios-auth',payload);document.getElementById('usr-clave').value='';document.getElementById('usr-clave-repetir').value='';mostrarToast(j.message,'success',12000);await cargarUsuariosRoles()}catch(e){mostrarToast(e.message,'error',15000)}}
+        async function eliminarUsuarioCreado(email,nombre){if(!confirm(`¿Eliminar definitivamente el acceso de ${nombre||email}?`))return;if(prompt('Escribe ELIMINAR para confirmar')!=='ELIMINAR')return mostrarToast('Eliminación cancelada.','warning');try{const j=await llamarApiAdmin('/api/usuarios-auth',{accion:'ELIMINAR',email});mostrarToast(j.message,'success',12000);await cargarUsuariosRoles()}catch(e){mostrarToast(e.message,'error',15000)}}
+        async function guardarUsuarioRol(){try{const payload=payloadFichaUsuario('GUARDAR_FICHA');if(!payload.email)throw new Error('Ingresa un correo.');const j=await llamarApiAdmin('/api/usuarios-auth',payload);mostrarToast(j.message,'success');await cargarUsuariosRoles();return j}catch(e){mostrarToast(e.message,'error',15000);throw e}}
         async function cargarUsuariosRoles(){
             construirChecksPermisos();await prepararSelectoresUsuarios();
             const {data,error}=await _supabase.from('usuarios_roles').select('*,usuarios_supervisores(supervisor),usuarios_sucursales(sucursal_id)').order('email');
@@ -2866,15 +2848,7 @@
             usuariosSistemaGlobal=data||[];
             tbody.innerHTML=data?.length?data.map(u=>`<tr><td class="p-3">${escaparHTML(u.email)}</td><td class="p-3">${escaparHTML(u.nombre)}</td><td class="p-3 font-bold">${escaparHTML(u.rol)}</td><td class="p-3"><b>Módulos:</b> ${escaparHTML((u.permisos||[]).join(', '))}<br><b>Supervisores:</b> ${escaparHTML((u.usuarios_supervisores||[]).map(x=>x.supervisor).join(', '))}</td><td class="p-3">${u.activo?'Activo':'Inactivo'}</td><td class="p-3"><div class="flex flex-wrap gap-2"><button onclick="toggleUsuario('${escaparHTML(u.email)}',${!u.activo})" class="font-bold text-simiNavy">${u.activo?'Desactivar':'Activar'}</button><button onclick="eliminarUsuarioCreado('${escaparHTML(u.email)}','${escaparHTML(u.nombre||u.email)}')" class="font-bold text-rose-700">Eliminar acceso</button></div></td></tr>`).join(''):'<tr><td colspan="6" class="p-8 text-center text-slate-400">Sin usuarios.</td></tr>';
         }
-        async function toggleUsuario(email,activo){const {error}=await _supabase.from('usuarios_roles').update({activo}).eq('email',email);if(error)mostrarToast(error.message,'error');else{await registrarAuditoria('usuarios',activo?'ACTIVA_USUARIO':'DESACTIVA_USUARIO',email);await cargarUsuariosRoles();}}
-
-        async function prepararModuloTareas(){
-            if(!usuariosSistemaGlobal.length){const r=await _supabase.from('usuarios_roles').select('*').eq('activo',true).order('nombre');usuariosSistemaGlobal=r.data||[];}
-            const opts='<option value="">Seleccione usuario</option>'+usuariosSistemaGlobal.map(x=>`<option value="${x.id}">${escaparHTML(x.nombre||x.email)}</option>`).join('');
-            document.getElementById('tarea-responsable').innerHTML=opts;document.getElementById('tarea-revisor').innerHTML=opts;
-            const suc=await obtenerSucursalesConfig();document.getElementById('tarea-sucursal').innerHTML='<option value="">Todas / No aplica</option>'+suc.map(x=>`<option value="${x.id}">${escaparHTML(x.nombre)}</option>`).join('');
-            await cargarTareas();
-        }
+        async function toggleUsuario(email,activo){try{const j=await llamarApiAdmin('/api/usuarios-auth',{accion:'CAMBIAR_ESTADO',email,activo});mostrarToast(j.message,'success');await cargarUsuariosRoles()}catch(e){mostrarToast(e.message,'error',15000)}}
         async function guardarTarea(event){
             event.preventDefault();const {data:{session}}=await _supabase.auth.getSession();
             const registro={titulo:document.getElementById('tarea-titulo').value.trim(),descripcion:document.getElementById('tarea-descripcion').value.trim(),responsable_rol_id:Number(document.getElementById('tarea-responsable').value),revisor_rol_id:document.getElementById('tarea-revisor').value?Number(document.getElementById('tarea-revisor').value):null,prioridad:document.getElementById('tarea-prioridad').value,fecha_limite:new Date(document.getElementById('tarea-vencimiento').value).toISOString(),recurrencia:document.getElementById('tarea-recurrencia').value,sucursal_id:document.getElementById('tarea-sucursal').value||null,estado:'PENDIENTE',creado_por_email:session?.user?.email||''};
