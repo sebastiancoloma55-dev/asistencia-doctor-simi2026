@@ -1,0 +1,410 @@
+        // ============================================================
+        // MAPA, SUCURSALES, CORREOS, COBERTURAS Y GEMINI
+        // ============================================================
+        async function obtenerSucursalesConfig() { const {data,error}=await _supabase.from('sucursales').select('*').order('nombre'); if(error)throw error; return data||[]; }
+        function direccionSucursal(x){return [x.direccion,x.comuna,'Chile'].filter(Boolean).join(', ');}
+        async function prepararMapaYConfiguracionSucursales(){
+            const lista=await obtenerSucursalesConfig(), opts='<option value="">Seleccione sucursal</option>'+lista.map(x=>`<option value="${escaparHTML(direccionSucursal(x))}">${escaparHTML(x.nombre)}</option>`).join('');
+            document.getElementById('map-origen').innerHTML=opts;document.getElementById('map-destino').innerHTML=opts;
+            document.getElementById('tabla-config-sucursales').innerHTML=lista.map(x=>`<tr><td class="p-3 font-bold">${escaparHTML(x.nombre)}</td><td class="p-3">${escaparHTML(direccionSucursal(x))}</td><td class="p-3">${escaparHTML(x.horario_apertura||'')}</td><td class="p-3">${escaparHTML(x.horario_cierre||'')}</td><td class="p-3">${escaparHTML(x.correo_sucursal||'')}</td><td class="p-3">${escaparHTML(x.correo_copia||'')}</td></tr>`).join('');
+        }
+        function mostrarRutaSucursales(){const o=document.getElementById('map-origen').value,d=document.getElementById('map-destino').value,m=document.getElementById('map-modo').value;if(!o||!d){mostrarToast('Selecciona origen y destino.','warning');return;}document.getElementById('mapa-sucursales').src=`https://www.google.com/maps?output=embed&saddr=${encodeURIComponent(o)}&daddr=${encodeURIComponent(d)}&dirflg=${m}`;}
+        function descargarPlantillaSucursales(){const datos=[{nombre:'Nombre exacto de la sucursal',direccion:'Dirección',comuna:'Comuna',horario_apertura:'09:00',horario_cierre:'19:00',correo_sucursal:'sucursal@empresa.cl',correo_copia:'supervisor@empresa.cl'}],wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(datos);XLSX.utils.book_append_sheet(wb,ws,'Configuracion');XLSX.writeFile(wb,'Plantilla_configuracion_sucursales.xlsx');}
+        async function importarConfiguracionSucursales(event){try{const filas=await leerExcel(event.target.files[0]);for(const f of filas){const nombre=texto(obtenerCampo(f,['nombre','Nombre Sucursal','Sucursal']));if(!nombre)continue;const cambios={direccion:texto(obtenerCampo(f,['direccion','Dirección'])),comuna:texto(obtenerCampo(f,['comuna','Comuna'])),horario_apertura:texto(obtenerCampo(f,['horario_apertura','Horario Apertura'])),horario_cierre:texto(obtenerCampo(f,['horario_cierre','Horario Cierre'])),correo_sucursal:texto(obtenerCampo(f,['correo_sucursal','Correo Sucursal'])),correo_copia:texto(obtenerCampo(f,['correo_copia','Correo Copia','CC']))};const {error}=await _supabase.from('sucursales').update(cambios).eq('nombre',nombre);if(error)throw error;}await prepararMapaYConfiguracionSucursales();mostrarToast('Configuración de sucursales actualizada.','success');}catch(e){mostrarToast(e.message,'error');}finally{event.target.value='';}}
+
+        function minutosAtraso(valor) {
+            const partes = texto(valor).split(':').map(Number);
+            return partes.length >= 2 ? (partes[0] || 0) * 60 + (partes[1] || 0) : Number(valor) || 0;
+        }
+        function valoresSeleccionados(id) {
+            return [...document.getElementById(id).selectedOptions].map(x => x.value);
+        }
+        function seleccionarFiltroCorreo(id,seleccionar) { const sel=document.getElementById(id);if(!sel)return;Array.from(sel.options).forEach(o=>o.selected=!!seleccionar);if(sel._uxUpdate2026)sel._uxUpdate2026();sel.dispatchEvent(new Event('change',{bubbles:true})); }
+        async function prepararModuloCorreos() {
+            if (!asistenciaCargada) await cargarAsistenciaDesdeNube();
+            sucursalesConfiguracionGlobal = await obtenerSucursalesConfig();
+            if(!sucursalesConfiguracionGlobal.length)throw new Error('No se cargaron sucursales desde Supabase. Revisa los permisos del usuario y vuelve a intentar.');
+            const hoy = new Date().toISOString().slice(0, 10);
+            document.getElementById('correo-hasta').value ||= hoy;
+            document.getElementById('correo-desde').value ||= hoy;
+            document.getElementById('correo-sucursales').innerHTML = sucursalesConfiguracionGlobal.map(x => `<option value="${escaparHTML(x.nombre)}">${escaparHTML(x.nombre)}</option>`).join('');
+            const supervisores = [...new Set(sucursalesConfiguracionGlobal.map(x => texto(x.supervisor)).filter(Boolean))].sort();
+            document.getElementById('correo-supervisores').innerHTML = supervisores.map(x => `<option value="${escaparHTML(x)}">${escaparHTML(x)}</option>`).join('');
+            if(window.actualizarContadoresSelectores2026)window.actualizarContadoresSelectores2026();
+        }
+        function crearCuerpoCorreo(grupo, casos, desde, hasta) {
+            const nombreGrupo = grupo.tipo === 'SUPERVISOR' ? `sucursales a cargo de ${grupo.nombre}` : `sucursal ${grupo.nombre}`;
+            const filas = casos.map((x, i) => {
+                return `${i + 1}. ${x.fecha} | ${x.rut} | ${x.nombre} | ${x.sucursal}\n   ${x.detalles.join('\n   ')}`;
+            }).join('\n\n');
+            const firma = texto(grupo.firma) || 'Saludos cordiales,\nDepartamento de Recursos Humanos\nFarmacias de Similares Chile S.A.\nRUT: 59.111.330-5';
+            return `Estimados/as,\n\nJunto con saludar, se informa el siguiente detalle de incumplimientos detectados en asistencia para ${nombreGrupo}, correspondiente al periodo ${desde} al ${hasta}.\n\n${filas}\n\nFavor revisar y gestionar los casos indicados. Para cada registro, agradeceremos confirmar el motivo y adjuntar el respaldo correspondiente.\n\n${firma}`;
+        }
+        async function guardarLoteBorradoresNube(desde,hasta,agrupar,filtroSuc,filtroSup,minimo) {
+            const {data:sesion,error:errSesion}=await _supabase.auth.getUser();
+            if(errSesion||!sesion?.user?.email)throw new Error('No se pudo verificar la sesión para guardar en la nube.');
+            const borradores=(borradoresGeneradosGlobal||[]).map(b=>({id:b.id,nombre:b.nombre,para:b.para,cc:b.cc,asunto:b.asunto,cuerpo:b.cuerpo,cantidad:Number(b.cantidad||0)}));
+            const totalCasos=borradores.reduce((n,b)=>n+b.cantidad,0);
+            const fila={usuario_email:String(sesion.user.email).trim().toLowerCase(),usuario_rol_id:perfilActualSistema?.id||null,fecha_desde:desde,fecha_hasta:hasta,agrupacion:agrupar,filtros:{sucursales:filtroSuc,supervisores:filtroSup,minimo_atraso:minimo,tipos:{atraso:!!document.getElementById('correo-t-atraso')?.checked,salida_temprana:!!document.getElementById('correo-t-temprana')?.checked,sin_turno:!!document.getElementById('correo-t-sinturno')?.checked,sin_marca:!!document.getElementById('correo-t-sinmarca')?.checked}},borradores,total_borradores:borradores.length,total_casos:totalCasos};
+            const {error}=await _supabase.from('borradores_correo_usuario').insert([fila]);
+            if(error)throw new Error(error.message||'No se pudo guardar el historial de correos.');
+        }
+        async function cargarHistorialBorradoresNube(notificar=false) {
+            const cont=document.getElementById('correo-nube-historial');if(!cont)return;
+            cont.innerHTML='<p class="text-sm text-slate-500">Cargando tu historial...</p>';
+            const {data:sesion,error:errSesion}=await _supabase.auth.getUser();
+            if(errSesion||!sesion?.user?.email){cont.innerHTML='<p class="text-sm text-rose-700">No se pudo verificar la sesión.</p>';return;}
+            const {data,error}=await _supabase.from('borradores_correo_usuario').select('id,fecha_desde,fecha_hasta,agrupacion,total_borradores,total_casos,created_at').order('created_at',{ascending:false}).limit(10);
+            if(error){cont.innerHTML='<p class="text-sm text-amber-700">No se pudo cargar el historial en la nube. Revisa permisos o conexión.</p>';if(notificar)mostrarToast('No se pudo cargar el historial de borradores.','warning');return;}
+            if(!data?.length){cont.innerHTML='<p class="text-sm text-slate-500">Todavía no tienes generaciones guardadas.</p>';return;}
+            cont.innerHTML=data.map(x=>{const fecha=x.created_at?new Date(x.created_at).toLocaleString('es-CL'):'Fecha no disponible';return `<div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-3"><div><b class="text-sm">${escaparHTML(x.fecha_desde)} a ${escaparHTML(x.fecha_hasta)}</b><p class="text-xs text-slate-500">${escaparHTML(fecha)} · ${Number(x.total_borradores||0)} borradores · ${Number(x.total_casos||0)} casos · agrupado por ${escaparHTML(x.agrupacion||'sucursal')}</p></div><button type="button" onclick="restaurarBorradoresNube('${x.id}')" class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white">Restaurar</button></div>`;}).join('');
+            if(notificar)mostrarToast('Historial actualizado desde la nube.','success');
+        }
+        async function restaurarBorradoresNube(id) {
+            if(!id)return;
+            const {data,error}=await _supabase.from('borradores_correo_usuario').select('borradores').eq('id',id).maybeSingle();
+            if(error||!data){mostrarToast('No se pudo restaurar ese historial o no tienes acceso.','error');return;}
+            borradoresGeneradosGlobal=Array.isArray(data.borradores)?data.borradores:[];
+            renderizarBorradoresMasivos();
+            mostrarToast('Borradores restaurados desde tu historial privado. Revisa los destinatarios antes de abrirlos.','success',9000);
+        }
+
+        async function prepararCorreosAsistencia() {
+            if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para preparar correos.','warning');
+            const desde = document.getElementById('correo-desde').value;
+            const hasta = document.getElementById('correo-hasta').value;
+            const minimo = Number(document.getElementById('correo-min-atraso').value) || 0;
+            if (!desde || !hasta) return mostrarToast('Selecciona el período desde y hasta.', 'warning');
+            if (desde > hasta) return mostrarToast('La fecha Desde no puede ser posterior a Hasta.', 'warning');
+            const filtroSuc = valoresSeleccionados('correo-sucursales');
+            const filtroSup = valoresSeleccionados('correo-supervisores');
+            const agrupar = document.getElementById('correo-agrupar').value;
+            const config = new Map(sucursalesConfiguracionGlobal.map(x => [texto(x.nombre).toLowerCase(), x]));
+            const grupos = new Map();
+            datosAsistenciaGlobal.filter(x => x.fecha >= desde && x.fecha <= hasta).forEach(x => {
+                const cfg = config.get(texto(x.sucursal).toLowerCase()) || {};
+                if (filtroSuc.length && !filtroSuc.includes(x.sucursal)) return;
+                if (filtroSup.length && !filtroSup.includes(cfg.supervisor)) return;
+                const detalles = [];
+                if (document.getElementById('correo-t-atraso').checked && x.tiene_atraso && minutosAtraso(x.atraso) >= minimo) detalles.push(`Atraso: ${x.atraso}. Favor indicar motivo.`);
+                if (document.getElementById('correo-t-temprana').checked && x.salida_temprana && x.salida_temprana !== '-') detalles.push(`Salida anticipada: ${x.salida_temprana}. Favor indicar motivo.`);
+                if (document.getElementById('correo-t-sinturno').checked && x.sin_turno_marcas) detalles.push('Presenta marcas sin turno asignado. Favor aclarar la jornada realizada.');
+                if (document.getElementById('correo-t-sinmarca').checked && x.sin_marca && !x.tipo_ausentismo) detalles.push('No registra marcas durante la jornada. Favor confirmar asistencia o justificar inasistencia.');
+                if (!detalles.length) return;
+                const clave = agrupar === 'SUPERVISOR' ? (cfg.supervisor || 'Sin supervisor') : (x.sucursal || 'Sin sucursal');
+                if (!grupos.has(clave)) grupos.set(clave, []);
+                grupos.get(clave).push({ ...x, detalles, cfg });
+            });
+            borradoresGeneradosGlobal = [...grupos].map(([nombre, casos], indice) => {
+                const configs = [...new Set(casos.map(x => x.sucursal))].map(s => config.get(texto(s).toLowerCase()) || {});
+                const para = [...new Set(configs.map(x => x.correo_sucursal).filter(Boolean))].join(';');
+                const cc = [...new Set(configs.flatMap(x => texto(x.correo_copia).split(/[;,]/)).filter(Boolean))].join(';');
+                const firma = configs.map(x => x.firma_correo).find(Boolean) || '';
+                const grupo = { tipo: agrupar, nombre, firma };
+                return { id: `borrador-${indice}`, nombre, para, cc, asunto: `Importancia alta - Incumplimientos de asistencia - ${nombre} - ${desde} a ${hasta}`, cuerpo: crearCuerpoCorreo(grupo, casos, desde, hasta), cantidad: casos.length };
+            });
+            renderizarBorradoresMasivos();
+            if(borradoresGeneradosGlobal.length){
+                try {
+                    await guardarLoteBorradoresNube(desde,hasta,agrupar,filtroSuc,filtroSup,minimo);
+                    mostrarToast('Borradores guardados en la nube en tu historial privado. Abrirlos en Outlook no envía el correo automáticamente.','success',9000);
+                    await cargarHistorialBorradoresNube(false);
+                } catch(error) {
+                    mostrarToast('Los borradores están preparados en esta sesión, pero no se guardaron en la nube: '+(error.message||'error desconocido'),'warning',12000);
+                }
+            } else {
+                await cargarHistorialBorradoresNube(false);
+            }
+        }
+        function renderizarBorradoresMasivos() {
+            const cont = document.getElementById('lista-borradores');
+            const resumen=document.getElementById('correo-resumen-resultados');
+            if(resumen)resumen.classList.remove('hidden');
+            const casos=borradoresGeneradosGlobal.reduce((n,b)=>n+Number(b.cantidad||0),0);
+            document.getElementById('correo-resumen-borradores').textContent=borradoresGeneradosGlobal.length.toLocaleString('es-CL');
+            document.getElementById('correo-resumen-casos').textContent=casos.toLocaleString('es-CL');
+            document.getElementById('correo-resumen-sin-destino').textContent=borradoresGeneradosGlobal.filter(b=>!b.para).length.toLocaleString('es-CL');
+            if (!borradoresGeneradosGlobal.length) { cont.innerHTML = '<div class="ui-card p-6 text-center text-slate-500"><i data-lucide="check-circle-2" class="mx-auto mb-2 h-8 w-8 text-emerald-600"></i><b>No se encontraron casos</b><p class="mt-1 text-sm">Prueba ampliar el período o revisar los filtros de sucursal y tipo de incidencia.</p></div>';if(window.lucide)lucide.createIcons();return; }
+            cont.innerHTML = borradoresGeneradosGlobal.map(b => `<div class="ui-card mail-card p-5"><div class="flex flex-wrap items-start justify-between gap-3"><label class="flex items-start gap-3"><input type="checkbox" class="borrador-check mt-1" value="${b.id}" checked><span><b class="text-base">${escaparHTML(b.nombre)}</b><br><span class="text-xs text-slate-500">${b.cantidad} caso(s)</span><span class="mt-2 block text-xs ${b.para?'text-emerald-700':'font-bold text-rose-700'}">${b.para?'Para: '+escaparHTML(b.para):'Falta configurar correo destinatario'}${b.cc?' · CC: '+escaparHTML(b.cc):''}</span></span></label><button onclick="abrirUnBorrador('${b.id}')" class="corp-button"><i data-lucide="mail" class="mr-1 inline h-4 w-4"></i>Revisar en Outlook</button></div><div class="mt-3 rounded-lg bg-slate-50 p-3 text-xs"><b>Asunto:</b> ${escaparHTML(b.asunto)}</div><details class="mt-3"><summary class="cursor-pointer text-xs font-bold text-slate-600">Ver contenido completo del correo</summary><pre class="mt-2 whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-xs">${escaparHTML(b.cuerpo)}</pre></details></div>`).join('');
+            if(window.lucide)lucide.createIcons();
+        }
+        function seleccionarTodosBorradores(valor) {
+            document.querySelectorAll('.borrador-check').forEach(x => x.checked = valor);
+        }
+        function urlOutlookBorrador(b) {
+            // mailto: entrega el borrador al cliente de correo predeterminado de Windows.
+            // Si Outlook escritorio está configurado como aplicación predeterminada, se abrirá allí.
+            return `mailto:${encodeURIComponent(b.para||'')}?cc=${encodeURIComponent(b.cc||'')}&subject=${encodeURIComponent(b.asunto||'')}&body=${encodeURIComponent(b.cuerpo||'')}`;
+        }
+        function abrirUnBorrador(id) {
+            const b = borradoresGeneradosGlobal.find(x => x.id === id);
+            if (!b) return;
+            window.open(urlOutlookBorrador(b), '_blank', 'noopener');
+        }
+        function textoMimeBase64(value){const bytes=new TextEncoder().encode(String(value||''));let binary='';for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(binary);}
+        function crearEmlOutlook(b){const safe=v=>String(v||'').replace(/[\r\n]+/g,' ').trim(),subject=textoMimeBase64(safe(b.asunto)),body=String(b.cuerpo||'').replace(/\r?\n/g,'\r\n');return 'To: '+safe(b.para)+'\r\n'+(safe(b.cc)?'Cc: '+safe(b.cc)+'\r\n':'')+'Subject: =?UTF-8?B?'+subject+'?=\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\nX-Unsent: 1\r\n\r\n'+body+'\r\n';}
+        async function descargarBorradoresOutlookZip(){const ids=[...document.querySelectorAll('.borrador-check:checked')].map(x=>x.value),list=borradoresGeneradosGlobal.filter(x=>ids.includes(x.id));if(!list.length)return mostrarToast('Selecciona uno o más borradores antes de descargar el ZIP.','warning');if(!window.JSZip)return mostrarToast('No se pudo cargar el generador ZIP. Recarga la página.','error');const zip=new JSZip(),folder=zip.folder('Borradores_Outlook');list.forEach((b,i)=>{const slug=String(b.nombre||'Borrador_'+(i+1)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').slice(0,60)||'Borrador_'+(i+1);folder.file(String(i+1).padStart(3,'0')+'_'+slug+'.eml',crearEmlOutlook(b));});zip.file('LEEME.txt','Borradores para Outlook de escritorio. Extrae el ZIP, abre los archivos .eml con Outlook, revisa destinatarios y contenido y pulsa Enviar. No se envían automáticamente.');const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Borradores_Outlook_'+new Date().toISOString().slice(0,10)+'.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);mostrarToast('ZIP descargado con '+list.length+' borradores .eml para revisar y enviar desde Outlook.','success',10000);}
+        async function abrirBorradoresMasivos() {
+            if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para abrir borradores.','warning');
+            const ids = [...document.querySelectorAll('.borrador-check:checked')].map(x => x.value);
+            const seleccionados = borradoresGeneradosGlobal.filter(x => ids.includes(x.id));
+            if (!seleccionados.length) return mostrarToast('Selecciona al menos un borrador.', 'warning');
+            for (let i = 0; i < seleccionados.length; i++) {
+                window.open(urlOutlookBorrador(seleccionados[i]), '_blank', 'noopener');
+                await new Promise(r => setTimeout(r, 500));
+            }
+            mostrarToast(`Se solicitaron ${seleccionados.length} borradores. Si falta alguno, permite ventanas emergentes.`, 'success', 12000);
+        }
+
+
+        async function prepararConfiguracionCorreos() {
+            sucursalesConfiguracionGlobal = await obtenerSucursalesConfig();
+            renderizarConfigCorreos();
+        }
+        function renderizarConfigCorreos() {
+            const q = texto(document.getElementById('config-correo-buscar')?.value).toLowerCase();
+            const lista = sucursalesConfiguracionGlobal.filter(x => `${x.nombre} ${x.supervisor || ''}`.toLowerCase().includes(q));
+            const resumen = document.getElementById('config-correo-resumen');
+            if (resumen) resumen.textContent = `${lista.length} sucursal(es) visibles · ${lista.filter(x => x.correo_sucursal).length} con correo principal configurado · ${lista.filter(x => !x.correo_sucursal).length} sin correo principal`;
+            const cont = document.getElementById('tabla-config-correos');
+            if (!lista.length) { cont.innerHTML = '<div class="ui-card p-8 text-center text-sm text-slate-500">No hay sucursales que coincidan con la búsqueda.</div>'; return; }
+            cont.innerHTML = lista.map(x => `<article class="config-sucursal-card" data-id="${x.id}">
+                <div class="mb-4 flex items-start justify-between gap-3"><div><h4 class="font-extrabold text-slate-900">${escaparHTML(x.nombre)}</h4><p class="mt-1 text-xs text-slate-500">Supervisor: ${escaparHTML(x.supervisor || 'Sin asignar')}</p></div><span class="rounded-full px-2.5 py-1 text-[11px] font-bold ${x.correo_sucursal ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'}">${x.correo_sucursal ? 'Correo configurado' : 'Falta correo'}</span></div>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2"><label class="text-xs font-bold text-slate-600">Supervisor<input data-campo="supervisor" class="form-field mt-1" value="${escaparHTML(x.supervisor || '')}" placeholder="Nombre del supervisor"></label><label class="text-xs font-bold text-slate-600">Correo principal<input data-campo="correo_sucursal" type="email" class="form-field mt-1" value="${escaparHTML(x.correo_sucursal || '')}" placeholder="sucursal@empresa.cl"></label><label class="text-xs font-bold text-slate-600 sm:col-span-2">Copias (CC)<input data-campo="correo_copia" class="form-field mt-1" value="${escaparHTML(x.correo_copia || '')}" placeholder="correo1@empresa.cl; correo2@empresa.cl"><span class="mt-1 block font-normal text-slate-400">Separa varios correos con punto y coma.</span></label><label class="text-xs font-bold text-slate-600">Hora de apertura<input data-campo="horario_apertura" type="time" class="form-field mt-1" value="${escaparHTML(x.horario_apertura || '')}"></label><label class="text-xs font-bold text-slate-600">Hora de cierre<input data-campo="horario_cierre" type="time" class="form-field mt-1" value="${escaparHTML(x.horario_cierre || '')}"></label><label class="text-xs font-bold text-slate-600 sm:col-span-2">Firma institucional<textarea data-campo="firma_correo" class="form-field mt-1" rows="3">${escaparHTML(x.firma_correo || 'Saludos cordiales,\nDepartamento de Recursos Humanos\nFarmacias de Similares Chile S.A.\nRUT: 59.111.330-5')}</textarea></label></div>
+            </article>`).join('');
+        }
+        async function guardarConfigCorreosVisibles() {
+            const tarjetas = [...document.querySelectorAll('#tabla-config-correos [data-id]')];
+            if (!tarjetas.length) return mostrarToast('No hay sucursales visibles para guardar.', 'warning');
+            for (const tarjeta of tarjetas) {
+                const cambios = {};
+                tarjeta.querySelectorAll('[data-campo]').forEach(x => cambios[x.dataset.campo] = x.value.trim());
+                const correo = cambios.correo_sucursal || '';
+                if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return mostrarToast(`Revisa el correo principal de ${tarjeta.querySelector('h4')?.textContent || 'la sucursal'}.`, 'warning');
+                const { error } = await _supabase.from('sucursales').update(cambios).eq('id', tarjeta.dataset.id);
+                if (error) return mostrarToast(error.message, 'error');
+            }
+            await prepararConfiguracionCorreos();
+            mostrarToast('Configuración de las sucursales visibles guardada.', 'success');
+        }
+        function descargarPlantillaCorreosSucursales() {
+            const datos = sucursalesConfiguracionGlobal.map(x => ({ nombre: x.nombre, supervisor: x.supervisor || '', correo_sucursal: x.correo_sucursal || '', correo_copia: x.correo_copia || '', horario_apertura: x.horario_apertura || '', horario_cierre: x.horario_cierre || '', firma_correo: x.firma_correo || 'Saludos cordiales, Departamento de Recursos Humanos, Farmacias de Similares Chile S.A., RUT: 59.111.330-5' }));
+            const wb = XLSX.utils.book_new(), ws = XLSX.utils.json_to_sheet(datos);
+            XLSX.utils.book_append_sheet(wb, ws, 'Correos sucursales');
+            XLSX.writeFile(wb, 'Plantilla_correos_sucursales.xlsx');
+        }
+        async function importarCorreosSucursales(event) {
+            try {
+                const filas = await leerExcel(event.target.files[0]);
+                for (const f of filas) {
+                    const nombre = texto(obtenerCampo(f, ['nombre', 'Sucursal', 'Nombre Sucursal']));
+                    if (!nombre) continue;
+                    const cambios = {
+                        supervisor: texto(obtenerCampo(f, ['supervisor', 'Supervisor'])),
+                        correo_sucursal: texto(obtenerCampo(f, ['correo_sucursal', 'Correo Sucursal'])),
+                        correo_copia: texto(obtenerCampo(f, ['correo_copia', 'Correo Copia', 'CC'])),
+                        horario_apertura: texto(obtenerCampo(f, ['horario_apertura', 'Horario Apertura'])),
+                        horario_cierre: texto(obtenerCampo(f, ['horario_cierre', 'Horario Cierre'])),
+                        firma_correo: texto(obtenerCampo(f, ['firma_correo', 'Firma Correo']))
+                    };
+                    const { error } = await _supabase.from('sucursales').update(cambios).eq('nombre', nombre);
+                    if (error) throw error;
+                }
+                await prepararConfiguracionCorreos();
+                mostrarToast('Plantilla de correos cargada.', 'success');
+            } catch (e) { mostrarToast(e.message, 'error'); }
+            finally { event.target.value = ''; }
+        }
+        window.filtrarSucursalesMapa14 = function(tipo) {
+            const input = document.getElementById(tipo === 'origen' ? 'map14-buscar-origen' : 'map14-buscar-destino');
+            const select = document.getElementById(tipo === 'origen' ? 'map14-origen' : 'map14-destino');
+            if (!input || !select) return;
+            const q = input.value.trim().toLocaleLowerCase('es-CL');
+            let visibles = 0;
+            Array.from(select.options).forEach((op, i) => {
+                if (i === 0) { op.hidden = false; return; }
+                const match = !q || op.textContent.toLocaleLowerCase('es-CL').includes(q) || String(op.dataset.direccion||'').toLocaleLowerCase('es-CL').includes(q);
+                op.hidden = !match;
+                if (match) visibles++;
+            });
+            if (q && visibles === 1) {
+                const op = Array.from(select.options).find((x,i)=>i>0&&!x.hidden);
+                if (op) select.value = op.value;
+            }
+        }
+
+        function coordenadasSucursalMapa(x) {
+            const lat=Number(x?.latitud),lon=Number(x?.longitud);
+            if(Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0))return {lat,lon};
+            const raw=String(x?.geolocalizacion||'').trim().replace(/[()]/g,'');
+            const m=raw.match(/(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)/);
+            if(m){const a=Number(m[1]),b=Number(m[2]);if(Math.abs(a)<=90&&Math.abs(b)<=180&&(a!==0||b!==0))return {lat:a,lon:b};}
+            return null;
+        }
+        function puntoMapaSucursal(x) { const p=coordenadasSucursalMapa(x);return p?`${p.lat},${p.lon}`:direccionSucursal(x); }
+        async function prepararMapa14() {
+            const lista = await obtenerSucursalesConfig();
+            const opciones = '<option value="">Selecciona sucursal</option>' + lista.map(x => `<option value="${escaparHTML(puntoMapaSucursal(x))}" data-id="${escaparHTML(x.id||'')}" data-nombre="${escaparHTML(x.nombre)}" data-direccion="${escaparHTML(x.direccion||'')}" data-comuna="${escaparHTML(x.comuna||'')}" data-lat="${escaparHTML(coordenadasSucursalMapa(x)?.lat??'')}" data-lon="${escaparHTML(coordenadasSucursalMapa(x)?.lon??'')}">${escaparHTML(x.nombre)}${x.comuna ? ' · '+escaparHTML(x.comuna) : ''}${coordenadasSucursalMapa(x) ? ' · GPS' : ''}</option>`).join('');
+            document.getElementById('map14-origen').innerHTML = opciones;
+            document.getElementById('map14-destino').innerHTML = opciones;
+            const frame = document.getElementById('mapa14-frame');
+            if (frame && !frame.dataset.rutaCargada) frame.removeAttribute('src');
+            if (window.lucide) lucide.createIcons();
+        }
+        function mostrarRutaMapa14() {
+            const selOrigen = document.getElementById('map14-origen'), selDestino = document.getElementById('map14-destino');
+            const origen = selOrigen.value, destino = selDestino.value, modo = document.getElementById('map14-modo').value;
+            const nombreOrigen = selOrigen.selectedOptions[0]?.dataset.nombre || selOrigen.selectedOptions[0]?.textContent || origen;
+            const nombreDestino = selDestino.selectedOptions[0]?.dataset.nombre || selDestino.selectedOptions[0]?.textContent || destino;
+            if (!origen || !destino) return mostrarToast('Selecciona una sucursal de origen y otra de destino.', 'warning');
+            if (origen === destino) return mostrarToast('El origen y el destino deben ser diferentes.', 'warning');
+            const travelmode = modo === 'w' ? 'walking' : modo === 'r' ? 'transit' : 'driving';
+            const externo = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origen)}&destination=${encodeURIComponent(destino)}&travelmode=${travelmode}`;
+            const frame=document.getElementById('mapa14-frame');
+            frame.dataset.rutaCargada = '1';
+            frame.setAttribute('title',`Mapa de ruta: ${nombreOrigen} a ${nombreDestino}`);
+            const mapaStatus=document.getElementById('mapa14-status');if(mapaStatus)mapaStatus.textContent='Buscando coordenadas y calculando la ruta…';
+            const enlace = document.getElementById('mapa14-externo');
+            enlace.href = externo; enlace.classList.remove('hidden');
+            const fallback=document.getElementById('mapa14-fallback-link');if(fallback)fallback.href=externo;
+            const modoTexto = modo === 'w' ? 'Caminando' : modo === 'r' ? 'Transporte público' : 'Auto';
+            document.getElementById('mapa14-resumen').textContent = `${nombreOrigen} → ${nombreDestino} · ${modoTexto}`;
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function prepararModuloCoberturas(){const lista=await obtenerSucursalesConfig();document.getElementById('cob-destino').innerHTML='<option value="">Local a cubrir</option>'+lista.map(x=>`<option>${escaparHTML(x.nombre)}</option>`).join('');await cargarCoberturas();}
+        function buscarCoberturaPersona(){const q=document.getElementById('cob-buscar').value.toLowerCase().trim(),p=document.getElementById('cob-resultados');if(q.length<2){p.classList.add('hidden');return;}const r=colaboradoresPapeleta.filter(x=>`${x.nombres} ${x.apellidos} ${x.rut} ${x.cargo}`.toLowerCase().includes(q)).slice(0,20);p.innerHTML=r.map(x=>`<button type="button" class="autocomplete-item" onclick="seleccionarCoberturaPersona('${x.id}')"><b>${escaparHTML(`${x.nombres||''} ${x.apellidos||''}`)}</b><br>${escaparHTML(x.rut)} · ${escaparHTML(x.cargo)} · ${escaparHTML(x.sucursal)}</button>`).join('');p.classList.remove('hidden');}
+        function seleccionarCoberturaPersona(id){const x=colaboradoresPapeleta.find(a=>String(a.id)===String(id));if(!x)return;document.getElementById('cob-id').value=x.id;document.getElementById('cob-buscar').value=`${x.nombres} ${x.apellidos} · ${x.rut}`;document.getElementById('cob-nombre').value=`${x.nombres} ${x.apellidos}`.trim();document.getElementById('cob-rut').value=x.rut||'';document.getElementById('cob-origen').value=x.sucursal||'';document.getElementById('cob-tipo').value=x.cargo||'';document.getElementById('cob-resultados').classList.add('hidden');}
+        function calcularDiasCobertura(){const a=parsearFechaExcel(document.getElementById('cob-inicio').value),b=parsearFechaExcel(document.getElementById('cob-fin').value);if(a&&b&&b>=a)document.getElementById('cob-dias').value=Math.floor((b-a)/86400000)+1;}
+        async function guardarCobertura(e){e.preventDefault();const registro={colaborador_id:Number(document.getElementById('cob-id').value),rut:document.getElementById('cob-rut').value,nombre:document.getElementById('cob-nombre').value,tipo_profesional:document.getElementById('cob-tipo').value,local_origen:document.getElementById('cob-origen').value,local_destino:document.getElementById('cob-destino').value,fecha_inicio:document.getElementById('cob-inicio').value,fecha_fin:document.getElementById('cob-fin').value,dias:Number(document.getElementById('cob-dias').value),motivo:document.getElementById('cob-motivo').value,observaciones:document.getElementById('cob-observaciones').value};if(!registro.colaborador_id)return mostrarToast('Selecciona la persona desde la lista.','warning');const {error}=await _supabase.from('coberturas').insert([registro]);if(error)return mostrarToast(error.message,'error');await registrarAuditoria('coberturas','CREA_COBERTURA',`${registro.nombre}: ${registro.local_origen} a ${registro.local_destino}`);e.target.reset();await cargarCoberturas();mostrarToast('Cobertura guardada.','success');}
+        function estadoCobertura(x){const h=new Date().toISOString().slice(0,10);return h<x.fecha_inicio?'PENDIENTE':h>x.fecha_fin?'REALIZADA':'EN CURSO';}
+        async function cargarCoberturas(){const {data,error}=await _supabase.from('coberturas').select('*').order('fecha_inicio',{ascending:false});if(error)return mostrarToast(error.message,'error');datosCoberturasGlobal=data||[];document.getElementById('cob-pendientes').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='PENDIENTE').length;document.getElementById('cob-curso').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='EN CURSO').length;document.getElementById('cob-realizadas').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='REALIZADA').length;document.getElementById('tabla-coberturas').innerHTML=datosCoberturasGlobal.map(x=>`<tr><td><b>${escaparHTML(x.nombre)}</b><br>${escaparHTML(x.rut)} · ${escaparHTML(x.tipo_profesional)}</td><td>${escaparHTML(x.local_origen)}</td><td>${escaparHTML(x.local_destino)}</td><td>${x.fecha_inicio} a ${x.fecha_fin}</td><td>${escaparHTML(x.motivo)}</td><td><span class="rounded-full bg-slate-100 px-2 py-1 font-bold">${estadoCobertura(x)}</span></td></tr>`).join('');}
+
+        function obtenerAnioFilaIA(fila) {
+            const clavesFecha = Object.keys(fila).filter(k => /fecha|inicio|fin|desde|hasta/i.test(k));
+            for (const clave of clavesFecha) {
+                const valor = fila[clave];
+                const iso = fechaISODesdeExcel(valor);
+                if (iso) return Number(iso.slice(0, 4));
+                const match = texto(valor).match(/\b(20\d{2})\b/);
+                if (match) return Number(match[1]);
+            }
+            return null;
+        }
+        function analisisLocalExcel(filas, prompt, nombreArchivo) {
+            const solicitud = texto(prompt).toLowerCase();
+            const matchAnio = solicitud.match(/\b(20\d{2})\b/);
+            const anio = matchAnio ? Number(matchAnio[1]) : null;
+            const filasAnio = anio ? filas.filter(f => obtenerAnioFilaIA(f) === anio) : filas;
+            const rutKeys = Object.keys(filas[0] || {}).filter(k => /rut/i.test(k));
+            const sucKeys = Object.keys(filas[0] || {}).filter(k => /sucursal|local|unidad/i.test(k));
+            const resultado = [];
+            resultado.push('ANÁLISIS LOCAL DE RESPALDO');
+            resultado.push(`Archivo: ${nombreArchivo}`);
+            resultado.push(`Filas totales detectadas: ${filas.length}`);
+            if (anio) resultado.push(`Filas correspondientes al año ${anio}: ${filasAnio.length}`);
+            if (/licencia|ausencia|permiso/i.test(solicitud)) resultado.push(`Cantidad de registros de licencias/ausencias${anio ? ` en ${anio}` : ''}: ${filasAnio.length}`);
+            if (/colaborador|persona|trabajador|rut/i.test(solicitud) && rutKeys.length) {
+                const key = rutKeys[0];
+                resultado.push(`Colaboradores/RUT únicos: ${new Set(filasAnio.map(f => normalizarRut(f[key])).filter(Boolean)).size}`);
+            }
+            if (/sucursal|local|unidad/i.test(solicitud) && sucKeys.length) {
+                const key = sucKeys[0];
+                const cantidades = {};
+                filasAnio.forEach(f => { const v = texto(f[key]) || 'Sin sucursal'; cantidades[v] = (cantidades[v] || 0) + 1; });
+                resultado.push('Distribución por sucursal:');
+                Object.entries(cantidades).sort((a,b)=>b[1]-a[1]).slice(0,100).forEach(([k,v]) => resultado.push(`- ${k}: ${v}`));
+            }
+            resultado.push('');
+            resultado.push('Nota: Gemini no estuvo disponible por cuota temporal. Este resultado fue calculado directamente en el navegador con el Excel completo, sin enviar el archivo a un servicio externo.');
+            return resultado.join('\n');
+        }
+        function segundosReintentoGemini(mensaje) {
+            const match = texto(mensaje).match(/retry in\s+([0-9.]+)/i);
+            return match ? Math.ceil(Number(match[1])) : 0;
+        }
+        async function llamarGeminiConReintento(payload, out) {
+            for (let intento = 1; intento <= 2; intento++) {
+                const token = await tokenSesionActual();
+                if (!token) throw new Error('Tu sesión expiró. Inicia sesión nuevamente para usar el análisis de IA.');
+                const res = await fetch('/api/gemini', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                const raw = await res.text();
+                let json;
+                try { json = JSON.parse(raw); }
+                catch { throw new Error(raw.slice(0, 700) || `Respuesta no válida del servidor (${res.status})`); }
+                if (res.ok) return json;
+                const espera = segundosReintentoGemini(json.error);
+                if (intento === 1 && espera > 0 && espera <= 70) {
+                    out.textContent = `La cuota temporal de Gemini está ocupada. Reintento automático en ${espera} segundos...`;
+                    await new Promise(resolve => setTimeout(resolve, (espera + 2) * 1000));
+                    continue;
+                }
+                throw new Error(json.error || `Error ${res.status}`);
+            }
+        }
+        async function analizarConGeminiSeguro() {
+            const file = document.getElementById('ai-archivo').files?.[0];
+            const prompt = texto(document.getElementById('ai-prompt').value);
+            const autorizado = document.getElementById('ai-consentimiento').checked;
+            const btn = document.getElementById('ai-btn');
+            const out = document.getElementById('ai-resultado');
+            if (!file || !prompt || !autorizado) return mostrarToast('Selecciona archivo, escribe la solicitud y autoriza el envío.', 'warning');
+            btn.disabled = true;
+            out.textContent = 'Leyendo y preparando el archivo...';
+            let filasExcel = null;
+            try {
+                const payload = { prompt, fileName: file.name, mimeType: file.type || 'application/octet-stream' };
+                if (/\.(xlsx|xls|csv)$/i.test(file.name)) {
+                    filasExcel = await leerExcel(file);
+                    const columnas = Object.keys(filasExcel[0] || {});
+                    const muestra = filasExcel.slice(0, 700);
+                    const resumenColumnas = {};
+                    columnas.forEach(c => resumenColumnas[c] = new Set(filasExcel.slice(0, 5000).map(f => texto(f[c])).filter(Boolean)).size);
+                    payload.textData = JSON.stringify({
+                        totalFilas: filasExcel.length,
+                        columnas,
+                        valoresUnicosAproximados: resumenColumnas,
+                        muestra,
+                        aviso: muestra.length < filasExcel.length ? `Muestra de ${muestra.length} de ${filasExcel.length} filas. Para conteos simples usa totalFilas y para análisis detallado indica que se trabajó con una muestra.` : ''
+                    });
+                } else {
+                    if (file.size > 5 * 1024 * 1024) throw new Error('El PDF supera 5 MB. Para esta versión, utiliza un PDF más pequeño.');
+                    const data = await archivoADataURL(file);
+                    payload.base64 = data.split(',')[1];
+                }
+                out.textContent = 'Analizando con Gemini...';
+                const json = await llamarGeminiConReintento(payload, out);
+                ultimaRespuestaIA = json.text || '';
+                out.textContent = ultimaRespuestaIA;
+                await registrarAuditoria('reportes', 'ANALISIS_GEMINI', `${file.name} · ${prompt.slice(0, 180)}`);
+                mostrarToast('Análisis completado con Gemini.', 'success');
+            } catch (error) {
+                const cuota = /quota|rate.limit|exceeded|429/i.test(error.message);
+                if (cuota && filasExcel) {
+                    ultimaRespuestaIA = analisisLocalExcel(filasExcel, prompt, file.name);
+                    out.textContent = ultimaRespuestaIA;
+                    mostrarToast('Gemini alcanzó su cuota temporal. Se generó un análisis local de respaldo con el Excel completo.', 'warning', 16000);
+                } else {
+                    out.textContent = 'Error: ' + error.message;
+                    mostrarToast(error.message, 'error', 16000);
+                }
+            } finally {
+                btn.disabled = false;
+            }
+        }
+        async function prepararFiltrosReportesRRHH(){try{const list=await obtenerSucursalesConfig(),sel=document.getElementById('rep-sucursal');sel.innerHTML='<option value="">Todas las sucursales</option>'+list.map(x=>'<option value="'+escaparHTML(x.nombre)+'">'+escaparHTML(x.nombre)+'</option>').join('');const today=new Date(),iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10),from=new Date(today);from.setDate(from.getDate()-29);document.getElementById('rep-desde').value ||= iso(from);document.getElementById('rep-hasta').value ||= iso(today);}catch(e){document.getElementById('rep-estado').textContent='Error cargando filtros: '+e.message;}}
+        async function generarPaqueteReportesRRHH(){const state=document.getElementById('rep-estado'),types=[...document.querySelectorAll('.rep-tipo:checked')].map(x=>x.value),from=document.getElementById('rep-desde').value,to=document.getElementById('rep-hasta').value,branch=document.getElementById('rep-sucursal').value,format=document.getElementById('rep-formato').value;if(!types.length)return mostrarToast('Selecciona al menos un informe.','warning');if(from&&to&&from>to)return mostrarToast('La fecha Desde no puede ser posterior a Hasta.','warning');
+        try{state.textContent='Preparando datos…';if((types.includes('ASISTENCIA')||types.includes('RESUMEN'))&&!asistenciaCargada)await cargarAsistenciaDesdeNube();if((types.includes('LICENCIAS')||types.includes('RESUMEN'))&&!licenciasCargadas)await cargarLicenciasDesdeNube();if((types.includes('VACACIONES')||types.includes('RESUMEN'))&&!vacacionesCargadas)await cargarVacacionesDesdeNube();
+        const inPeriod=(r,k)=>{const raw=r[k],normalized=typeof fechaISODesdeExcel==='function'?fechaISODesdeExcel(raw):String(raw||'').slice(0,10),d=normalized||String(raw||'').slice(0,10);return(!from||d>=from)&&(!to||d<=to)},inBranch=r=>!branch||String(r.sucursal||'').trim().toLocaleLowerCase('es-CL')===branch.toLocaleLowerCase('es-CL'),data={};
+        if(types.includes('ASISTENCIA'))data['Asistencia']=datosAsistenciaGlobal.filter(r=>inPeriod(r,'fecha')&&inBranch(r));if(types.includes('LICENCIAS'))data['Licencias']=datosLicenciasGlobal.filter(r=>inPeriod(r,'fecha_inicio')&&inBranch(r));if(types.includes('VACACIONES'))data['Vacaciones']=datosVacacionesGlobal.filter(r=>inPeriod(r,'fecha_inicio')&&inBranch(r));
+        const summary=[{Indicador:'Registros de asistencia',Valor:data.Asistencia?.length||0},{Indicador:'Licencias',Valor:data.Licencias?.length||0},{Indicador:'Vacaciones',Valor:data.Vacaciones?.length||0},{Indicador:'Atrasos',Valor:(data.Asistencia||[]).filter(r=>r.tiene_atraso).length},{Indicador:'Sin marcas',Valor:(data.Asistencia||[]).filter(r=>r.sin_marca).length},{Indicador:'Periodo',Valor:(from||'Inicio')+' a '+(to||'Hoy')},{Indicador:'Sucursal',Valor:branch||'Todas'},{Indicador:'Generado',Valor:new Date().toLocaleString('es-CL')}];if(types.includes('RESUMEN'))data['Resumen ejecutivo']=summary;
+        const wb=XLSX.utils.book_new();Object.entries(data).forEach(([name,rows])=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows.length?rows:[{Mensaje:'Sin registros para los filtros seleccionados'}]),name.slice(0,31)));const stamp=new Date().toISOString().slice(0,10),xlsxName='Reporte_RRHH_'+stamp+'.xlsx',bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'}),kpi=document.getElementById('rep-kpis');kpi.classList.remove('hidden');kpi.innerHTML=Object.entries(data).map(([n,rows])=>'<div class="rounded-xl border bg-slate-50 p-4"><span class="text-xs text-slate-500">'+escaparHTML(n)+'</span><b class="mt-1 block text-2xl">'+rows.length+'</b><span class="text-xs text-slate-500">filas</span></div>').join('');
+        const textSummary=Object.entries(data).map(([n,rows])=>n+': '+rows.length+' filas').join('\n')+'\nPeriodo: '+(from||'Inicio')+' a '+(to||'Hoy')+'\nSucursal: '+(branch||'Todas')+'\nGenerado: '+new Date().toLocaleString('es-CL');const pdf=()=>{const {jsPDF}=window.jspdf,doc=new jsPDF();doc.setFontSize(17);doc.text('Reporte ejecutivo · Recursos Humanos',15,18);doc.setFontSize(10);let y=30;doc.splitTextToSize(textSummary,180).forEach(line=>{if(y>280){doc.addPage();y=18;}doc.text(line,15,y);y+=6;});return doc;};
+        if(format==='xlsx')XLSX.writeFile(wb,xlsxName);else if(format==='pdf')pdf().save('Resumen_RRHH_'+stamp+'.pdf');else{if(!window.JSZip)throw new Error('No se pudo cargar el generador ZIP.');const zip=new JSZip();if(format!=='csv')zip.file(xlsxName,bytes);Object.entries(data).forEach(([n,rows])=>zip.file(n.replace(/[^a-z0-9_-]/gi,'_')+'.csv',XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(rows.length?rows:[{Mensaje:'Sin registros'}]))));if(format!=='csv')zip.file('Resumen_ejecutivo.pdf',pdf().output('arraybuffer'));const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=(format==='csv'?'Reportes_RRHH_CSV_':'Paquete_Reportes_RRHH_')+stamp+'.zip';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
+        state.textContent='Listo · '+Object.keys(data).length+' informe(s) preparados.';mostrarToast('Reportes generados correctamente.','success',8000);}catch(e){state.textContent='No se pudieron generar los reportes.';mostrarToast('Error al generar reportes: '+(e.message||e),'error',12000);}}
+        function descargarRespuestaIA(){if(!ultimaRespuestaIA)return mostrarToast('Primero genera un análisis.','warning');const {jsPDF}=window.jspdf,doc=new jsPDF(),y0=20;doc.setTextColor(0,82,155);doc.setFontSize(15);doc.text('Reporte de Recursos Humanos',20,y0);doc.setTextColor(0);doc.setFontSize(9);let y=32;doc.splitTextToSize(ultimaRespuestaIA,170).forEach(line=>{if(y>280){doc.addPage();y=20;}doc.text(line,20,y);y+=4.5;});doc.save('Reporte_Gemini_RRHH.pdf');}
+

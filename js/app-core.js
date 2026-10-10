@@ -1,0 +1,1042 @@
+        // ============================================================
+        // UTILIDADES
+        // ============================================================
+        function texto(valor, defecto = '') {
+            if (valor === undefined || valor === null) {
+                return defecto;
+            }
+
+            return String(valor).trim();
+        }
+
+        function escaparHTML(valor) {
+            return String(valor ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function normalizarRut(valor) {
+            return texto(valor)
+                .replace(/\./g, '')
+                .replace(/\s+/g, '')
+                .toUpperCase();
+        }
+
+        function normalizarEncabezado(valor) {
+            return texto(valor)
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/\s+/g, ' ');
+        }
+
+        function obtenerCampo(fila, alternativas, defecto = '') {
+            const mapa = {};
+
+            Object.keys(fila).forEach(clave => {
+                mapa[normalizarEncabezado(clave)] = fila[clave];
+            });
+
+            for (const alternativa of alternativas) {
+                const clave = normalizarEncabezado(alternativa);
+
+                if (Object.prototype.hasOwnProperty.call(mapa, clave)) {
+                    return mapa[clave];
+                }
+            }
+
+            return defecto;
+        }
+
+        function convertirHoraExcel(valor) {
+            if (
+                valor === undefined ||
+                valor === null ||
+                valor === '' ||
+                valor === '-'
+            ) {
+                return '-';
+            }
+
+            if (
+                typeof valor === 'string' &&
+                valor.includes(':')
+            ) {
+                const partes = valor.trim().split(':');
+                const hora = String(Number(partes[0])).padStart(2, '0');
+                const minuto = String(Number(partes[1] || 0)).padStart(2, '0');
+                const segundo = String(Number(partes[2] || 0)).padStart(2, '0');
+
+                return `${hora}:${minuto}:${segundo}`;
+            }
+
+            const numero = Number(valor);
+
+            if (
+                Number.isFinite(numero) &&
+                numero >= 0 &&
+                numero < 1
+            ) {
+                const total = Math.round(numero * 86400) % 86400;
+                const horas = Math.floor(total / 3600);
+                const minutos = Math.floor((total % 3600) / 60);
+                const segundos = total % 60;
+
+                return [
+                    String(horas).padStart(2, '0'),
+                    String(minutos).padStart(2, '0'),
+                    String(segundos).padStart(2, '0')
+                ].join(':');
+            }
+
+            return texto(valor, '-');
+        }
+
+        function fechaISODesdeExcel(valor) {
+            if (
+                valor === undefined ||
+                valor === null ||
+                valor === ''
+            ) {
+                return null;
+            }
+
+            if (typeof valor === 'number') {
+                const partes = XLSX.SSF.parse_date_code(valor);
+
+                if (!partes) {
+                    return null;
+                }
+
+                return [
+                    String(partes.y).padStart(4, '0'),
+                    String(partes.m).padStart(2, '0'),
+                    String(partes.d).padStart(2, '0')
+                ].join('-');
+            }
+
+            const cadena = texto(valor);
+
+            let match = cadena.match(
+                /^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/
+            );
+
+            if (match) {
+                return [
+                    match[3],
+                    match[2].padStart(2, '0'),
+                    match[1].padStart(2, '0')
+                ].join('-');
+            }
+
+            match = cadena.match(
+                /^(\d{4})-(\d{1,2})-(\d{1,2})$/
+            );
+
+            if (match) {
+                return [
+                    match[1],
+                    match[2].padStart(2, '0'),
+                    match[3].padStart(2, '0')
+                ].join('-');
+            }
+
+            const fecha = new Date(cadena);
+
+            if (Number.isNaN(fecha.getTime())) {
+                return null;
+            }
+
+            return [
+                fecha.getFullYear(),
+                String(fecha.getMonth() + 1).padStart(2, '0'),
+                String(fecha.getDate()).padStart(2, '0')
+            ].join('-');
+        }
+
+        function parsearFechaExcel(valor) {
+            const iso = fechaISODesdeExcel(valor);
+
+            if (!iso) {
+                return null;
+            }
+
+            const [anio, mes, dia] = iso.split('-').map(Number);
+
+            return new Date(
+                anio,
+                mes - 1,
+                dia
+            );
+        }
+
+        function mostrarToast(mensaje, tipo = 'info', duracion = 9000) {
+            const contenedor = document.getElementById('toast-container');
+
+            const colores = {
+                success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+                warning: 'border-amber-200 bg-amber-50 text-amber-800',
+                error: 'border-red-200 bg-red-50 text-red-800',
+                info: 'border-blue-200 bg-blue-50 text-blue-800'
+            };
+
+            const elemento = document.createElement('div');
+
+            elemento.className = `flex items-start gap-3 rounded-xl border p-4 text-sm font-semibold shadow-lg ${colores[tipo] || colores.info}`;
+
+            elemento.innerHTML = `
+                <div class="min-w-0 flex-1 whitespace-pre-wrap break-words">
+                    ${escaparHTML(mensaje)}
+                </div>
+
+                <button class="opacity-60 hover:opacity-100">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            `;
+
+            elemento.querySelector('button').addEventListener(
+                'click',
+                () => elemento.remove()
+            );
+
+            contenedor.appendChild(elemento);
+            lucide.createIcons();
+
+            if (duracion > 0) {
+                setTimeout(
+                    () => elemento.remove(),
+                    duracion
+                );
+            }
+        }
+
+        function errorSupabase(contexto, error) {
+            console.error(contexto, error);
+
+            const detalle = [
+                error?.message,
+                error?.details,
+                error?.hint,
+                error?.code ? `Código ${error.code}` : ''
+            ]
+                .filter(Boolean)
+                .join(' | ');
+
+            return new Error(
+                `${contexto}: ${detalle || 'Error desconocido'}`
+            );
+        }
+
+        async function leerExcel(file) {
+            const buffer = await file.arrayBuffer();
+
+            const workbook = XLSX.read(
+                buffer,
+                {
+                    type: 'array',
+                    cellDates: false
+                }
+            );
+
+            if (!workbook.SheetNames.length) {
+                throw new Error('El archivo no contiene hojas.');
+            }
+
+            const hoja = workbook.Sheets[workbook.SheetNames[0]];
+
+            const filas = XLSX.utils.sheet_to_json(
+                hoja,
+                {
+                    defval: '',
+                    raw: true
+                }
+            );
+
+            if (!filas.length) {
+                throw new Error('La primera hoja no contiene registros.');
+            }
+
+            return filas;
+        }
+
+        // Esta función resuelve el error 21000.
+        // Conserva la última aparición de cada clave dentro del Excel completo.
+        function deduplicarRegistros(registros, generarClave) {
+            const mapa = new Map();
+            const duplicados = [];
+            const sinClave = [];
+
+            registros.forEach((registro, indice) => {
+                const clave = generarClave(registro);
+                const filaExcel = indice + 2;
+
+                if (!clave) {
+                    sinClave.push(filaExcel);
+                    return;
+                }
+
+                if (mapa.has(clave)) {
+                    duplicados.push({
+                        clave,
+                        filaAnterior: mapa.get(clave)._filaExcel,
+                        filaActual: filaExcel
+                    });
+                }
+
+                mapa.set(
+                    clave,
+                    {
+                        ...registro,
+                        _filaExcel: filaExcel
+                    }
+                );
+            });
+
+            const unicos = Array.from(mapa.values()).map(registro => {
+                const copia = { ...registro };
+                delete copia._filaExcel;
+                return copia;
+            });
+
+            return {
+                registros: unicos,
+                duplicados,
+                sinClave
+            };
+        }
+
+        async function guardarLotes(tabla, registros, opciones = {}) {
+            if (!registros.length) {
+                throw new Error(`No hay registros para guardar en ${tabla}.`);
+            }
+
+            let confirmados = 0;
+            let lotesProcesados = 0;
+
+            for (
+                let inicio = 0;
+                inicio < registros.length;
+                inicio += TAMANO_LOTE
+            ) {
+                const lote = registros.slice(
+                    inicio,
+                    inicio + TAMANO_LOTE
+                );
+
+                const { data, error } = await _supabase
+                    .from(tabla)
+                    .upsert(
+                        lote,
+                        opciones
+                    )
+                    .select('id');
+
+                if (error) {
+                    throw errorSupabase(
+                        `Error en ${tabla}, filas únicas ${inicio + 1} a ${inicio + lote.length}`,
+                        error
+                    );
+                }
+
+                confirmados += data?.length ?? lote.length;
+                lotesProcesados++;
+            }
+
+            return {
+                confirmados,
+                lotesProcesados
+            };
+        }
+
+        async function leerTablaCompleta(tabla, columnaOrden = null) {
+            const resultado = [];
+
+            for (
+                let inicio = 0;
+                ;
+                inicio += TAMANO_PAGINA
+            ) {
+                let consulta = _supabase
+                    .from(tabla)
+                    .select('*');
+
+                if (columnaOrden) {
+                    consulta = consulta.order(
+                        columnaOrden,
+                        {
+                            ascending: false
+                        }
+                    );
+                }
+
+                const { data, error } = await consulta.range(
+                    inicio,
+                    inicio + TAMANO_PAGINA - 1
+                );
+
+                if (error) {
+                    throw errorSupabase(
+                        `No se pudo leer ${tabla}`,
+                        error
+                    );
+                }
+
+                if (!data?.length) {
+                    break;
+                }
+
+                resultado.push(...data);
+
+                if (data.length < TAMANO_PAGINA) {
+                    break;
+                }
+            }
+
+            return resultado;
+        }
+
+        function toggleSidebar(abrir) {
+            document
+                .getElementById('sidebar')
+                .classList
+                .toggle('open', abrir);
+        }
+
+        // ============================================================
+        // INICIO Y AUTENTICACIÓN
+        // ============================================================
+        document.addEventListener(
+            'DOMContentLoaded',
+            async () => {
+                document
+                    .querySelectorAll('.menu-btn')
+                    .forEach(boton => {
+                        boton.className = 'menu-btn ui-button flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white';
+                    });
+
+                lucide.createIcons();
+                construirChecksPermisos();
+                document.addEventListener('click',e=>{if(!e.target.closest('#pap-buscar')&&!e.target.closest('#pap-resultados'))document.getElementById('pap-resultados')?.classList.add('hidden');});
+                await cambiarModulo('dashboard', false);
+
+                const { data, error } = await _supabase.auth.getSession();
+
+                if (error) {
+                    mostrarToast(
+                        `No se pudo comprobar la sesión: ${error.message}`,
+                        'error'
+                    );
+                    return;
+                }
+
+                if (data.session) {
+                    try{
+                        await cargarPerfilPermisosActual(data.session.user);
+                        document.getElementById('user-email-display').innerText=data.session.user.email;
+                        document.getElementById('login-overlay').classList.add('hidden');
+                        await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
+                        await inicializarDashboard();
+                    }catch(perfilError){
+                        await _supabase.auth.signOut();
+                        perfilActualSistema=null;modulosPermitidosActuales=[];
+                        document.getElementById('login-overlay').classList.remove('hidden');
+                        const eb=document.getElementById('login-error');if(eb){eb.textContent=perfilError.message;eb.classList.remove('hidden');}
+                    }
+                }
+            }
+        );
+
+        _supabase.auth.onAuthStateChange(async(event)=>{if(event==='PASSWORD_RECOVERY'){const nueva=prompt('Escribe tu nueva clave (mínimo 8 caracteres):');if(!nueva)return;if(nueva.length<8)return mostrarToast('La clave debe tener al menos 8 caracteres.','warning');const repetir=prompt('Repite la nueva clave:');if(nueva!==repetir)return mostrarToast('Las claves no coinciden.','error');const {error}=await _supabase.auth.updateUser({password:nueva});if(error)mostrarToast(error.message,'error');else mostrarToast('Clave actualizada correctamente. Ya puedes iniciar sesión.','success',12000);}});
+
+        function togglePasswordVisibility(){const i=document.getElementById('login-pass'),e=document.getElementById('password-eye-icon');if(!i)return;const v=i.type==='text';i.type=v?'password':'text';if(e)e.setAttribute('data-lucide',v?'eye':'eye-off');lucide.createIcons();}
+        async function recuperarContrasena(){const email=document.getElementById('login-email')?.value.trim(),box=document.getElementById('login-error');box.classList.remove('hidden');if(!email){box.textContent='Ingresa tu correo corporativo.';return}const{error}=await _supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});box.textContent=error?error.message:'Revisa tu correo para continuar con la recuperación.';}
+        async function iniciarSesion(event) {
+            event.preventDefault();
+
+            const boton = document.getElementById('btn-login');
+            const errorBox = document.getElementById('login-error');
+
+            boton.disabled = true;
+            boton.textContent = 'Autenticando...';
+            errorBox.classList.add('hidden');
+
+            try {
+                const { data, error } = await _supabase.auth.signInWithPassword({
+                    email: document.getElementById('login-email').value.trim(),
+                    password: document.getElementById('login-pass').value
+                });
+
+                if (error) {
+                    throw error;
+                }
+
+                await cargarPerfilPermisosActual(data.user);
+                document.getElementById('user-email-display').innerText=data.user.email;
+                document.getElementById('login-overlay').classList.add('hidden');
+                await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
+                await inicializarDashboard();
+            } catch (error) {
+                try{await _supabase.auth.signOut();}catch(_){}
+                perfilActualSistema=null;modulosPermitidosActuales=[];
+                errorBox.textContent = error.message || 'Credenciales incorrectas.';
+                errorBox.classList.remove('hidden');
+            } finally {
+                boton.disabled = false;
+                boton.textContent = 'Ingresar al sistema';
+            }
+        }
+
+        async function cerrarSesion() {
+            const { error } = await _supabase.auth.signOut();
+
+            if (error) {
+                mostrarToast(error.message, 'error');
+                return;
+            }
+
+            perfilActualSistema=null;modulosPermitidosActuales=[];
+            modulos.forEach(nombre=>document.getElementById('btn-'+nombre)?.classList.remove('hidden'));
+            datosAsistenciaGlobal = [];
+            datosLicenciasGlobal = [];
+            asistenciaCargada = false;
+            licenciasCargadas = false;
+
+            document
+                .getElementById('login-overlay')
+                .classList
+                .remove('hidden');
+        }
+
+        // ============================================================
+        // NAVEGACIÓN
+        // ============================================================
+        async function cambiarModulo(modulo, cargar = true) {
+            if(perfilActualSistema&&!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para acceder a este apartado.','warning');const primero=modulos.find(nombre=>tienePermisoModulo(nombre));if(primero&&primero!==modulo)return cambiarModulo(primero,cargar);return;}
+            modulos.forEach(nombre => {
+                const boton = document.getElementById(`btn-${nombre}`);
+
+                if (boton) {
+                    boton.className = `menu-btn ui-button flex w-full items-center gap-3 rounded-lg px-3 py-2.5 ${nombre === modulo ? 'bg-simiRed font-semibold text-white' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'}`;
+                }
+
+                const vista = document.getElementById(`view-${nombre}`);
+
+                if (vista) {
+                    vista.classList.add('hidden');
+                }
+            });
+
+            document
+                .getElementById('view-generic')
+                .classList
+                .add('hidden');
+
+            document.getElementById('header-title').innerText =
+                titulos[modulo] || modulo;
+
+            const vista = document.getElementById(`view-${modulo}`);
+
+            if (vista) {
+                vista.classList.remove('hidden');
+            } else {
+                document
+                    .getElementById('view-generic')
+                    .classList
+                    .remove('hidden');
+
+                document.getElementById('generic-title').innerText =
+                    `${titulos[modulo]} - Módulo en desarrollo`;
+            }
+
+            toggleSidebar(false);
+            lucide.createIcons();
+
+            if (!cargar) {
+                return;
+            }
+
+            try {
+                if (modulo === 'reportes') await prepararFiltrosReportesRRHH();
+                if (modulo === 'colaboradores') {
+                    await cargarTablaColaboradores();
+                }
+
+                if (modulo === 'sucursales') {
+                    await cargarTablaSucursales();
+                }
+
+                if (modulo === 'asistencia') {
+                    if (!asistenciaCargada) {
+                        await cargarAsistenciaDesdeNube();
+                    } else {
+                        renderizarFiltrosAsistencia();
+                    }
+                }
+
+                if (modulo === 'licencias') {
+                    if (!licenciasCargadas) {
+                        await cargarLicenciasDesdeNube();
+                    } else {
+                        poblarFiltrosLicencias();
+                    }
+                }
+
+                if (modulo === 'vacaciones') {
+                    if (!vacacionesCargadas) await cargarVacacionesDesdeNube();
+                    else renderizarVacaciones();
+                }
+                if (modulo === 'papeletas') { await prepararModuloPapeletas(); await cargarPapeletas(); }
+                if (modulo === 'sucursales') await prepararMapaYConfiguracionSucursales();
+                if (modulo === 'correos') await prepararModuloCorreos();
+                if (modulo === 'amonestaciones') await prepararModuloCoberturas();
+                if (modulo === 'configcorreos') await prepararConfiguracionCorreos();
+                if (modulo === 'mapas') await prepararMapa14();
+                if (modulo === 'tareas') await prepararModuloTareas();
+                if (modulo === 'operaciones') await cargarCentroOperaciones();
+                if (modulo === 'calidad') await cargarPanelCalidad();
+                if (modulo === 'notificaciones') await cargarCentroNotificaciones();
+                if (modulo === 'integraciones') await cargarPanelIntegraciones();
+                if (modulo === 'usuarios') await cargarUsuariosRoles();
+                if (modulo === 'auditoria') await cargarAuditoria();
+            } catch (error) {
+                mostrarToast(error.message, 'error', 15000);
+            }
+        }
+
+
+
+
+        // ============================================================
+        // BUSCADOR GLOBAL · Navegación por teclado y permisos
+        // ============================================================
+        const etiquetasBusquedaGlobal={
+            dashboard:['inicio','resumen','indicadores','kpi'],
+            colaboradores:['personas','empleados','trabajadores','rut'],
+            sucursales:['locales','farmacias','directorio','direcciones'],
+            asistencia:['marcas','atrasos','entrada','salida','turnos'],
+            licencias:['licencias médicas','ausentismo','iméd','medipass'],
+            vacaciones:['feriado','descanso','solicitudes'],
+            papeletas:['permisos','documentos','papeleta'],
+            correos:['email','outlook','borradores','supervisores'],
+            amonestaciones:['coberturas','reemplazos','sucursal'],
+            reportes:['excel','csv','pdf','estadísticas','ia'],
+            usuarios:['roles','accesos','permisos'],
+            auditoria:['historial','trazabilidad','registro'],
+            configcorreos:['correos sucursales','destinatarios','cc'],
+            mapas:['distancia','ruta','kilómetros','gps'],
+            tareas:['pendientes','asignaciones','productividad','kpi'],
+            operaciones:['alertas','prioridades','vencimientos','centro de mando'],
+            calidad:['importaciones','errores','coordenadas','integridad'],
+            notificaciones:['avisos','sin leer','bandeja'],
+            integraciones:['talana','imed','supabase','vercel','gemini','outlook']
+        };
+        function abrirBuscadorGlobal(){
+            const ov=document.getElementById('global-search-overlay'),inp=document.getElementById('global-search-input');if(!ov||!inp)return;
+            ov.classList.remove('hidden');document.body.classList.add('search-open');inp.value='';renderBuscadorGlobal();setTimeout(()=>inp.focus(),30);
+        }
+        function cerrarBuscadorGlobal(){document.getElementById('global-search-overlay')?.classList.add('hidden');document.body.classList.remove('search-open');}
+        function renderBuscadorGlobal(){
+            const out=document.getElementById('global-search-results'),q=texto(document.getElementById('global-search-input')?.value).toLowerCase();if(!out)return;
+            const found=modulos.filter(m=>tienePermisoModulo(m)&&((String(titulos[m]||m)+' '+m+' '+(etiquetasBusquedaGlobal[m]||[]).join(' ')).toLowerCase().includes(q)));
+            out.innerHTML=found.length?found.map((m,i)=>'<button type="button" data-search-module="'+opsEsc(m)+'" onclick="navegarBuscadorGlobal(\''+opsEsc(m)+'\')" class="global-search-result '+(i===0?'selected':'')+'"><span class="global-search-result-icon"><i data-lucide="'+({dashboard:'layout-dashboard',colaboradores:'users',sucursales:'building-2',asistencia:'clock',licencias:'file-heart',vacaciones:'palmtree',papeletas:'file-text',correos:'mail',amonestaciones:'folder-alert',reportes:'chart-no-axes-combined',usuarios:'shield-check',auditoria:'history',configcorreos:'mail-cog',mapas:'map-pinned',tareas:'list-checks',operaciones:'gauge',calidad:'shield-check',notificaciones:'bell-ring',integraciones:'plug-zap'}[m]||'arrow-right')+'" class="h-4 w-4"></i></span><span class="min-w-0 flex-1"><strong class="block text-sm">'+opsEsc(titulos[m]||m)+'</strong><span class="mt-0.5 block text-xs text-slate-500">'+opsEsc((etiquetasBusquedaGlobal[m]||[]).slice(0,4).join(' · '))+'</span></span><i data-lucide="corner-down-left" class="h-4 w-4 text-slate-400"></i></button>').join(''):'<div class="p-8 text-center"><i data-lucide="search-x" class="mx-auto h-7 w-7 text-slate-300"></i><p class="mt-2 text-sm font-bold text-slate-600">No hay resultados</p><p class="mt-1 text-xs text-slate-400">Prueba con otro término o revisa tus permisos.</p></div>';
+            if(window.lucide)lucide.createIcons();
+        }
+        function moverBuscadorGlobal(delta){
+            const items=[...document.querySelectorAll('#global-search-results [data-search-module]')];if(!items.length)return;
+            const idx=items.indexOf(document.activeElement),next=(idx+delta+items.length)%items.length;items[next].focus();
+        }
+        function navegarBuscadorGlobal(modulo){if(!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para abrir este módulo.','warning');return;}cerrarBuscadorGlobal();cambiarModulo(modulo);}
+        document.addEventListener('keydown',function(e){
+            if((e.ctrlKey||e.metaKey)&&String(e.key).toLowerCase()==='k'){e.preventDefault();abrirBuscadorGlobal();return;}
+            const overlay=document.getElementById('global-search-overlay'),abierto=overlay&&!overlay.classList.contains('hidden');
+            if(e.key==='Escape'&&abierto){cerrarBuscadorGlobal();return;}
+            if(abierto&&e.target?.id!=='global-search-input'&&(e.key==='ArrowDown'||e.key==='ArrowUp')){e.preventDefault();moverBuscadorGlobal(e.key==='ArrowDown'?1:-1);}
+        });
+
+        // ============================================================
+        // NOTIFICACIONES · Bandeja personal con actualización segura
+        // ============================================================
+        let notificacionesCentroGlobal=[];
+        async function cargarCentroNotificaciones(){
+            const lista=document.getElementById('notif-lista');if(!lista)return;
+            lista.innerHTML='<p class="text-sm text-slate-500">Consultando tu bandeja...</p>';
+            const {data,error}=await _supabase.from('notificaciones').select('id,tipo,titulo,mensaje,entidad_tipo,entidad_id,leida,created_at,leida_at').order('created_at',{ascending:false}).limit(250);
+            if(error){lista.innerHTML='<div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">No se pudieron cargar las notificaciones: '+opsEsc(error.message)+'</div>';return;}
+            notificacionesCentroGlobal=data||[];renderizarCentroNotificaciones();
+            const stamp=document.getElementById('notif-actualizado');if(stamp)stamp.textContent='Actualizado '+new Date().toLocaleString('es-CL');
+        }
+        function renderizarCentroNotificaciones(){
+            const lista=document.getElementById('notif-lista'),k=document.getElementById('notif-kpis');if(!lista||!k)return;
+            const unread=notificacionesCentroGlobal.filter(x=>!x.leida).length,filter=document.getElementById('notif-filtro')?.value||'TODAS';
+            const rows=notificacionesCentroGlobal.filter(x=>filter==='TODAS'||(filter==='PENDIENTES'?!x.leida:!!x.leida));
+            const card=(t,v,d,ic)=>'<div class="ui-card p-5"><div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">'+opsEsc(t)+'</span><i data-lucide="'+ic+'" class="h-5 w-5 text-blue-600"></i></div><strong class="mt-3 block text-3xl font-black">'+opsEsc(v)+'</strong><p class="mt-1 text-xs text-slate-500">'+opsEsc(d)+'</p></div>';
+            k.innerHTML=card('Total cargadas',notificacionesCentroGlobal.length,'Máximo 250 más recientes','bell')+card('Sin leer',unread,'Requieren atención','bell-dot')+card('Leídas',notificacionesCentroGlobal.length-unread,'Avisos revisados','check-check');
+            const navBadge=document.getElementById('nav-notif-count');if(navBadge){navBadge.textContent=unread>99?'99+':String(unread);navBadge.classList.toggle('hidden',unread===0);}
+            lista.innerHTML=rows.length?rows.map(x=>'<article class="notif-item flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-start '+(!x.leida?'unread':'')+'"><span class="notif-symbol"><i data-lucide="'+(/error|urg|venc/i.test((x.tipo||'')+' '+(x.titulo||''))?'alert-triangle':'bell')+'" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm">'+opsEsc(x.titulo||'Notificación')+'</strong>'+(!x.leida?'<span class="notif-pill">Nueva</span>':'')+'</div><p class="mt-1 whitespace-pre-wrap text-sm text-slate-600">'+opsEsc(x.mensaje||'Sin detalle adicional')+'</p><p class="mt-2 text-xs text-slate-400">'+opsEsc(x.tipo||'Aviso')+' · '+opsEsc(x.created_at?new Date(x.created_at).toLocaleString('es-CL'):'Fecha no disponible')+'</p></div>'+(!x.leida?'<button type="button" class="notif-mark" onclick="marcarNotificacionLeida('+Number(x.id)+')"><i data-lucide="check" class="h-4 w-4"></i> Marcar leída</button>':'<span class="self-center text-xs text-slate-400">Leída</span>')+'</article>').join(''):'<div class="rounded-xl border border-dashed border-slate-300 p-8 text-center"><i data-lucide="bell-off" class="mx-auto h-8 w-8 text-slate-400"></i><p class="mt-3 font-bold text-slate-700">No hay notificaciones en esta vista</p><p class="mt-1 text-sm text-slate-500">Cuando se registren avisos para tu perfil, aparecerán aquí.</p></div>';
+            if(window.lucide)lucide.createIcons();
+        }
+        async function marcarNotificacionLeida(id){
+            const item=notificacionesCentroGlobal.find(x=>Number(x.id)===Number(id));if(!item||item.leida)return;
+            const {error}=await _supabase.from('notificaciones').update({leida:true,leida_at:new Date().toISOString()}).eq('id',id);
+            if(error){mostrarToast('No se pudo marcar la notificación: '+error.message,'error');return;}
+            item.leida=true;item.leida_at=new Date().toISOString();renderizarCentroNotificaciones();mostrarToast('Notificación marcada como leída.','success');
+        }
+        async function marcarTodasNotificacionesLeidas(){
+            const ids=notificacionesCentroGlobal.filter(x=>!x.leida).map(x=>x.id);if(!ids.length){mostrarToast('No hay notificaciones pendientes.','info');return;}
+            const ahora=new Date().toISOString();
+            const {error}=await _supabase.from('notificaciones').update({leida:true,leida_at:ahora}).in('id',ids);
+            if(error){mostrarToast('No se pudieron actualizar las notificaciones: '+error.message,'error');return;}
+            notificacionesCentroGlobal.forEach(x=>{if(ids.includes(x.id)){x.leida=true;x.leida_at=ahora;}});
+            renderizarCentroNotificaciones();mostrarToast('Todas las notificaciones visibles están leídas.','success');
+        }
+
+        // ============================================================
+        // INTEGRACIONES · No confundir presencia de código con conexión
+        // ============================================================
+        async function cargarPanelIntegraciones(){
+            if(!esAdminPrincipalActual()){mostrarToast('Este panel está reservado a la cuenta administradora principal.','warning');return;}
+            const k=document.getElementById('integ-kpis'),lista=document.getElementById('integ-lista');if(!k||!lista)return;
+            k.innerHTML='<div class="ui-card p-5">Comprobando...</div>'.repeat(4);lista.innerHTML='<p class="text-sm text-slate-500">Consultando estado de la plataforma...</p>';
+            let db={ok:false,count:null,error:null};
+            try{const r=await _supabase.from('sucursales').select('id',{count:'exact',head:true});db={ok:!r.error,count:r.count??0,error:r.error?.message||null};}catch(e){db={ok:false,count:null,error:e.message};}
+            const last=await _supabase.from('importaciones').select('id,modulo,estado,created_at,finalizada_at,filas_error,filas_rechazadas').order('created_at',{ascending:false}).limit(1);
+            const cards=[
+                {t:'Base de datos',v:db.ok?'Conectada':'No verificada',d:db.ok?db.count+' sucursales accesibles':'Consulta fallida',i:'database',state:db.ok?'ok':'warn'},
+                {t:'API de IA',v:'Ruta en proyecto',d:'Endpoint api/gemini.js; requiere validar secretos y respuesta en runtime',i:'brain-circuit',state:'info'},
+                {t:'Geocodificación',v:'Ruta en proyecto',d:'Endpoint api/geocodificar.js; proveedor externo sujeto a disponibilidad',i:'map-pinned',state:'info'},
+                {t:'Importaciones',v:last.error?'No disponible':(last.data?.length?'Con historial':'Sin historial'),d:last.error?'No se pudo consultar':(last.data?.[0]?'Último proceso: '+new Date(last.data[0].created_at).toLocaleString('es-CL'):'No hay procesos registrados'),i:'file-up',state:last.error?'warn':last.data?.length?'ok':'info'}
+            ];
+            k.innerHTML=cards.map(x=>'<div class="ui-card p-5"><div class="flex items-center justify-between gap-3"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">'+opsEsc(x.t)+'</span><i data-lucide="'+x.i+'" class="h-5 w-5 text-blue-600"></i></div><strong class="mt-3 block text-lg font-black text-slate-900">'+opsEsc(x.v)+'</strong><p class="mt-2 text-xs text-slate-500">'+opsEsc(x.d)+'</p></div>').join('');
+            const items=[
+                {name:'Supabase',type:'Base de datos',status:db.ok?'Verificada en vivo':'Error de consulta',detail:db.ok?'La sesión actual pudo consultar sucursales ('+db.count+' registros visibles).':db.error||'No se obtuvo una respuesta válida.',kind:db.ok?'ok':'warn'},
+                {name:'Vercel Functions · Gemini',type:'API backend',status:'Implementada en el repositorio',detail:'Existe api/gemini.js. La presencia del archivo no garantiza que la variable de entorno del proveedor esté configurada ni que el servicio responda.',kind:'info'},
+                {name:'Geocodificación',type:'API backend',status:'Implementada en el repositorio',detail:'Existe api/geocodificar.js. La resolución de direcciones depende del proveedor, los límites de uso y las coordenadas guardadas.',kind:'info'},
+                {name:'Talana',type:'Sistema externo',status:'Conector automático no identificado',detail:'No se encontró un endpoint dedicado de sincronización de Talana en el inventario de este proyecto. Requiere API oficial, permisos y credenciales de servidor.',kind:'warn'},
+                {name:'IMED / Medipass',type:'Sistema externo',status:'Conector automático no identificado',detail:'No se encontró un endpoint dedicado de sincronización de licencias IMED/Medipass en este proyecto. No debe considerarse sincronizado hasta probar un flujo real.',kind:'warn'},
+                {name:'Outlook',type:'Correo',status:'Exportación EML manual',detail:'La aplicación prepara archivos para abrir en Outlook; esto no confirma envío automático ni seguimiento de entrega.',kind:'info'},
+                {name:'Historial de importaciones',type:'Trazabilidad',status:last.error?'No disponible':(last.data?.length?'Última ejecución registrada':'Sin ejecuciones'),detail:last.error?last.error.message:(last.data?.[0]?'Módulo: '+(last.data[0].modulo||'—')+' · Estado: '+(last.data[0].estado||'—'):'Cuando se ejecuten importaciones, el historial aparecerá aquí.'),kind:last.error?'warn':last.data?.length?'ok':'info'}
+            ];
+            lista.innerHTML=items.map(x=>'<div class="integ-row flex flex-col gap-3 sm:flex-row sm:items-start"><span class="integ-status '+x.kind+'">'+opsEsc(x.status)+'</span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm">'+opsEsc(x.name)+'</strong><span class="text-xs text-slate-400">'+opsEsc(x.type)+'</span></div><p class="mt-1 text-sm text-slate-600">'+opsEsc(x.detail)+'</p></div></div>').join('');
+            const stamp=document.getElementById('integ-actualizado');if(stamp)stamp.textContent='Comprobado '+new Date().toLocaleString('es-CL');
+            if(window.lucide)lucide.createIcons();
+        }
+
+        // ============================================================
+        // CENTRO DE OPERACIONES · Indicadores limitados por permisos
+        // ============================================================
+        function opsEsc(v){return escaparHTML(v==null?'':String(v));}
+        function opsTiene(...permisos){return esAdminPrincipalActual()||permisos.some(p=>tienePermisoModulo(p));}
+        async function opsConsultar(tabla,campos,permisos,configurar){
+            if(!opsTiene(...permisos))return {disponible:false,data:[],count:null,error:null};
+            try{
+                let q=_supabase.from(tabla).select(campos||'id',{count:'exact'});
+                if(configurar)q=configurar(q);
+                const r=await q.limit(500);
+                if(r.error)return {disponible:false,data:[],count:null,error:r.error.message};
+                return {disponible:true,data:r.data||[],count:r.count??(r.data||[]).length,error:null};
+            }catch(e){return {disponible:false,data:[],count:null,error:e.message};}
+        }
+        async function opsContar(tabla,permisos,configurar){
+            if(!opsTiene(...permisos))return {disponible:false,count:null,error:null};
+            try{let q=_supabase.from(tabla).select('id',{count:'exact',head:true});if(configurar)q=configurar(q);const r=await q;return r.error?{disponible:false,count:null,error:r.error.message}:{disponible:true,count:r.count??0,error:null};}
+            catch(e){return {disponible:false,count:null,error:e.message};}
+        }
+        async function cargarCentroOperaciones(){
+            const kpis=document.getElementById('ops-kpis'),alertas=document.getElementById('ops-alertas'),accesos=document.getElementById('ops-accesos');
+            if(!kpis||!alertas||!accesos)return;
+            kpis.innerHTML='<div class="ui-card p-5"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>'.repeat(4);
+            alertas.innerHTML='<p class="text-sm text-slate-500">Consultando fuentes autorizadas...</p>';
+            const ahoraIso=new Date().toISOString();
+            const consultas=await Promise.all([
+                opsConsultar('tareas','id,titulo,estado,fecha_limite,prioridad,responsable:usuarios_roles!tareas_responsable_rol_id_fkey(nombre,email),sucursal:sucursales(nombre)',['tareas'],q=>q.order('fecha_limite',{ascending:true})),
+                opsConsultar('gestiones_correo','id,asunto,estado,plazo_respuesta,supervisor',['correos'],q=>q.order('plazo_respuesta',{ascending:true})),
+                opsConsultar('registros_asistencia','id,sin_marca,marca_incompleta,sin_turno_marcas',['asistencia','reportes'],q=>q.order('id',{ascending:false})),
+                opsConsultar('notificaciones','id,titulo,mensaje,leida,created_at',['tareas'],q=>q.eq('leida',false).order('created_at',{ascending:false})),
+                opsContar('tareas',['tareas'],q=>q.not('estado','in','("APROBADA","CANCELADA")')),
+                opsContar('tareas',['tareas'],q=>q.not('estado','in','("APROBADA","CANCELADA")').lt('fecha_limite',ahoraIso)),
+                opsContar('gestiones_correo',['correos'],q=>q.not('estado','in','("RESPONDIDO","CERRADO","CANCELADO")')),
+                opsContar('gestiones_correo',['correos'],q=>q.not('estado','in','("RESPONDIDO","CERRADO","CANCELADO")').lt('plazo_respuesta',ahoraIso)),
+                opsContar('registros_asistencia',['asistencia','reportes'],q=>q.or('sin_marca.eq.true,marca_incompleta.eq.true,sin_turno_marcas.eq.true')),
+                opsContar('notificaciones',['tareas'],q=>q.eq('leida',false))
+            ]);
+            const [t,c,a,n,tp,tv,cp,cv,incidencias,notificacionesSinLeer]=consultas,disponible=x=>x.disponible,now=new Date();
+            const tareas=t.data||[],tPend=tareas.filter(x=>!['APROBADA','CANCELADA'].includes(String(x.estado||'').toUpperCase())),tVenc=tPend.filter(x=>x.fecha_limite&&new Date(x.fecha_limite)<now);
+            const correos=c.data||[],cPend=correos.filter(x=>!['RESPONDIDO','CERRADO','CANCELADO'].includes(String(x.estado||'').toUpperCase())),cVenc=cPend.filter(x=>x.plazo_respuesta&&new Date(x.plazo_respuesta)<now);
+            const asist=a.data||[],sinMarca=incidencias.disponible?incidencias.count:null;
+            const notis=n.data||[];
+            const metricas=[
+                {label:'Tareas abiertas',value:tp.disponible?tp.count:'—',desc:tp.disponible?(tv.disponible?tv.count+' vencidas':'Plazos vencidos no disponibles'):'Sin permiso de tareas',icon:'list-checks',color:'blue',module:'tareas'},
+                {label:'Gestiones de correo abiertas',value:cp.disponible?cp.count:'—',desc:cp.disponible?(cv.disponible?cv.count+' con plazo vencido':'Plazos vencidos no disponibles'):'Sin permiso de correos',icon:'mail-clock',color:'cyan',module:'correos'},
+                {label:'Incidencias de asistencia',value:incidencias.disponible?incidencias.count:'—',desc:incidencias.disponible?'Marcas o turnos por revisar':'Sin permiso de asistencia',icon:'clock-alert',color:'amber',module:'asistencia'},
+                {label:'Notificaciones sin leer',value:notificacionesSinLeer.disponible?notificacionesSinLeer.count:'—',desc:notificacionesSinLeer.disponible?'Notificaciones visibles para tu usuario':'Sin permiso de tareas',icon:'bell-ring',color:'violet',module:'tareas'}
+            ];
+            kpis.innerHTML=metricas.map(m=>'<button type="button" '+(tienePermisoModulo(m.module)?'onclick="cambiarModulo(\''+m.module+'\')"':'disabled')+' class="ui-card ops-kpi text-left p-5"><div class="flex items-start justify-between gap-3"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">'+opsEsc(m.label)+'</span><span class="ops-icon '+m.color+'"><i data-lucide="'+m.icon+'" class="h-5 w-5"></i></span></div><strong class="mt-3 block text-3xl font-black text-slate-900">'+opsEsc(m.value)+'</strong><span class="mt-2 block text-xs text-slate-500">'+opsEsc(m.desc)+'</span></button>').join('');
+            const items=[];
+            tVenc.slice(0,5).forEach(x=>items.push({tipo:'Tarea vencida',titulo:x.titulo,detalle:(x.responsable?.nombre||x.responsable?.email||'Sin responsable')+' · '+(x.sucursal?.nombre||'Sin sucursal'),fecha:x.fecha_limite,modulo:'tareas',urgente:true}));
+            cVenc.slice(0,5).forEach(x=>items.push({tipo:'Correo fuera de plazo',titulo:x.asunto,detalle:x.supervisor||'Gestión de correo',fecha:x.plazo_respuesta,modulo:'correos',urgente:true}));
+            tPend.filter(x=>x.fecha_limite&&new Date(x.fecha_limite)>=now&&new Date(x.fecha_limite)-now<48*60*60*1000).slice(0,3).forEach(x=>items.push({tipo:'Tarea próxima a vencer',titulo:x.titulo,detalle:x.responsable?.nombre||x.responsable?.email||'Sin responsable',fecha:x.fecha_limite,modulo:'tareas',urgente:false}));
+            cPend.filter(x=>x.plazo_respuesta&&new Date(x.plazo_respuesta)>=now&&new Date(x.plazo_respuesta)-now<48*60*60*1000).slice(0,3).forEach(x=>items.push({tipo:'Respuesta próxima a vencer',titulo:x.asunto,detalle:x.supervisor||'Gestión de correo',fecha:x.plazo_respuesta,modulo:'correos',urgente:false}));
+            items.sort((x,y)=>new Date(x.fecha)-new Date(y.fecha));
+            alertas.innerHTML=items.length?items.slice(0,10).map(x=>'<button type="button" onclick="cambiarModulo(\''+x.modulo+'\')" class="ops-alert-row flex w-full items-start gap-3 rounded-xl p-3 text-left"><span class="ops-alert-dot '+(x.urgente?'urgent':'soon')+'"></span><span class="min-w-0 flex-1"><strong class="block truncate text-sm">'+opsEsc(x.titulo||x.tipo)+'</strong><span class="mt-1 block text-xs text-slate-500">'+opsEsc(x.tipo)+' · '+opsEsc(x.detalle)+'</span></span><span class="shrink-0 text-right text-xs '+(x.urgente?'text-rose-600':'text-amber-700')+'">'+opsEsc(new Date(x.fecha).toLocaleDateString('es-CL'))+'</span></button>').join(''):'<div class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-800"><strong>No se detectan vencimientos próximos en los datos consultados.</strong><p class="mt-1 text-xs">Si alguna fuente no está autorizada o no tiene datos, su indicador aparecerá como no disponible.</p></div>';
+            const links=[['Asistencia','clock','asistencia'],['Licencias','file-heart','licencias'],['Correos y seguimiento','mail','correos'],['Tareas diarias','list-checks','tareas'],['Reportes','chart-no-axes-combined','reportes'],['Mapa de sucursales','map-pinned','mapas']];
+            accesos.innerHTML=links.filter(x=>tienePermisoModulo(x[2])).map(x=>'<button type="button" onclick="cambiarModulo(\''+x[2]+'\')" class="ops-shortcut flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-left"><span class="ops-shortcut-icon"><i data-lucide="'+x[1]+'" class="h-4 w-4"></i></span><span class="flex-1 text-sm font-bold">'+opsEsc(x[0])+'</span><i data-lucide="arrow-up-right" class="h-4 w-4 text-slate-400"></i></button>').join('')||'<p class="text-sm text-slate-500">No hay accesos disponibles para los permisos actuales.</p>';
+            const stamp=document.getElementById('ops-actualizado');if(stamp)stamp.textContent='Actualizado '+now.toLocaleString('es-CL');
+            if(window.lucide)lucide.createIcons();
+        }
+
+        // ============================================================
+        // CALIDAD DE DATOS · Solo lectura y solo administrador principal
+        // ============================================================
+        async function calidadCount(tabla,configurar){
+            try{let q=_supabase.from(tabla).select('id',{count:'exact',head:true});if(configurar)q=configurar(q);const r=await q;return r.error?{ok:false,count:null,error:r.error.message}:{ok:true,count:r.count??0};}
+            catch(e){return {ok:false,count:null,error:e.message};}
+        }
+        async function cargarPanelCalidad(){
+            if(!esAdminPrincipalActual()){mostrarToast('Este panel está reservado para la cuenta administradora principal.','warning');return;}
+            const k=document.getElementById('calidad-kpis'),im=document.getElementById('calidad-importaciones'),h=document.getElementById('calidad-hallazgos');if(!k||!im||!h)return;
+            k.innerHTML='<div class="ui-card p-5">Revisando...</div>'.repeat(4);im.innerHTML='<p class="p-5 text-sm text-slate-500">Consultando historial...</p>';h.innerHTML='<p class="text-sm text-slate-500">Analizando...</p>';
+            const [suc,coords,asist,marcas,turnos,errs,imports]=await Promise.all([
+                calidadCount('sucursales'),
+                calidadCount('sucursales',q=>q.or('latitud.is.null,longitud.is.null')),
+                calidadCount('registros_asistencia'),
+                calidadCount('registros_asistencia',q=>q.eq('sin_marca',true)),
+                calidadCount('registros_asistencia',q=>q.eq('sin_turno_marcas',true)),
+                calidadCount('importaciones_errores'),
+                _supabase.from('importaciones').select('id,modulo,nombre_archivo,modo,estado,filas_totales,filas_nuevas,filas_actualizadas,filas_rechazadas,filas_error,usuario_email,created_at,finalizada_at').order('created_at',{ascending:false}).limit(12)
+            ]);
+            const card=(label,v,desc,icon)=>'<div class="ui-card p-5"><div class="flex items-center justify-between gap-3"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">'+opsEsc(label)+'</span><i data-lucide="'+icon+'" class="h-5 w-5 text-blue-600"></i></div><strong class="mt-3 block text-3xl font-black text-slate-900">'+opsEsc(v==null?'No disponible':Number(v).toLocaleString('es-CL'))+'</strong><span class="mt-2 block text-xs text-slate-500">'+opsEsc(desc)+'</span></div>';
+            k.innerHTML=card('Sucursales registradas',suc.ok?suc.count:null,'Registros disponibles','building-2')+card('Sucursales sin GPS completo',coords.ok?coords.count:null,'Requieren revisión de latitud y longitud','map-pin')+card('Marcas sin entrada registrada',marcas.ok?marcas.count:null,'Marcadas por el sistema como sin marca','clock-alert')+card('Sin turno asociado',turnos.ok?turnos.count:null,'Incidencias marcadas sin turno','calendar-x');
+            const hallazgos=[];
+            if(!coords.ok)hallazgos.push({nivel:'info',txt:'No se pudo consultar la integridad de coordenadas: '+coords.error});
+            else if(coords.count>0)hallazgos.push({nivel:'warn',txt:coords.count+' sucursales tienen latitud o longitud pendiente. Completa las coordenadas para mejorar el mapa.'});
+            else hallazgos.push({nivel:'ok',txt:'Todas las sucursales tienen latitud y longitud registradas.'});
+            if(!marcas.ok)hallazgos.push({nivel:'info',txt:'No se pudo contar incidencias de marcas: '+marcas.error});
+            else if(marcas.count>0)hallazgos.push({nivel:'warn',txt:marcas.count+' registros están marcados como sin marca; revisa el origen antes de regularizar.'});
+            if(!turnos.ok)hallazgos.push({nivel:'info',txt:'No se pudo contar incidencias sin turno: '+turnos.error});
+            else if(turnos.count>0)hallazgos.push({nivel:'warn',txt:turnos.count+' registros tienen la bandera sin turno; contrasta con la programación.'});
+            if(!errs.ok)hallazgos.push({nivel:'info',txt:'No se pudo consultar el historial de errores de importación: '+errs.error});
+            else if(errs.count>0)hallazgos.push({nivel:'warn',txt:errs.count+' errores de importación están registrados. Abre el historial y revisa las filas rechazadas.'});
+            if(imports.error)hallazgos.push({nivel:'info',txt:'No se pudo cargar el historial de importaciones: '+imports.error.message});
+            h.innerHTML=hallazgos.map(x=>'<div class="flex items-start gap-3 py-3"><span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full '+(x.nivel==='warn'?'bg-amber-500':x.nivel==='ok'?'bg-emerald-500':'bg-blue-500')+'"></span><p class="text-sm text-slate-700">'+opsEsc(x.txt)+'</p></div>').join('');
+            const rows=imports.data||[];
+            im.innerHTML=imports.error?'<p class="p-5 text-sm text-rose-600">'+opsEsc(imports.error.message)+'</p>':rows.length?'<table class="w-full min-w-[700px] text-left text-sm"><thead><tr><th>Fecha</th><th>Módulo</th><th>Archivo</th><th>Estado</th><th>Filas</th><th>Errores</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+opsEsc(x.created_at?new Date(x.created_at).toLocaleString('es-CL'):'—')+'</td><td>'+opsEsc(x.modulo)+'</td><td>'+opsEsc(x.nombre_archivo)+'</td><td><span class="rounded-full px-2 py-1 text-xs font-bold '+(/error|fall/i.test(x.estado||'')?'bg-rose-100 text-rose-700':/parcial|rechaz/i.test(x.estado||'')?'bg-amber-100 text-amber-700':'bg-emerald-100 text-emerald-700')+'">'+opsEsc(x.estado)+'</span></td><td>'+opsEsc(x.filas_totales)+'</td><td>'+opsEsc(Number(x.filas_error||0)+Number(x.filas_rechazadas||0))+'</td></tr>').join('')+'</tbody></table>':'<p class="p-5 text-sm text-slate-500">Todavía no hay importaciones registradas.</p>';
+            const stamp=document.getElementById('calidad-actualizado');if(stamp)stamp.textContent='Revisado '+new Date().toLocaleString('es-CL');
+            if(window.lucide)lucide.createIcons();
+        }
+
+        function mostrarFechasPersonalizadas() {
+            const personalizado = document.getElementById('dashboard-periodo')?.value === 'personalizado';
+            ['dashboard-fecha-desde-wrap', 'dashboard-fecha-hasta-wrap'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.toggle('hidden', !personalizado);
+            });
+        }
+
+        function obtenerRangoDashboard() {
+            const hoy = new Date();
+            const iso = fecha => {
+                const d = new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60000);
+                return d.toISOString().slice(0, 10);
+            };
+            const periodo = document.getElementById('dashboard-periodo')?.value || 'mes';
+            let desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+            let hasta = new Date(hoy);
+            if (periodo === '7' || periodo === '30' || periodo === '90') {
+                desde = new Date(hoy);
+                desde.setDate(desde.getDate() - (Number(periodo) - 1));
+                hasta = new Date(hoy);
+            } else if (periodo === 'personalizado') {
+                const valorDesde = document.getElementById('dashboard-fecha-desde')?.value;
+                const valorHasta = document.getElementById('dashboard-fecha-hasta')?.value;
+                if (!valorDesde || !valorHasta) throw new Error('Selecciona las fechas Desde y Hasta para calcular el rango personalizado.');
+                if (valorDesde > valorHasta) throw new Error('La fecha Desde no puede ser posterior a la fecha Hasta.');
+                return { desde: valorDesde, hasta: valorHasta, etiqueta: valorDesde + ' al ' + valorHasta };
+            }
+            return { desde: iso(desde), hasta: iso(hasta), etiqueta: iso(desde) + ' al ' + iso(hasta) };
+        }
+
+        async function actualizarIndicadoresAsistencia() {
+            const loading = document.getElementById('dashboard-indicadores-loading');
+            const errorBox = document.getElementById('dashboard-indicadores-error');
+            const periodoLabel = document.getElementById('dashboard-indicadores-periodo');
+            if (errorBox) { errorBox.classList.add('hidden'); errorBox.textContent = ''; }
+            if (loading) loading.classList.remove('hidden');
+
+            try {
+                const rango = obtenerRangoDashboard();
+                const sucursal = document.getElementById('dashboard-sucursal')?.value || '';
+                const contarAsistencia = (filtro) => {
+                    if(!esAdminPrincipalActual()&&!['asistencia','correos','reportes'].some(tienePermisoModulo))return Promise.resolve({count:0,error:null});
+                    let consulta = _supabase.from('registros_asistencia')
+                        .select('id', { count: 'exact', head: true })
+                        .gte('fecha', rango.desde).lte('fecha', rango.hasta);
+                    if (sucursal) consulta = consulta.eq('sucursal', sucursal);
+                    if (filtro) consulta = filtro(consulta);
+                    return consulta;
+                };
+                const hoy = new Date();
+                const isoHoy = new Date(hoy.getTime() - hoy.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+                const futuro = new Date(hoy);
+                futuro.setDate(futuro.getDate() + 7);
+                const isoFuturo = new Date(futuro.getTime() - futuro.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+                const contarLicencias = (filtro) => {
+                    if(!esAdminPrincipalActual()&&!['licencias','reportes'].some(tienePermisoModulo))return Promise.resolve({count:0,error:null});
+                    let consulta = _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true })
+                        .ilike('tipo_ausencia', '%licencia%');
+                    if (sucursal) consulta = consulta.eq('sucursal', sucursal);
+                    return filtro(consulta);
+                };
+                const respuestas = await Promise.all([
+                    contarAsistencia(),
+                    contarAsistencia(q => q.eq('tiene_atraso', true)),
+                    contarAsistencia(q => q.eq('marca_incompleta', true)),
+                    contarAsistencia(q => q.eq('sin_marca', true)),
+                    contarAsistencia(q => q.ilike('tipo_ausentismo', 'Falta injustificada')),
+                    contarAsistencia(q => q.eq('estado', 'Inexistente')),
+                    contarAsistencia(q => q.in('estado', ['Anomalía', 'En revisión'])),
+                    contarLicencias(q => q.lte('fecha_inicio', isoHoy).gte('fecha_fin', isoHoy)),
+                    contarLicencias(q => q.gte('fecha_fin', isoHoy).lte('fecha_fin', isoFuturo))
+                ]);
+                for (const respuesta of respuestas) {
+                    if (respuesta.error) throw respuesta.error;
+                }
+
+                const valores = [
+                    ['ind-total', respuestas[0].count],
+                    ['ind-atrasos', respuestas[1].count],
+                    ['ind-incompletas', respuestas[2].count],
+                    ['ind-sin-marca', respuestas[3].count],
+                    ['ind-faltas', respuestas[4].count],
+                    ['ind-inexistentes', respuestas[5].count],
+                    ['ind-anomalias', respuestas[6].count],
+                    ['ind-licencias-vigentes', respuestas[7].count],
+                    ['ind-licencias-proximas', respuestas[8].count]
+                ];
+                valores.forEach(([id, valor]) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = Number(valor ?? 0).toLocaleString('es-CL');
+                });
+                if (periodoLabel) periodoLabel.textContent = 'Período de asistencia: ' + rango.etiqueta + (sucursal ? ' · ' + sucursal : ' · Todas las sucursales');
+            } catch (error) {
+                if (errorBox) {
+                    errorBox.textContent = 'No se pudieron calcular los indicadores: ' + (error?.message || 'Error desconocido');
+                    errorBox.classList.remove('hidden');
+                }
+            } finally {
+                if (loading) loading.classList.add('hidden');
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        async function inicializarDashboard() {
+            const box = document.getElementById('connection-box');
+            if (!box) return;
+
+            box.className = 'rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600';
+            box.textContent = 'Consultando Supabase...';
+
+            try {
+                const puedeVerDatos=(...permisos)=>esAdminPrincipalActual()||permisos.some(p=>tienePermisoModulo(p));
+                const contarSiPermitido=async(tabla,permisos)=>{
+                    if(!puedeVerDatos(...permisos))return {count:0,data:[],error:null};
+                    return _supabase.from(tabla).select('id',{count:'exact',head:true});
+                };
+                const respuestas = await Promise.all([
+                    contarSiPermitido('colaboradores',['colaboradores','asistencia','licencias','vacaciones','papeletas','coberturas','reportes','tareas','correos']),
+                    contarSiPermitido('sucursales',['dashboard','sucursales','configcorreos','correos','mapas','coberturas','papeletas','asistencia','licencias','vacaciones','tareas','colaboradores','reportes']),
+                    contarSiPermitido('registros_asistencia',['asistencia','correos','reportes']),
+                    contarSiPermitido('licencias_medicas',['licencias','reportes']),
+                    puedeVerDatos('dashboard','sucursales','configcorreos','correos','mapas','coberturas','papeletas','asistencia','licencias','vacaciones','tareas','colaboradores','reportes')
+                        ? _supabase.from('sucursales').select('nombre').order('nombre')
+                        : Promise.resolve({data:[],error:null})
+                ]);
+
+                for (const respuesta of respuestas) {
+                    if (respuesta.error) throw respuesta.error;
+                }
+
+                const metricas = [
+                    { kpi: 'kpi-colaboradores', count: 'bar-count-colaboradores', bar: 'bar-colaboradores', valor: respuestas[0].count ?? 0 },
+                    { kpi: 'kpi-sucursales', count: 'bar-count-sucursales', bar: 'bar-sucursales', valor: respuestas[1].count ?? 0 },
+                    { kpi: 'kpi-asistencia', count: 'bar-count-asistencia', bar: 'bar-asistencia', valor: respuestas[2].count ?? 0 },
+                    { kpi: 'kpi-licencias', count: 'bar-count-licencias', bar: 'bar-licencias', valor: respuestas[3].count ?? 0 }
+                ];
+                const maximo = Math.max(1, ...metricas.map(m => Number(m.valor) || 0));
+                metricas.forEach(m => {
+                    const kpi = document.getElementById(m.kpi);
+                    const contador = document.getElementById(m.count);
+                    const barra = document.getElementById(m.bar);
+                    if (kpi) kpi.innerText = Number(m.valor).toLocaleString('es-CL');
+                    if (contador) contador.innerText = Number(m.valor).toLocaleString('es-CL');
+                    if (barra) barra.style.width = Math.max(0, Math.min(100, (Number(m.valor) / maximo) * 100)) + '%';
+                });
+
+                const sucursalSelect = document.getElementById('dashboard-sucursal');
+                if (sucursalSelect && sucursalSelect.options.length <= 1) {
+                    (respuestas[4].data || []).forEach(item => {
+                        if (!item.nombre) return;
+                        const option = document.createElement('option');
+                        option.value = item.nombre;
+                        option.textContent = item.nombre;
+                        sucursalSelect.appendChild(option);
+                    });
+                }
+                box.className = 'rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800';
+                box.textContent = 'Base de datos conectada y disponible. Los indicadores se actualizaron correctamente.';
+                const actualizado = document.getElementById('dashboard-updated-at');
+                if (actualizado) actualizado.textContent = 'Última actualización: ' + new Date().toLocaleString('es-CL');
+                mostrarFechasPersonalizadas();
+                await actualizarIndicadoresAsistencia();
+                if (window.lucide) lucide.createIcons();
+            } catch (error) {
+                box.className = 'rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800';
+                box.textContent = 'No se pudieron actualizar los indicadores: ' + (error?.message || 'Error de conexión');
+                const actualizado = document.getElementById('dashboard-updated-at');
+                if (actualizado) actualizado.textContent = 'Actualización fallida. Intenta nuevamente.';
+            }
+        }
+
+        // El supervisor se obtiene del directorio oficial de sucursales.
+        // No se modifica el histórico cuando no existe una coincidencia segura.
+        let mapaSupervisoresDirectorio = null;
+        let cargaMapaSupervisoresDirectorio = null;
+        function claveSucursalDirectorio(valor) {
+            return String(valor || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim()
+                .replace(/\s+/g, ' ');
+        }
+        async function obtenerMapaSupervisoresDirectorio() {
+            if (mapaSupervisoresDirectorio) return mapaSupervisoresDirectorio;
+            if (!cargaMapaSupervisoresDirectorio) {
+                cargaMapaSupervisoresDirectorio = (async () => {
+                    const { data, error } = await _supabase
+                        .from('sucursales')
+                        .select('nombre,supervisor');
+                    if (error) throw errorSupabase('No se pudo cargar el directorio de sucursales', error);
+                    const mapa = new Map();
+                    (data || []).forEach(item => {
+                        const clave = claveSucursalDirectorio(item.nombre);
+                        if (clave) mapa.set(clave, texto(item.supervisor) || 'Sin supervisor asignado');
+                    });
+                    mapaSupervisoresDirectorio = mapa;
+                    return mapa;
+                })();
+            }
+            try { return await cargaMapaSupervisoresDirectorio; }
+            catch (error) { cargaMapaSupervisoresDirectorio = null; throw error; }
+        }
+        function supervisorDeSucursal(nombre) {
+            const clave = claveSucursalDirectorio(nombre);
+            if (!clave) return 'Sin sucursal';
+            if (!mapaSupervisoresDirectorio) return 'Directorio no cargado';
+            return mapaSupervisoresDirectorio.get(clave) || 'No figura en directorio';
+        }
+
