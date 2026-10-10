@@ -3196,12 +3196,12 @@
         }
         async function prepararModuloTareas(){
             const [usuarios,sucursales] = await Promise.all([
-                _supabase.from('usuarios_roles').select('id,nombre,email,activo,puede_asignar_tareas,puede_revisar_tareas').eq('activo',true).order('nombre'),
+                _supabase.from('usuarios_roles').select('id,nombre,email,rol,activo,puede_asignar_tareas,puede_revisar_tareas').eq('activo',true).order('nombre'),
                 obtenerSucursalesConfig()
             ]);
             if(usuarios.error) throw usuarios.error;
             const activos=usuarios.data||[];
-            const responsables=activos.filter(u=>u.puede_asignar_tareas || ['ADMIN','RRHH'].includes(u.rol));
+            const responsables=activos;
             const revisores=activos.filter(u=>u.puede_revisar_tareas || ['ADMIN','RRHH'].includes(u.rol));
             const opt=(u)=>`<option value="${u.id}">${escaparHTML(u.nombre||u.email)} · ${escaparHTML(u.email||'')}</option>`;
             document.getElementById('tarea-responsable').innerHTML='<option value="">Selecciona responsable</option>'+responsables.map(opt).join('');
@@ -3249,9 +3249,9 @@
             const terminadas=tareasGlobal.filter(x=>x.estado_calculado==='APROBADA');
             document.getElementById('tk-cumplimiento').innerText=(terminadas.length?Math.round(100*terminadas.filter(x=>new Date(x.updated_at||x.created_at)<=new Date(x.fecha_limite)).length/terminadas.length):0)+'%';
             const porUsuario=new Map();
-            tareasGlobal.forEach(t=>{const id=String(t.responsable_rol_id||'sin-asignar'),nombre=t.responsable?.nombre||t.responsable?.email||'Sin responsable';if(!porUsuario.has(id))porUsuario.set(id,{nombre,total:0,aprobadas:0,pendientes:0,vencidas:0,validar:0});const k=porUsuario.get(id);k.total++;if(t.estado_calculado==='APROBADA')k.aprobadas++;if(['PENDIENTE','EN_PROCESO'].includes(t.estado_calculado))k.pendientes++;if(t.estado_calculado==='VENCIDA')k.vencidas++;if(t.estado_calculado==='COMPLETADA_POR_VALIDAR')k.validar++;});
+            tareasGlobal.forEach(t=>{const id=String(t.responsable_rol_id||'sin-asignar'),nombre=t.responsable?.nombre||t.responsable?.email||'Sin responsable';if(!porUsuario.has(id))porUsuario.set(id,{id,nombre,total:0,aprobadas:0,pendientes:0,vencidas:0,validar:0});const k=porUsuario.get(id);k.total++;if(t.estado_calculado==='APROBADA')k.aprobadas++;if(['PENDIENTE','EN_PROCESO'].includes(t.estado_calculado))k.pendientes++;if(t.estado_calculado==='VENCIDA')k.vencidas++;if(t.estado_calculado==='COMPLETADA_POR_VALIDAR')k.validar++;});
             const kpi=document.getElementById('tabla-kpi-usuarios');
-            kpi.innerHTML=porUsuario.size?[...porUsuario.values()].sort((a,b)=>b.total-a.total).map(u=>{const pct=u.total?Math.round(100*u.aprobadas/u.total):0;return `<div class="kpi-persona-row rounded-xl border border-slate-100 p-3"><div><b class="block text-sm text-slate-800">${escaparHTML(u.nombre)}</b><span class="text-xs text-slate-500">${u.total} tarea(s) asignadas</span><div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full ${pct>=80?'bg-emerald-500':pct>=50?'bg-amber-500':'bg-rose-500'}" style="width:${pct}%"></div></div></div><div><span class="block text-[11px] text-slate-500">Aprobadas</span><b class="text-lg text-emerald-700">${u.aprobadas}</b></div><div><span class="block text-[11px] text-slate-500">Pendientes</span><b class="text-lg">${u.pendientes}</b></div><div><span class="block text-[11px] text-slate-500">Vencidas</span><b class="text-lg ${u.vencidas?'text-rose-700':''}">${u.vencidas}</b></div><div><span class="block text-[11px] text-slate-500">Cumplimiento</span><b class="text-lg">${pct}%</b><span class="block text-[10px] text-slate-400">${u.validar} por validar</span></div></div>`}).join(''):'<p class="p-4 text-sm text-slate-500">Todavía no hay tareas asignadas. Crea una tarea para empezar a medir.</p>';
+            kpi.innerHTML=porUsuario.size?[...porUsuario.values()].sort((a,b)=>b.total-a.total).map(u=>{const medibles=tareasGlobal.filter(t=>String(t.responsable_rol_id||'sin-asignar')===u.id&&t.estado_calculado!=='CANCELADA').length;const pct=medibles?Math.round(100*u.aprobadas/medibles):0;return `<div class="kpi-persona-row rounded-xl border border-slate-100 p-3"><div><b class="block text-sm text-slate-800">${escaparHTML(u.nombre)}</b><span class="text-xs text-slate-500">${u.total} tarea(s) asignadas</span><div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full ${pct>=80?'bg-emerald-500':pct>=50?'bg-amber-500':'bg-rose-500'}" style="width:${pct}%"></div></div></div><div><span class="block text-[11px] text-slate-500">Aprobadas</span><b class="text-lg text-emerald-700">${u.aprobadas}</b></div><div><span class="block text-[11px] text-slate-500">Pendientes</span><b class="text-lg">${u.pendientes}</b></div><div><span class="block text-[11px] text-slate-500">Vencidas</span><b class="text-lg ${u.vencidas?'text-rose-700':''}">${u.vencidas}</b></div><div><span class="block text-[11px] text-slate-500">Cumplimiento</span><b class="text-lg">${pct}%</b><span class="block text-[10px] text-slate-400">${u.validar} por validar</span></div></div>`}).join(''):'<p class="p-4 text-sm text-slate-500">Todavía no hay tareas asignadas. Crea una tarea para empezar a medir.</p>';
             document.getElementById('tabla-tareas').innerHTML=f.length?f.map(t=>`<tr><td><b>${escaparHTML(t.titulo)}</b><br><span class="text-xs text-slate-500">${escaparHTML(t.descripcion)}</span></td><td>${escaparHTML(t.responsable?.nombre||t.responsable?.email||'Sin asignar')}</td><td>${escaparHTML(t.revisor?.nombre||t.revisor?.email||'—')}</td><td><span class="rounded-full px-2 py-1 text-xs font-bold ${t.prioridad==='URGENTE'?'bg-rose-100 text-rose-800':t.prioridad==='ALTA'?'bg-amber-100 text-amber-800':'bg-slate-100 text-slate-700'}">${escaparHTML(t.prioridad)}</span></td><td>${new Date(t.fecha_limite).toLocaleString('es-CL')}</td><td><span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-bold">${t.estado_calculado}</span></td><td><select aria-label="Cambiar estado de tarea" class="form-field min-w-40" onchange="cambiarEstadoTarea(${t.id},this.value)"><option value="">Actualizar estado…</option><option>EN_PROCESO</option><option>COMPLETADA_POR_VALIDAR</option><option>APROBADA</option><option>DEVUELTA</option><option>CANCELADA</option></select></td></tr>`).join(''):'<tr><td colspan="7" class="p-8 text-center text-sm text-slate-500">No hay tareas para estos filtros.</td></tr>';
         }
         async function cambiarEstadoTarea(id,estado){if(!estado)return;const motivo=['DEVUELTA','CANCELADA'].includes(estado)?prompt('Indica el motivo del cambio:')||'Sin motivo':'';const {data:{session}}=await _supabase.auth.getSession();const {error}=await _supabase.from('tareas').update({estado,updated_at:new Date().toISOString()}).eq('id',id);if(error)return mostrarToast(error.message,'error');await _supabase.from('tareas_eventos').insert([{tarea_id:id,accion:'CAMBIO_ESTADO',estado_nuevo:estado,usuario_email:session?.user?.email||'',detalle:motivo}]);await cargarTareas();}
@@ -3284,7 +3284,7 @@
         }
         function establecerPeriodoCorreos(dias) {
             const hoy=new Date(),hasta=new Date(hoy),desde=new Date(hoy);
-            desde.setDate(desde.getDate()-Number(dias||0));
+            desde.setDate(desde.getDate()-Math.max(0,Number(dias||0)-1));
             const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
             document.getElementById('correo-desde').value=iso(desde);document.getElementById('correo-hasta').value=iso(hasta);
         }
@@ -3401,7 +3401,7 @@
                 const cambios = {};
                 tarjeta.querySelectorAll('[data-campo]').forEach(x => cambios[x.dataset.campo] = x.value.trim());
                 const correo = cambios.correo_sucursal || '';
-                if (correo && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(correo)) return mostrarToast(`Revisa el correo principal de ${tarjeta.querySelector('h4')?.textContent || 'la sucursal'}.`, 'warning');
+                if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return mostrarToast(`Revisa el correo principal de ${tarjeta.querySelector('h4')?.textContent || 'la sucursal'}.`, 'warning');
                 const { error } = await _supabase.from('sucursales').update(cambios).eq('id', tarjeta.dataset.id);
                 if (error) return mostrarToast(error.message, 'error');
             }
