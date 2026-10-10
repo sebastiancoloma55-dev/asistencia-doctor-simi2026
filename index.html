@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-holidays@3.37.0/dist/umd.min.js"></script>
@@ -4240,7 +4241,7 @@ body{overflow-x:hidden}
     var address=[op.dataset.direccion,op.dataset.comuna,op.dataset.nombre,'Chile'].filter(Boolean).join(', ');
     if(!address)return false;
     try{
-      var r=await fetch('/api/geocodificar?direccion='+encodeURIComponent(address));
+      var r=await fetch('/api/geocodificar?direccion='+encodeURIComponent([op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', '))+'&nombre='+encodeURIComponent(op.dataset.nombre||'')+'&comuna='+encodeURIComponent(op.dataset.comuna||''));
       if(!r.ok)return false;
       var j=await r.json();
       if(!Number.isFinite(Number(j.latitud))||!Number.isFinite(Number(j.longitud)))return false;
