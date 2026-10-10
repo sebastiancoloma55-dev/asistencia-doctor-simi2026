@@ -10,6 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-holidays@3.37.0/dist/umd.min.js"></script>
 
     <script>
@@ -355,7 +357,7 @@ body{overflow-x:hidden}
 .map-canvas-heading strong{display:block;color:#0f3550;font-size:14px;font-weight:850}
 .map-canvas-heading span{display:block;margin-top:3px;color:#64748b;font-size:11px}
 .map-live-pill{white-space:nowrap;border:1px solid #c9e6f4;background:#fff;border-radius:999px;padding:6px 10px;color:#087c9d!important;font-weight:800}
-#mapa14-frame.map-frame{display:block;width:100%;height:clamp(380px,58vw,650px);border:0;background:#eaf1f7}
+#mapa14-frame.map-frame{display:block;width:100%;height:clamp(380px,58vw,650px);border:0;background:#eaf1f7;z-index:1}
 .map-canvas-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;color:#64748b;font-size:11px;background:#fbfdff}
 .map-canvas-footer a{color:#087c9d;font-weight:800;text-decoration:underline}
 .selector-checkbox-list-2026{max-height:260px;overflow:auto;padding:0 8px 8px}
@@ -1375,7 +1377,7 @@ body{overflow-x:hidden}
             <section id="view-mapas" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro"><span class="module-kicker">Punto 14 · Traslados</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Mapa, rutas y distancias</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Selecciona las sucursales de origen y destino. Se priorizan las coordenadas guardadas; si faltan, se usa la dirección registrada. Google Maps calcula la ruta según el medio de transporte.</p><div class="mt-4 grid gap-3 sm:grid-cols-3"><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 1</span><b class="mt-1 block text-sm">Origen</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 2</span><b class="mt-1 block text-sm">Destino y transporte</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 3</span><b class="mt-1 block text-sm">Ver ruta y distancia</b></div></div></div>
                 <div class="ui-card grid grid-cols-1 gap-4 p-5 lg:grid-cols-4"><div><label class="text-xs font-bold text-slate-600" for="map14-buscar-origen">1. Buscar sucursal de origen</label><input id="map14-buscar-origen" type="search" class="form-field mt-1" placeholder="Escribe nombre o comuna…" autocomplete="off"><select id="map14-origen" class="form-field mt-2"><option value="">Selecciona el origen</option></select><p class="mt-1 text-[11px] text-slate-500">Escribe para filtrar las sucursales.</p></div><div><label class="text-xs font-bold text-slate-600" for="map14-buscar-destino">2. Buscar sucursal de destino</label><input id="map14-buscar-destino" type="search" class="form-field mt-1" placeholder="Escribe nombre o comuna…" autocomplete="off"><select id="map14-destino" class="form-field mt-2"><option value="">Selecciona el destino</option></select><p class="mt-1 text-[11px] text-slate-500">Elige una sucursal distinta del origen.</p></div><div><label class="text-xs font-bold text-slate-600">Medio de transporte</label><select id="map14-modo" class="form-field mt-1"><option value="d">🚗 Auto</option><option value="r">🚌 Transporte público</option><option value="w">🚶 Caminando</option></select></div><div class="flex flex-wrap items-end gap-2"><button onclick="mostrarRutaMapa14()" class="corp-button min-h-11 flex-1"><i data-lucide="route" class="mr-2 inline h-4 w-4"></i>Ver ruta</button><button onclick="buscarCoordenadasPorDireccion()" class="corp-button-dark min-h-11" title="Buscar coordenadas faltantes"><i data-lucide="map-pin" class="inline h-4 w-4"></i></button></div></div>
-                <div class="ui-card overflow-hidden p-3 sm:p-4"><div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ruta seleccionada</p><div id="mapa14-resumen" class="mt-1 text-sm font-bold text-slate-800">Selecciona origen, destino y medio de transporte.</div><p class="mt-1 text-xs text-slate-500">Estimaciones orientativas calculadas desde el GPS; el recorrido real y el tiempo pueden variar. Google Maps muestra la ruta para navegación.</p></div><a id="mapa14-externo" target="_blank" rel="noopener noreferrer" class="corp-button-dark hidden">Abrir Google Maps <i data-lucide="external-link" class="ml-1 inline h-4 w-4"></i></a></div><div class="map-canvas-shell"><div class="map-canvas-heading"><div><strong>Vista del mapa</strong><span id="mapa14-status">Selecciona dos sucursales y pulsa “Ver ruta”.</span></div><span class="map-live-pill"><i data-lucide="map" class="inline h-3 w-3"></i> Mapa interactivo</span></div><iframe id="mapa14-frame" title="Mapa de ruta entre sucursales" class="map-frame" loading="eager" referrerpolicy="no-referrer-when-downgrade"></iframe><div class="map-canvas-footer"><span>Si Google Maps no permite incrustar la ruta en esta ventana, utiliza el botón de apertura directa.</span><a id="mapa14-fallback-link" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Abrir mapa en otra pestaña ↗</a></div></div></div>
+                <div class="ui-card overflow-hidden p-3 sm:p-4"><div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ruta seleccionada</p><div id="mapa14-resumen" class="mt-1 text-sm font-bold text-slate-800">Selecciona origen, destino y medio de transporte.</div><p class="mt-1 text-xs text-slate-500">Estimaciones orientativas calculadas desde el GPS; el recorrido real y el tiempo pueden variar. Google Maps muestra la ruta para navegación.</p></div><a id="mapa14-externo" target="_blank" rel="noopener noreferrer" class="corp-button-dark hidden">Abrir Google Maps <i data-lucide="external-link" class="ml-1 inline h-4 w-4"></i></a></div><div class="map-canvas-shell"><div class="map-canvas-heading"><div><strong>Vista del mapa</strong><span id="mapa14-status">Selecciona dos sucursales y pulsa “Ver ruta”.</span></div><span class="map-live-pill"><i data-lucide="map" class="inline h-3 w-3"></i> Mapa interactivo</span></div><div id="mapa14-frame" role="application" aria-label="Mapa interactivo de ruta entre sucursales" class="map-frame"></div><div class="map-canvas-footer"><span>Si Google Maps no permite incrustar la ruta en esta ventana, utiliza el botón de apertura directa.</span><a id="mapa14-fallback-link" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Abrir mapa en otra pestaña ↗</a></div></div></div>
             </section>
 
             <!-- TAREAS DIARIAS -->
@@ -3777,12 +3779,9 @@ body{overflow-x:hidden}
             const travelmode = modo === 'w' ? 'walking' : modo === 'r' ? 'transit' : 'driving';
             const externo = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origen)}&destination=${encodeURIComponent(destino)}&travelmode=${travelmode}`;
             const frame=document.getElementById('mapa14-frame');
-            const embed = `https://www.google.com/maps?output=embed&saddr=${encodeURIComponent(origen)}&daddr=${encodeURIComponent(destino)}&dirflg=${modo}`;
-            frame.src = embed; frame.dataset.rutaCargada = '1';
-            frame.style.display='block';
+            frame.dataset.rutaCargada = '1';
             frame.setAttribute('title',`Mapa de ruta: ${nombreOrigen} a ${nombreDestino}`);
-            const mapaStatus=document.getElementById('mapa14-status');if(mapaStatus)mapaStatus.textContent='Cargando mapa de Google Maps…';
-            frame.onload=()=>{if(mapaStatus)mapaStatus.textContent='Mapa listo. Si no aparece, abre la ruta directamente en Google Maps.';};
+            const mapaStatus=document.getElementById('mapa14-status');if(mapaStatus)mapaStatus.textContent='Buscando coordenadas y calculando la ruta…';
             const enlace = document.getElementById('mapa14-externo');
             enlace.href = externo; enlace.classList.remove('hidden');
             const fallback=document.getElementById('mapa14-fallback-link');if(fallback)fallback.href=externo;
@@ -4191,33 +4190,28 @@ body{overflow-x:hidden}
   window.inicializarDashboard=async function(){await loadPermissions();var result=await originalInit.apply(this,arguments);maskDashboardKpis();return result;};
   }
   var originalRoute=window.mostrarRutaMapa14;
-  function estimateRoute(){
-    var a=document.getElementById('map14-origen'),b=document.getElementById('map14-destino'),m=document.getElementById('map14-modo'),summary=document.getElementById('mapa14-resumen');
-    if(!a||!b||!m||!summary||!a.value||!b.value)return;
-    var box=document.getElementById('mapa14-estimacion-2026');
-    if(!box){box=document.createElement('div');box.id='mapa14-estimacion-2026';box.className='map-estimate-2026';summary.parentNode.insertAdjacentElement('afterend',box);}
-    function coord(v,op){
-      if(op&&op.dataset.lat!==''&&op.dataset.lon!==''){
-        var dl=Number(op.dataset.lat),dn=Number(op.dataset.lon);
-        if(Number.isFinite(dl)&&Number.isFinite(dn)&&Math.abs(dl)<=90&&Math.abs(dn)<=180&&(dl!==0||dn!==0))return{lat:dl,lon:dn};
-      }
-      var p=String(v).split(',');if(p.length!==2)return null;
-      var lat=Number(p[0]),lon=Number(p[1]);
-      return Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0)?{lat:lat,lon:lon}:null;
-    }
-    var p1=coord(a.value,a.selectedOptions[0]),p2=coord(b.value,b.selectedOptions[0]);
-    if(!p1||!p2){box.innerHTML='<div><strong>Estimación no disponible todavía</strong><span>No se pudieron localizar las coordenadas de ambas sucursales. La ruta se abre por dirección en Google Maps; revisa que la dirección y comuna estén completas.</span></div>';return;}
-    function rad(n){return n*Math.PI/180;}
-    var dLat=rad(p2.lat-p1.lat),dLon=rad(p2.lon-p1.lon),h=Math.pow(Math.sin(dLat/2),2)+Math.cos(rad(p1.lat))*Math.cos(rad(p2.lat))*Math.pow(Math.sin(dLon/2),2);
-    var direct=6371*2*Math.asin(Math.min(1,Math.sqrt(h))),mode=m.value,factor=mode==='w'?1.2:mode==='r'?1.3:1.25,speed=mode==='w'?4.5:mode==='r'?22:35;
-    var route=direct*factor,min=Math.max(1,Math.round(route/speed*60)),max=Math.max(min+3,Math.round(min*1.35)),fmt=function(n){return n.toLocaleString('es-CL',{maximumFractionDigits:1});};
-    box.innerHTML='<div><strong>'+fmt(direct)+' km</strong><span>Distancia en línea recta según GPS</span></div><div><strong>'+fmt(route)+' km aprox.</strong><span>Recorrido estimado por calles; puede variar</span></div><div><strong>'+min+'–'+max+' min</strong><span>Tiempo orientativo; confirma en Google Maps</span></div>';
+  var mapaRutaLeaflet=null,capaRutaLeaflet=null,marcadoresRutaLeaflet=[];
+  function asegurarMapaLeaflet(){var el=document.getElementById('mapa14-frame');if(!el||!window.L)return null;if(!mapaRutaLeaflet){mapaRutaLeaflet=L.map(el,{scrollWheelZoom:true}).setView([-33.45,-70.66],5);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(mapaRutaLeaflet);}setTimeout(function(){if(mapaRutaLeaflet)mapaRutaLeaflet.invalidateSize();},150);return mapaRutaLeaflet;}
+  async function estimateRoute(){
+    var a=document.getElementById('map14-origen'),b=document.getElementById('map14-destino'),m=document.getElementById('map14-modo'),summary=document.getElementById('mapa14-resumen');if(!a||!b||!m||!summary||!a.value||!b.value)return;
+    var box=document.getElementById('mapa14-estimacion-2026');if(!box){box=document.createElement('div');box.id='mapa14-estimacion-2026';box.className='map-estimate-2026';summary.parentNode.insertAdjacentElement('afterend',box);}
+    function coord(op){var lat=Number(op&&op.dataset.lat),lon=Number(op&&op.dataset.lon);return Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0)?{lat:lat,lon:lon}:null;}
+    var p1=coord(a.selectedOptions[0]),p2=coord(b.selectedOptions[0]);if(!p1||!p2){box.innerHTML='<div><strong>Faltan coordenadas</strong><span>No pudimos ubicar ambas sucursales. Completa dirección y comuna o pulsa el botón de buscar coordenadas.</span></div>';var st=document.getElementById('mapa14-status');if(st)st.textContent='Faltan coordenadas para dibujar la ruta. También puedes abrir Google Maps.';return;}
+    function rad(n){return n*Math.PI/180;}var dlat=rad(p2.lat-p1.lat),dlon=rad(p2.lon-p1.lon),h=Math.pow(Math.sin(dlat/2),2)+Math.cos(rad(p1.lat))*Math.cos(rad(p2.lat))*Math.pow(Math.sin(dlon/2),2),direct=6371*2*Math.asin(Math.min(1,Math.sqrt(h))),mode=m.value,route=direct*1.25,min=Math.max(1,Math.round(route/(mode==='w'?4.5:mode==='r'?22:35)*60)),max=Math.max(min+3,Math.round(min*1.35)),coords=[[p1.lat,p1.lon],[p2.lat,p2.lon]],label='estimación orientativa';
+    if(mode==='d'){try{var response=await fetch('https://router.project-osrm.org/route/v1/driving/'+p1.lon+','+p1.lat+';'+p2.lon+','+p2.lat+'?overview=full&geometries=geojson');if(response.ok){var data=await response.json(),r=data.routes&&data.routes[0];if(data.code==='Ok'&&r){route=r.distance/1000;min=Math.max(1,Math.round(r.duration/60));max=Math.max(min+2,Math.round(min*1.15));coords=r.geometry.coordinates.map(c=>[c[1],c[0]]);label='distancia por ruta vial';}}}catch(e){}}
+    var fmt=n=>n.toLocaleString('es-CL',{maximumFractionDigits:1});box.innerHTML='<div><strong>'+fmt(direct)+' km</strong><span>Distancia en línea recta</span></div><div><strong>'+fmt(route)+' km aprox.</strong><span>'+label+'</span></div><div><strong>'+min+'–'+max+' min</strong><span>Tiempo orientativo; confirma en Google Maps</span></div>';
+    var map=asegurarMapaLeaflet(),status=document.getElementById('mapa14-status');if(!map){if(status)status.textContent='No se pudo cargar el mapa interactivo. Abre la ruta en Google Maps.';return;}
+    if(capaRutaLeaflet)map.removeLayer(capaRutaLeaflet);marcadoresRutaLeaflet.forEach(x=>map.removeLayer(x));marcadoresRutaLeaflet=[];
+    capaRutaLeaflet=L.polyline(coords,{color:'#009bb5',weight:5,opacity:.9}).addTo(map);
+    marcadoresRutaLeaflet.push(L.marker([p1.lat,p1.lon]).addTo(map).bindPopup('Origen: '+(a.selectedOptions[0].dataset.nombre||a.selectedOptions[0].textContent)));
+    marcadoresRutaLeaflet.push(L.marker([p2.lat,p2.lon]).addTo(map).bindPopup('Destino: '+(b.selectedOptions[0].dataset.nombre||b.selectedOptions[0].textContent)));
+    map.fitBounds(capaRutaLeaflet.getBounds().pad(.18));setTimeout(()=>map.invalidateSize(),180);if(status)status.textContent='Mapa y recorrido dibujados. Para navegación paso a paso, abre Google Maps.';
   }
   async function geocodificarOpcionMapa14(op){
     if(!op)return false;
     var lat=Number(op.dataset.lat),lon=Number(op.dataset.lon);
     if(Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0))return true;
-    var address=[op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', ');
+    var address=[op.dataset.direccion,op.dataset.comuna,op.dataset.nombre,'Chile'].filter(Boolean).join(', ');
     if(!address)return false;
     try{
       var r=await fetch('/api/geocodificar?direccion='+encodeURIComponent(address));
