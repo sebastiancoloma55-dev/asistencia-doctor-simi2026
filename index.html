@@ -1847,20 +1847,33 @@ body.search-open{overflow:hidden}
   window.actualizarContadoresSelectores2026=updateSelectorCounts;
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
   var allowed=new Set(['dashboard']);
-  var moduleNames=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas'];
+  var moduleNames=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
+  var allModulePermissions=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
   function permissionName(m){return m==='amonestaciones'?'coberturas':m;}
+  function isGlobalAdmin(profile,user){
+    var role=String(profile&&profile.rol||'').trim().toUpperCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[\\s-]+/g,'_');
+    return String(user&&user.email||'').trim().toLowerCase()===adminEmail || !!(profile&&profile.acceso_global===true) || ['ADMIN','ADMINISTRADOR','SUPERADMIN','SUPER_ADMIN','ADMIN_PRINCIPAL'].includes(role);
+  }
   function paintPermissions(){moduleNames.forEach(function(m){var b=document.getElementById('btn-'+m);if(b)b.classList.toggle('permission-hidden-2026',!allowed.has(permissionName(m)));});}
   async function loadPermissions(){
     var sessionResult=await _supabase.auth.getSession();var user=sessionResult.data&&sessionResult.data.session&&sessionResult.data.session.user;
     if(!user){allowed=new Set(['dashboard']);paintPermissions();return;}
-    if(String(user.email||'').toLowerCase()===adminEmail){allowed=new Set(['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas']);paintPermissions();return;}
     try{
-      var result=await _supabase.from('usuarios_roles').select('email,permisos,activo,acceso_global').eq('email',String(user.email||'').toLowerCase()).maybeSingle();
+      var result=await _supabase.from('usuarios_roles').select('email,permisos,activo,acceso_global,rol').eq('email',String(user.email||'').trim().toLowerCase()).maybeSingle();
       if(result.error)throw result.error;
       var profile=result.data;
+      if(String(user.email||'').trim().toLowerCase()===adminEmail){
+        if(profile&&profile.activo===false)throw new Error('La cuenta administradora está desactivada.');
+        allowed=new Set(allModulePermissions);paintPermissions();return;
+      }
       if(!profile||profile.activo===false){allowed=new Set(['dashboard']);paintPermissions();if(window.mostrarToast)mostrarToast('Tu usuario no tiene un perfil activo. Contacta al administrador.','warning',10000);return;}
-      allowed=new Set(profile.acceso_global?['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas']:Array.isArray(profile.permisos)?profile.permisos:[]);
-      allowed.add('dashboard');paintPermissions();
+      if(isGlobalAdmin(profile,user)){
+        allowed=new Set(allModulePermissions);
+      }else{
+        allowed=new Set(Array.isArray(profile.permisos)?profile.permisos:[]);
+        allowed.add('dashboard');
+      }
+      paintPermissions();
     }catch(e){allowed=new Set(['dashboard']);paintPermissions();if(window.mostrarToast)mostrarToast('No se pudieron verificar tus permisos. Por seguridad, solo queda habilitado el Dashboard.','error',12000);}
   }
   var originalChange=window.cambiarModulo;
