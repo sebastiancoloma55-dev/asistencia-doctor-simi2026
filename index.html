@@ -629,6 +629,58 @@
                     </div>
                     <p id="dashboard-updated-at" class="mt-4 text-right text-[11px] text-slate-400">Datos pendientes de actualización</p>
                 </div>
+
+                <!-- INDICADORES EJECUTIVOS DE ASISTENCIA Y AUSENTISMO -->
+                <div class="ui-card p-5 sm:p-6">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                            <h3 class="text-lg font-extrabold text-slate-900">Indicadores de asistencia y ausentismo</h3>
+                            <p class="mt-1 text-sm text-slate-500">Métricas calculadas desde los registros de asistencia y licencias médicas.</p>
+                        </div>
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:min-w-[520px]">
+                            <label class="text-xs font-semibold text-slate-600">Período
+                                <select id="dashboard-periodo" class="form-field mt-1" onchange="mostrarFechasPersonalizadas()">
+                                    <option value="mes">Mes actual</option>
+                                    <option value="7">Últimos 7 días</option>
+                                    <option value="30">Últimos 30 días</option>
+                                    <option value="90">Últimos 90 días</option>
+                                    <option value="personalizado">Rango personalizado</option>
+                                </select>
+                            </label>
+                            <label class="text-xs font-semibold text-slate-600">Sucursal
+                                <select id="dashboard-sucursal" class="form-field mt-1">
+                                    <option value="">Todas las sucursales</option>
+                                </select>
+                            </label>
+                            <label id="dashboard-fecha-desde-wrap" class="hidden text-xs font-semibold text-slate-600">Desde
+                                <input id="dashboard-fecha-desde" type="date" class="form-field mt-1">
+                            </label>
+                            <label id="dashboard-fecha-hasta-wrap" class="hidden text-xs font-semibold text-slate-600">Hasta
+                                <input id="dashboard-fecha-hasta" type="date" class="form-field mt-1">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex flex-wrap items-center gap-3">
+                        <button type="button" onclick="actualizarIndicadoresAsistencia()" class="ui-button inline-flex items-center gap-2 rounded-lg bg-simiRed px-4 py-2.5 text-sm font-bold text-white hover:opacity-90">
+                            <i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i> Calcular indicadores
+                        </button>
+                        <span id="dashboard-indicadores-periodo" class="text-xs text-slate-500">Período: mes actual</span>
+                    </div>
+                    <div id="dashboard-indicadores-error" class="mt-4 hidden rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700" role="alert"></div>
+                    <div id="dashboard-indicadores-loading" class="mt-4 hidden rounded-lg bg-slate-50 p-4 text-sm text-slate-500">Calculando indicadores con la base de datos...</div>
+                    <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                        <div class="rounded-xl border border-slate-200 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Registros de asistencia</p><p id="ind-total" class="mt-2 text-3xl font-black text-slate-900">--</p><p class="mt-1 text-xs text-slate-500">En el período seleccionado</p></div>
+                        <div class="rounded-xl border border-amber-200 bg-amber-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-amber-800">Registros con atraso</p><p id="ind-atrasos" class="mt-2 text-3xl font-black text-amber-700">--</p><p class="mt-1 text-xs text-slate-500">Marcados como atraso en la fuente</p></div>
+                        <div class="rounded-xl border border-orange-200 bg-orange-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-orange-800">Marcas incompletas</p><p id="ind-incompletas" class="mt-2 text-3xl font-black text-orange-700">--</p><p class="mt-1 text-xs text-slate-500">Requieren revisión</p></div>
+                        <div class="rounded-xl border border-rose-200 bg-rose-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-rose-800">Registros sin marca</p><p id="ind-sin-marca" class="mt-2 text-3xl font-black text-rose-700">--</p><p class="mt-1 text-xs text-slate-500">Incluye ausencias justificadas y por revisar</p></div>
+                        <div class="rounded-xl border border-red-200 bg-red-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-red-800">Faltas injustificadas</p><p id="ind-faltas" class="mt-2 text-3xl font-black text-red-700">--</p><p class="mt-1 text-xs text-slate-500">Según tipo de ausentismo registrado</p></div>
+                        <div class="rounded-xl border border-slate-200 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Estado inexistente</p><p id="ind-inexistentes" class="mt-2 text-3xl font-black text-slate-900">--</p><p class="mt-1 text-xs text-slate-500">Registros con estado “Inexistente”</p></div>
+                        <div class="rounded-xl border border-violet-200 bg-violet-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-violet-800">Anomalías / en revisión</p><p id="ind-anomalias" class="mt-2 text-3xl font-black text-violet-700">--</p><p class="mt-1 text-xs text-slate-500">Pendientes de análisis de asistencia</p></div>
+                        <div class="rounded-xl border border-cyan-200 bg-cyan-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-cyan-800">Licencias vigentes hoy</p><p id="ind-licencias-vigentes" class="mt-2 text-3xl font-black text-cyan-800">--</p><p class="mt-1 text-xs text-slate-500">Licencias cuya fecha cubre hoy</p></div>
+                        <div class="rounded-xl border border-blue-200 bg-blue-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-blue-800">Licencias que terminan pronto</p><p id="ind-licencias-proximas" class="mt-2 text-3xl font-black text-blue-800">--</p><p class="mt-1 text-xs text-slate-500">Terminan dentro de los próximos 7 días</p></div>
+                    </div>
+                    <p class="mt-4 text-xs leading-5 text-slate-500">Nota: estos valores cuentan registros, no personas únicas. Los registros sin marca no equivalen automáticamente a faltas injustificadas; esa categoría se calcula por separado según el campo de ausentismo.</p>
+                </div>
             </section>
 
             <!-- COLABORADORES -->
@@ -1926,6 +1978,105 @@
             }
         }
 
+        function mostrarFechasPersonalizadas() {
+            const personalizado = document.getElementById('dashboard-periodo')?.value === 'personalizado';
+            ['dashboard-fecha-desde-wrap', 'dashboard-fecha-hasta-wrap'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.toggle('hidden', !personalizado);
+            });
+        }
+
+        function obtenerRangoDashboard() {
+            const hoy = new Date();
+            const iso = fecha => {
+                const d = new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60000);
+                return d.toISOString().slice(0, 10);
+            };
+            const periodo = document.getElementById('dashboard-periodo')?.value || 'mes';
+            let desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+            let hasta = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+            if (periodo === '7' || periodo === '30' || periodo === '90') {
+                desde = new Date(hoy);
+                desde.setDate(desde.getDate() - (Number(periodo) - 1));
+                hasta = new Date(hoy);
+            } else if (periodo === 'personalizado') {
+                const valorDesde = document.getElementById('dashboard-fecha-desde')?.value;
+                const valorHasta = document.getElementById('dashboard-fecha-hasta')?.value;
+                if (!valorDesde || !valorHasta) throw new Error('Selecciona las fechas Desde y Hasta para calcular el rango personalizado.');
+                if (valorDesde > valorHasta) throw new Error('La fecha Desde no puede ser posterior a la fecha Hasta.');
+                return { desde: valorDesde, hasta: valorHasta, etiqueta: valorDesde + ' al ' + valorHasta };
+            }
+            return { desde: iso(desde), hasta: iso(hasta), etiqueta: iso(desde) + ' al ' + iso(hasta) };
+        }
+
+        async function actualizarIndicadoresAsistencia() {
+            const loading = document.getElementById('dashboard-indicadores-loading');
+            const errorBox = document.getElementById('dashboard-indicadores-error');
+            const periodoLabel = document.getElementById('dashboard-indicadores-periodo');
+            if (errorBox) { errorBox.classList.add('hidden'); errorBox.textContent = ''; }
+            if (loading) loading.classList.remove('hidden');
+
+            try {
+                const rango = obtenerRangoDashboard();
+                const sucursal = document.getElementById('dashboard-sucursal')?.value || '';
+                const contarAsistencia = (filtro) => {
+                    let consulta = _supabase.from('registros_asistencia')
+                        .select('id', { count: 'exact', head: true })
+                        .gte('fecha', rango.desde).lte('fecha', rango.hasta);
+                    if (sucursal) consulta = consulta.eq('sucursal', sucursal);
+                    if (filtro) consulta = filtro(consulta);
+                    return consulta;
+                };
+                const hoy = new Date();
+                const isoHoy = new Date(hoy.getTime() - hoy.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+                const futuro = new Date(hoy);
+                futuro.setDate(futuro.getDate() + 7);
+                const isoFuturo = new Date(futuro.getTime() - futuro.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+                const respuestas = await Promise.all([
+                    contarAsistencia(),
+                    contarAsistencia(q => q.eq('tiene_atraso', true)),
+                    contarAsistencia(q => q.eq('marca_incompleta', true)),
+                    contarAsistencia(q => q.eq('sin_marca', true)),
+                    contarAsistencia(q => q.ilike('tipo_ausentismo', 'Falta injustificada')),
+                    contarAsistencia(q => q.eq('estado', 'Inexistente')),
+                    contarAsistencia(q => q.in('estado', ['Anomalía', 'En revisión'])),
+                    _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true })
+                        .ilike('tipo_ausencia', '%licencia%').lte('fecha_inicio', isoHoy).gte('fecha_fin', isoHoy),
+                    _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true })
+                        .ilike('tipo_ausencia', '%licencia%').gte('fecha_fin', isoHoy).lte('fecha_fin', isoFuturo)
+                ]);
+                for (const respuesta of respuestas) {
+                    if (respuesta.error) throw respuesta.error;
+                }
+
+                const valores = [
+                    ['ind-total', respuestas[0].count],
+                    ['ind-atrasos', respuestas[1].count],
+                    ['ind-incompletas', respuestas[2].count],
+                    ['ind-sin-marca', respuestas[3].count],
+                    ['ind-faltas', respuestas[4].count],
+                    ['ind-inexistentes', respuestas[5].count],
+                    ['ind-anomalias', respuestas[6].count],
+                    ['ind-licencias-vigentes', respuestas[7].count],
+                    ['ind-licencias-proximas', respuestas[8].count]
+                ];
+                valores.forEach(([id, valor]) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = Number(valor ?? 0).toLocaleString('es-CL');
+                });
+                if (periodoLabel) periodoLabel.textContent = 'Período de asistencia: ' + rango.etiqueta + (sucursal ? ' · ' + sucursal : ' · Todas las sucursales');
+            } catch (error) {
+                if (errorBox) {
+                    errorBox.textContent = 'No se pudieron calcular los indicadores: ' + (error?.message || 'Error desconocido');
+                    errorBox.classList.remove('hidden');
+                }
+            } finally {
+                if (loading) loading.classList.add('hidden');
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
         async function inicializarDashboard() {
             const box = document.getElementById('connection-box');
             if (!box) return;
@@ -1938,7 +2089,8 @@
                     _supabase.from('colaboradores').select('id', { count: 'exact', head: true }),
                     _supabase.from('sucursales').select('id', { count: 'exact', head: true }),
                     _supabase.from('registros_asistencia').select('id', { count: 'exact', head: true }),
-                    _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true })
+                    _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true }),
+                    _supabase.from('sucursales').select('nombre').order('nombre')
                 ]);
 
                 for (const respuesta of respuestas) {
@@ -1946,13 +2098,12 @@
                 }
 
                 const metricas = [
-                    { clave: 'colaboradores', kpi: 'kpi-colaboradores', count: 'bar-count-colaboradores', bar: 'bar-colaboradores', valor: respuestas[0].count ?? 0 },
-                    { clave: 'sucursales', kpi: 'kpi-sucursales', count: 'bar-count-sucursales', bar: 'bar-sucursales', valor: respuestas[1].count ?? 0 },
-                    { clave: 'asistencia', kpi: 'kpi-asistencia', count: 'bar-count-asistencia', bar: 'bar-asistencia', valor: respuestas[2].count ?? 0 },
-                    { clave: 'licencias', kpi: 'kpi-licencias', count: 'bar-count-licencias', bar: 'bar-licencias', valor: respuestas[3].count ?? 0 }
+                    { kpi: 'kpi-colaboradores', count: 'bar-count-colaboradores', bar: 'bar-colaboradores', valor: respuestas[0].count ?? 0 },
+                    { kpi: 'kpi-sucursales', count: 'bar-count-sucursales', bar: 'bar-sucursales', valor: respuestas[1].count ?? 0 },
+                    { kpi: 'kpi-asistencia', count: 'bar-count-asistencia', bar: 'bar-asistencia', valor: respuestas[2].count ?? 0 },
+                    { kpi: 'kpi-licencias', count: 'bar-count-licencias', bar: 'bar-licencias', valor: respuestas[3].count ?? 0 }
                 ];
                 const maximo = Math.max(1, ...metricas.map(m => Number(m.valor) || 0));
-
                 metricas.forEach(m => {
                     const kpi = document.getElementById(m.kpi);
                     const contador = document.getElementById(m.count);
@@ -1962,10 +2113,22 @@
                     if (barra) barra.style.width = Math.max(0, Math.min(100, (Number(m.valor) / maximo) * 100)) + '%';
                 });
 
+                const sucursalSelect = document.getElementById('dashboard-sucursal');
+                if (sucursalSelect && sucursalSelect.options.length <= 1) {
+                    (respuestas[4].data || []).forEach(item => {
+                        if (!item.nombre) return;
+                        const option = document.createElement('option');
+                        option.value = item.nombre;
+                        option.textContent = item.nombre;
+                        sucursalSelect.appendChild(option);
+                    });
+                }
                 box.className = 'rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800';
                 box.textContent = 'Base de datos conectada y disponible. Los indicadores se actualizaron correctamente.';
                 const actualizado = document.getElementById('dashboard-updated-at');
                 if (actualizado) actualizado.textContent = 'Última actualización: ' + new Date().toLocaleString('es-CL');
+                mostrarFechasPersonalizadas();
+                await actualizarIndicadoresAsistencia();
                 if (window.lucide) lucide.createIcons();
             } catch (error) {
                 box.className = 'rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800';
