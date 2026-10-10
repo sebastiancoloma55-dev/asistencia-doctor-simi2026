@@ -38,7 +38,8 @@ for (const file of jsFiles) {
   catch (error) { fail(`Sintaxis en ${path.relative(root, file)}: ${error.stderr?.toString() || error.message}`); }
 }
 
-const buttons = new Set([...html.matchAll(/id=["']btn-([^"']+)["']/g)].map(match => match[1]).filter(id => id !== 'login'));
+const navHtml = html.match(/<nav\\b[^>]*>([\\s\\S]*?)<\\/nav>/i)?.[1] || '';
+const buttons = new Set([...navHtml.matchAll(/id=["']btn-([^"']+)["']/g)].map(match => match[1]));
 const views = new Set([...html.matchAll(/id=["']view-([^"']+)["']/g)].map(match => match[1]).filter(id => id !== 'generic'));
 for (const id of buttons) if (!views.has(id)) fail(`El botón btn-${id} no tiene view-${id}.`);
 for (const id of views) if (!buttons.has(id)) fail(`La vista view-${id} no tiene botón de navegación.`);
