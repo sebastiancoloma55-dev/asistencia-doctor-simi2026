@@ -115,8 +115,19 @@
         .text-simiNavy { color:var(--brand-secondary)!important; }
         .corp-button { background:var(--brand-primary); color:white; border-radius:.55rem; padding:.65rem 1rem; font-weight:700; }
         .corp-button-dark { background:var(--brand-secondary); color:white; border-radius:.55rem; padding:.65rem 1rem; font-weight:700; }
-        .map-frame { width:100%; height:430px; border:0; border-radius:.75rem; background:#e2e8f0; }
+        .map-frame { display:block; width:100%; height:clamp(360px, 62vh, 680px); border:1px solid #dbe3ee; border-radius:1rem; background:#eef2f7; }
         .mail-card { border-left:4px solid var(--brand-primary); }
+        .ui-card { transition: box-shadow .18s ease, border-color .18s ease; }
+        .ui-card:focus-within { border-color:#cbd5e1; }
+        .module-intro { background:linear-gradient(135deg,#fff 0%,#f8fafc 100%); border:1px solid #e2e8f0; border-radius:1rem; padding:1.25rem; }
+        .module-kicker { display:inline-flex; align-items:center; gap:.4rem; border-radius:999px; background:#fff1f2; color:#be123c; padding:.3rem .65rem; font-size:.7rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+        .helper-note { border:1px solid #bfdbfe; background:#eff6ff; color:#1e40af; border-radius:.75rem; padding:.85rem 1rem; font-size:.8rem; line-height:1.5; }
+        .config-sucursal-card { border:1px solid #e2e8f0; border-radius:1rem; padding:1rem; background:#fff; min-width:0; }
+        .config-sucursal-card:focus-within { box-shadow:0 0 0 3px rgba(227,24,55,.08); border-color:#fda4af; }
+        .kpi-persona-row { display:grid; grid-template-columns:minmax(180px,1.4fr) repeat(4,minmax(80px,.7fr)); gap:.6rem; align-items:center; }
+        @media(max-width:700px){ .kpi-persona-row { grid-template-columns:1fr 1fr; } .kpi-persona-row > :first-child { grid-column:1/-1; } }
+        .mail-step { display:flex; gap:.65rem; align-items:flex-start; }
+        .mail-step-num { display:grid; place-items:center; flex:0 0 1.65rem; height:1.65rem; border-radius:999px; background:#002B49; color:white; font-size:.75rem; font-weight:800; }
         /* LOGIN INTERACTIVO DOCTOR SIMI */
         #login-overlay.login-overlay-modern.hidden { display: none !important; }
         #login-overlay.login-overlay-modern {
@@ -1157,17 +1168,17 @@
 
             <!-- CORREOS DE ASISTENCIA -->
             <section id="view-correos" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="ui-card p-5">
-                    <h3 class="section-title">Borradores masivos de asistencia</h3>
-                    <p class="mt-1 text-xs text-slate-500">Selecciona el periodo, las sucursales o supervisores y los tipos de incumplimiento. El sistema agrupa cada correo y deja destinatario, copia, asunto, detalle y firma preparados para Outlook.</p>
+                <div class="module-intro">
+                    <div class="flex flex-wrap items-start justify-between gap-3"><div><span class="module-kicker">Punto 8 · Asistente de correo</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Preparar correos de asistencia</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Elige el período y los casos que necesitas revisar. El sistema agrupa los incumplimientos por sucursal o supervisor y prepara los borradores para que los revises antes de abrir Outlook.</p></div><div class="rounded-xl bg-white p-3 text-xs text-slate-500 shadow-sm"><b class="block text-slate-800">Flujo simple</b> 1. Filtrar · 2. Revisar · 3. Abrir borradores</div></div>
+                    <div class="mt-4 grid gap-3 md:grid-cols-3"><div class="mail-step"><span class="mail-step-num">1</span><div><b class="text-sm">Define el período</b><p class="text-xs text-slate-500">Usa hoy o los últimos 7 días.</p></div></div><div class="mail-step"><span class="mail-step-num">2</span><div><b class="text-sm">Selecciona los casos</b><p class="text-xs text-slate-500">Puedes incluir todas las sucursales o elegir algunas.</p></div></div><div class="mail-step"><span class="mail-step-num">3</span><div><b class="text-sm">Revisa antes de enviar</b><p class="text-xs text-slate-500">Se abren borradores; no se envían automáticamente.</p></div></div></div>
                 </div>
                 <div class="ui-card grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
-                    <div><label class="text-xs font-semibold">Desde</label><input id="correo-desde" type="date" class="form-field"></div>
-                    <div><label class="text-xs font-semibold">Hasta</label><input id="correo-hasta" type="date" class="form-field"></div>
+                    <div><label class="text-xs font-semibold">Desde</label><input id="correo-desde" type="date" class="form-field"><div class="mt-2 flex flex-wrap gap-1"><button type="button" onclick="establecerPeriodoCorreos(0)" class="rounded-md border px-2 py-1 text-[11px] font-bold">Hoy</button><button type="button" onclick="establecerPeriodoCorreos(7)" class="rounded-md border px-2 py-1 text-[11px] font-bold">7 días</button><button type="button" onclick="establecerPeriodoCorreos(30)" class="rounded-md border px-2 py-1 text-[11px] font-bold">30 días</button></div></div>
+                    <div><label class="text-xs font-semibold">Hasta</label><input id="correo-hasta" type="date" class="form-field"><p class="mt-2 text-[11px] text-slate-500">El rango se incluye completo.</p></div>
                     <div><label class="text-xs font-semibold">Atraso desde (minutos)</label><input id="correo-min-atraso" type="number" min="0" value="1" class="form-field"></div>
                     <div><label class="text-xs font-semibold">Agrupar borradores por</label><select id="correo-agrupar" class="form-field"><option value="SUCURSAL">Sucursal</option><option value="SUPERVISOR">Supervisor</option></select></div>
-                    <div class="lg:col-span-2"><label class="text-xs font-semibold">Sucursales</label><select id="correo-sucursales" multiple class="form-field h-36"></select><p class="mt-1 text-[11px] text-slate-500">Ctrl + clic permite escoger varias. Sin selección considera todas.</p></div>
-                    <div class="lg:col-span-2"><label class="text-xs font-semibold">Supervisores</label><select id="correo-supervisores" multiple class="form-field h-36"></select><p class="mt-1 text-[11px] text-slate-500">Sin selección considera todos.</p></div>
+                    <div class="lg:col-span-2"><div class="mb-1 flex items-center justify-between gap-2"><label class="text-xs font-semibold">Sucursales</label><div class="flex gap-1"><button type="button" onclick="seleccionarFiltroCorreo('correo-sucursales',true)" class="text-[11px] font-bold text-simiRed">Todas</button><button type="button" onclick="seleccionarFiltroCorreo('correo-sucursales',false)" class="text-[11px] font-bold text-slate-500">Ninguna</button></div></div><select id="correo-sucursales" multiple class="form-field h-32"></select><p class="mt-1 text-[11px] text-slate-500">Si no seleccionas ninguna, se incluyen todas.</p></div>
+                    <div class="lg:col-span-2"><div class="mb-1 flex items-center justify-between gap-2"><label class="text-xs font-semibold">Supervisores</label><div class="flex gap-1"><button type="button" onclick="seleccionarFiltroCorreo('correo-supervisores',true)" class="text-[11px] font-bold text-simiRed">Todos</button><button type="button" onclick="seleccionarFiltroCorreo('correo-supervisores',false)" class="text-[11px] font-bold text-slate-500">Ninguno</button></div></div><select id="correo-supervisores" multiple class="form-field h-32"></select><p class="mt-1 text-[11px] text-slate-500">Si no seleccionas ninguno, se incluyen todos.</p></div>
                     <div class="lg:col-span-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
                         <label class="rounded-lg border p-3 text-xs"><input id="correo-t-atraso" type="checkbox" checked> Atrasos</label>
                         <label class="rounded-lg border p-3 text-xs"><input id="correo-t-temprana" type="checkbox" checked> Salidas anticipadas</label>
@@ -1181,7 +1192,9 @@
                         <button onclick="abrirBorradoresMasivos()" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white">Abrir borradores seleccionados</button>
                     </div>
                 </div>
+                <div id="correo-resumen-resultados" class="hidden grid grid-cols-2 gap-3 sm:grid-cols-3"><div class="ui-card p-4"><span class="text-xs text-slate-500">Borradores preparados</span><b id="correo-resumen-borradores" class="mt-1 block text-2xl">0</b></div><div class="ui-card p-4"><span class="text-xs text-slate-500">Casos detectados</span><b id="correo-resumen-casos" class="mt-1 block text-2xl">0</b></div><div class="ui-card p-4"><span class="text-xs text-slate-500">Sin destinatario</span><b id="correo-resumen-sin-destino" class="mt-1 block text-2xl">0</b></div></div>
                 <div id="lista-borradores" class="space-y-4"></div>
+                <div class="helper-note">Los borradores se abren en Outlook para revisión. La aplicación no envía correos automáticamente. Antes de abrirlos, verifica destinatarios, copias y detalles de cada caso.</div>
                 <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 text-xs text-blue-900">El navegador abrirá los borradores seleccionados uno por uno. Si el navegador bloquea ventanas emergentes, autoriza ventanas para este sitio. La firma configurada en el punto 13 se agrega al cuerpo del mensaje.</div>
             </section>
 
@@ -1221,26 +1234,24 @@
 
             <!-- CONFIGURACIÓN DE CORREOS -->
             <section id="view-configcorreos" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="ui-card p-5">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                        <div><h3 class="section-title">13. Correos y copias de sucursales</h3><p class="mt-1 text-xs text-slate-500">Administra destinatarios, copias, supervisores, horarios y firma institucional. Puedes hacerlo en pantalla o mediante plantilla Excel.</p></div>
-                        <div class="flex flex-wrap gap-2"><button onclick="descargarPlantillaCorreosSucursales()" class="corp-button-dark text-xs">Descargar plantilla Excel</button><label class="corp-button cursor-pointer text-xs">Subir plantilla<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarCorreosSucursales(event)"></label></div>
-                    </div>
+                <div class="module-intro">
+                    <div class="flex flex-wrap items-start justify-between gap-3"><div><span class="module-kicker">Punto 13 · Configuración</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Destinatarios y firma por sucursal</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Cada sucursal tiene su ficha. Busca una sucursal, revisa el correo principal y las copias, ajusta los horarios y guarda los cambios visibles.</p></div><div class="flex flex-wrap gap-2"><button onclick="descargarPlantillaCorreosSucursales()" class="corp-button-dark text-xs">Descargar Excel</button><label class="corp-button cursor-pointer text-xs">Importar Excel<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarCorreosSucursales(event)"></label></div></div>
                 </div>
-                <div class="ui-card p-5"><div class="grid grid-cols-1 gap-4 lg:grid-cols-3"><input id="config-correo-buscar" oninput="renderizarConfigCorreos()" class="form-field lg:col-span-2" placeholder="Buscar sucursal o supervisor"><button onclick="guardarConfigCorreosVisibles()" class="corp-button">Guardar cambios visibles</button></div></div>
-                <div class="ui-card table-scroll"><table class="w-full min-w-[1500px] text-left"><thead><tr><th>Sucursal</th><th>Supervisor</th><th>Correo Para</th><th>Correo CC</th><th>Apertura</th><th>Cierre</th><th>Firma del correo</th></tr></thead><tbody id="tabla-config-correos"></tbody></table></div>
+                <div class="ui-card p-4"><div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]"><div><label class="text-xs font-bold text-slate-600">Buscar</label><input id="config-correo-buscar" oninput="renderizarConfigCorreos()" class="form-field mt-1" placeholder="Escribe el nombre de sucursal o supervisor"></div><button onclick="guardarConfigCorreosVisibles()" class="corp-button self-end"><i data-lucide="save" class="mr-2 inline h-4 w-4"></i>Guardar cambios visibles</button></div><div id="config-correo-resumen" class="mt-3 text-xs text-slate-500">Preparando configuración…</div></div>
+                <div id="tabla-config-correos" class="grid grid-cols-1 gap-4 xl:grid-cols-2"></div>
             </section>
 
             <!-- MAPA Y DISTANCIAS -->
             <section id="view-mapas" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="ui-card p-5"><h3 class="section-title">14. Mapa interactivo y distancias</h3><p class="mt-1 text-xs text-slate-500">Selecciona dos sucursales y consulta la ruta caminando, en auto o en transporte público. El mapa permite desplazarse, ampliar y abrir la ruta completa.</p></div>
-                <div class="ui-card grid grid-cols-1 gap-4 p-5 md:grid-cols-4"><select id="map14-origen" class="form-field"><option value="">Sucursal origen</option></select><select id="map14-destino" class="form-field"><option value="">Sucursal destino</option></select><select id="map14-modo" class="form-field"><option value="d">Auto</option><option value="r">Metro / micro / locomoción pública</option><option value="w">Caminando</option></select><div class="flex gap-2"><button onclick="mostrarRutaMapa14()" class="corp-button flex-1">Calcular ruta</button><button onclick="buscarCoordenadasPorDireccion()" class="corp-button-dark flex-1">Buscar coordenadas faltantes</button></div></div>
-                <div class="ui-card p-4"><iframe id="mapa14-frame" class="map-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe><div class="mt-3 flex flex-wrap items-center justify-between gap-2"><div id="mapa14-resumen" class="text-xs text-slate-600">Selecciona origen, destino y modo de viaje.</div><a id="mapa14-externo" target="_blank" rel="noopener noreferrer" class="corp-button-dark hidden">Abrir ruta en Google Maps</a></div></div>
+                <div class="module-intro"><span class="module-kicker">Punto 14 · Traslados</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Mapa, rutas y distancias</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Selecciona las sucursales de origen y destino. Se priorizan las coordenadas guardadas; si faltan, se usa la dirección registrada. Google Maps calcula la ruta según el medio de transporte.</p><div class="mt-4 grid gap-3 sm:grid-cols-3"><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 1</span><b class="mt-1 block text-sm">Origen</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 2</span><b class="mt-1 block text-sm">Destino y transporte</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 3</span><b class="mt-1 block text-sm">Ver ruta y distancia</b></div></div></div>
+                <div class="ui-card grid grid-cols-1 gap-4 p-5 lg:grid-cols-4"><div><label class="text-xs font-bold text-slate-600">Sucursal de origen</label><select id="map14-origen" class="form-field mt-1"><option value="">Seleccione origen</option></select></div><div><label class="text-xs font-bold text-slate-600">Sucursal de destino</label><select id="map14-destino" class="form-field mt-1"><option value="">Seleccione destino</option></select></div><div><label class="text-xs font-bold text-slate-600">Medio de transporte</label><select id="map14-modo" class="form-field mt-1"><option value="d">🚗 Auto</option><option value="r">🚌 Transporte público</option><option value="w">🚶 Caminando</option></select></div><div class="flex flex-wrap items-end gap-2"><button onclick="mostrarRutaMapa14()" class="corp-button min-h-11 flex-1"><i data-lucide="route" class="mr-2 inline h-4 w-4"></i>Ver ruta</button><button onclick="buscarCoordenadasPorDireccion()" class="corp-button-dark min-h-11" title="Buscar coordenadas faltantes"><i data-lucide="map-pin" class="inline h-4 w-4"></i></button></div></div>
+                <div class="ui-card overflow-hidden p-3 sm:p-4"><div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ruta seleccionada</p><div id="mapa14-resumen" class="mt-1 text-sm font-bold text-slate-800">Selecciona origen, destino y medio de transporte.</div><p class="mt-1 text-xs text-slate-500">La distancia y duración exactas se muestran en Google Maps; no se estiman artificialmente.</p></div><a id="mapa14-externo" target="_blank" rel="noopener noreferrer" class="corp-button-dark hidden">Abrir Google Maps <i data-lucide="external-link" class="ml-1 inline h-4 w-4"></i></a></div><iframe id="mapa14-frame" title="Mapa de ruta entre sucursales" class="map-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
             </section>
 
             <!-- TAREAS DIARIAS -->
             <section id="view-tareas" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="ui-card p-5"><h3 class="section-title">15. Tareas diarias y seguimiento</h3><p class="mt-1 text-xs text-slate-500">Asigna tareas puntuales o recurrentes, responsables, revisores, prioridad, vencimiento, observaciones y evidencia.</p></div>
+                <div class="module-intro"><span class="module-kicker">Punto 15 · Productividad</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Tareas diarias, responsables y KPI</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Asigna una tarea en menos de un minuto, define quién la ejecuta y quién la valida. El tablero mide pendientes, atrasos y cumplimiento por usuario para que el seguimiento sea claro y objetivo.</p></div>
+                <div class="ui-card p-4"><label class="text-xs font-bold text-slate-600">Crear desde una plantilla (opcional)</label><div class="mt-1 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]"><select id="tarea-plantilla" class="form-field" onchange="aplicarPlantillaTarea()"><option value="">Elegir tarea sugerida…</option><option value="incidencias">Revisar correos de incidencias</option><option value="asistencia">Regularizar marcas de asistencia</option><option value="licencias">Revisar licencias médicas pendientes</option><option value="turnos">Revisar turnos y cambios</option><option value="reporte">Enviar reporte diario a jefatura</option><option value="sucursales">Contactar sucursales con pendientes</option></select><p class="self-center text-xs text-slate-500">La plantilla completa el título, la descripción y la prioridad; puedes editarlos.</p></div></div>
                 <form id="form-tarea" class="ui-card grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4" onsubmit="guardarTarea(event)">
                     <div class="lg:col-span-2"><label class="required-label text-xs font-semibold">Título</label><input id="tarea-titulo" required class="form-field"></div>
                     <div><label class="required-label text-xs font-semibold">Responsable</label><select id="tarea-responsable" required class="form-field"></select></div>
@@ -1254,7 +1265,8 @@
                 </form>
                 <div class="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7"><div class="ui-card p-3">Pendientes<b id="tk-pendiente" class="block text-2xl">0</b></div><div class="ui-card p-3">En proceso<b id="tk-proceso" class="block text-2xl">0</b></div><div class="ui-card p-3">Por validar<b id="tk-validar" class="block text-2xl">0</b></div><div class="ui-card p-3">Aprobadas<b id="tk-aprobada" class="block text-2xl">0</b></div><div class="ui-card p-3">Devueltas<b id="tk-devuelta" class="block text-2xl">0</b></div><div class="ui-card p-3">Vencidas<b id="tk-vencida" class="block text-2xl">0</b></div><div class="ui-card p-3">Cumplimiento<b id="tk-cumplimiento" class="block text-2xl">0%</b></div></div>
                 <div class="ui-card grid grid-cols-1 gap-3 p-4 md:grid-cols-4"><select id="tarea-filtro-estado" class="form-field" onchange="renderizarTareas()"><option value="TODOS">Todos los estados</option><option>PENDIENTE</option><option>EN_PROCESO</option><option>COMPLETADA_POR_VALIDAR</option><option>APROBADA</option><option>DEVUELTA</option><option>VENCIDA</option><option>CANCELADA</option></select><input id="tarea-filtro-buscar" class="form-field md:col-span-2" oninput="renderizarTareas()" placeholder="Buscar tarea, responsable o sucursal"><button onclick="cargarTareas()" class="corp-button-dark">Actualizar</button></div>
-                <div class="ui-card table-scroll"><table class="w-full min-w-[1300px]"><thead><tr><th>Tarea</th><th>Responsable</th><th>Revisor</th><th>Prioridad</th><th>Vencimiento</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="tabla-tareas"></tbody></table></div>
+                <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4"><h4 class="font-extrabold text-slate-800">KPI por usuario</h4><p class="mt-1 text-xs text-slate-500">Se calcula con las tareas asignadas a cada persona y su estado actual.</p></div><div id="tabla-kpi-usuarios" class="space-y-2 p-4"><p class="text-sm text-slate-400">Cargando métricas…</p></div></div>
+                <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4"><h4 class="font-extrabold text-slate-800">Seguimiento de tareas</h4><p class="mt-1 text-xs text-slate-500">Busca por tarea, responsable o sucursal. Actualiza el estado cuando avances o termines.</p></div><div class="table-scroll"><table class="w-full min-w-[1000px]"><thead><tr><th>Tarea</th><th>Responsable</th><th>Revisor</th><th>Prioridad</th><th>Vencimiento</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="tabla-tareas"></tbody></table></div></div>
             </section>
 
             <!-- GENÉRICO -->
@@ -3182,16 +3194,66 @@
                 'success'
             );
         }
+        async function prepararModuloTareas(){
+            const [usuarios,sucursales] = await Promise.all([
+                _supabase.from('usuarios_roles').select('id,nombre,email,activo,puede_asignar_tareas,puede_revisar_tareas').eq('activo',true).order('nombre'),
+                obtenerSucursalesConfig()
+            ]);
+            if(usuarios.error) throw usuarios.error;
+            const activos=usuarios.data||[];
+            const responsables=activos.filter(u=>u.puede_asignar_tareas || ['ADMIN','RRHH'].includes(u.rol));
+            const revisores=activos.filter(u=>u.puede_revisar_tareas || ['ADMIN','RRHH'].includes(u.rol));
+            const opt=(u)=>`<option value="${u.id}">${escaparHTML(u.nombre||u.email)} · ${escaparHTML(u.email||'')}</option>`;
+            document.getElementById('tarea-responsable').innerHTML='<option value="">Selecciona responsable</option>'+responsables.map(opt).join('');
+            document.getElementById('tarea-revisor').innerHTML='<option value="">Sin revisor</option>'+revisores.map(opt).join('');
+            document.getElementById('tarea-sucursal').innerHTML='<option value="">Todas / No aplica</option>'+(sucursales||[]).map(x=>`<option value="${x.id}">${escaparHTML(x.nombre)}</option>`).join('');
+            const vencimiento=document.getElementById('tarea-vencimiento');
+            if(vencimiento && !vencimiento.value){const d=new Date();d.setHours(17,0,0,0);vencimiento.value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
+            await cargarTareas();
+        }
+        function aplicarPlantillaTarea(){
+            const plantillas={
+                incidencias:{titulo:'Revisar correos de incidencias',descripcion:'Revisar la bandeja de incidencias, clasificar los casos, responder o derivar y dejar actualizados los pendientes.',prioridad:'ALTA',recurrencia:'DIARIA'},
+                asistencia:{titulo:'Regularizar marcas de asistencia',descripcion:'Revisar marcas incompletas, atrasos, salidas anticipadas y marcas sin turno. Gestionar las regularizaciones y dejar respaldo.',prioridad:'ALTA',recurrencia:'DIARIA'},
+                licencias:{titulo:'Revisar licencias médicas pendientes',descripcion:'Verificar licencias nuevas, fechas, recepción en sistema y casos que requieren gestión o seguimiento.',prioridad:'ALTA',recurrencia:'DIARIA'},
+                turnos:{titulo:'Revisar turnos y cambios',descripcion:'Revisar modificaciones de turnos, diferencias con la jornada asignada y solicitudes pendientes de aprobación.',prioridad:'MEDIA',recurrencia:'DIARIA'},
+                reporte:{titulo:'Enviar reporte diario a jefatura',descripcion:'Consolidar pendientes, incidencias relevantes, regularizaciones realizadas y casos que requieren decisión de jefatura.',prioridad:'ALTA',recurrencia:'DIARIA'},
+                sucursales:{titulo:'Contactar sucursales con pendientes',descripcion:'Contactar a las sucursales con incidencias abiertas, solicitar respaldo y registrar el resultado de la gestión.',prioridad:'MEDIA',recurrencia:'DIARIA'}
+            };
+            const p=plantillas[document.getElementById('tarea-plantilla').value];if(!p)return;
+            document.getElementById('tarea-titulo').value=p.titulo;
+            document.getElementById('tarea-descripcion').value=p.descripcion;
+            document.getElementById('tarea-prioridad').value=p.prioridad;
+            document.getElementById('tarea-recurrencia').value=p.recurrencia;
+            document.getElementById('tarea-titulo').focus();
+        }
         async function guardarTarea(event){
-            event.preventDefault();const {data:{session}}=await _supabase.auth.getSession();
-            const registro={titulo:document.getElementById('tarea-titulo').value.trim(),descripcion:document.getElementById('tarea-descripcion').value.trim(),responsable_rol_id:Number(document.getElementById('tarea-responsable').value),revisor_rol_id:document.getElementById('tarea-revisor').value?Number(document.getElementById('tarea-revisor').value):null,prioridad:document.getElementById('tarea-prioridad').value,fecha_limite:new Date(document.getElementById('tarea-vencimiento').value).toISOString(),recurrencia:document.getElementById('tarea-recurrencia').value,sucursal_id:document.getElementById('tarea-sucursal').value||null,estado:'PENDIENTE',creado_por_email:session?.user?.email||''};
+            event.preventDefault();
+            const responsable=document.getElementById('tarea-responsable').value;
+            const vencimiento=document.getElementById('tarea-vencimiento').value;
+            if(!responsable)return mostrarToast('Selecciona un responsable para esta tarea.','warning');
+            if(!vencimiento || Number.isNaN(new Date(vencimiento).getTime()))return mostrarToast('Indica una fecha límite válida.','warning');
+            const {data:{session}}=await _supabase.auth.getSession();
+            const registro={titulo:document.getElementById('tarea-titulo').value.trim(),descripcion:document.getElementById('tarea-descripcion').value.trim(),responsable_rol_id:Number(responsable),revisor_rol_id:document.getElementById('tarea-revisor').value?Number(document.getElementById('tarea-revisor').value):null,prioridad:document.getElementById('tarea-prioridad').value,fecha_limite:new Date(vencimiento).toISOString(),recurrencia:document.getElementById('tarea-recurrencia').value,sucursal_id:document.getElementById('tarea-sucursal').value||null,estado:'PENDIENTE',creado_por_email:session?.user?.email||''};
             const {data,error}=await _supabase.from('tareas').insert([registro]).select('id').single();if(error)return mostrarToast(error.message,'error');
             await _supabase.from('tareas_eventos').insert([{tarea_id:data.id,accion:'CREADA',estado_nuevo:'PENDIENTE',usuario_email:session?.user?.email||'',detalle:'Tarea creada desde la aplicación'}]);
-            event.target.reset();await cargarTareas();mostrarToast('Tarea creada.','success');
+            event.target.reset();document.getElementById('tarea-vencimiento').value='';await prepararModuloTareas();mostrarToast('Tarea creada y asignada.','success');
         }
         function estadoTareaCalculado(t){if(!['APROBADA','CANCELADA','DEVUELTA'].includes(t.estado)&&new Date(t.fecha_limite)<new Date())return'VENCIDA';return t.estado;}
         async function cargarTareas(){const {data,error}=await _supabase.from('tareas').select('*,responsable:usuarios_roles!tareas_responsable_rol_id_fkey(nombre,email),revisor:usuarios_roles!tareas_revisor_rol_id_fkey(nombre,email),sucursal:sucursales(nombre)').order('fecha_limite',{ascending:true});if(error)return mostrarToast(error.message,'error');tareasGlobal=(data||[]).map(x=>({...x,estado_calculado:estadoTareaCalculado(x)}));renderizarTareas();}
-        function renderizarTareas(){const estado=document.getElementById('tarea-filtro-estado')?.value||'TODOS',q=texto(document.getElementById('tarea-filtro-buscar')?.value).toLowerCase();let f=tareasGlobal;if(estado!=='TODOS')f=f.filter(x=>x.estado_calculado===estado);if(q)f=f.filter(x=>`${x.titulo} ${x.descripcion} ${x.responsable?.nombre} ${x.sucursal?.nombre}`.toLowerCase().includes(q));const cuenta=e=>tareasGlobal.filter(x=>x.estado_calculado===e).length;document.getElementById('tk-pendiente').innerText=cuenta('PENDIENTE');document.getElementById('tk-proceso').innerText=cuenta('EN_PROCESO');document.getElementById('tk-validar').innerText=cuenta('COMPLETADA_POR_VALIDAR');document.getElementById('tk-aprobada').innerText=cuenta('APROBADA');document.getElementById('tk-devuelta').innerText=cuenta('DEVUELTA');document.getElementById('tk-vencida').innerText=cuenta('VENCIDA');const terminadas=tareasGlobal.filter(x=>x.estado_calculado==='APROBADA');document.getElementById('tk-cumplimiento').innerText=(terminadas.length?Math.round(100*terminadas.filter(x=>new Date(x.updated_at||x.created_at)<=new Date(x.fecha_limite)).length/terminadas.length):0)+'%';document.getElementById('tabla-tareas').innerHTML=f.map(t=>`<tr><td><b>${escaparHTML(t.titulo)}</b><br>${escaparHTML(t.descripcion)}</td><td>${escaparHTML(t.responsable?.nombre||t.responsable?.email||'')}</td><td>${escaparHTML(t.revisor?.nombre||t.revisor?.email||'')}</td><td>${escaparHTML(t.prioridad)}</td><td>${new Date(t.fecha_limite).toLocaleString('es-CL')}</td><td><span class="rounded-full bg-slate-100 px-2 py-1 font-bold">${t.estado_calculado}</span></td><td><select class="form-field" onchange="cambiarEstadoTarea(${t.id},this.value)"><option value="">Cambiar estado</option><option>EN_PROCESO</option><option>COMPLETADA_POR_VALIDAR</option><option>APROBADA</option><option>DEVUELTA</option><option>CANCELADA</option></select></td></tr>`).join('');}
+        function renderizarTareas(){
+            const estado=document.getElementById('tarea-filtro-estado')?.value||'TODOS',q=texto(document.getElementById('tarea-filtro-buscar')?.value).toLowerCase();
+            let f=tareasGlobal;if(estado!=='TODOS')f=f.filter(x=>x.estado_calculado===estado);if(q)f=f.filter(x=>`${x.titulo} ${x.descripcion} ${x.responsable?.nombre} ${x.responsable?.email} ${x.sucursal?.nombre}`.toLowerCase().includes(q));
+            const cuenta=e=>tareasGlobal.filter(x=>x.estado_calculado===e).length;
+            document.getElementById('tk-pendiente').innerText=cuenta('PENDIENTE');document.getElementById('tk-proceso').innerText=cuenta('EN_PROCESO');document.getElementById('tk-validar').innerText=cuenta('COMPLETADA_POR_VALIDAR');document.getElementById('tk-aprobada').innerText=cuenta('APROBADA');document.getElementById('tk-devuelta').innerText=cuenta('DEVUELTA');document.getElementById('tk-vencida').innerText=cuenta('VENCIDA');
+            const terminadas=tareasGlobal.filter(x=>x.estado_calculado==='APROBADA');
+            document.getElementById('tk-cumplimiento').innerText=(terminadas.length?Math.round(100*terminadas.filter(x=>new Date(x.updated_at||x.created_at)<=new Date(x.fecha_limite)).length/terminadas.length):0)+'%';
+            const porUsuario=new Map();
+            tareasGlobal.forEach(t=>{const id=String(t.responsable_rol_id||'sin-asignar'),nombre=t.responsable?.nombre||t.responsable?.email||'Sin responsable';if(!porUsuario.has(id))porUsuario.set(id,{nombre,total:0,aprobadas:0,pendientes:0,vencidas:0,validar:0});const k=porUsuario.get(id);k.total++;if(t.estado_calculado==='APROBADA')k.aprobadas++;if(['PENDIENTE','EN_PROCESO'].includes(t.estado_calculado))k.pendientes++;if(t.estado_calculado==='VENCIDA')k.vencidas++;if(t.estado_calculado==='COMPLETADA_POR_VALIDAR')k.validar++;});
+            const kpi=document.getElementById('tabla-kpi-usuarios');
+            kpi.innerHTML=porUsuario.size?[...porUsuario.values()].sort((a,b)=>b.total-a.total).map(u=>{const pct=u.total?Math.round(100*u.aprobadas/u.total):0;return `<div class="kpi-persona-row rounded-xl border border-slate-100 p-3"><div><b class="block text-sm text-slate-800">${escaparHTML(u.nombre)}</b><span class="text-xs text-slate-500">${u.total} tarea(s) asignadas</span><div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full ${pct>=80?'bg-emerald-500':pct>=50?'bg-amber-500':'bg-rose-500'}" style="width:${pct}%"></div></div></div><div><span class="block text-[11px] text-slate-500">Aprobadas</span><b class="text-lg text-emerald-700">${u.aprobadas}</b></div><div><span class="block text-[11px] text-slate-500">Pendientes</span><b class="text-lg">${u.pendientes}</b></div><div><span class="block text-[11px] text-slate-500">Vencidas</span><b class="text-lg ${u.vencidas?'text-rose-700':''}">${u.vencidas}</b></div><div><span class="block text-[11px] text-slate-500">Cumplimiento</span><b class="text-lg">${pct}%</b><span class="block text-[10px] text-slate-400">${u.validar} por validar</span></div></div>`}).join(''):'<p class="p-4 text-sm text-slate-500">Todavía no hay tareas asignadas. Crea una tarea para empezar a medir.</p>';
+            document.getElementById('tabla-tareas').innerHTML=f.length?f.map(t=>`<tr><td><b>${escaparHTML(t.titulo)}</b><br><span class="text-xs text-slate-500">${escaparHTML(t.descripcion)}</span></td><td>${escaparHTML(t.responsable?.nombre||t.responsable?.email||'Sin asignar')}</td><td>${escaparHTML(t.revisor?.nombre||t.revisor?.email||'—')}</td><td><span class="rounded-full px-2 py-1 text-xs font-bold ${t.prioridad==='URGENTE'?'bg-rose-100 text-rose-800':t.prioridad==='ALTA'?'bg-amber-100 text-amber-800':'bg-slate-100 text-slate-700'}">${escaparHTML(t.prioridad)}</span></td><td>${new Date(t.fecha_limite).toLocaleString('es-CL')}</td><td><span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-bold">${t.estado_calculado}</span></td><td><select aria-label="Cambiar estado de tarea" class="form-field min-w-40" onchange="cambiarEstadoTarea(${t.id},this.value)"><option value="">Actualizar estado…</option><option>EN_PROCESO</option><option>COMPLETADA_POR_VALIDAR</option><option>APROBADA</option><option>DEVUELTA</option><option>CANCELADA</option></select></td></tr>`).join(''):'<tr><td colspan="7" class="p-8 text-center text-sm text-slate-500">No hay tareas para estos filtros.</td></tr>';
+        }
         async function cambiarEstadoTarea(id,estado){if(!estado)return;const motivo=['DEVUELTA','CANCELADA'].includes(estado)?prompt('Indica el motivo del cambio:')||'Sin motivo':'';const {data:{session}}=await _supabase.auth.getSession();const {error}=await _supabase.from('tareas').update({estado,updated_at:new Date().toISOString()}).eq('id',id);if(error)return mostrarToast(error.message,'error');await _supabase.from('tareas_eventos').insert([{tarea_id:id,accion:'CAMBIO_ESTADO',estado_nuevo:estado,usuario_email:session?.user?.email||'',detalle:motivo}]);await cargarTareas();}
 
         async function registrarAuditoria(modulo,accion,detalle){try{const {data:{session}}=await _supabase.auth.getSession();await _supabase.from('auditoria_eventos').insert([{usuario_email:session?.user?.email||'sin sesión',modulo,accion,detalle}]);}catch(e){console.warn('Auditoría no registrada',e);}}
@@ -3220,6 +3282,13 @@
         function valoresSeleccionados(id) {
             return [...document.getElementById(id).selectedOptions].map(x => x.value);
         }
+        function establecerPeriodoCorreos(dias) {
+            const hoy=new Date(),hasta=new Date(hoy),desde=new Date(hoy);
+            desde.setDate(desde.getDate()-Number(dias||0));
+            const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+            document.getElementById('correo-desde').value=iso(desde);document.getElementById('correo-hasta').value=iso(hasta);
+        }
+        function seleccionarFiltroCorreo(id,seleccionar) { document.querySelectorAll(`#${id} option`).forEach(o=>o.selected=!!seleccionar); }
         async function prepararModuloCorreos() {
             if (!asistenciaCargada) await cargarAsistenciaDesdeNube();
             sucursalesConfiguracionGlobal = await obtenerSucursalesConfig();
@@ -3242,7 +3311,8 @@
             const desde = document.getElementById('correo-desde').value;
             const hasta = document.getElementById('correo-hasta').value;
             const minimo = Number(document.getElementById('correo-min-atraso').value) || 0;
-            if (!desde || !hasta) return mostrarToast('Selecciona el periodo.', 'warning');
+            if (!desde || !hasta) return mostrarToast('Selecciona el período desde y hasta.', 'warning');
+            if (desde > hasta) return mostrarToast('La fecha Desde no puede ser posterior a Hasta.', 'warning');
             const filtroSuc = valoresSeleccionados('correo-sucursales');
             const filtroSup = valoresSeleccionados('correo-supervisores');
             const agrupar = document.getElementById('correo-agrupar').value;
@@ -3274,11 +3344,15 @@
         }
         function renderizarBorradoresMasivos() {
             const cont = document.getElementById('lista-borradores');
-            if (!borradoresGeneradosGlobal.length) {
-                cont.innerHTML = '<div class="ui-card p-6 text-center text-slate-500">No se detectaron casos con los criterios seleccionados.</div>';
-                return;
-            }
-            cont.innerHTML = borradoresGeneradosGlobal.map(b => `<div class="ui-card mail-card p-5"><div class="flex flex-wrap items-start justify-between gap-3"><label class="flex items-start gap-3"><input type="checkbox" class="borrador-check mt-1" value="${b.id}" checked><span><b>${escaparHTML(b.nombre)}</b><br><span class="text-xs text-slate-500">${b.cantidad} caso(s) · Para: ${escaparHTML(b.para || 'Sin configurar')} · CC: ${escaparHTML(b.cc || 'Sin configurar')}</span></span></label><button onclick="abrirUnBorrador('${b.id}')" class="corp-button">Abrir borrador</button></div><div class="mt-3 rounded-lg bg-slate-50 p-3 text-xs"><b>Asunto:</b> ${escaparHTML(b.asunto)}</div><pre class="mt-2 whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-xs">${escaparHTML(b.cuerpo)}</pre></div>`).join('');
+            const resumen=document.getElementById('correo-resumen-resultados');
+            if(resumen)resumen.classList.remove('hidden');
+            const casos=borradoresGeneradosGlobal.reduce((n,b)=>n+Number(b.cantidad||0),0);
+            document.getElementById('correo-resumen-borradores').textContent=borradoresGeneradosGlobal.length.toLocaleString('es-CL');
+            document.getElementById('correo-resumen-casos').textContent=casos.toLocaleString('es-CL');
+            document.getElementById('correo-resumen-sin-destino').textContent=borradoresGeneradosGlobal.filter(b=>!b.para).length.toLocaleString('es-CL');
+            if (!borradoresGeneradosGlobal.length) { cont.innerHTML = '<div class="ui-card p-6 text-center text-slate-500"><i data-lucide="check-circle-2" class="mx-auto mb-2 h-8 w-8 text-emerald-600"></i><b>No se encontraron casos</b><p class="mt-1 text-sm">Prueba ampliar el período o revisar los filtros de sucursal y tipo de incidencia.</p></div>';if(window.lucide)lucide.createIcons();return; }
+            cont.innerHTML = borradoresGeneradosGlobal.map(b => `<div class="ui-card mail-card p-5"><div class="flex flex-wrap items-start justify-between gap-3"><label class="flex items-start gap-3"><input type="checkbox" class="borrador-check mt-1" value="${b.id}" checked><span><b class="text-base">${escaparHTML(b.nombre)}</b><br><span class="text-xs text-slate-500">${b.cantidad} caso(s)</span><span class="mt-2 block text-xs ${b.para?'text-emerald-700':'font-bold text-rose-700'}">${b.para?'Para: '+escaparHTML(b.para):'Falta configurar correo destinatario'}${b.cc?' · CC: '+escaparHTML(b.cc):''}</span></span></label><button onclick="abrirUnBorrador('${b.id}')" class="corp-button"><i data-lucide="mail" class="mr-1 inline h-4 w-4"></i>Revisar en Outlook</button></div><div class="mt-3 rounded-lg bg-slate-50 p-3 text-xs"><b>Asunto:</b> ${escaparHTML(b.asunto)}</div><details class="mt-3"><summary class="cursor-pointer text-xs font-bold text-slate-600">Ver contenido completo del correo</summary><pre class="mt-2 whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-xs">${escaparHTML(b.cuerpo)}</pre></details></div>`).join('');
+            if(window.lucide)lucide.createIcons();
         }
         function seleccionarTodosBorradores(valor) {
             document.querySelectorAll('.borrador-check').forEach(x => x.checked = valor);
@@ -3310,19 +3384,29 @@
         }
         function renderizarConfigCorreos() {
             const q = texto(document.getElementById('config-correo-buscar')?.value).toLowerCase();
-            const lista = sucursalesConfiguracionGlobal.filter(x => `${x.nombre} ${x.supervisor}`.toLowerCase().includes(q));
-            document.getElementById('tabla-config-correos').innerHTML = lista.map(x => `<tr data-id="${x.id}"><td class="p-2 font-bold">${escaparHTML(x.nombre)}</td><td class="p-2"><input data-campo="supervisor" class="form-field" value="${escaparHTML(x.supervisor || '')}"></td><td class="p-2"><input data-campo="correo_sucursal" type="email" class="form-field" value="${escaparHTML(x.correo_sucursal || '')}"></td><td class="p-2"><input data-campo="correo_copia" class="form-field" value="${escaparHTML(x.correo_copia || '')}" placeholder="uno@correo.cl; otro@correo.cl"></td><td class="p-2"><input data-campo="horario_apertura" type="time" class="form-field" value="${escaparHTML(x.horario_apertura || '')}"></td><td class="p-2"><input data-campo="horario_cierre" type="time" class="form-field" value="${escaparHTML(x.horario_cierre || '')}"></td><td class="p-2"><textarea data-campo="firma_correo" class="form-field" rows="4">${escaparHTML(x.firma_correo || 'Saludos cordiales,\nDepartamento de Recursos Humanos\nFarmacias de Similares Chile S.A.\nRUT: 59.111.330-5')}</textarea></td></tr>`).join('');
+            const lista = sucursalesConfiguracionGlobal.filter(x => `${x.nombre} ${x.supervisor || ''}`.toLowerCase().includes(q));
+            const resumen = document.getElementById('config-correo-resumen');
+            if (resumen) resumen.textContent = `${lista.length} sucursal(es) visibles · ${lista.filter(x => x.correo_sucursal).length} con correo principal configurado · ${lista.filter(x => !x.correo_sucursal).length} sin correo principal`;
+            const cont = document.getElementById('tabla-config-correos');
+            if (!lista.length) { cont.innerHTML = '<div class="ui-card p-8 text-center text-sm text-slate-500">No hay sucursales que coincidan con la búsqueda.</div>'; return; }
+            cont.innerHTML = lista.map(x => `<article class="config-sucursal-card" data-id="${x.id}">
+                <div class="mb-4 flex items-start justify-between gap-3"><div><h4 class="font-extrabold text-slate-900">${escaparHTML(x.nombre)}</h4><p class="mt-1 text-xs text-slate-500">Supervisor: ${escaparHTML(x.supervisor || 'Sin asignar')}</p></div><span class="rounded-full px-2.5 py-1 text-[11px] font-bold ${x.correo_sucursal ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'}">${x.correo_sucursal ? 'Correo configurado' : 'Falta correo'}</span></div>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2"><label class="text-xs font-bold text-slate-600">Supervisor<input data-campo="supervisor" class="form-field mt-1" value="${escaparHTML(x.supervisor || '')}" placeholder="Nombre del supervisor"></label><label class="text-xs font-bold text-slate-600">Correo principal<input data-campo="correo_sucursal" type="email" class="form-field mt-1" value="${escaparHTML(x.correo_sucursal || '')}" placeholder="sucursal@empresa.cl"></label><label class="text-xs font-bold text-slate-600 sm:col-span-2">Copias (CC)<input data-campo="correo_copia" class="form-field mt-1" value="${escaparHTML(x.correo_copia || '')}" placeholder="correo1@empresa.cl; correo2@empresa.cl"><span class="mt-1 block font-normal text-slate-400">Separa varios correos con punto y coma.</span></label><label class="text-xs font-bold text-slate-600">Hora de apertura<input data-campo="horario_apertura" type="time" class="form-field mt-1" value="${escaparHTML(x.horario_apertura || '')}"></label><label class="text-xs font-bold text-slate-600">Hora de cierre<input data-campo="horario_cierre" type="time" class="form-field mt-1" value="${escaparHTML(x.horario_cierre || '')}"></label><label class="text-xs font-bold text-slate-600 sm:col-span-2">Firma institucional<textarea data-campo="firma_correo" class="form-field mt-1" rows="3">${escaparHTML(x.firma_correo || 'Saludos cordiales,\nDepartamento de Recursos Humanos\nFarmacias de Similares Chile S.A.\nRUT: 59.111.330-5')}</textarea></label></div>
+            </article>`).join('');
         }
         async function guardarConfigCorreosVisibles() {
-            const filas = [...document.querySelectorAll('#tabla-config-correos tr')];
-            for (const tr of filas) {
+            const tarjetas = [...document.querySelectorAll('#tabla-config-correos [data-id]')];
+            if (!tarjetas.length) return mostrarToast('No hay sucursales visibles para guardar.', 'warning');
+            for (const tarjeta of tarjetas) {
                 const cambios = {};
-                tr.querySelectorAll('[data-campo]').forEach(x => cambios[x.dataset.campo] = x.value.trim());
-                const { error } = await _supabase.from('sucursales').update(cambios).eq('id', tr.dataset.id);
+                tarjeta.querySelectorAll('[data-campo]').forEach(x => cambios[x.dataset.campo] = x.value.trim());
+                const correo = cambios.correo_sucursal || '';
+                if (correo && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(correo)) return mostrarToast(`Revisa el correo principal de ${tarjeta.querySelector('h4')?.textContent || 'la sucursal'}.`, 'warning');
+                const { error } = await _supabase.from('sucursales').update(cambios).eq('id', tarjeta.dataset.id);
                 if (error) return mostrarToast(error.message, 'error');
             }
             await prepararConfiguracionCorreos();
-            mostrarToast('Configuración de correos guardada.', 'success');
+            mostrarToast('Configuración de las sucursales visibles guardada.', 'success');
         }
         function descargarPlantillaCorreosSucursales() {
             const datos = sucursalesConfiguracionGlobal.map(x => ({ nombre: x.nombre, supervisor: x.supervisor || '', correo_sucursal: x.correo_sucursal || '', correo_copia: x.correo_copia || '', horario_apertura: x.horario_apertura || '', horario_cierre: x.horario_cierre || '', firma_correo: x.firma_correo || 'Saludos cordiales, Departamento de Recursos Humanos, Farmacias de Similares Chile S.A., RUT: 59.111.330-5' }));
@@ -3352,24 +3436,36 @@
             } catch (e) { mostrarToast(e.message, 'error'); }
             finally { event.target.value = ''; }
         }
+        function puntoMapaSucursal(x) {
+            const lat = Number(x.latitud), lon = Number(x.longitud);
+            if (Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180 && (lat !== 0 || lon !== 0)) return `${lat},${lon}`;
+            return direccionSucursal(x);
+        }
         async function prepararMapa14() {
             const lista = await obtenerSucursalesConfig();
-            const opciones = '<option value="">Seleccione sucursal</option>' + lista.map(x => `<option value="${escaparHTML(direccionSucursal(x))}">${escaparHTML(x.nombre)}</option>`).join('');
+            const opciones = '<option value="">Seleccione sucursal</option>' + lista.map(x => `<option value="${escaparHTML(puntoMapaSucursal(x))}" data-nombre="${escaparHTML(x.nombre)}">${escaparHTML(x.nombre)}${x.direccion ? ' · '+escaparHTML(x.direccion) : ''}${Number.isFinite(Number(x.latitud)) && Number.isFinite(Number(x.longitud)) ? ' · GPS' : ' · Dirección'}</option>`).join('');
             document.getElementById('map14-origen').innerHTML = opciones;
             document.getElementById('map14-destino').innerHTML = opciones;
+            const frame = document.getElementById('mapa14-frame');
+            if (frame && !frame.src) frame.src = 'https://www.google.com/maps?output=embed&q=Farmacias+Doctor+Simi+Chile';
+            if (window.lucide) lucide.createIcons();
         }
         function mostrarRutaMapa14() {
-            const origen = document.getElementById('map14-origen').value;
-            const destino = document.getElementById('map14-destino').value;
-            const modo = document.getElementById('map14-modo').value;
-            if (!origen || !destino) return mostrarToast('Selecciona origen y destino.', 'warning');
+            const selOrigen = document.getElementById('map14-origen'), selDestino = document.getElementById('map14-destino');
+            const origen = selOrigen.value, destino = selDestino.value, modo = document.getElementById('map14-modo').value;
+            const nombreOrigen = selOrigen.selectedOptions[0]?.dataset.nombre || selOrigen.selectedOptions[0]?.textContent || origen;
+            const nombreDestino = selDestino.selectedOptions[0]?.dataset.nombre || selDestino.selectedOptions[0]?.textContent || destino;
+            if (!origen || !destino) return mostrarToast('Selecciona una sucursal de origen y otra de destino.', 'warning');
+            if (origen === destino) return mostrarToast('El origen y el destino deben ser diferentes.', 'warning');
+            const travelmode = modo === 'w' ? 'walking' : modo === 'r' ? 'transit' : 'driving';
+            const externo = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origen)}&destination=${encodeURIComponent(destino)}&travelmode=${travelmode}`;
             const embed = `https://www.google.com/maps?output=embed&saddr=${encodeURIComponent(origen)}&daddr=${encodeURIComponent(destino)}&dirflg=${modo}`;
-            const externo = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origen)}&destination=${encodeURIComponent(destino)}&travelmode=${modo === 'w' ? 'walking' : modo === 'r' ? 'transit' : 'driving'}`;
             document.getElementById('mapa14-frame').src = embed;
             const enlace = document.getElementById('mapa14-externo');
-            enlace.href = externo;
-            enlace.classList.remove('hidden');
-            document.getElementById('mapa14-resumen').textContent = `${origen} → ${destino} · ${modo === 'w' ? 'Caminando' : modo === 'r' ? 'Transporte público' : 'Auto'}`;
+            enlace.href = externo; enlace.classList.remove('hidden');
+            const modoTexto = modo === 'w' ? 'Caminando' : modo === 'r' ? 'Transporte público' : 'Auto';
+            document.getElementById('mapa14-resumen').textContent = `${nombreOrigen} → ${nombreDestino} · ${modoTexto}`;
+            if (window.lucide) lucide.createIcons();
         }
 
         async function prepararModuloCoberturas(){const lista=await obtenerSucursalesConfig();document.getElementById('cob-destino').innerHTML='<option value="">Local a cubrir</option>'+lista.map(x=>`<option>${escaparHTML(x.nombre)}</option>`).join('');await cargarCoberturas();}
