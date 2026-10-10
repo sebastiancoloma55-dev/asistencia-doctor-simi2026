@@ -68,10 +68,31 @@ export default async function handler(req, res) {
     if (meError || !me?.user) return fail(res, 401, `Sesion invalida${meError?.message ? ': '+meError.message : ''}`);
 
     const admin = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data: role, error: roleError } = await admin.from('usuarios_roles').select('rol,activo').eq('auth_user_id', me.user.id).maybeSingle();
-    if (roleError) throw roleError;
-    if (!role?.activo || role.rol !== 'ADMIN') return fail(res, 403, 'Solo un administrador puede gestionar accesos');
+    
+const ADMIN_PRINCIPAL = 'scoloma@farmaciasdoctorsimi.cl';
 
+const correoSesion = String(me.user.email || '').trim().toLowerCase();
+
+if (correoSesion !== ADMIN_PRINCIPAL) {
+  return fail(res, 403, 'Acceso restringido al administrador principal');
+}
+
+const { data: role, error: roleError } = await admin
+  .from('usuarios_roles')
+  .select('rol,activo,email')
+  .eq('auth_user_id', me.user.id)
+  .maybeSingle();
+
+if (roleError) throw roleError;
+
+if (
+  !role ||
+  !role.activo ||
+  role.rol !== 'ADMIN' ||
+  String(role.email || '').trim().toLowerCase() !== ADMIN_PRINCIPAL
+) {
+  return fail(res, 403, 'La cuenta no está autorizada como administrador principal');
+}
     const body = req.body || {};
     const action = String(body.accion || '').toUpperCase();
     const email = String(body.email || '').trim().toLowerCase();
