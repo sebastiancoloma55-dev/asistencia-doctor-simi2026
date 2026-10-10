@@ -625,6 +625,14 @@ body{overflow-x:hidden}
                     <i data-lucide="shield-check" class="h-4 w-4"></i>
                     17. Calidad de datos
                 </button>
+                <button id="btn-notificaciones" class="menu-btn" onclick="cambiarModulo('notificaciones')">
+                    <i data-lucide="bell-ring" class="h-4 w-4"></i>
+                    18. Notificaciones
+                </button>
+                <button id="btn-integraciones" class="menu-btn" onclick="cambiarModulo('integraciones')">
+                    <i data-lucide="plug-zap" class="h-4 w-4"></i>
+                    19. Integraciones
+                </button>
             </nav>
         </aside>
 
@@ -1474,6 +1482,42 @@ body{overflow-x:hidden}
                 <div class="helper-note">Este módulo solo puede abrirlo la cuenta administradora principal. Los controles automáticos no sustituyen la revisión de los datos de origen.</div>
             </section>
 
+            <section id="view-notificaciones" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="module-intro">
+                    <span class="module-kicker"><i data-lucide="bell-ring" class="h-3 w-3"></i> Bandeja personal</span>
+                    <h3 class="mt-3">Notificaciones</h3>
+                    <p class="mt-2 max-w-3xl">Consulta avisos asignados a tu perfil. Puedes marcar los avisos como leídos; los registros siguen protegidos por las reglas de acceso de la base de datos.</p>
+                    <div class="mt-5 flex flex-wrap gap-2">
+                        <button type="button" class="corp-button-dark" onclick="cargarCentroNotificaciones()"><i data-lucide="refresh-cw" class="h-4 w-4"></i> Actualizar</button>
+                        <button type="button" class="corp-button" onclick="marcarTodasNotificacionesLeidas()"><i data-lucide="check-check" class="h-4 w-4"></i> Marcar todas como leídas</button>
+                        <span id="notif-actualizado" class="self-center text-xs text-slate-500">Sin actualizar</span>
+                    </div>
+                </div>
+                <div id="notif-kpis" class="grid grid-cols-1 gap-3 sm:grid-cols-3"></div>
+                <div class="ui-card overflow-hidden">
+                    <div class="flex flex-col gap-3 border-b bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div><h4 class="font-extrabold">Tu bandeja de avisos</h4><p class="mt-1 text-xs text-slate-500">Los más recientes aparecen primero.</p></div>
+                        <select id="notif-filtro" class="form-field sm:max-w-[220px]" onchange="renderizarCentroNotificaciones()"><option value="TODAS">Todas</option><option value="PENDIENTES">Sin leer</option><option value="LEIDAS">Leídas</option></select>
+                    </div>
+                    <div id="notif-lista" class="divide-y divide-slate-100 p-4"><p class="text-sm text-slate-500">Cargando notificaciones...</p></div>
+                </div>
+            </section>
+
+            <section id="view-integraciones" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="module-intro">
+                    <span class="module-kicker"><i data-lucide="plug-zap" class="h-3 w-3"></i> Administración técnica</span>
+                    <h3 class="mt-3">Integraciones y monitoreo</h3>
+                    <p class="mt-2 max-w-3xl">Inventario transparente de las conexiones de la plataforma. Diferencia las consultas verificadas en vivo de las rutas que existen en el código y de las integraciones que aún requieren habilitación.</p>
+                    <div class="mt-5 flex flex-wrap gap-2">
+                        <button type="button" class="corp-button-dark" onclick="cargarPanelIntegraciones()"><i data-lucide="refresh-cw" class="h-4 w-4"></i> Comprobar conexión</button>
+                        <span id="integ-actualizado" class="self-center text-xs text-slate-500">Sin comprobar</span>
+                    </div>
+                </div>
+                <div id="integ-kpis" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"></div>
+                <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-5"><h4 class="font-extrabold">Inventario de integraciones</h4><p class="mt-1 text-xs text-slate-500">No se muestran claves ni secretos en el navegador.</p></div><div id="integ-lista" class="divide-y divide-slate-100 p-5"><p class="text-sm text-slate-500">Comprobación pendiente.</p></div></div>
+                <div class="helper-note"><strong>Seguridad:</strong> no pegues claves privadas de Talana, IMED, Google, Microsoft ni Supabase en esta pantalla. Las credenciales deben almacenarse como variables de entorno en el servidor.</div>
+            </section>
+
             <section id="view-generic" class="hidden p-8">
                 <div class="ui-card mx-auto mt-10 max-w-xl p-12 text-center">
                     <i data-lucide="wrench" class="mx-auto mb-4 h-10 w-10 text-simiRed"></i>
@@ -1576,7 +1620,9 @@ body{overflow-x:hidden}
             'mapas',
             'tareas',
             'operaciones',
-            'calidad'
+            'calidad',
+            'notificaciones',
+            'integraciones'
         ];
 
         const titulos = {
@@ -1596,7 +1642,9 @@ body{overflow-x:hidden}
             mapas: '14. Mapa y distancias',
             tareas: '15. Tareas diarias',
             operaciones: '16. Centro de operaciones',
-            calidad: '17. Calidad de datos'
+            calidad: '17. Calidad de datos',
+            notificaciones: '18. Notificaciones',
+            integraciones: '19. Integraciones y monitoreo'
         };
 
         // ============================================================
@@ -2198,6 +2246,8 @@ body{overflow-x:hidden}
                 if (modulo === 'tareas') await prepararModuloTareas();
                 if (modulo === 'operaciones') await cargarCentroOperaciones();
                 if (modulo === 'calidad') await cargarPanelCalidad();
+                if (modulo === 'notificaciones') await cargarCentroNotificaciones();
+                if (modulo === 'integraciones') await cargarPanelIntegraciones();
                 if (modulo === 'usuarios') await cargarUsuariosRoles();
                 if (modulo === 'auditoria') await cargarAuditoria();
             } catch (error) {
@@ -2205,6 +2255,72 @@ body{overflow-x:hidden}
             }
         }
 
+
+
+        // ============================================================
+        // NOTIFICACIONES · Bandeja personal con actualización segura
+        // ============================================================
+        let notificacionesCentroGlobal=[];
+        async function cargarCentroNotificaciones(){
+            const lista=document.getElementById('notif-lista');if(!lista)return;
+            lista.innerHTML='<p class="text-sm text-slate-500">Consultando tu bandeja...</p>';
+            const {data,error}=await _supabase.from('notificaciones').select('id,tipo,titulo,mensaje,entidad_tipo,entidad_id,leida,created_at,leida_at').order('created_at',{ascending:false}).limit(250);
+            if(error){lista.innerHTML='<div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">No se pudieron cargar las notificaciones: '+opsEsc(error.message)+'</div>';return;}
+            notificacionesCentroGlobal=data||[];renderizarCentroNotificaciones();
+            const stamp=document.getElementById('notif-actualizado');if(stamp)stamp.textContent='Actualizado '+new Date().toLocaleString('es-CL');
+        }
+        function renderizarCentroNotificaciones(){
+            const lista=document.getElementById('notif-lista'),k=document.getElementById('notif-kpis');if(!lista||!k)return;
+            const unread=notificacionesCentroGlobal.filter(x=>!x.leida).length,filter=document.getElementById('notif-filtro')?.value||'TODAS';
+            const rows=notificacionesCentroGlobal.filter(x=>filter==='TODAS'||(filter==='PENDIENTES'?!x.leida:!!x.leida));
+            const card=(t,v,d,ic)=>'<div class="ui-card p-5"><div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">'+opsEsc(t)+'</span><i data-lucide="'+ic+'" class="h-5 w-5 text-blue-600"></i></div><strong class="mt-3 block text-3xl font-black">'+opsEsc(v)+'</strong><p class="mt-1 text-xs text-slate-500">'+opsEsc(d)+'</p></div>';
+            k.innerHTML=card('Total cargadas',notificacionesCentroGlobal.length,'Máximo 250 más recientes','bell')+card('Sin leer',unread,'Requieren atención','bell-dot')+card('Leídas',notificacionesCentroGlobal.length-unread,'Avisos revisados','check-check');
+            lista.innerHTML=rows.length?rows.map(x=>'<article class="notif-item flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-start '+(!x.leida?'unread':'')+'"><span class="notif-symbol"><i data-lucide="'+(/error|urg|venc/i.test((x.tipo||'')+' '+(x.titulo||''))?'alert-triangle':'bell')+'" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm">'+opsEsc(x.titulo||'Notificación')+'</strong>'+(!x.leida?'<span class="notif-pill">Nueva</span>':'')+'</div><p class="mt-1 whitespace-pre-wrap text-sm text-slate-600">'+opsEsc(x.mensaje||'Sin detalle adicional')+'</p><p class="mt-2 text-xs text-slate-400">'+opsEsc(x.tipo||'Aviso')+' · '+opsEsc(x.created_at?new Date(x.created_at).toLocaleString('es-CL'):'Fecha no disponible')+'</p></div>'+(!x.leida?'<button type="button" class="notif-mark" onclick="marcarNotificacionLeida('+Number(x.id)+')"><i data-lucide="check" class="h-4 w-4"></i> Marcar leída</button>':'<span class="self-center text-xs text-slate-400">Leída</span>')+'</article>').join(''):'<div class="rounded-xl border border-dashed border-slate-300 p-8 text-center"><i data-lucide="bell-off" class="mx-auto h-8 w-8 text-slate-400"></i><p class="mt-3 font-bold text-slate-700">No hay notificaciones en esta vista</p><p class="mt-1 text-sm text-slate-500">Cuando se registren avisos para tu perfil, aparecerán aquí.</p></div>';
+            if(window.lucide)lucide.createIcons();
+        }
+        async function marcarNotificacionLeida(id){
+            const item=notificacionesCentroGlobal.find(x=>Number(x.id)===Number(id));if(!item||item.leida)return;
+            const {error}=await _supabase.from('notificaciones').update({leida:true,leida_at:new Date().toISOString()}).eq('id',id);
+            if(error){mostrarToast('No se pudo marcar la notificación: '+error.message,'error');return;}
+            item.leida=true;item.leida_at=new Date().toISOString();renderizarCentroNotificaciones();mostrarToast('Notificación marcada como leída.','success');
+        }
+        async function marcarTodasNotificacionesLeidas(){
+            const ids=notificacionesCentroGlobal.filter(x=>!x.leida).map(x=>x.id);if(!ids.length){mostrarToast('No hay notificaciones pendientes.','info');return;}
+            let fallos=0;
+            for(const id of ids){const {error}=await _supabase.from('notificaciones').update({leida:true,leida_at:new Date().toISOString()}).eq('id',id);if(error)fallos++;else{const x=notificacionesCentroGlobal.find(n=>Number(n.id)===Number(id));if(x){x.leida=true;x.leida_at=new Date().toISOString();}}}
+            renderizarCentroNotificaciones();mostrarToast(fallos?'Se actualizaron avisos, pero '+fallos+' no pudieron marcarse.':'Todas las notificaciones visibles están leídas.',fallos?'warning':'success');
+        }
+
+        // ============================================================
+        // INTEGRACIONES · No confundir presencia de código con conexión
+        // ============================================================
+        async function cargarPanelIntegraciones(){
+            if(!esAdminPrincipalActual()){mostrarToast('Este panel está reservado a la cuenta administradora principal.','warning');return;}
+            const k=document.getElementById('integ-kpis'),lista=document.getElementById('integ-lista');if(!k||!lista)return;
+            k.innerHTML='<div class="ui-card p-5">Comprobando...</div>'.repeat(4);lista.innerHTML='<p class="text-sm text-slate-500">Consultando estado de la plataforma...</p>';
+            let db={ok:false,count:null,error:null};
+            try{const r=await _supabase.from('sucursales').select('id',{count:'exact',head:true});db={ok:!r.error,count:r.count??0,error:r.error?.message||null};}catch(e){db={ok:false,count:null,error:e.message};}
+            const last=await _supabase.from('importaciones').select('id,modulo,estado,created_at,finalizada_at,filas_error,filas_rechazadas').order('created_at',{ascending:false}).limit(1);
+            const cards=[
+                {t:'Base de datos',v:db.ok?'Conectada':'No verificada',d:db.ok?db.count+' sucursales accesibles':'Consulta fallida',i:'database',state:db.ok?'ok':'warn'},
+                {t:'API de IA',v:'Ruta en proyecto',d:'Endpoint api/gemini.js; requiere validar secretos y respuesta en runtime',i:'brain-circuit',state:'info'},
+                {t:'Geocodificación',v:'Ruta en proyecto',d:'Endpoint api/geocodificar.js; proveedor externo sujeto a disponibilidad',i:'map-pinned',state:'info'},
+                {t:'Importaciones',v:last.error?'No disponible':(last.data?.length?'Con historial':'Sin historial'),d:last.error?'No se pudo consultar':(last.data?.[0]?'Último proceso: '+new Date(last.data[0].created_at).toLocaleString('es-CL'):'No hay procesos registrados'),i:'file-up',state:last.error?'warn':last.data?.length?'ok':'info'}
+            ];
+            k.innerHTML=cards.map(x=>'<div class="ui-card p-5"><div class="flex items-center justify-between gap-3"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">'+opsEsc(x.t)+'</span><i data-lucide="'+x.i+'" class="h-5 w-5 text-blue-600"></i></div><strong class="mt-3 block text-lg font-black text-slate-900">'+opsEsc(x.v)+'</strong><p class="mt-2 text-xs text-slate-500">'+opsEsc(x.d)+'</p></div>').join('');
+            const items=[
+                {name:'Supabase',type:'Base de datos',status:db.ok?'Verificada en vivo':'Error de consulta',detail:db.ok?'La sesión actual pudo consultar sucursales ('+db.count+' registros visibles).':db.error||'No se obtuvo una respuesta válida.',kind:db.ok?'ok':'warn'},
+                {name:'Vercel Functions · Gemini',type:'API backend',status:'Implementada en el repositorio',detail:'Existe api/gemini.js. La presencia del archivo no garantiza que la variable de entorno del proveedor esté configurada ni que el servicio responda.',kind:'info'},
+                {name:'Geocodificación',type:'API backend',status:'Implementada en el repositorio',detail:'Existe api/geocodificar.js. La resolución de direcciones depende del proveedor, los límites de uso y las coordenadas guardadas.',kind:'info'},
+                {name:'Talana',type:'Sistema externo',status:'Conector automático no identificado',detail:'No se encontró un endpoint dedicado de sincronización de Talana en el inventario de este proyecto. Requiere API oficial, permisos y credenciales de servidor.',kind:'warn'},
+                {name:'IMED / Medipass',type:'Sistema externo',status:'Conector automático no identificado',detail:'No se encontró un endpoint dedicado de sincronización de licencias IMED/Medipass en este proyecto. No debe considerarse sincronizado hasta probar un flujo real.',kind:'warn'},
+                {name:'Outlook',type:'Correo',status:'Exportación EML manual',detail:'La aplicación prepara archivos para abrir en Outlook; esto no confirma envío automático ni seguimiento de entrega.',kind:'info'},
+                {name:'Historial de importaciones',type:'Trazabilidad',status:last.error?'No disponible':(last.data?.length?'Última ejecución registrada':'Sin ejecuciones'),detail:last.error?last.error.message:(last.data?.[0]?'Módulo: '+(last.data[0].modulo||'—')+' · Estado: '+(last.data[0].estado||'—'):'Cuando se ejecuten importaciones, el historial aparecerá aquí.'),kind:last.error?'warn':last.data?.length?'ok':'info'}
+            ];
+            lista.innerHTML=items.map(x=>'<div class="integ-row flex flex-col gap-3 sm:flex-row sm:items-start"><span class="integ-status '+x.kind+'">'+opsEsc(x.status)+'</span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm">'+opsEsc(x.name)+'</strong><span class="text-xs text-slate-400">'+opsEsc(x.type)+'</span></div><p class="mt-1 text-sm text-slate-600">'+opsEsc(x.detail)+'</p></div></div>').join('');
+            const stamp=document.getElementById('integ-actualizado');if(stamp)stamp.textContent='Comprobado '+new Date().toLocaleString('es-CL');
+            if(window.lucide)lucide.createIcons();
+        }
 
         // ============================================================
         // CENTRO DE OPERACIONES · Indicadores limitados por permisos
@@ -3419,7 +3535,8 @@ body{overflow-x:hidden}
         function tienePermisoModulo(modulo){
             if(esAdminPrincipalActual())return true;
             if(modulo==='operaciones')return ['tareas','correos','asistencia','licencias','coberturas','reportes'].some(p=>modulosPermitidosActuales.includes(p));
-            if(modulo==='calidad')return false;
+            if(modulo==='calidad'||modulo==='integraciones')return false;
+            if(modulo==='notificaciones')return modulosPermitidosActuales.includes('tareas');
             return modulosPermitidosActuales.includes(modulo);
         }
         function puedeAsignarTareasActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_asignar_tareas;}
@@ -4444,6 +4561,17 @@ table tbody tr:hover{background:#f7fbff}
 #view-calidad .ui-card{min-width:0}
 #view-calidad table th,#view-calidad table td{white-space:nowrap}
 @media(max-width:700px){.nova-nav-divider{margin-top:10px}#view-operaciones,#view-calidad{padding:15px!important}.ops-kpi{padding:16px!important}}
+
+/* Bandeja de notificaciones e inventario técnico */
+.notif-item{border:1px solid transparent;transition:background .15s,border-color .15s;margin-bottom:5px}
+.notif-item.unread{background:#f2f8ff;border-color:#dcecff}
+.notif-symbol{display:grid;place-items:center;width:40px;height:40px;flex:0 0 auto;border-radius:13px;background:#eaf3ff;color:#0967c8}
+.notif-pill{border-radius:999px;background:#dcecff;color:#0759b0;padding:3px 8px;font-size:10px;font-weight:850}
+.notif-mark{display:inline-flex;align-items:center;justify-content:center;gap:5px;align-self:center;border:1px solid #c9def7;border-radius:9px;background:white;color:#0759b0;padding:8px 10px;font-size:11px;font-weight:800}
+.notif-mark:hover{background:#eaf4ff}
+.integ-row{padding:17px 0;border-bottom:1px solid #edf2f8}.integ-row:last-child{border-bottom:0}
+.integ-status{display:inline-flex;align-items:center;justify-content:center;align-self:flex-start;min-width:145px;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:850;text-align:center}
+.integ-status.ok{background:#e8fbf1;color:#087443;border:1px solid #bcebd0}.integ-status.warn{background:#fff5e4;color:#965b00;border:1px solid #f3d9a6}.integ-status.info{background:#eaf3ff;color:#0759b0;border:1px solid #cfe2ff}
 </style>
 <script>
 (function(){
