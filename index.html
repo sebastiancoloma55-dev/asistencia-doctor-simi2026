@@ -384,7 +384,13 @@ body{overflow-x:hidden}
 .selector-dropdown-2026 .selector-count-2026{padding:0 10px 10px}
 .selector-dropdown-2026:focus-within{border-color:#38bdf8;box-shadow:0 0 0 3px rgba(14,165,233,.12)}
 
- .selector-dropdown-2026{border:1px solid #d8e5ef;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 8px 24px rgba(15,41,64,.05)} .selector-dropdown-2026>summary{cursor:pointer;list-style:none;padding:12px 14px;background:linear-gradient(120deg,#f8fbff,#f0f9fc);font-size:12px;font-weight:800;color:#0f3550} .selector-dropdown-2026>summary::-webkit-details-marker{display:none} .selector-tools-2026{padding:10px;border-bottom:1px solid #e5edf4} .selector-action-row-2026{display:flex;gap:8px;margin-top:8px} .selector-action-row-2026 button{border:1px solid #d8e5ef;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:800;color:#16435c;background:#fff} .selector-checkbox-list-2026{max-height:270px;overflow:auto;padding:6px} .selector-checkbox-row-2026{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:12px;color:#334155} .selector-checkbox-row-2026:hover{background:#f1f8fc} .selector-checkbox-row-2026 input{width:16px;height:16px;accent-color:#009bb5;flex:0 0 auto} .selector-checkbox-row-2026 .selector-checkmark-2026{margin-left:auto;color:#009bb5;font-weight:900;opacity:0} .selector-checkbox-row-2026:has(input:checked){background:#eaf8fc;color:#075985;font-weight:750} .selector-checkbox-row-2026:has(input:checked) .selector-checkmark-2026{opacity:1} .selector-count-2026{padding:8px 12px;color:#64748b;font-size:11px;border-top:1px solid #edf2f7}</style>
+ .selector-dropdown-2026{border:1px solid #d8e5ef;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 8px 24px rgba(15,41,64,.05)} .selector-dropdown-2026>summary{cursor:pointer;list-style:none;padding:12px 14px;background:linear-gradient(120deg,#f8fbff,#f0f9fc);font-size:12px;font-weight:800;color:#0f3550} .selector-dropdown-2026>summary::-webkit-details-marker{display:none} .selector-tools-2026{padding:10px;border-bottom:1px solid #e5edf4} .selector-action-row-2026{display:flex;gap:8px;margin-top:8px} .selector-action-row-2026 button{border:1px solid #d8e5ef;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:800;color:#16435c;background:#fff} .selector-checkbox-list-2026{max-height:270px;overflow:auto;padding:6px} .selector-checkbox-row-2026{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:12px;color:#334155} .selector-checkbox-row-2026:hover{background:#f1f8fc} .selector-checkbox-row-2026 input{width:16px;height:16px;accent-color:#009bb5;flex:0 0 auto} .selector-checkbox-row-2026 .selector-checkmark-2026{margin-left:auto;color:#009bb5;font-weight:900;opacity:0} .selector-checkbox-row-2026:has(input:checked){background:#eaf8fc;color:#075985;font-weight:750} .selector-checkbox-row-2026:has(input:checked) .selector-checkmark-2026{opacity:1} .selector-count-2026{padding:8px 12px;color:#64748b;font-size:11px;border-top:1px solid #edf2f7}
+        .dashboard-welcome{position:relative;overflow:hidden;border-radius:20px;padding:24px;background:linear-gradient(115deg,#073b70 0%,#07569a 55%,#078da7 100%);color:#fff;box-shadow:0 12px 28px rgba(7,59,112,.16)}
+        .dashboard-welcome:after{content:"SIMI";position:absolute;right:20px;bottom:-25px;font-size:clamp(76px,12vw,140px);font-weight:950;letter-spacing:-.09em;color:rgba(255,255,255,.07);pointer-events:none}
+        .dashboard-welcome>*{position:relative;z-index:1}
+        .app-watermark{position:fixed;z-index:5;right:22px;bottom:12px;pointer-events:none;user-select:none;color:#0b4778;opacity:.16;font-size:10px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;transform:rotate(-2deg);text-shadow:0 1px 0 rgba(255,255,255,.65)}
+        @media(max-width:640px){.app-watermark{right:8px;bottom:5px;font-size:8px;letter-spacing:.06em}.dashboard-welcome{padding:20px}}
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -638,6 +644,7 @@ body{overflow-x:hidden}
         </aside>
 
         <main class="flex min-w-0 flex-1 flex-col overflow-y-auto">
+            <div class="app-watermark" aria-hidden="true">Gestionado por el equipo de Asistencia</div>
             <header
                 class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 sm:px-8"
             >
@@ -678,6 +685,16 @@ body{overflow-x:hidden}
 
             <!-- DASHBOARD -->
             <section id="view-dashboard" class="space-y-6 p-4 sm:p-8">
+                <div class="dashboard-welcome">
+                    <div class="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-extrabold uppercase tracking-[.18em] text-sky-100">Plataforma de gestión · Recursos Humanos</p>
+                            <h2 class="mt-2 text-2xl font-black tracking-tight sm:text-3xl">¡Bienvenido/a, <span id="dashboard-welcome-name">equipo de Asistencia</span>!</h2>
+                            <p id="dashboard-welcome-subtitle" class="mt-2 max-w-2xl text-sm text-blue-50">Tu centro de control para asistencia, ausentismo y operaciones.</p>
+                        </div>
+                        <span id="dashboard-welcome-role" class="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-2 text-xs font-bold text-white"><i data-lucide="shield-check" class="h-4 w-4"></i> Usuario autorizado</span>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     <div class="ui-card flex items-start justify-between p-5">
                         <div>
