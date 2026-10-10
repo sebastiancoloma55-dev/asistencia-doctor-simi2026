@@ -350,8 +350,23 @@ body{overflow-x:hidden}
 .map-estimate-2026>div{min-width:0;padding:10px;border-radius:10px;background:#fff;border:1px solid #e5edf6}
 .map-estimate-2026 strong{display:block;font-size:clamp(16px,2vw,22px);font-weight:850;color:#075985;line-height:1.3}
 .map-estimate-2026 span{display:block;margin-top:5px;font-size:11px;line-height:1.45;color:#64748b}
-#mapa14-frame.map-frame{display:block;width:100%;height:clamp(340px,52vw,560px);border:0;border-radius:12px;background:#eef4f8}
-@media(max-width:700px){.map-estimate-2026{grid-template-columns:1fr}#mapa14-frame.map-frame{height:360px}}
+.map-canvas-shell{overflow:hidden;border:1px solid #dbe6f1;border-radius:18px;background:#fff;box-shadow:0 12px 32px rgba(15,41,64,.08)}
+.map-canvas-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;background:linear-gradient(110deg,#f8fbff,#eef8ff);border-bottom:1px solid #e3edf6}
+.map-canvas-heading strong{display:block;color:#0f3550;font-size:14px;font-weight:850}
+.map-canvas-heading span{display:block;margin-top:3px;color:#64748b;font-size:11px}
+.map-live-pill{white-space:nowrap;border:1px solid #c9e6f4;background:#fff;border-radius:999px;padding:6px 10px;color:#087c9d!important;font-weight:800}
+#mapa14-frame.map-frame{display:block;width:100%;height:clamp(380px,58vw,650px);border:0;background:#eaf1f7}
+.map-canvas-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;color:#64748b;font-size:11px;background:#fbfdff}
+.map-canvas-footer a{color:#087c9d;font-weight:800;text-decoration:underline}
+.selector-checkbox-list-2026{max-height:260px;overflow:auto;padding:0 8px 8px}
+.selector-checkbox-row-2026{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:12px;color:#334155}
+.selector-checkbox-row-2026:hover{background:#f1f8fc}
+.selector-checkbox-row-2026 input{width:16px;height:16px;accent-color:#087c9d;flex:0 0 auto}
+.selector-checkbox-row-2026 .selector-checkmark-2026{margin-left:auto;color:#087c9d;font-weight:900;opacity:0}
+.selector-checkbox-row-2026:has(input:checked){background:#eaf8fc;color:#075985;font-weight:750}
+.selector-checkbox-row-2026:has(input:checked) .selector-checkmark-2026{opacity:1}
+.selector-checkbox-row-2026[hidden]{display:none}
+@media(max-width:700px){.map-estimate-2026{grid-template-columns:1fr}#mapa14-frame.map-frame{height:390px}.map-canvas-heading{align-items:flex-start;flex-direction:column}}
 
 
 /* Selectores desplegables para asignaciones y borradores */
@@ -1285,8 +1300,8 @@ body{overflow-x:hidden}
                     <div><label class="text-xs font-semibold">Hasta</label><input id="correo-hasta" type="date" class="form-field"><p class="mt-2 text-[11px] text-slate-500">El rango se incluye completo.</p></div>
                     <div><label class="text-xs font-semibold">Atraso desde (minutos)</label><input id="correo-min-atraso" type="number" min="0" value="1" class="form-field"></div>
                     <div><label class="text-xs font-semibold">Agrupar borradores por</label><select id="correo-agrupar" class="form-field"><option value="SUCURSAL">Sucursal</option><option value="SUPERVISOR">Supervisor</option></select></div>
-                    <div class="lg:col-span-2"><div class="mb-1 flex items-center justify-between gap-2"><label class="text-xs font-semibold">Sucursales</label><div class="flex gap-1"><button type="button" onclick="seleccionarFiltroCorreo('correo-sucursales',true)" class="text-[11px] font-bold text-simiRed">Todas</button><button type="button" onclick="seleccionarFiltroCorreo('correo-sucursales',false)" class="text-[11px] font-bold text-slate-500">Ninguna</button></div></div><select id="correo-sucursales" multiple class="form-field h-32"></select><p class="mt-1 text-[11px] text-slate-500">Si no seleccionas ninguna, se incluyen todas.</p></div>
-                    <div class="lg:col-span-2"><div class="mb-1 flex items-center justify-between gap-2"><label class="text-xs font-semibold">Supervisores</label><div class="flex gap-1"><button type="button" onclick="seleccionarFiltroCorreo('correo-supervisores',true)" class="text-[11px] font-bold text-simiRed">Todos</button><button type="button" onclick="seleccionarFiltroCorreo('correo-supervisores',false)" class="text-[11px] font-bold text-slate-500">Ninguno</button></div></div><select id="correo-supervisores" multiple class="form-field h-32"></select><p class="mt-1 text-[11px] text-slate-500">Si no seleccionas ninguno, se incluyen todos.</p></div>
+                    <div class="lg:col-span-2"><div class="mb-1 flex items-center justify-between gap-2"><label class="text-xs font-semibold">Sucursales</label><div class="flex gap-1"><button type="button" onclick="seleccionarFiltroCorreo('correo-sucursales',true)" class="text-[11px] font-bold text-simiRed">Todas</button><button type="button" onclick="seleccionarFiltroCorreo('correo-sucursales',false)" class="text-[11px] font-bold text-slate-500">Ninguna</button></div></div><select id="correo-sucursales" multiple class="hidden" aria-hidden="true" tabindex="-1"></select><div id="correo-sucursales-casillas"></div><p class="mt-1 text-[11px] text-slate-500">Si no seleccionas ninguna, se incluyen todas.</p></div>
+                    <div class="lg:col-span-2"><div class="mb-1 flex items-center justify-between gap-2"><label class="text-xs font-semibold">Supervisores</label><div class="flex gap-1"><button type="button" onclick="seleccionarFiltroCorreo('correo-supervisores',true)" class="text-[11px] font-bold text-simiRed">Todos</button><button type="button" onclick="seleccionarFiltroCorreo('correo-supervisores',false)" class="text-[11px] font-bold text-slate-500">Ninguno</button></div></div><select id="correo-supervisores" multiple class="hidden" aria-hidden="true" tabindex="-1"></select><div id="correo-supervisores-casillas"></div><p class="mt-1 text-[11px] text-slate-500">Si no seleccionas ninguno, se incluyen todos.</p></div>
                     <div class="lg:col-span-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
                         <label class="rounded-lg border p-3 text-xs"><input id="correo-t-atraso" type="checkbox" checked> Atrasos</label>
                         <label class="rounded-lg border p-3 text-xs"><input id="correo-t-temprana" type="checkbox" checked> Salidas anticipadas</label>
@@ -1360,7 +1375,7 @@ body{overflow-x:hidden}
             <section id="view-mapas" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro"><span class="module-kicker">Punto 14 · Traslados</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Mapa, rutas y distancias</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Selecciona las sucursales de origen y destino. Se priorizan las coordenadas guardadas; si faltan, se usa la dirección registrada. Google Maps calcula la ruta según el medio de transporte.</p><div class="mt-4 grid gap-3 sm:grid-cols-3"><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 1</span><b class="mt-1 block text-sm">Origen</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 2</span><b class="mt-1 block text-sm">Destino y transporte</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 3</span><b class="mt-1 block text-sm">Ver ruta y distancia</b></div></div></div>
                 <div class="ui-card grid grid-cols-1 gap-4 p-5 lg:grid-cols-4"><div><label class="text-xs font-bold text-slate-600" for="map14-buscar-origen">1. Buscar sucursal de origen</label><input id="map14-buscar-origen" type="search" class="form-field mt-1" placeholder="Escribe nombre o comuna…" autocomplete="off"><select id="map14-origen" class="form-field mt-2"><option value="">Selecciona el origen</option></select><p class="mt-1 text-[11px] text-slate-500">Escribe para filtrar las sucursales.</p></div><div><label class="text-xs font-bold text-slate-600" for="map14-buscar-destino">2. Buscar sucursal de destino</label><input id="map14-buscar-destino" type="search" class="form-field mt-1" placeholder="Escribe nombre o comuna…" autocomplete="off"><select id="map14-destino" class="form-field mt-2"><option value="">Selecciona el destino</option></select><p class="mt-1 text-[11px] text-slate-500">Elige una sucursal distinta del origen.</p></div><div><label class="text-xs font-bold text-slate-600">Medio de transporte</label><select id="map14-modo" class="form-field mt-1"><option value="d">🚗 Auto</option><option value="r">🚌 Transporte público</option><option value="w">🚶 Caminando</option></select></div><div class="flex flex-wrap items-end gap-2"><button onclick="mostrarRutaMapa14()" class="corp-button min-h-11 flex-1"><i data-lucide="route" class="mr-2 inline h-4 w-4"></i>Ver ruta</button><button onclick="buscarCoordenadasPorDireccion()" class="corp-button-dark min-h-11" title="Buscar coordenadas faltantes"><i data-lucide="map-pin" class="inline h-4 w-4"></i></button></div></div>
-                <div class="ui-card overflow-hidden p-3 sm:p-4"><div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ruta seleccionada</p><div id="mapa14-resumen" class="mt-1 text-sm font-bold text-slate-800">Selecciona origen, destino y medio de transporte.</div><p class="mt-1 text-xs text-slate-500">Estimaciones orientativas calculadas desde el GPS; el recorrido real y el tiempo pueden variar. Google Maps muestra la ruta para navegación.</p></div><a id="mapa14-externo" target="_blank" rel="noopener noreferrer" class="corp-button-dark hidden">Abrir Google Maps <i data-lucide="external-link" class="ml-1 inline h-4 w-4"></i></a></div><iframe id="mapa14-frame" title="Mapa de ruta entre sucursales" class="map-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+                <div class="ui-card overflow-hidden p-3 sm:p-4"><div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ruta seleccionada</p><div id="mapa14-resumen" class="mt-1 text-sm font-bold text-slate-800">Selecciona origen, destino y medio de transporte.</div><p class="mt-1 text-xs text-slate-500">Estimaciones orientativas calculadas desde el GPS; el recorrido real y el tiempo pueden variar. Google Maps muestra la ruta para navegación.</p></div><a id="mapa14-externo" target="_blank" rel="noopener noreferrer" class="corp-button-dark hidden">Abrir Google Maps <i data-lucide="external-link" class="ml-1 inline h-4 w-4"></i></a></div><div class="map-canvas-shell"><div class="map-canvas-heading"><div><strong>Vista del mapa</strong><span id="mapa14-status">Selecciona dos sucursales y pulsa “Ver ruta”.</span></div><span class="map-live-pill"><i data-lucide="map" class="inline h-3 w-3"></i> Mapa interactivo</span></div><iframe id="mapa14-frame" title="Mapa de ruta entre sucursales" class="map-frame" loading="eager" referrerpolicy="no-referrer-when-downgrade"></iframe><div class="map-canvas-footer"><span>Si Google Maps no permite incrustar la ruta en esta ventana, utiliza el botón de apertura directa.</span><a id="mapa14-fallback-link" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Abrir mapa en otra pestaña ↗</a></div></div></div>
             </section>
 
             <!-- TAREAS DIARIAS -->
@@ -3496,13 +3511,40 @@ body{overflow-x:hidden}
         function valoresSeleccionados(id) {
             return [...document.getElementById(id).selectedOptions].map(x => x.value);
         }
+        function renderizarSelectorCasillasCorreo(id, items) {
+            const host=document.getElementById(id+'-casillas'); if(!host)return;
+            const label=id==='correo-sucursales'?'sucursales':'supervisores';
+            host.innerHTML=`<details class="selector-dropdown-2026" id="${id}-dropdown"><summary><span><span class="selector-selected-count-2026">0 seleccionados</span><small class="block font-normal text-slate-500">Marca las casillas; no necesitas mantener Ctrl</small></span></summary><div class="selector-tools-2026"><input type="search" class="form-field" placeholder="Buscar ${label}…" oninput="filtrarCasillasCorreo('${id}',this.value)"><div class="mt-2 flex gap-2"><button type="button" class="rounded-lg border px-3 py-1.5 text-xs font-bold" onclick="seleccionarFiltroCorreo('${id}',true)">Marcar todos</button><button type="button" class="rounded-lg border px-3 py-1.5 text-xs font-bold" onclick="seleccionarFiltroCorreo('${id}',false)">Limpiar</button></div></div><div class="selector-checkbox-list-2026">${items.map((v,i)=>`<label class="selector-checkbox-row-2026" data-search="${escaparHTML(String(v).toLocaleLowerCase('es-CL'))}"><input type="checkbox" value="${escaparHTML(v)}" onchange="actualizarSelectorCasillasCorreo('${id}')"><span>${escaparHTML(v)}</span><span class="selector-checkmark-2026">✓</span></label>`).join('')}</div><div class="selector-count-2026 text-xs text-slate-500">Si no marcas ninguna, se incluyen todas.</div></details>`;
+            actualizarSelectorCasillasCorreo(id);
+        }
+        function actualizarSelectorCasillasCorreo(id) {
+            const sel=document.getElementById(id),host=document.getElementById(id+'-casillas');if(!sel||!host)return;
+            const chosen=new Set([...host.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value));
+            [...sel.options].forEach(o=>o.selected=chosen.has(o.value));
+            const count=chosen.size,summary=host.querySelector('.selector-selected-count-2026');
+            if(summary)summary.textContent=count?count+' seleccionada(s)':'Ninguna seleccionada · todas incluidas';
+            const countText=host.querySelector('.selector-count-2026');
+            if(countText)countText.textContent=count?count+' seleccionada(s) de '+sel.options.length:'Si no marcas ninguna, se incluyen todas.';
+        }
+        function filtrarCasillasCorreo(id,q) {
+            const host=document.getElementById(id+'-casillas');if(!host)return;
+            const term=String(q||'').toLocaleLowerCase('es-CL').trim();
+            host.querySelectorAll('.selector-checkbox-row-2026').forEach(row=>row.hidden=!!term&&!row.dataset.search.includes(term));
+        }
         function establecerPeriodoCorreos(dias) {
             const hoy=new Date(),hasta=new Date(hoy),desde=new Date(hoy);
             desde.setDate(desde.getDate()-Math.max(0,Number(dias||0)-1));
             const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
             document.getElementById('correo-desde').value=iso(desde);document.getElementById('correo-hasta').value=iso(hasta);
         }
-        function seleccionarFiltroCorreo(id,seleccionar) { const sel=document.getElementById(id); if(!sel)return; Array.from(sel.options).forEach(o=>o.selected=!!seleccionar); sel.dispatchEvent(new Event('change',{bubbles:true})); }
+        function seleccionarFiltroCorreo(id,seleccionar) {
+            const sel=document.getElementById(id);if(!sel)return;
+            Array.from(sel.options).forEach(o=>o.selected=!!seleccionar);
+            const host=document.getElementById(id+'-casillas');
+            if(host)host.querySelectorAll('input[type="checkbox"]').forEach(c=>c.checked=!!seleccionar);
+            actualizarSelectorCasillasCorreo(id);
+            sel.dispatchEvent(new Event('change',{bubbles:true}));
+        }
         async function prepararModuloCorreos() {
             if (!asistenciaCargada) await cargarAsistenciaDesdeNube();
             sucursalesConfiguracionGlobal = await obtenerSucursalesConfig();
@@ -3512,6 +3554,8 @@ body{overflow-x:hidden}
             document.getElementById('correo-sucursales').innerHTML = sucursalesConfiguracionGlobal.map(x => `<option value="${escaparHTML(x.nombre)}">${escaparHTML(x.nombre)}</option>`).join('');
             const supervisores = [...new Set(sucursalesConfiguracionGlobal.map(x => texto(x.supervisor)).filter(Boolean))].sort();
             document.getElementById('correo-supervisores').innerHTML = supervisores.map(x => `<option value="${escaparHTML(x)}">${escaparHTML(x)}</option>`).join('');
+            renderizarSelectorCasillasCorreo('correo-sucursales', sucursalesConfiguracionGlobal.map(x=>x.nombre));
+            renderizarSelectorCasillasCorreo('correo-supervisores', supervisores);
         }
         function crearCuerpoCorreo(grupo, casos, desde, hasta) {
             const nombreGrupo = grupo.tipo === 'SUPERVISOR' ? `sucursales a cargo de ${grupo.nombre}` : `sucursal ${grupo.nombre}`;
@@ -3613,8 +3657,9 @@ body{overflow-x:hidden}
             document.querySelectorAll('.borrador-check').forEach(x => x.checked = valor);
         }
         function urlOutlookBorrador(b) {
-            const base = 'https://outlook.office.com/mail/deeplink/compose';
-            return `${base}?to=${encodeURIComponent(b.para)}&cc=${encodeURIComponent(b.cc)}&subject=${encodeURIComponent(b.asunto)}&body=${encodeURIComponent(b.cuerpo)}`;
+            // mailto: entrega el borrador al cliente de correo predeterminado de Windows.
+            // Si Outlook escritorio está configurado como aplicación predeterminada, se abrirá allí.
+            return `mailto:${encodeURIComponent(b.para||'')}?cc=${encodeURIComponent(b.cc||'')}&subject=${encodeURIComponent(b.asunto||'')}&body=${encodeURIComponent(b.cuerpo||'')}`;
         }
         function abrirUnBorrador(id) {
             const b = borradoresGeneradosGlobal.find(x => x.id === id);
@@ -3733,10 +3778,16 @@ body{overflow-x:hidden}
             if (origen === destino) return mostrarToast('El origen y el destino deben ser diferentes.', 'warning');
             const travelmode = modo === 'w' ? 'walking' : modo === 'r' ? 'transit' : 'driving';
             const externo = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origen)}&destination=${encodeURIComponent(destino)}&travelmode=${travelmode}`;
-            const embed = `https://maps.google.com/maps?saddr=${encodeURIComponent(origen)}&daddr=${encodeURIComponent(destino)}&dirflg=${modo}&output=embed`;
-            document.getElementById('mapa14-frame').src = embed; document.getElementById('mapa14-frame').dataset.rutaCargada = '1';
+            const frame=document.getElementById('mapa14-frame');
+            const embed = `https://www.google.com/maps?output=embed&saddr=${encodeURIComponent(origen)}&daddr=${encodeURIComponent(destino)}&dirflg=${modo}`;
+            frame.src = embed; frame.dataset.rutaCargada = '1';
+            frame.style.display='block';
+            frame.setAttribute('title',`Mapa de ruta: ${nombreOrigen} a ${nombreDestino}`);
+            const mapaStatus=document.getElementById('mapa14-status');if(mapaStatus)mapaStatus.textContent='Cargando mapa de Google Maps…';
+            frame.onload=()=>{if(mapaStatus)mapaStatus.textContent='Mapa listo. Si no aparece, abre la ruta directamente en Google Maps.';};
             const enlace = document.getElementById('mapa14-externo');
             enlace.href = externo; enlace.classList.remove('hidden');
+            const fallback=document.getElementById('mapa14-fallback-link');if(fallback)fallback.href=externo;
             const modoTexto = modo === 'w' ? 'Caminando' : modo === 'r' ? 'Transporte público' : 'Auto';
             document.getElementById('mapa14-resumen').textContent = `${nombreOrigen} → ${nombreDestino} · ${modoTexto}`;
             if (window.lucide) lucide.createIcons();
