@@ -62,7 +62,7 @@ for (const endpoint of ['api/gemini.js', 'api/geocodificar.js']) {
   const source = readFileSync(path.join(root, endpoint), 'utf8');
   if (!source.includes('req.method')) fail(`Falta validar el método HTTP en ${endpoint}.`);
 }
-const requiredModules = ['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
+const requiredModules = ['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
 for (const moduleName of requiredModules) {
   if (!buttons.has(moduleName)) fail(`El módulo ${moduleName} no tiene botón de navegación.`);
   if (!views.has(moduleName)) fail(`El módulo ${moduleName} no tiene vista registrada.`);
