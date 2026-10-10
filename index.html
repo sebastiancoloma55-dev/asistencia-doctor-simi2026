@@ -4,704 +4,1270 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asistencia Doctor Simi - RRHH</title>
-    <!-- Tailwind CSS -->
+
+    <!-- Dependencias -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- SheetJS (Excel/CSV) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        simiRed: '#E31837', simiNavy: '#002B49', simiNavyHover: '#001D33'
+                        simiRed: '#E31837',
+                        simiNavy: '#002B49',
+                        simiNavyHover: '#001D33'
                     },
-                    borderRadius: { 'xl': '0.75rem', '2xl': '1rem' }
+                    borderRadius: {
+                        xl: '0.75rem',
+                        '2xl': '1rem'
+                    }
                 }
             }
-        }
+        };
     </script>
+
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        .ui-card { background: #ffffff; border: 1px solid #E5E7EB; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); }
-        .ui-button { transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
-        .ui-button:active { transform: scale(0.98); }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .ui-card {
+            background: #ffffff;
+            border: 1px solid #E5E7EB;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .ui-button {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .ui-button:active {
+            transform: scale(0.98);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .toast-enter {
+            animation: toastIn 0.2s ease-out;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 900px) {
+            #sidebar {
+                position: fixed;
+                inset: 0 auto 0 0;
+                z-index: 60;
+                transform: translateX(-100%);
+                transition: transform 0.2s ease;
+            }
+
+            #sidebar.mobile-open {
+                transform: translateX(0);
+            }
+        }
     </style>
 </head>
-<body class="bg-slate-50 font-sans antialiased text-slate-800">
+<body class="bg-slate-50 text-slate-800 antialiased">
 
-    <!-- PANTALLA DE LOGIN DE SEGURIDAD -->
-    <div id="login-overlay" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center transition-opacity">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border-t-4 border-simiRed">
-            <div class="flex items-center justify-center gap-3 mb-6">
-                <div class="bg-simiRed h-12 w-12 rounded-xl flex items-center justify-center font-black text-white text-xl shadow-md">DS</div>
+    <!-- Notificaciones -->
+    <div
+        id="toast-container"
+        class="fixed top-4 right-4 z-[200] w-full max-w-md space-y-2 px-4"
+    ></div>
+
+    <!-- Login -->
+    <div
+        id="login-overlay"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900 p-4"
+    >
+        <div class="w-full max-w-md rounded-2xl border-t-4 border-simiRed bg-white p-8 shadow-2xl">
+            <div class="mb-6 flex items-center justify-center gap-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-simiRed text-xl font-black text-white shadow-md">
+                    DS
+                </div>
                 <div>
-                    <h1 class="font-bold text-xl text-simiNavy tracking-wide">DOCTOR SIMI</h1>
-                    <p class="text-xs text-slate-500 font-medium">Acceso Restringido - RRHH</p>
+                    <h1 class="text-xl font-bold tracking-wide text-simiNavy">
+                        DOCTOR SIMI
+                    </h1>
+                    <p class="text-xs font-medium text-slate-500">
+                        Acceso restringido - RRHH
+                    </p>
                 </div>
             </div>
-            
-            <form id="form-login" onsubmit="iniciarSesion(event)" class="space-y-4">
+
+            <form
+                id="form-login"
+                class="space-y-4"
+                onsubmit="iniciarSesion(event)"
+            >
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Correo Electrónico</label>
+                    <label class="mb-1 block text-sm font-semibold text-slate-700">
+                        Correo electrónico
+                    </label>
                     <div class="relative">
-                        <i data-lucide="mail" class="absolute left-3 top-3 w-5 h-5 text-slate-400"></i>
-                        <input type="email" id="login-email" required class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-simiRed outline-none transition" placeholder="administrador@doctorsimi.cl">
+                        <i
+                            data-lucide="mail"
+                            class="absolute left-3 top-3 h-5 w-5 text-slate-400"
+                        ></i>
+                        <input
+                            id="login-email"
+                            type="email"
+                            required
+                            autocomplete="username"
+                            class="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-simiRed"
+                            placeholder="administrador@doctorsimi.cl"
+                        >
                     </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Contraseña</label>
-                    <div class="relative">
-                        <i data-lucide="lock" class="absolute left-3 top-3 w-5 h-5 text-slate-400"></i>
-                        <input type="password" id="login-pass" required class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-simiRed outline-none transition" placeholder="••••••••">
-                    </div>
-                </div>
-                
-                <div id="login-error" class="bg-red-50 text-red-600 border border-red-200 text-xs p-3 rounded-lg font-semibold hidden flex items-center gap-2">
-                    <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i> <span id="login-error-text"></span>
                 </div>
 
-                <button type="submit" id="btn-login" class="mt-2 w-full bg-simiRed hover:bg-red-700 text-white font-bold py-3 rounded-lg shadow-sm transition flex justify-center items-center gap-2 ui-button">
-                    <i data-lucide="log-in" class="w-5 h-5"></i> Ingresar al Sistema
+                <div>
+                    <label class="mb-1 block text-sm font-semibold text-slate-700">
+                        Contraseña
+                    </label>
+                    <div class="relative">
+                        <i
+                            data-lucide="lock"
+                            class="absolute left-3 top-3 h-5 w-5 text-slate-400"
+                        ></i>
+                        <input
+                            id="login-pass"
+                            type="password"
+                            required
+                            autocomplete="current-password"
+                            class="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-simiRed"
+                            placeholder="••••••••"
+                        >
+                    </div>
+                </div>
+
+                <div
+                    id="login-error"
+                    class="hidden items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-600"
+                >
+                    <i
+                        data-lucide="alert-circle"
+                        class="h-4 w-4 flex-shrink-0"
+                    ></i>
+                    <span id="login-error-text"></span>
+                </div>
+
+                <button
+                    id="btn-login"
+                    type="submit"
+                    class="ui-button mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-simiRed py-3 font-bold text-white shadow-sm hover:bg-red-700"
+                >
+                    <i data-lucide="log-in" class="h-5 w-5"></i>
+                    Ingresar al sistema
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- APLICACIÓN PRINCIPAL -->
+    <!-- App -->
     <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar Corporativo -->
-        <aside class="w-64 bg-simiNavy text-white flex flex-col flex-shrink-0 border-r border-slate-800">
-            <div class="p-5 border-b border-blue-900/60 flex items-center justify-between">
+        <aside
+            id="sidebar"
+            class="flex w-64 flex-shrink-0 flex-col border-r border-slate-800 bg-simiNavy text-white"
+        >
+            <div class="flex items-center justify-between border-b border-blue-900/60 p-5">
                 <div class="flex items-center gap-3">
-                    <div class="bg-simiRed h-9 w-9 rounded-xl flex items-center justify-center font-black text-white text-base shadow-md">DS</div>
+                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-simiRed text-base font-black text-white shadow-md">
+                        DS
+                    </div>
                     <div>
-                        <h1 class="font-bold text-sm tracking-wide">DOCTOR SIMI</h1>
-                        <p class="text-[11px] text-slate-300 font-medium">Recursos Humanos</p>
+                        <h1 class="text-sm font-bold tracking-wide">DOCTOR SIMI</h1>
+                        <p class="text-[11px] font-medium text-slate-300">Recursos Humanos</p>
                     </div>
                 </div>
+                <button
+                    class="lg:hidden"
+                    onclick="toggleSidebar(false)"
+                    aria-label="Cerrar menú"
+                >
+                    <i data-lucide="x" class="h-5 w-5"></i>
+                </button>
             </div>
 
-            <nav class="flex-1 overflow-y-auto p-3 space-y-1 text-sm font-medium" id="main-menu">
-                <button onclick="cambiarModulo('dashboard')" id="btn-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 bg-simiRed text-white rounded-lg shadow-sm font-semibold transition ui-button border border-transparent">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> 1. Dashboard
+            <nav
+                id="main-menu"
+                class="flex-1 space-y-1 overflow-y-auto p-3 text-sm font-medium"
+            >
+                <button id="btn-dashboard" onclick="cambiarModulo('dashboard')" class="menu-btn w-full">
+                    <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+                    1. Dashboard
                 </button>
                 <div class="my-2 border-t border-blue-900/50"></div>
-                <button onclick="cambiarModulo('colaboradores')" id="btn-colaboradores" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button border border-transparent">
-                    <i data-lucide="users" class="w-4 h-4"></i> 2. Colaboradores
+                <button id="btn-colaboradores" onclick="cambiarModulo('colaboradores')" class="menu-btn w-full">
+                    <i data-lucide="users" class="h-4 w-4"></i>
+                    2. Colaboradores
                 </button>
-                <button onclick="cambiarModulo('sucursales')" id="btn-sucursales" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button border border-transparent">
-                    <i data-lucide="building-2" class="w-4 h-4"></i> 3. Sucursales
+                <button id="btn-sucursales" onclick="cambiarModulo('sucursales')" class="menu-btn w-full">
+                    <i data-lucide="building-2" class="h-4 w-4"></i>
+                    3. Sucursales
                 </button>
-                <button onclick="cambiarModulo('asistencia')" id="btn-asistencia" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button border border-transparent">
-                    <i data-lucide="clock" class="w-4 h-4"></i> 4. Asistencia y atrasos
+                <button id="btn-asistencia" onclick="cambiarModulo('asistencia')" class="menu-btn w-full">
+                    <i data-lucide="clock" class="h-4 w-4"></i>
+                    4. Asistencia y atrasos
                 </button>
-                <button onclick="cambiarModulo('licencias')" id="btn-licencias" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button border border-transparent">
-                    <i data-lucide="file-heart" class="w-4 h-4"></i> 5. Licencias y Ausentismo
+                <button id="btn-licencias" onclick="cambiarModulo('licencias')" class="menu-btn w-full">
+                    <i data-lucide="file-heart" class="h-4 w-4"></i>
+                    5. Licencias y ausentismo
                 </button>
-                <button onclick="cambiarModulo('vacaciones')" id="btn-vacaciones" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button border border-transparent">
-                    <i data-lucide="palmtree" class="w-4 h-4"></i> 6. Vacaciones
+                <button id="btn-vacaciones" onclick="cambiarModulo('vacaciones')" class="menu-btn w-full">
+                    <i data-lucide="palmtree" class="h-4 w-4"></i>
+                    6. Vacaciones
                 </button>
-                <button onclick="cambiarModulo('papeletas')" id="btn-papeletas" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button border border-transparent">
-                    <i data-lucide="file-text" class="w-4 h-4"></i> 7. Papeletas
+                <button id="btn-papeletas" onclick="cambiarModulo('papeletas')" class="menu-btn w-full">
+                    <i data-lucide="file-text" class="h-4 w-4"></i>
+                    7. Papeletas
                 </button>
-                <button onclick="cambiarModulo('correos')" id="btn-correos" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button border border-transparent">
-                    <i data-lucide="mail" class="w-4 h-4"></i> 8. Borradores correo
+                <button id="btn-correos" onclick="cambiarModulo('correos')" class="menu-btn w-full">
+                    <i data-lucide="mail" class="h-4 w-4"></i>
+                    8. Borradores correo
                 </button>
-                <button onclick="cambiarModulo('amonestaciones')" id="btn-amonestaciones" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button border border-transparent">
-                    <i data-lucide="folder-alert" class="w-4 h-4"></i> 9. Amonestaciones
+                <button id="btn-amonestaciones" onclick="cambiarModulo('amonestaciones')" class="menu-btn w-full">
+                    <i data-lucide="folder-alert" class="h-4 w-4"></i>
+                    9. Amonestaciones
                 </button>
-                <button onclick="cambiarModulo('reportes')" id="btn-reportes" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button border border-transparent">
-                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i> 10. Reportes
+                <button id="btn-reportes" onclick="cambiarModulo('reportes')" class="menu-btn w-full">
+                    <i data-lucide="bar-chart-3" class="h-4 w-4"></i>
+                    10. Reportes
                 </button>
-                <button onclick="cambiarModulo('usuarios')" id="btn-usuarios" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button border border-transparent">
-                    <i data-lucide="shield-check" class="w-4 h-4"></i> 11. Usuarios y roles
+                <button id="btn-usuarios" onclick="cambiarModulo('usuarios')" class="menu-btn w-full">
+                    <i data-lucide="shield-check" class="h-4 w-4"></i>
+                    11. Usuarios y roles
                 </button>
-                <button onclick="cambiarModulo('auditoria')" id="btn-auditoria" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-300 hover:bg-simiNavyHover hover:text-white rounded-lg transition ui-button border border-transparent">
-                    <i data-lucide="history" class="w-4 h-4"></i> 12. Auditoría
+                <button id="btn-auditoria" onclick="cambiarModulo('auditoria')" class="menu-btn w-full">
+                    <i data-lucide="history" class="h-4 w-4"></i>
+                    12. Auditoría
                 </button>
             </nav>
         </aside>
 
-        <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto flex flex-col">
-            <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10">
-                <h2 id="header-title" class="text-xl font-bold tracking-tight text-slate-900">1. Dashboard</h2>
+        <main class="flex min-w-0 flex-1 flex-col overflow-y-auto">
+            <header class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 sm:px-8">
+                <div class="flex items-center gap-3">
+                    <button
+                        class="rounded-lg border border-slate-200 p-2 lg:hidden"
+                        onclick="toggleSidebar(true)"
+                        aria-label="Abrir menú"
+                    >
+                        <i data-lucide="menu" class="h-5 w-5"></i>
+                    </button>
+                    <h2 id="header-title" class="text-xl font-bold tracking-tight text-slate-900">
+                        1. Dashboard
+                    </h2>
+                </div>
+
                 <div class="flex items-center gap-4">
-                    <span class="text-sm font-semibold text-slate-600 flex items-center gap-1"><i data-lucide="user-circle" class="w-5 h-5 text-simiNavy"></i> <span id="user-email-display">Cargando...</span></span>
-                    <button onclick="cerrarSesion()" class="text-xs text-simiRed hover:underline font-bold">Cerrar Sesión</button>
+                    <span class="hidden items-center gap-1 text-sm font-semibold text-slate-600 sm:flex">
+                        <i data-lucide="user-circle" class="h-5 w-5 text-simiNavy"></i>
+                        <span id="user-email-display">Cargando...</span>
+                    </span>
+                    <button onclick="cerrarSesion()" class="text-xs font-bold text-simiRed hover:underline">
+                        Cerrar sesión
+                    </button>
                 </div>
             </header>
 
-            <!-- VISTA 1: DASHBOARD -->
-            <div id="view-dashboard" class="p-8 space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    <div class="ui-card p-5 relative overflow-hidden flex justify-between items-start">
-                        <div><p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Colaboradores</p><h3 id="kpi-colaboradores" class="text-3xl font-extrabold text-slate-900 mt-2">--</h3></div>
-                        <div class="p-2.5 bg-red-50 text-simiRed rounded-xl"><i data-lucide="users" class="w-5 h-5"></i></div>
+            <!-- Dashboard -->
+            <section id="view-dashboard" class="space-y-6 p-4 sm:p-8">
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="ui-card flex items-start justify-between p-5">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Colaboradores</p>
+                            <h3 id="kpi-colaboradores" class="mt-2 text-3xl font-extrabold text-slate-900">--</h3>
+                        </div>
+                        <div class="rounded-xl bg-red-50 p-2.5 text-simiRed">
+                            <i data-lucide="users" class="h-5 w-5"></i>
+                        </div>
                     </div>
-                    <div class="ui-card p-5 relative overflow-hidden flex justify-between items-start">
-                        <div><p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Sucursales</p><h3 id="kpi-sucursales" class="text-3xl font-extrabold text-slate-900 mt-2">--</h3></div>
-                        <div class="p-2.5 bg-blue-50 text-simiNavy rounded-xl"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+
+                    <div class="ui-card flex items-start justify-between p-5">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Sucursales</p>
+                            <h3 id="kpi-sucursales" class="mt-2 text-3xl font-extrabold text-slate-900">--</h3>
+                        </div>
+                        <div class="rounded-xl bg-blue-50 p-2.5 text-simiNavy">
+                            <i data-lucide="building-2" class="h-5 w-5"></i>
+                        </div>
                     </div>
-                    <div class="ui-card p-5 relative overflow-hidden flex justify-between items-start">
-                        <div><p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Asistencias</p><h3 id="kpi-asistencia" class="text-3xl font-extrabold text-slate-900 mt-2">--</h3></div>
-                        <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="clock" class="w-5 h-5"></i></div>
+
+                    <div class="ui-card flex items-start justify-between p-5">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Asistencias</p>
+                            <h3 id="kpi-asistencia" class="mt-2 text-3xl font-extrabold text-slate-900">--</h3>
+                        </div>
+                        <div class="rounded-xl bg-amber-50 p-2.5 text-amber-600">
+                            <i data-lucide="clock" class="h-5 w-5"></i>
+                        </div>
                     </div>
-                    <div class="ui-card p-5 relative overflow-hidden flex justify-between items-start">
-                        <div><p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Ausentismos / Licencias</p><h3 id="kpi-licencias" class="text-3xl font-extrabold text-slate-900 mt-2">--</h3></div>
-                        <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl"><i data-lucide="file-heart" class="w-5 h-5"></i></div>
+
+                    <div class="ui-card flex items-start justify-between p-5">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Ausentismos / Licencias</p>
+                            <h3 id="kpi-licencias" class="mt-2 text-3xl font-extrabold text-slate-900">--</h3>
+                        </div>
+                        <div class="rounded-xl bg-indigo-50 p-2.5 text-indigo-600">
+                            <i data-lucide="file-heart" class="h-5 w-5"></i>
+                        </div>
                     </div>
                 </div>
-                
+
                 <div class="ui-card p-6">
-                    <h3 class="font-bold text-slate-900 text-base mb-2">Estado General del Sistema</h3>
-                    <div id="connection-box" class="p-4 rounded-xl text-sm bg-slate-50 border border-slate-200 text-slate-600">
+                    <h3 class="mb-2 text-base font-bold text-slate-900">Estado general del sistema</h3>
+                    <div id="connection-box" class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                         Autenticando con Supabase...
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- VISTA 2: COLABORADORES -->
-            <div id="view-colaboradores" class="p-8 space-y-6 hidden">
-                <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
-                    <h3 class="font-bold text-slate-900 text-base">Nómina General de Colaboradores</h3>
+            <!-- Colaboradores -->
+            <section id="view-colaboradores" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
+                    <h3 class="text-base font-bold text-slate-900">Nómina general de colaboradores</h3>
                     <div class="flex items-center gap-2">
-                        <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-1.5 shadow-sm ui-button">
-                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Cargar Excel Empleados
-                            <input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarExcelGenerico(event, 'colaboradores')">
+                        <label class="ui-button flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700">
+                            <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
+                            Cargar Excel empleados
+                            <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarExcelGenerico(event, 'colaboradores')">
                         </label>
-                        <button onclick="toggleModalColaborador(true)" class="bg-simiRed hover:bg-red-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm ui-button">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Nuevo
+                        <button onclick="toggleModalColaborador(true)" class="ui-button flex items-center gap-1.5 rounded-lg bg-simiRed px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-700">
+                            <i data-lucide="plus" class="h-4 w-4"></i>
+                            Nuevo
                         </button>
                     </div>
                 </div>
-                <div class="ui-card overflow-hidden">
-                    <table class="w-full text-left border-collapse">
+
+                <div class="ui-card table-wrapper">
+                    <table class="w-full min-w-[850px] border-collapse text-left">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
+                            <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                                 <th class="p-4">RUT</th>
-                                <th class="p-4">Nombre Completo</th>
+                                <th class="p-4">Nombre completo</th>
                                 <th class="p-4">Cargo</th>
                                 <th class="p-4">Sucursal</th>
-                                <th class="p-4 text-simiNavy">Supervisor Zonal</th>
+                                <th class="p-4 text-simiNavy">Supervisor zonal</th>
                                 <th class="p-4">Estado</th>
                             </tr>
                         </thead>
-                        <tbody id="tabla-colaboradores-body" class="text-sm divide-y divide-slate-100 font-medium text-slate-700">
+                        <tbody id="tabla-colaboradores-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
                             <tr><td colspan="6" class="p-6 text-center text-slate-400">Cargando datos...</td></tr>
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </section>
 
-            <!-- VISTA 3: SUCURSALES -->
-            <div id="view-sucursales" class="p-8 space-y-6 hidden">
-                <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
-                    <h3 class="font-bold text-slate-900 text-base">Directorio de Sucursales</h3>
-                    <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-1.5 shadow-sm ui-button">
-                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Cargar Excel Directorio
-                        <input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarExcelGenerico(event, 'sucursales')">
+            <!-- Sucursales -->
+            <section id="view-sucursales" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
+                    <h3 class="text-base font-bold text-slate-900">Directorio de sucursales</h3>
+                    <label class="ui-button flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700">
+                        <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
+                        Cargar Excel directorio
+                        <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarExcelGenerico(event, 'sucursales')">
                     </label>
                 </div>
-                <div class="ui-card overflow-hidden">
-                    <table class="w-full text-left border-collapse">
+
+                <div class="ui-card table-wrapper">
+                    <table class="w-full min-w-[800px] border-collapse text-left">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
+                            <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                                 <th class="p-4">Unidad</th>
                                 <th class="p-4">Sucursal</th>
                                 <th class="p-4">Dirección</th>
-                                <th class="p-4 text-simiNavy">Supervisor Zonal</th>
+                                <th class="p-4 text-simiNavy">Supervisor zonal</th>
                                 <th class="p-4">Mapa</th>
                             </tr>
                         </thead>
-                        <tbody id="tabla-sucursales-body" class="text-sm divide-y divide-slate-100 font-medium text-slate-700">
+                        <tbody id="tabla-sucursales-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
                             <tr><td colspan="5" class="p-6 text-center text-slate-400">Cargando directorio...</td></tr>
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </section>
 
-            <!-- VISTA 4: ASISTENCIA Y ATRASOS -->
-            <div id="view-asistencia" class="p-8 space-y-6 hidden">
-                <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
+            <!-- Asistencia -->
+            <section id="view-asistencia" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
                     <div>
-                        <h3 class="font-bold text-slate-900 text-base">Control de Asistencia, Atrasos y Anomalías</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Sube el reporte de jornadas. Haz clic en las tarjetas de arriba para filtrar interactivamente.</p>
+                        <h3 class="text-base font-bold text-slate-900">Control de asistencia, atrasos y anomalías</h3>
+                        <p class="mt-0.5 text-xs text-slate-500">Los datos se validan, se guardan en Supabase y se vuelven a consultar para confirmar su persistencia.</p>
                     </div>
-                    <label id="btn-upload-container" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-2 shadow-sm ui-button">
-                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> Cargar Reporte de Jornadas (Excel)
-                        <input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarReporteAsistencia(event)">
+                    <label id="btn-upload-container" class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700">
+                        <i data-lucide="upload-cloud" class="h-4 w-4"></i>
+                        Cargar reporte de jornadas
+                        <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarReporteAsistencia(event)">
                     </label>
                 </div>
 
-                <!-- Panel de Filtros -->
-                <div class="ui-card p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="ui-card grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Filtrar por Sucursal</label>
-                        <select id="filtro-sucursal-asistencia" onchange="renderizarAnalisisAsistencia()" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white font-medium text-slate-700 focus:ring-2 focus:ring-simiRed outline-none">
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Sucursal</label>
+                        <select id="filtro-sucursal-asistencia" onchange="renderizarAnalisisAsistencia()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-simiRed">
                             <option value="TODAS">Todas las sucursales</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Filtrar por Anomalía / Estado</label>
-                        <select id="filtro-tipo-anomalia" onchange="renderizarAnalisisAsistencia()" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white font-medium text-slate-700 focus:ring-2 focus:ring-simiRed outline-none">
-                            <option value="TODOS">Mostrar todos los registros</option>
-                            <option value="ATRASOS">Solo con Atrasos</option>
-                            <option value="TEMPRANAS">Solo Salidas Tempranas</option>
-                            <option value="INCOMPLETAS">Marcas Incompletas</option>
-                            <option value="SIN_MARCAS">Sin Marcas / Inasistencias</option>
-                            <option value="SIN_TURNO">Personal sin turno con marcas</option>
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Anomalía / Estado</label>
+                        <select id="filtro-tipo-anomalia" onchange="renderizarAnalisisAsistencia()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-simiRed">
+                            <option value="TODOS">Todos los registros</option>
+                            <option value="ATRASOS">Solo atrasos</option>
+                            <option value="TEMPRANAS">Solo salidas tempranas</option>
+                            <option value="INCOMPLETAS">Marcas incompletas</option>
+                            <option value="SIN_MARCAS">Sin marcas</option>
+                            <option value="SIN_TURNO">Sin turno con marcas</option>
                         </select>
                     </div>
-                </div>
-
-                <!-- Resumen de Indicadores Interactivos (Clickeables) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div onclick="seleccionarFiltroAnomaliaCard('SIN_MARCAS')" class="ui-card p-4 border-l-4 border-l-red-500 cursor-pointer hover:bg-red-50/50 transition shadow-sm">
-                        <p class="text-xs font-semibold text-slate-500 uppercase">Sin Marcas / Inasistencias</p>
-                        <h4 id="stat-sin-marcas" class="text-2xl font-black text-slate-900 mt-1">0</h4>
-                    </div>
-                    <div onclick="seleccionarFiltroAnomaliaCard('INCOMPLETAS')" class="ui-card p-4 border-l-4 border-l-amber-500 cursor-pointer hover:bg-amber-50/50 transition shadow-sm">
-                        <p class="text-xs font-semibold text-slate-500 uppercase">Marcas Incompletas</p>
-                        <h4 id="stat-incompletas" class="text-2xl font-black text-slate-900 mt-1">0</h4>
-                    </div>
-                    <div onclick="seleccionarFiltroAnomaliaCard('ATRASOS')" class="ui-card p-4 border-l-4 border-l-orange-500 cursor-pointer hover:bg-orange-50/50 transition shadow-sm">
-                        <p class="text-xs font-semibold text-slate-500 uppercase">Con Atrasos</p>
-                        <h4 id="stat-atrasos" class="text-2xl font-black text-slate-900 mt-1">0</h4>
-                    </div>
-                    <div onclick="seleccionarFiltroAnomaliaCard('TEMPRANAS')" class="ui-card p-4 border-l-4 border-l-blue-500 cursor-pointer hover:bg-blue-50/50 transition shadow-sm">
-                        <p class="text-xs font-semibold text-slate-500 uppercase">Salidas Tempranas</p>
-                        <h4 id="stat-tempranas" class="text-2xl font-black text-slate-900 mt-1">0</h4>
-                    </div>
-                    <div onclick="seleccionarFiltroAnomaliaCard('SIN_TURNO')" class="ui-card p-4 border-l-4 border-l-purple-500 cursor-pointer hover:bg-purple-50/50 transition shadow-sm">
-                        <p class="text-xs font-semibold text-slate-500 uppercase">Sin Turno con Marcas</p>
-                        <h4 id="stat-sin-turno-marcas" class="text-2xl font-black text-slate-900 mt-1">0</h4>
-                    </div>
-                </div>
-
-                <!-- Tabla de Resultados Detallados -->
-                <div class="ui-card overflow-hidden">
-                    <div class="p-4 border-b border-slate-100 bg-slate-50 font-bold text-xs uppercase text-slate-600 tracking-wider">
-                        Detalle de Anomalías y Asistencias
-                    </div>
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-white border-b border-slate-200 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
-                                <th class="p-3">Fecha</th>
-                                <th class="p-3">Sucursal</th>
-                                <th class="p-3">RUT / Colaborador</th>
-                                <th class="p-3">Turno</th>
-                                <th class="p-3">Entrada / Salida</th>
-                                <th class="p-3 text-amber-600">Atraso</th>
-                                <th class="p-3 text-blue-600">Salida Temprana</th>
-                                <th class="p-3">Observación / Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-asistencia-body" class="text-xs divide-y divide-slate-100 font-medium text-slate-700">
-                            <tr><td colspan="8" class="p-8 text-center text-slate-400">Cargando registros...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- VISTA 5: LICENCIAS Y AUSENTISMO (HISTÓRICO CONSOLIDADO INTERACTIVO) -->
-            <div id="view-licencias" class="p-8 space-y-6 hidden">
-                <div class="ui-card p-4 flex flex-wrap justify-between items-center gap-3">
                     <div>
-                        <h3 class="font-bold text-slate-900 text-base">Consolidado Histórico de Licencias y Ausentismos</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Sube el archivo histórico. Filtra por colaborador, tipo de ausencia y estado de vigencia.</p>
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Buscar persona</label>
+                        <input id="busqueda-asistencia" oninput="renderizarAnalisisAsistencia()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-simiRed" placeholder="Nombre o RUT">
                     </div>
-                    <label id="btn-upload-licencias" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-2 shadow-sm ui-button">
-                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> Cargar Histórico de Licencias (Excel)
-                        <input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarHistorialLicencias(event)">
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                    <button onclick="seleccionarFiltroAnomaliaCard('SIN_MARCAS')" class="ui-card border-l-4 border-l-red-500 p-4 text-left transition hover:bg-red-50/50">
+                        <p class="text-xs font-semibold uppercase text-slate-500">Sin marcas</p>
+                        <h4 id="stat-sin-marcas" class="mt-1 text-2xl font-black text-slate-900">0</h4>
+                    </button>
+                    <button onclick="seleccionarFiltroAnomaliaCard('INCOMPLETAS')" class="ui-card border-l-4 border-l-amber-500 p-4 text-left transition hover:bg-amber-50/50">
+                        <p class="text-xs font-semibold uppercase text-slate-500">Incompletas</p>
+                        <h4 id="stat-incompletas" class="mt-1 text-2xl font-black text-slate-900">0</h4>
+                    </button>
+                    <button onclick="seleccionarFiltroAnomaliaCard('ATRASOS')" class="ui-card border-l-4 border-l-orange-500 p-4 text-left transition hover:bg-orange-50/50">
+                        <p class="text-xs font-semibold uppercase text-slate-500">Atrasos</p>
+                        <h4 id="stat-atrasos" class="mt-1 text-2xl font-black text-slate-900">0</h4>
+                    </button>
+                    <button onclick="seleccionarFiltroAnomaliaCard('TEMPRANAS')" class="ui-card border-l-4 border-l-blue-500 p-4 text-left transition hover:bg-blue-50/50">
+                        <p class="text-xs font-semibold uppercase text-slate-500">Salidas tempranas</p>
+                        <h4 id="stat-tempranas" class="mt-1 text-2xl font-black text-slate-900">0</h4>
+                    </button>
+                    <button onclick="seleccionarFiltroAnomaliaCard('SIN_TURNO')" class="ui-card border-l-4 border-l-purple-500 p-4 text-left transition hover:bg-purple-50/50">
+                        <p class="text-xs font-semibold uppercase text-slate-500">Sin turno</p>
+                        <h4 id="stat-sin-turno-marcas" class="mt-1 text-2xl font-black text-slate-900">0</h4>
+                    </button>
+                </div>
+
+                <div class="ui-card overflow-hidden">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 p-4">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-600">Detalle de asistencia</span>
+                        <span id="contador-asistencia" class="font-mono text-xs text-simiNavy">0 registros</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="w-full min-w-[1100px] border-collapse text-left">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-white text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                                    <th class="p-3">Fecha</th>
+                                    <th class="p-3">Sucursal</th>
+                                    <th class="p-3">RUT / Colaborador</th>
+                                    <th class="p-3">Turno</th>
+                                    <th class="p-3">Entrada / Salida</th>
+                                    <th class="p-3 text-amber-600">Atraso</th>
+                                    <th class="p-3 text-blue-600">Salida temprana</th>
+                                    <th class="p-3">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-asistencia-body" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                <tr><td colspan="8" class="p-8 text-center text-slate-400">Cargando registros...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Licencias -->
+            <section id="view-licencias" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Consolidado histórico de licencias y ausentismos</h3>
+                        <p class="mt-0.5 text-xs text-slate-500">El archivo se normaliza y se guarda con una clave única para evitar duplicados.</p>
+                    </div>
+                    <label id="btn-upload-licencias" class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700">
+                        <i data-lucide="upload-cloud" class="h-4 w-4"></i>
+                        Cargar histórico de licencias
+                        <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarHistorialLicencias(event)">
                     </label>
                 </div>
 
-                <!-- Panel de Filtros Interactivos -->
-                <div class="ui-card p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="ui-card grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Filtrar por Colaborador</label>
-                        <select id="filtro-colaborador-licencia" onchange="renderizarTablaLicencias()" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Colaborador</label>
+                        <select id="filtro-colaborador-licencia" onchange="renderizarTablaLicencias()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500">
                             <option value="TODOS">Todos los colaboradores</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Filtrar por Tipo de Ausencia</label>
-                        <select id="filtro-tipo-ausencia-licencia" onchange="renderizarTablaLicencias()" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none">
-                            <option value="TODOS">Todos los tipos de ausencia</option>
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Tipo de ausencia</label>
+                        <select id="filtro-tipo-ausencia-licencia" onchange="renderizarTablaLicencias()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="TODOS">Todos los tipos</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Filtrar por Vigencia (Tiempo Real)</label>
-                        <select id="filtro-vigencia-licencia" onchange="renderizarTablaLicencias()" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none">
-                            <option value="TODOS">Todos los estados (Vigentes y Caducadas)</option>
-                            <option value="VIGENTE">Solo Vigentes (Verde)</option>
-                            <option value="CADUCADA">Solo No Vigentes / Caducadas (Rojo)</option>
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Vigencia</label>
+                        <select id="filtro-vigencia-licencia" onchange="renderizarTablaLicencias()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="TODOS">Todos los estados</option>
+                            <option value="VIGENTE">Solo vigentes</option>
+                            <option value="CADUCADA">Solo caducadas</option>
                         </select>
                     </div>
-                </div>
-
-                <!-- Tabla de Licencias -->
-                <div class="ui-card overflow-hidden">
-                    <div class="p-4 border-b border-slate-100 bg-slate-50 font-bold text-xs uppercase text-slate-600 tracking-wider flex justify-between items-center">
-                        <span>Registros Históricos de Ausentismos y Permisos</span>
-                        <span id="contador-licencias-filtradas" class="text-indigo-600 font-mono text-xs">Mostrando 0 registros</span>
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-700">Buscar</label>
+                        <input id="busqueda-licencias" oninput="renderizarTablaLicencias()" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Nombre, RUT o motivo">
                     </div>
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-white border-b border-slate-200 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
-                                <th class="p-3">RUT / Colaborador</th>
-                                <th class="p-3">Sucursal</th>
-                                <th class="p-3">Tipo de Ausencia</th>
-                                <th class="p-3">Motivo</th>
-                                <th class="p-3">Días</th>
-                                <th class="p-3">Desde - Hasta</th>
-                                <th class="p-3">Vigencia en Tiempo Real</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-licencias-body" class="text-xs divide-y divide-slate-100 font-medium text-slate-700">
-                            <tr><td colspan="7" class="p-8 text-center text-slate-400">Cargando registros...</td></tr>
-                        </tbody>
-                    </table>
                 </div>
-            </div>
 
-            <!-- VISTA GENÉRICA PARA EL RESTO DE MÓDULOS -->
-            <div id="view-generic" class="p-8 hidden">
-                <div class="ui-card p-12 text-center max-w-lg mx-auto mt-8">
-                    <div class="w-12 h-12 bg-red-50 text-simiRed rounded-2xl flex items-center justify-center mx-auto mb-4"><i data-lucide="wrench" class="w-6 h-6"></i></div>
-                    <h3 id="generic-title" class="font-bold text-lg text-slate-900">Módulo en Desarrollo</h3>
-                    <p class="text-slate-500 text-xs mt-2">Este módulo está preparado en la plataforma.</p>
+                <div class="ui-card overflow-hidden">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 p-4">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-600">Registros históricos</span>
+                        <span id="contador-licencias-filtradas" class="font-mono text-xs text-indigo-600">Mostrando 0 registros</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="w-full min-w-[1000px] border-collapse text-left">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-white text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                                    <th class="p-3">RUT / Colaborador</th>
+                                    <th class="p-3">Sucursal</th>
+                                    <th class="p-3">Tipo</th>
+                                    <th class="p-3">Motivo</th>
+                                    <th class="p-3">Días</th>
+                                    <th class="p-3">Desde - Hasta</th>
+                                    <th class="p-3">Vigencia</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-licencias-body" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                <tr><td colspan="7" class="p-8 text-center text-slate-400">Cargando registros...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            </section>
+
+            <!-- Genérico -->
+            <section id="view-generic" class="hidden p-4 sm:p-8">
+                <div class="ui-card mx-auto mt-8 max-w-lg p-12 text-center">
+                    <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-simiRed">
+                        <i data-lucide="wrench" class="h-6 w-6"></i>
+                    </div>
+                    <h3 id="generic-title" class="text-lg font-bold text-slate-900">Módulo en desarrollo</h3>
+                    <p class="mt-2 text-xs text-slate-500">Este módulo está preparado en la plataforma.</p>
+                </div>
+            </section>
         </main>
     </div>
 
-    <!-- MODAL NUEVO COLABORADOR -->
-    <div id="modal-colaborador" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-slate-100">
-            <h3 class="font-bold text-base text-slate-900 border-b border-slate-100 pb-3">Nuevo Colaborador</h3>
+    <!-- Modal colaborador -->
+    <div id="modal-colaborador" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+        <div class="w-full max-w-md space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl">
+            <h3 class="border-b border-slate-100 pb-3 text-base font-bold text-slate-900">Nuevo colaborador</h3>
             <form id="form-nuevo-colaborador" onsubmit="guardarColaborador(event)" class="space-y-3">
-                <div><label class="block text-xs font-semibold text-slate-700">RUT</label><input type="text" id="input-rut" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mt-1 focus:ring-2 focus:ring-simiRed"></div>
-                <div><label class="block text-xs font-semibold text-slate-700">Nombres</label><input type="text" id="input-nombres" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mt-1 focus:ring-2 focus:ring-simiRed"></div>
-                <div><label class="block text-xs font-semibold text-slate-700">Apellidos</label><input type="text" id="input-apellidos" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mt-1 focus:ring-2 focus:ring-simiRed"></div>
-                <div><label class="block text-xs font-semibold text-slate-700">Cargo</label><input type="text" id="input-cargo" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mt-1 focus:ring-2 focus:ring-simiRed"></div>
-                <div><label class="block text-xs font-semibold text-slate-700">Sucursal</label><input type="text" id="input-sucursal" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mt-1 focus:ring-2 focus:ring-simiRed"></div>
-                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="toggleModalColaborador(false)" class="px-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-simiNavy text-white rounded-lg text-xs font-semibold hover:bg-simiNavyHover">Guardar</button>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700">RUT</label>
+                    <input id="input-rut" required class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-simiRed">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700">Nombres</label>
+                    <input id="input-nombres" required class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-simiRed">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700">Apellidos</label>
+                    <input id="input-apellidos" required class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-simiRed">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700">Cargo</label>
+                    <input id="input-cargo" required class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-simiRed">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700">Sucursal</label>
+                    <input id="input-sucursal" required class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-simiRed">
+                </div>
+                <div class="flex justify-end gap-2 border-t border-slate-100 pt-3">
+                    <button type="button" onclick="toggleModalColaborador(false)" class="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button>
+                    <button type="submit" class="rounded-lg bg-simiNavy px-4 py-2 text-xs font-semibold text-white hover:bg-simiNavyHover">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        // CONFIGURACIÓN SUPABASE
+        // ============================================================
+        // CONFIGURACIÓN
+        // ============================================================
         const SUPABASE_URL = 'https://zcfbglbhqhysnptkfwba.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_EoJWhc0HPqIyTNiwU53FDw_prK9gYx2';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_EoJWhc0HPqIyTNiwU53FDw_prK9gYx2';
+        const _supabase = supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_PUBLISHABLE_KEY
+        );
+
+        const LIMITE_RENDER = 300;
+        const TAMANO_LOTE = 300;
+        const TAMANO_PAGINA_SUPABASE = 1000;
 
         let datosAsistenciaGlobal = [];
         let datosLicenciasGlobal = [];
         let asistenciaCargada = false;
         let licenciasCargadas = false;
 
-        function convertirHoraExcel(val) {
-            if (val === undefined || val === null || val === '-' || val === '') return '-';
-            if (typeof val === 'string' && val.includes(':')) return val.trim();
-            let num = parseFloat(val);
-            if (!isNaN(num) && num >= 0 && num < 1) {
-                let totalSegundos = Math.round(num * 24 * 60 * 60);
-                let horas = Math.floor(totalSegundos / 3600);
-                let minutos = Math.floor((totalSegundos % 3600) / 60);
-                let segundos = totalSegundos % 60;
+        const modulos = [
+            'dashboard',
+            'colaboradores',
+            'sucursales',
+            'asistencia',
+            'licencias',
+            'vacaciones',
+            'papeletas',
+            'correos',
+            'amonestaciones',
+            'reportes',
+            'usuarios',
+            'auditoria'
+        ];
+
+        const titleMap = {
+            dashboard: '1. Dashboard',
+            colaboradores: '2. Colaboradores',
+            sucursales: '3. Sucursales',
+            asistencia: '4. Asistencia y atrasos',
+            licencias: '5. Licencias y Ausentismo',
+            vacaciones: '6. Vacaciones',
+            papeletas: '7. Papeletas',
+            correos: '8. Borradores correo',
+            amonestaciones: '9. Amonestaciones',
+            reportes: '10. Reportes',
+            usuarios: '11. Usuarios y roles',
+            auditoria: '12. Auditoría'
+        };
+
+        // ============================================================
+        // UTILIDADES
+        // ============================================================
+        function texto(valor, defecto = '') {
+            if (valor === undefined || valor === null) return defecto;
+            return String(valor).trim();
+        }
+
+        function escaparHTML(valor) {
+            return String(valor ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function normalizarRut(valor) {
+            return texto(valor)
+                .replace(/\./g, '')
+                .replace(/\s+/g, '')
+                .toUpperCase();
+        }
+
+        function normalizarNombreColumna(valor) {
+            return texto(valor)
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/\s+/g, ' ');
+        }
+
+        function obtenerCampo(fila, alternativas, defecto = '') {
+            const mapa = {};
+            Object.keys(fila).forEach(clave => {
+                mapa[normalizarNombreColumna(clave)] = fila[clave];
+            });
+
+            for (const alternativa of alternativas) {
+                const claveNormalizada = normalizarNombreColumna(alternativa);
+                if (Object.prototype.hasOwnProperty.call(mapa, claveNormalizada)) {
+                    return mapa[claveNormalizada];
+                }
+            }
+
+            return defecto;
+        }
+
+        function fechaISODesdeExcel(valor) {
+            if (valor === undefined || valor === null || valor === '') return null;
+
+            if (valor instanceof Date && !Number.isNaN(valor.getTime())) {
+                return [
+                    valor.getFullYear(),
+                    String(valor.getMonth() + 1).padStart(2, '0'),
+                    String(valor.getDate()).padStart(2, '0')
+                ].join('-');
+            }
+
+            if (typeof valor === 'number') {
+                const partes = XLSX.SSF.parse_date_code(valor);
+                if (!partes) return null;
+                return [
+                    String(partes.y).padStart(4, '0'),
+                    String(partes.m).padStart(2, '0'),
+                    String(partes.d).padStart(2, '0')
+                ].join('-');
+            }
+
+            const cadena = texto(valor);
+
+            let coincidencia = cadena.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+            if (coincidencia) {
+                return [
+                    coincidencia[3],
+                    coincidencia[2].padStart(2, '0'),
+                    coincidencia[1].padStart(2, '0')
+                ].join('-');
+            }
+
+            coincidencia = cadena.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+            if (coincidencia) {
+                return [
+                    coincidencia[1],
+                    coincidencia[2].padStart(2, '0'),
+                    coincidencia[3].padStart(2, '0')
+                ].join('-');
+            }
+
+            const fecha = new Date(cadena);
+            if (Number.isNaN(fecha.getTime())) return null;
+
+            return [
+                fecha.getFullYear(),
+                String(fecha.getMonth() + 1).padStart(2, '0'),
+                String(fecha.getDate()).padStart(2, '0')
+            ].join('-');
+        }
+
+        function parsearFechaExcel(valor) {
+            const iso = fechaISODesdeExcel(valor);
+            if (!iso) return null;
+            const [anio, mes, dia] = iso.split('-').map(Number);
+            return new Date(anio, mes - 1, dia);
+        }
+
+        function convertirHoraExcel(valor) {
+            if (
+                valor === undefined ||
+                valor === null ||
+                valor === '' ||
+                valor === '-'
+            ) {
+                return '-';
+            }
+
+            if (valor instanceof Date && !Number.isNaN(valor.getTime())) {
+                return [
+                    String(valor.getHours()).padStart(2, '0'),
+                    String(valor.getMinutes()).padStart(2, '0'),
+                    String(valor.getSeconds()).padStart(2, '0')
+                ].join(':');
+            }
+
+            if (typeof valor === 'string' && valor.includes(':')) {
+                const partes = valor.trim().split(':');
+                const hora = String(Number(partes[0])).padStart(2, '0');
+                const minuto = String(Number(partes[1] ?? 0)).padStart(2, '0');
+                const segundo = String(Number(partes[2] ?? 0)).padStart(2, '0');
+                return `${hora}:${minuto}:${segundo}`;
+            }
+
+            const numero = Number(valor);
+            if (Number.isFinite(numero) && numero >= 0 && numero < 1) {
+                const totalSegundos = Math.round(numero * 24 * 60 * 60) % 86400;
+                const horas = Math.floor(totalSegundos / 3600);
+                const minutos = Math.floor((totalSegundos % 3600) / 60);
+                const segundos = totalSegundos % 60;
                 return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
             }
-            return String(val);
+
+            return texto(valor, '-');
         }
 
-        function parsearFechaExcel(val) {
-            if (!val) return null;
-            if (typeof val === 'number') {
-                let utc_days = Math.floor(val - 25569);
-                let utc_value = utc_days * 86400;
-                return new Date(utc_value * 1000);
-            }
-            let str = String(val).trim();
-            let parsed = new Date(str);
-            if (!isNaN(parsed.getTime())) return parsed;
-            return null;
+        function mostrarToast(mensaje, tipo = 'info', duracion = 7000) {
+            const contenedor = document.getElementById('toast-container');
+            const colores = {
+                success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+                error: 'border-red-200 bg-red-50 text-red-800',
+                warning: 'border-amber-200 bg-amber-50 text-amber-800',
+                info: 'border-blue-200 bg-blue-50 text-blue-800'
+            };
+            const iconos = {
+                success: 'check-circle-2',
+                error: 'alert-circle',
+                warning: 'triangle-alert',
+                info: 'info'
+            };
+
+            const elemento = document.createElement('div');
+            elemento.className = `toast-enter flex items-start gap-3 rounded-xl border p-4 text-sm font-medium shadow-lg ${colores[tipo] || colores.info}`;
+            elemento.innerHTML = `
+                <i data-lucide="${iconos[tipo] || iconos.info}" class="mt-0.5 h-5 w-5 flex-shrink-0"></i>
+                <div class="min-w-0 flex-1 whitespace-pre-wrap break-words">${escaparHTML(mensaje)}</div>
+                <button class="opacity-60 hover:opacity-100" aria-label="Cerrar">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            `;
+            elemento.querySelector('button').addEventListener('click', () => elemento.remove());
+            contenedor.appendChild(elemento);
+            lucide.createIcons();
+            if (duracion > 0) setTimeout(() => elemento.remove(), duracion);
         }
 
-        document.addEventListener('DOMContentLoaded', () => { 
-            lucide.createIcons(); 
-            _supabase.auth.getSession().then(({ data: { session } }) => {
-                if (session) {
-                    document.getElementById('login-overlay').classList.add('hidden');
-                    document.getElementById('user-email-display').innerText = session.user.email;
-                    inicializarDashboard();
-                } else {
-                    document.getElementById('login-overlay').classList.remove('hidden');
-                }
+        function construirErrorSupabase(contexto, error) {
+            console.error(contexto, error);
+            const detalles = [
+                error?.message,
+                error?.details,
+                error?.hint,
+                error?.code ? `Código ${error.code}` : ''
+            ].filter(Boolean).join(' | ');
+            return new Error(`${contexto}: ${detalles || 'Error desconocido'}`);
+        }
+
+        async function leerArchivoExcel(file) {
+            const buffer = await file.arrayBuffer();
+            const workbook = XLSX.read(buffer, {
+                type: 'array',
+                cellDates: false
             });
+
+            if (!workbook.SheetNames.length) {
+                throw new Error('El archivo no contiene hojas.');
+            }
+
+            const hoja = workbook.Sheets[workbook.SheetNames[0]];
+            const filas = XLSX.utils.sheet_to_json(hoja, {
+                defval: '',
+                raw: true
+            });
+
+            if (!filas.length) {
+                throw new Error('La primera hoja no contiene registros.');
+            }
+
+            return filas;
+        }
+
+        async function guardarLotes(tabla, registros, opciones = {}) {
+            if (!registros.length) {
+                throw new Error(`No hay registros válidos para guardar en ${tabla}.`);
+            }
+
+            let totalConfirmado = 0;
+
+            for (let inicio = 0; inicio < registros.length; inicio += TAMANO_LOTE) {
+                const lote = registros.slice(inicio, inicio + TAMANO_LOTE);
+                const { data, error } = await _supabase
+                    .from(tabla)
+                    .upsert(lote, opciones)
+                    .select('id');
+
+                if (error) {
+                    throw construirErrorSupabase(
+                        `Error en ${tabla}, filas ${inicio + 1} a ${inicio + lote.length}`,
+                        error
+                    );
+                }
+
+                totalConfirmado += data?.length ?? lote.length;
+            }
+
+            return totalConfirmado;
+        }
+
+        async function cargarTablaCompleta(tabla, orden = null) {
+            const acumulado = [];
+
+            for (let desde = 0; ; desde += TAMANO_PAGINA_SUPABASE) {
+                let consulta = _supabase
+                    .from(tabla)
+                    .select('*');
+
+                if (orden?.columna) {
+                    consulta = consulta.order(orden.columna, {
+                        ascending: orden.ascending ?? false
+                    });
+                }
+
+                const { data, error } = await consulta.range(
+                    desde,
+                    desde + TAMANO_PAGINA_SUPABASE - 1
+                );
+
+                if (error) {
+                    throw construirErrorSupabase(`No se pudo leer ${tabla}`, error);
+                }
+
+                if (!data?.length) break;
+
+                acumulado.push(...data);
+
+                if (data.length < TAMANO_PAGINA_SUPABASE) break;
+            }
+
+            return acumulado;
+        }
+
+        function toggleSidebar(abierto) {
+            document.getElementById('sidebar').classList.toggle('mobile-open', abierto);
+        }
+
+        // ============================================================
+        // AUTENTICACIÓN
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.querySelectorAll('.menu-btn').forEach(btn => {
+                btn.className = 'menu-btn ui-button flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-slate-300 transition hover:bg-simiNavyHover hover:text-white';
+            });
+
+            lucide.createIcons();
+            cambiarModulo('dashboard', false);
+
+            const { data, error } = await _supabase.auth.getSession();
+
+            if (error) {
+                mostrarToast(`No se pudo comprobar la sesión: ${error.message}`, 'error');
+                return;
+            }
+
+            const session = data.session;
+            if (session) {
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('user-email-display').innerText = session.user.email;
+                await inicializarDashboard();
+            }
         });
 
-        async function iniciarSesion(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-login');
-            const errBox = document.getElementById('login-error');
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Autenticando...`;
-            errBox.classList.add('hidden');
-            const email = document.getElementById('login-email').value;
+        async function iniciarSesion(event) {
+            event.preventDefault();
+
+            const boton = document.getElementById('btn-login');
+            const errorBox = document.getElementById('login-error');
+            const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-pass').value;
-            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                document.getElementById('login-error-text').innerText = "Credenciales incorrectas.";
-                errBox.classList.remove('hidden');
-                btn.innerHTML = `<i data-lucide="log-in" class="w-5 h-5"></i> Ingresar al Sistema`;
-                lucide.createIcons();
-            } else {
+
+            boton.disabled = true;
+            boton.innerHTML = '<i data-lucide="loader-2" class="h-5 w-5 animate-spin"></i> Autenticando...';
+            errorBox.classList.add('hidden');
+            lucide.createIcons();
+
+            try {
+                const { data, error } = await _supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) throw error;
+
                 document.getElementById('login-overlay').classList.add('hidden');
                 document.getElementById('user-email-display').innerText = data.user.email;
-                inicializarDashboard(); 
+                await inicializarDashboard();
+            } catch (error) {
+                document.getElementById('login-error-text').innerText = error.message || 'Credenciales incorrectas.';
+                errorBox.classList.remove('hidden');
+            } finally {
+                boton.disabled = false;
+                boton.innerHTML = '<i data-lucide="log-in" class="h-5 w-5"></i> Ingresar al sistema';
+                lucide.createIcons();
             }
         }
 
         async function cerrarSesion() {
-            await _supabase.auth.signOut();
-            document.getElementById('login-overlay').classList.remove('hidden');
+            const { error } = await _supabase.auth.signOut();
+            if (error) {
+                mostrarToast(`No se pudo cerrar la sesión: ${error.message}`, 'error');
+                return;
+            }
+
+            datosAsistenciaGlobal = [];
+            datosLicenciasGlobal = [];
+            asistenciaCargada = false;
+            licenciasCargadas = false;
             document.getElementById('login-pass').value = '';
+            document.getElementById('login-overlay').classList.remove('hidden');
         }
 
-        const modulos = ['dashboard', 'colaboradores', 'sucursales', 'asistencia', 'licencias', 'vacaciones', 'papeletas', 'correos', 'amonestaciones', 'reportes', 'usuarios', 'auditoria'];
+        // ============================================================
+        // NAVEGACIÓN Y DASHBOARD
+        // ============================================================
+        async function cambiarModulo(modulo, cargar = true) {
+            modulos.forEach(nombre => {
+                const boton = document.getElementById(`btn-${nombre}`);
+                if (boton) {
+                    const activo = nombre === modulo;
+                    boton.className = `menu-btn ui-button flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 transition ${activo ? 'bg-simiRed font-semibold text-white shadow-sm' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'}`;
+                }
 
-        function cambiarModulo(mod) {
-            modulos.forEach(m => {
-                const btn = document.getElementById(`btn-${m}`);
-                if(btn) btn.className = `w-full flex items-center gap-3 px-3 py-2.5 ${m === mod ? 'bg-simiRed text-white shadow-sm font-semibold border-transparent' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white border-transparent'} rounded-lg transition ui-button border`;
-                const view = document.getElementById(`view-${m}`);
-                if(view) view.classList.add('hidden');
+                const vista = document.getElementById(`view-${nombre}`);
+                if (vista) vista.classList.add('hidden');
             });
+
             document.getElementById('view-generic').classList.add('hidden');
 
-            const titleMap = { 'dashboard': '1. Dashboard', 'colaboradores': '2. Colaboradores', 'sucursales': '3. Sucursales', 'asistencia': '4. Asistencia y atrasos', 'licencias': '5. Licencias y Ausentismo' };
-            document.getElementById('header-title').innerText = titleMap[mod] || (mod.charAt(0).toUpperCase() + mod.slice(1));
+            const titulo = titleMap[modulo] || modulo;
+            document.getElementById('header-title').innerText = titulo;
 
-            const targetView = document.getElementById(`view-${mod}`);
-            if (targetView) targetView.classList.remove('hidden');
-            else document.getElementById('view-generic').classList.remove('hidden');
+            const destino = document.getElementById(`view-${modulo}`);
+            if (destino) {
+                destino.classList.remove('hidden');
+            } else {
+                document.getElementById('view-generic').classList.remove('hidden');
+                document.getElementById('generic-title').innerText = `${titulo} - Módulo en desarrollo`;
+            }
 
-            if(mod === 'colaboradores') cargarTablaColaboradores();
-            if(mod === 'sucursales') cargarTablaSucursales();
-            if(mod === 'asistencia') {
-                if(!asistenciaCargada) cargarAsistenciaDesdeNube();
-                else renderizarFiltrosYAnalisisAsistencia();
-            }
-            if(mod === 'licencias') {
-                if(!licenciasCargadas) cargarLicenciasDesdeNube();
-                else poblarFiltrosLicencias();
-            }
+            toggleSidebar(false);
             lucide.createIcons();
+
+            if (!cargar) return;
+
+            try {
+                if (modulo === 'colaboradores') await cargarTablaColaboradores();
+                if (modulo === 'sucursales') await cargarTablaSucursales();
+                if (modulo === 'asistencia') {
+                    if (!asistenciaCargada) await cargarAsistenciaDesdeNube();
+                    else renderizarFiltrosYAnalisisAsistencia();
+                }
+                if (modulo === 'licencias') {
+                    if (!licenciasCargadas) await cargarLicenciasDesdeNube();
+                    else poblarFiltrosLicencias();
+                }
+            } catch (error) {
+                mostrarToast(error.message, 'error', 12000);
+            }
         }
 
         async function inicializarDashboard() {
             const box = document.getElementById('connection-box');
+            box.className = 'rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600';
+            box.textContent = 'Consultando Supabase...';
+
             try {
-                const [colabRes, sucRes, asisRes, licRes] = await Promise.all([
+                const resultados = await Promise.all([
                     _supabase.from('colaboradores').select('id', { count: 'exact', head: true }),
                     _supabase.from('sucursales').select('id', { count: 'exact', head: true }),
                     _supabase.from('registros_asistencia').select('id', { count: 'exact', head: true }),
                     _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true })
                 ]);
-                
-                if (colabRes.error) throw new Error(colabRes.error.message);
 
-                document.getElementById('kpi-colaboradores').innerText = colabRes.count || '0';
-                document.getElementById('kpi-sucursales').innerText = sucRes.count || '0';
-                document.getElementById('kpi-asistencia').innerText = asisRes.error ? '0' : (asisRes.count || '0');
-                document.getElementById('kpi-licencias').innerText = licRes.error ? '0' : (licRes.count || '0');
-                
-                box.className = "p-4 rounded-xl text-sm bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium";
-                box.innerHTML = `<strong>✔ Base de datos conectada.</strong> Listos para trabajar.`;
+                const nombres = [
+                    'colaboradores',
+                    'sucursales',
+                    'registros_asistencia',
+                    'licencias_medicas'
+                ];
 
-                if(!asistenciaCargada) cargarAsistenciaDesdeNube(true);
-                if(!licenciasCargadas) cargarLicenciasDesdeNube(true);
-            } catch (err) {
-                box.className = "p-4 rounded-xl text-sm bg-yellow-50 border border-yellow-200 text-yellow-800 font-medium";
-                box.innerHTML = `<strong>⚠️ Problema de conexión a Supabase:</strong> ${err.message}`;
+                resultados.forEach((resultado, indice) => {
+                    if (resultado.error) {
+                        throw construirErrorSupabase(`Error consultando ${nombres[indice]}`, resultado.error);
+                    }
+                });
+
+                document.getElementById('kpi-colaboradores').innerText = resultados[0].count ?? 0;
+                document.getElementById('kpi-sucursales').innerText = resultados[1].count ?? 0;
+                document.getElementById('kpi-asistencia').innerText = resultados[2].count ?? 0;
+                document.getElementById('kpi-licencias').innerText = resultados[3].count ?? 0;
+
+                box.className = 'rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800';
+                box.innerHTML = '<strong>Base de datos conectada.</strong> Lectura y autenticación disponibles.';
+            } catch (error) {
+                box.className = 'rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800';
+                box.textContent = error.message;
             }
         }
 
-        // ==========================================
-        // PROCESAMIENTO LOCAL Y SUBIDA A NUBE: ASISTENCIA
-        // ==========================================
-        async function procesarReporteAsistencia(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const btnContainer = document.getElementById('btn-upload-container');
-            btnContainer.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procesando archivo local...`;
+        // ============================================================
+        // MÓDULO 4: ASISTENCIA Y ATRASOS
+        // ============================================================
+        function analizarFilaAsistencia(fila) {
+            const entrada = convertirHoraExcel(obtenerCampo(fila, ['Entrada']));
+            const salida = convertirHoraExcel(obtenerCampo(fila, ['Salida']));
+            const atraso = texto(
+                obtenerCampo(fila, ['Horas de Atraso', 'Atraso'], '00:00'),
+                '00:00'
+            ) || '00:00';
+            const turnoOriginal = texto(obtenerCampo(fila, ['Turno']));
+            const fecha = fechaISODesdeExcel(obtenerCampo(fila, ['Fecha']));
+            const rut = normalizarRut(obtenerCampo(fila, ['Rut', 'RUT']));
 
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const filas = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                    
-                    datosAsistenciaGlobal = filas.map(r => {
-                        const entrada = convertirHoraExcel(r['Entrada']);
-                        const salida = convertirHoraExcel(r['Salida']);
-                        const atraso = r['Horas de Atraso'] ? String(r['Horas de Atraso']).trim() : '00:00';
-                        const turnoCrudo = r['Turno'];
-                        const turno = turnoCrudo !== undefined && turnoCrudo !== null ? String(turnoCrudo).trim() : '';
+            const sinMarca = entrada === '-' && salida === '-';
+            const marcaIncompleta = (entrada === '-' || salida === '-') && !sinMarca;
+            const tieneAtraso = ![
+                '',
+                '0',
+                '-',
+                '00:00',
+                '00:00:00'
+            ].includes(atraso);
+            const sinTurnoConMarcas = (!turnoOriginal || turnoOriginal === '-') && !sinMarca;
 
-                        let sinMarca = (entrada === '-' && salida === '-');
-                        let marcaIncompleta = (entrada === '-' || salida === '-') && !sinMarca;
-                        let tieneAtraso = (atraso !== '00:00' && atraso !== '-' && atraso !== '0');
-                        let sinTurnoConMarcas = (turno === '' || turno === '-') && !sinMarca;
+            let salidaTemprana = '-';
+            const coincidenciaTurno = turnoOriginal.match(
+                /(\d{1,2}:\d{2})\s*(?:-|a)\s*(\d{1,2}:\d{2})/i
+            );
 
-                        let salidaTemprana = '-';
-                        if (!sinMarca && !marcaIncompleta && salida !== '-') {
-                            let matchTurno = turno.match(/(\d{2}:\d{2})-(\d{2}:\d{2})/);
-                            if (matchTurno) {
-                                let horaProgSalida = matchTurno[2];
-                                if (salida < horaProgSalida) {
-                                    let [hSal, mSal] = salida.split(':').map(Number);
-                                    let [hProg, mProg] = horaProgSalida.split(':').map(Number);
-                                    let diffMin = (hProg * 60 + mProg) - (hSal * 60 + mSal);
-                                    let horasDiff = Math.floor(diffMin / 60);
-                                    let minsDiff = diffMin % 60;
-                                    let tiempoTxt = horasDiff > 0 ? `${horasDiff}h ${minsDiff}m` : `${minsDiff} min`;
-                                    salidaTemprana = `Se retiró ${tiempoTxt} antes (${salida} / prog: ${horaProgSalida})`;
-                                }
-                            }
-                        }
+            if (!sinMarca && !marcaIncompleta && coincidenciaTurno) {
+                const [horaSalida, minutoSalida] = salida.slice(0, 5).split(':').map(Number);
+                const [horaProgramada, minutoProgramado] = coincidenciaTurno[2].split(':').map(Number);
+                const salidaMinutos = horaSalida * 60 + minutoSalida;
+                const programadaMinutos = horaProgramada * 60 + minutoProgramado;
 
-                        return {
-                            fecha: String(r['Fecha'] || ''),
-                            rut: String(r['Rut'] || ''),
-                            nombre: String(r['Nombre'] || ''),
-                            sucursal: String(r['Sucursal'] || 'Sin Sucursal'),
-                            turno: turno || 'Sin Turno',
-                            entrada: entrada,
-                            salida: salida,
-                            atraso: atraso,
-                            tipo_ausentismo: String(r['Tipo de Ausentismo'] || ''),
-                            estado: String(r['Estado'] || ''),
-                            salida_temprana: salidaTemprana,
-                            sin_marca: sinMarca,
-                            marca_incompleta: marcaIncompleta,
-                            tiene_atraso: tieneAtraso,
-                            sin_turno_marcas: sinTurnoConMarcas
-                        };
-                    });
-
-                    asistenciaCargada = true;
-                    renderizarFiltrosYAnalisisAsistencia();
-
-                    btnContainer.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Guardando en la nube...`;
-                    const loteParaNube = datosAsistenciaGlobal.map(d => ({
-                        rut: d.rut,
-                        nombre: d.nombre,
-                        sucursal: d.sucursal,
-                        fecha: d.fecha,
-                        entrada: d.entrada,
-                        salida: d.salida,
-                        atraso: d.atraso,
-                        estado: d.estado
-                    }));
-
-                    for (let i = 0; i < loteParaNube.length; i += 500) {
-                        let chunk = loteParaNube.slice(i, i + 500);
-                        await _supabase.from('registros_asistencia').upsert(chunk, { onConflict: 'rut,fecha' });
-                    }
-
-                    inicializarDashboard();
-                    alert(`✅ ¡Asistencia procesada y respaldada en la nube! Total: ${datosAsistenciaGlobal.length}.`);
-
-                } catch (err) {
-                    alert("Error al procesar archivo: " + err.message);
-                } finally {
-                    btnContainer.innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i> Cargar Reporte de Jornadas (Excel)<input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarReporteAsistencia(event)">`;
-                    lucide.createIcons();
+                if (
+                    Number.isFinite(salidaMinutos) &&
+                    Number.isFinite(programadaMinutos) &&
+                    salidaMinutos < programadaMinutos
+                ) {
+                    const diferencia = programadaMinutos - salidaMinutos;
+                    const horas = Math.floor(diferencia / 60);
+                    const minutos = diferencia % 60;
+                    salidaTemprana = `Se retiró ${horas ? `${horas}h ` : ''}${minutos}m antes`;
                 }
+            }
+
+            return {
+                rut,
+                nombre: texto(obtenerCampo(fila, ['Nombre', 'Nombre Completo'])),
+                sucursal: texto(obtenerCampo(fila, ['Sucursal'], 'Sin Sucursal')) || 'Sin Sucursal',
+                fecha,
+                turno: turnoOriginal || 'Sin Turno',
+                entrada,
+                salida,
+                atraso,
+                tipo_ausentismo: texto(obtenerCampo(fila, ['Tipo de Ausentismo', 'Ausentismo'])),
+                estado: texto(obtenerCampo(fila, ['Estado'], 'OK')) || 'OK',
+                salida_temprana: salidaTemprana,
+                sin_marca: sinMarca,
+                marca_incompleta: marcaIncompleta,
+                tiene_atraso: tieneAtraso,
+                sin_turno_marcas: sinTurnoConMarcas
             };
-            reader.readAsArrayBuffer(file);
+        }
+
+        async function procesarReporteAsistencia(event) {
+            const input = event.target;
+            const file = input.files?.[0];
+            if (!file) return;
+
+            const boton = document.getElementById('btn-upload-container');
+
+            try {
+                boton.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Procesando...';
+                lucide.createIcons();
+
+                const filas = await leerArchivoExcel(file);
+                const procesadas = filas.map(analizarFilaAsistencia);
+                const invalidas = procesadas.filter(registro => !registro.rut || !registro.fecha);
+
+                if (invalidas.length) {
+                    throw new Error(`${invalidas.length} fila(s) no tienen RUT o fecha válida. No se guardó el archivo.`);
+                }
+
+                datosAsistenciaGlobal = procesadas;
+                asistenciaCargada = true;
+                renderizarFiltrosYAnalisisAsistencia();
+
+                boton.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Guardando en Supabase...';
+                lucide.createIcons();
+
+                const confirmados = await guardarLotes(
+                    'registros_asistencia',
+                    procesadas,
+                    {
+                        onConflict: 'rut,fecha'
+                    }
+                );
+
+                await cargarAsistenciaDesdeNube(false);
+                await inicializarDashboard();
+                mostrarToast(`Asistencia guardada correctamente. Supabase confirmó ${confirmados} registro(s).`, 'success');
+            } catch (error) {
+                mostrarToast(`No se pudo guardar asistencia. ${error.message}`, 'error', 15000);
+            } finally {
+                boton.innerHTML = '<i data-lucide="upload-cloud" class="h-4 w-4"></i> Cargar reporte de jornadas<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarReporteAsistencia(event)">';
+                input.value = '';
+                lucide.createIcons();
+            }
         }
 
         async function cargarAsistenciaDesdeNube(soloConteo = false) {
-            if(!soloConteo) {
-                const tbody = document.getElementById('tabla-asistencia-body');
-                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando registros de asistencia...</td></tr>`;
-                lucide.createIcons();
+            if (!soloConteo) {
+                document.getElementById('tabla-asistencia-body').innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400">Cargando desde Supabase...</td></tr>';
             }
 
-            let allData = [];
-            let step = 1000;
-            let from = 0;
-            let keepFetching = true;
-
-            while(keepFetching) {
-                let { data, error } = await _supabase.from('registros_asistencia').select('*').range(from, from + step - 1);
-                if (error || !data || data.length === 0) {
-                    keepFetching = false;
-                } else {
-                    allData = allData.concat(data);
-                    if (data.length < step) keepFetching = false;
-                    from += step;
+            const filas = await cargarTablaCompleta(
+                'registros_asistencia',
+                {
+                    columna: 'fecha',
+                    ascending: false
                 }
-            }
+            );
 
-            datosAsistenciaGlobal = allData.map(r => {
-                let sinMarca = (r.entrada === '-' && r.salida === '-');
-                let marcaIncompleta = (r.entrada === '-' || r.salida === '-') && !sinMarca;
-                let tieneAtraso = (r.atraso !== '00:00' && r.atraso !== '-' && r.atraso !== '0');
+            datosAsistenciaGlobal = filas.map(registro => {
+                const sinMarcaCalculada = registro.entrada === '-' && registro.salida === '-';
+                const incompletaCalculada = (
+                    registro.entrada === '-' ||
+                    registro.salida === '-'
+                ) && !sinMarcaCalculada;
 
                 return {
-                    fecha: r.fecha || '',
-                    rut: r.rut || '',
-                    nombre: r.nombre || '',
-                    sucursal: r.sucursal || 'Sin Sucursal',
-                    turno: 'CENTRAL',
-                    entrada: r.entrada || '-',
-                    salida: r.salida || '-',
-                    atraso: r.atraso || '00:00',
-                    tipo_ausentismo: '',
-                    estado: r.estado || 'OK',
-                    salida_temprana: '-',
-                    sin_marca: sinMarca,
-                    marca_incompleta: marcaIncompleta,
-                    tiene_atraso: tieneAtraso,
-                    sin_turno_marcas: false
+                    fecha: registro.fecha || '',
+                    rut: registro.rut || '',
+                    nombre: registro.nombre || '',
+                    sucursal: registro.sucursal || 'Sin Sucursal',
+                    turno: registro.turno || 'Sin Turno',
+                    entrada: registro.entrada || '-',
+                    salida: registro.salida || '-',
+                    atraso: registro.atraso || '00:00',
+                    tipo_ausentismo: registro.tipo_ausentismo || '',
+                    estado: registro.estado || 'OK',
+                    salida_temprana: registro.salida_temprana || '-',
+                    sin_marca: registro.sin_marca ?? sinMarcaCalculada,
+                    marca_incompleta: registro.marca_incompleta ?? incompletaCalculada,
+                    tiene_atraso: registro.tiene_atraso ?? !['', '0', '-', '00:00', '00:00:00'].includes(registro.atraso || '00:00'),
+                    sin_turno_marcas: registro.sin_turno_marcas ?? false
                 };
             });
 
             asistenciaCargada = true;
-            if (soloConteo) return;
-            renderizarFiltrosYAnalisisAsistencia();
+            document.getElementById('kpi-asistencia').innerText = datosAsistenciaGlobal.length;
+
+            if (!soloConteo) {
+                renderizarFiltrosYAnalisisAsistencia();
+            }
         }
 
         function renderizarFiltrosYAnalisisAsistencia() {
-            const sucursalesUnicas = [...new Set(datosAsistenciaGlobal.map(d => d.sucursal))].sort();
             const select = document.getElementById('filtro-sucursal-asistencia');
-            if(select) {
-                const valorActual = select.value;
-                select.innerHTML = `<option value="TODAS">Todas las sucursales (${datosAsistenciaGlobal.length} registros)</option>` + 
-                    sucursalesUnicas.map(s => `<option value="${s}">${s}</option>`).join('');
-                select.value = valorActual;
-            }
-            
-            // Actualizar contadores en las tarjetas
-            document.getElementById('stat-sin-marcas').innerText = datosAsistenciaGlobal.filter(d => d.sin_marca && !d.tipo_ausentismo).length;
-            document.getElementById('stat-incompletas').innerText = datosAsistenciaGlobal.filter(d => d.marca_incompleta).length;
-            document.getElementById('stat-atrasos').innerText = datosAsistenciaGlobal.filter(d => d.tiene_atraso).length;
-            document.getElementById('stat-tempranas').innerText = datosAsistenciaGlobal.filter(d => d.salida_temprana !== '-').length;
-            document.getElementById('stat-sin-turno-marcas').innerText = datosAsistenciaGlobal.filter(d => d.sin_turno_marcas).length;
+            const actual = select.value;
+            const sucursales = [...new Set(
+                datosAsistenciaGlobal
+                    .map(registro => registro.sucursal)
+                    .filter(Boolean)
+            )].sort((a, b) => a.localeCompare(b, 'es'));
 
+            select.innerHTML = '<option value="TODAS">Todas las sucursales</option>';
+            sucursales.forEach(sucursal => {
+                const option = document.createElement('option');
+                option.value = sucursal;
+                option.textContent = sucursal;
+                select.appendChild(option);
+            });
+
+            select.value = sucursales.includes(actual) ? actual : 'TODAS';
             renderizarAnalisisAsistencia();
         }
 
@@ -711,342 +1277,544 @@
         }
 
         function renderizarAnalisisAsistencia() {
-            const sucursalFiltro = document.getElementById('filtro-sucursal-asistencia').value;
-            const anomaliaFiltro = document.getElementById('filtro-tipo-anomalia').value;
-            
-            let datosFiltrados = datosAsistenciaGlobal;
+            const sucursal = document.getElementById('filtro-sucursal-asistencia').value;
+            const anomalia = document.getElementById('filtro-tipo-anomalia').value;
+            const busqueda = document.getElementById('busqueda-asistencia').value.trim().toLowerCase();
 
-            if (sucursalFiltro !== 'TODAS') {
-                datosFiltrados = datosFiltrados.filter(d => d.sucursal === sucursalFiltro);
+            let baseIndicadores = [...datosAsistenciaGlobal];
+
+            if (sucursal !== 'TODAS') {
+                baseIndicadores = baseIndicadores.filter(registro => registro.sucursal === sucursal);
             }
 
-            if (anomaliaFiltro === 'ATRASOS') datosFiltrados = datosFiltrados.filter(d => d.tiene_atraso);
-            else if (anomaliaFiltro === 'TEMPRANAS') datosFiltrados = datosFiltrados.filter(d => d.salida_temprana !== '-');
-            else if (anomaliaFiltro === 'INCOMPLETAS') datosFiltrados = datosFiltrados.filter(d => d.marca_incompleta);
-            else if (anomaliaFiltro === 'SIN_MARCAS') datosFiltrados = datosFiltrados.filter(d => d.sin_marca && !d.tipo_ausentismo);
-            else if (anomaliaFiltro === 'SIN_TURNO') datosFiltrados = datosFiltrados.filter(d => d.sin_turno_marcas);
+            document.getElementById('stat-sin-marcas').innerText = baseIndicadores.filter(registro => registro.sin_marca && !registro.tipo_ausentismo).length;
+            document.getElementById('stat-incompletas').innerText = baseIndicadores.filter(registro => registro.marca_incompleta).length;
+            document.getElementById('stat-atrasos').innerText = baseIndicadores.filter(registro => registro.tiene_atraso).length;
+            document.getElementById('stat-tempranas').innerText = baseIndicadores.filter(registro => registro.salida_temprana !== '-').length;
+            document.getElementById('stat-sin-turno-marcas').innerText = baseIndicadores.filter(registro => registro.sin_turno_marcas).length;
+
+            let filtrados = baseIndicadores;
+
+            if (busqueda) {
+                filtrados = filtrados.filter(registro => {
+                    return `${registro.nombre} ${registro.rut}`.toLowerCase().includes(busqueda);
+                });
+            }
+
+            if (anomalia === 'ATRASOS') filtrados = filtrados.filter(registro => registro.tiene_atraso);
+            if (anomalia === 'TEMPRANAS') filtrados = filtrados.filter(registro => registro.salida_temprana !== '-');
+            if (anomalia === 'INCOMPLETAS') filtrados = filtrados.filter(registro => registro.marca_incompleta);
+            if (anomalia === 'SIN_MARCAS') filtrados = filtrados.filter(registro => registro.sin_marca && !registro.tipo_ausentismo);
+            if (anomalia === 'SIN_TURNO') filtrados = filtrados.filter(registro => registro.sin_turno_marcas);
+
+            document.getElementById('contador-asistencia').innerText = `Mostrando ${Math.min(filtrados.length, LIMITE_RENDER)} de ${filtrados.length} registros`;
 
             const tbody = document.getElementById('tabla-asistencia-body');
-            if (datosFiltrados.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">No hay registros que coincidan con los filtros seleccionados.</td></tr>`;
+
+            if (!filtrados.length) {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400">No hay registros que coincidan con los filtros.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = datosFiltrados.slice(0, 300).map(d => {
-                let badgeEstado = `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-semibold">${d.estado || 'OK'}</span>`;
-                if (d.tipo_ausentismo) badgeEstado = `<span class="px-2 py-0.5 bg-purple-50 text-purple-700 rounded text-[10px] font-semibold">${d.tipo_ausentismo}</span>`;
-                else if (d.sin_turno_marcas) badgeEstado = `<span class="px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-[10px] font-bold">Sin Turno con Marcas</span>`;
-                else if (d.sin_marca) badgeEstado = `<span class="px-2 py-0.5 bg-red-50 text-red-700 rounded text-[10px] font-semibold">Sin Marcas</span>`;
-                else if (d.marca_incompleta) badgeEstado = `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-semibold">Incompleta</span>`;
+            tbody.innerHTML = filtrados.slice(0, LIMITE_RENDER).map(registro => {
+                let estado = `<span class="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">${escaparHTML(registro.estado || 'OK')}</span>`;
 
-                return `<tr class="hover:bg-slate-50 transition border-b border-slate-100">
-                    <td class="p-3 font-mono text-slate-500">${d.fecha}</td>
-                    <td class="p-3 font-semibold text-slate-800">${d.sucursal}</td>
-                    <td class="p-3">
-                        <div class="font-bold text-slate-900">${d.nombre}</div>
-                        <div class="text-[10px] font-mono text-slate-400">${d.rut}</div>
-                    </td>
-                    <td class="p-3 text-slate-600">${d.turno}</td>
-                    <td class="p-3 font-mono text-xs">
-                        <span class="text-emerald-700">Entrada: ${d.entrada}</span><br>
-                        <span class="text-indigo-700">Salida: ${d.salida}</span>
-                    </td>
-                    <td class="p-3 font-mono font-bold text-amber-600">${d.atraso !== '00:00' ? d.atraso : '-'}</td>
-                    <td class="p-3 font-mono text-blue-600">${d.salida_temprana}</td>
-                    <td class="p-3">${badgeEstado}</td>
-                </tr>`;
+                if (registro.tipo_ausentismo) {
+                    estado = `<span class="rounded bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-700">${escaparHTML(registro.tipo_ausentismo)}</span>`;
+                } else if (registro.sin_turno_marcas) {
+                    estado = '<span class="rounded bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-800">Sin turno con marcas</span>';
+                } else if (registro.sin_marca) {
+                    estado = '<span class="rounded bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700">Sin marcas</span>';
+                } else if (registro.marca_incompleta) {
+                    estado = '<span class="rounded bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Incompleta</span>';
+                }
+
+                return `
+                    <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+                        <td class="p-3 font-mono text-slate-500">${escaparHTML(registro.fecha)}</td>
+                        <td class="p-3 font-semibold text-slate-800">${escaparHTML(registro.sucursal)}</td>
+                        <td class="p-3">
+                            <div class="font-bold text-slate-900">${escaparHTML(registro.nombre || 'N/A')}</div>
+                            <div class="font-mono text-[10px] text-slate-400">${escaparHTML(registro.rut)}</div>
+                        </td>
+                        <td class="p-3 text-slate-600">${escaparHTML(registro.turno)}</td>
+                        <td class="p-3 font-mono">
+                            <span class="text-emerald-700">Entrada: ${escaparHTML(registro.entrada)}</span><br>
+                            <span class="text-indigo-700">Salida: ${escaparHTML(registro.salida)}</span>
+                        </td>
+                        <td class="p-3 font-mono font-bold text-amber-600">${escaparHTML(['00:00', '00:00:00'].includes(registro.atraso) ? '-' : registro.atraso)}</td>
+                        <td class="p-3 font-mono text-blue-600">${escaparHTML(registro.salida_temprana)}</td>
+                        <td class="p-3">${estado}</td>
+                    </tr>
+                `;
             }).join('');
-            lucide.createIcons();
         }
 
-        // ==========================================
-        // PROCESAMIENTO LOCAL, NUBE Y VIGENCIA: LICENCIAS
-        // ==========================================
-        async function procesarHistorialLicencias(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const btnContainer = document.getElementById('btn-upload-licencias');
-            btnContainer.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procesando histórico local...`;
+        // ============================================================
+        // MÓDULO 5: LICENCIAS Y AUSENTISMO
+        // ============================================================
+        function analizarFilaLicencia(fila) {
+            const fechaInicio = fechaISODesdeExcel(
+                obtenerCampo(fila, ['Fecha Inicio Ausencia', 'Fecha Inicio', 'Desde'])
+            );
+            const fechaFin = fechaISODesdeExcel(
+                obtenerCampo(fila, ['Fecha Fin Ausencia', 'Fecha Fin', 'Hasta'])
+            );
+            const diasOriginal = obtenerCampo(
+                fila,
+                ['Número de días de Ausencia', 'Numero de dias de Ausencia', 'Días', 'Dias'],
+                1
+            );
 
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const filas = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-
-                    datosLicenciasGlobal = filas.map(r => ({
-                        rut: String(r['Rut'] || r['RUT'] || ''),
-                        nombre: String(r['Nombre'] || ''),
-                        empresa: String(r['Empresa'] || ''),
-                        cargo: String(r['Cargo'] || ''),
-                        sucursal: String(r['Sucursal'] || ''),
-                        tipo_ausencia: String(r['Tipo de Ausencia'] || r['Tipo Ausencia'] || 'Permiso'),
-                        motivo_ausencia: String(r['Motivo de Ausencia'] || r['Motivo'] || ''),
-                        dias_ausencia: parseFloat(r['Número de días de Ausencia'] || r['Dias'] || 1),
-                        fecha_inicio: r['Fecha Inicio Ausencia'] || r['Fecha Inicio'],
-                        fecha_fin: r['Fecha Fin Ausencia'] || r['Fecha Fin'],
-                        observaciones: String(r['Observaciones'] || '')
-                    })).filter(l => l.rut);
-
-                    licenciasCargadas = true;
-                    poblarFiltrosLicencias();
-
-                    btnContainer.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Subiendo a la nube...`;
-                    for (let i = 0; i < datosLicenciasGlobal.length; i += 500) {
-                        let chunk = datosLicenciasGlobal.slice(i, i + 500);
-                        await _supabase.from('licencias_medicas').upsert(chunk);
-                    }
-
-                    inicializarDashboard();
-                    alert(`✅ ¡Histórico de licencias procesado y guardado en la nube! Total: ${datosLicenciasGlobal.length}.`);
-
-                } catch (err) {
-                    alert("Error al procesar archivo: " + err.message);
-                } finally {
-                    btnContainer.innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i> Cargar Histórico de Licencias (Excel)<input type="file" accept=".xlsx, .xls, .csv" class="hidden" onchange="procesarHistorialLicencias(event)">`;
-                    lucide.createIcons();
-                }
+            return {
+                rut: normalizarRut(obtenerCampo(fila, ['Rut', 'RUT'])),
+                nombre: texto(obtenerCampo(fila, ['Nombre', 'Nombre Completo'])),
+                empresa: texto(obtenerCampo(fila, ['Empresa'])),
+                cargo: texto(obtenerCampo(fila, ['Cargo'])),
+                sucursal: texto(obtenerCampo(fila, ['Sucursal'])),
+                tipo_ausencia: texto(
+                    obtenerCampo(fila, ['Tipo de Ausencia', 'Tipo Ausencia'], 'Permiso'),
+                    'Permiso'
+                ) || 'Permiso',
+                motivo_ausencia: texto(
+                    obtenerCampo(fila, ['Motivo de Ausencia', 'Motivo'])
+                ),
+                dias_ausencia: Number(diasOriginal) || 1,
+                fecha_inicio: fechaInicio,
+                fecha_fin: fechaFin,
+                observaciones: texto(obtenerCampo(fila, ['Observaciones']))
             };
-            reader.readAsArrayBuffer(file);
+        }
+
+        async function procesarHistorialLicencias(event) {
+            const input = event.target;
+            const file = input.files?.[0];
+            if (!file) return;
+
+            const boton = document.getElementById('btn-upload-licencias');
+
+            try {
+                boton.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Procesando...';
+                lucide.createIcons();
+
+                const filas = await leerArchivoExcel(file);
+                const procesadas = filas.map(analizarFilaLicencia);
+                const invalidas = procesadas.filter(registro => {
+                    return !registro.rut || !registro.fecha_inicio || !registro.fecha_fin;
+                });
+
+                if (invalidas.length) {
+                    throw new Error(`${invalidas.length} fila(s) no tienen RUT, fecha de inicio o fecha de fin válida. No se guardó el archivo.`);
+                }
+
+                datosLicenciasGlobal = procesadas;
+                licenciasCargadas = true;
+                poblarFiltrosLicencias();
+
+                boton.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Guardando en Supabase...';
+                lucide.createIcons();
+
+                const confirmados = await guardarLotes(
+                    'licencias_medicas',
+                    procesadas,
+                    {
+                        onConflict: 'rut,fecha_inicio,fecha_fin,tipo_ausencia'
+                    }
+                );
+
+                await cargarLicenciasDesdeNube(false);
+                await inicializarDashboard();
+                mostrarToast(`Licencias guardadas correctamente. Supabase confirmó ${confirmados} registro(s).`, 'success');
+            } catch (error) {
+                mostrarToast(`No se pudieron guardar las licencias. ${error.message}`, 'error', 15000);
+            } finally {
+                boton.innerHTML = '<i data-lucide="upload-cloud" class="h-4 w-4"></i> Cargar histórico de licencias<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarHistorialLicencias(event)">';
+                input.value = '';
+                lucide.createIcons();
+            }
         }
 
         async function cargarLicenciasDesdeNube(soloConteo = false) {
-            if(!soloConteo) {
-                const tbody = document.getElementById('tabla-licencias-body');
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando registros de licencias...</td></tr>`;
-                lucide.createIcons();
+            if (!soloConteo) {
+                document.getElementById('tabla-licencias-body').innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">Cargando desde Supabase...</td></tr>';
             }
 
-            let allData = [];
-            let step = 1000;
-            let from = 0;
-            let keepFetching = true;
-
-            while(keepFetching) {
-                let { data, error } = await _supabase.from('licencias_medicas').select('*').range(from, from + step - 1);
-                if (error || !data || data.length === 0) {
-                    keepFetching = false;
-                } else {
-                    allData = allData.concat(data);
-                    if (data.length < step) keepFetching = false;
-                    from += step;
+            datosLicenciasGlobal = await cargarTablaCompleta(
+                'licencias_medicas',
+                {
+                    columna: 'fecha_fin',
+                    ascending: false
                 }
-            }
-
-            datosLicenciasGlobal = allData;
-            document.getElementById('kpi-licencias').innerText = datosLicenciasGlobal.length;
+            );
 
             licenciasCargadas = true;
-            if (soloConteo) return;
-            poblarFiltrosLicencias();
+            document.getElementById('kpi-licencias').innerText = datosLicenciasGlobal.length;
+
+            if (!soloConteo) {
+                poblarFiltrosLicencias();
+            }
         }
 
         function poblarFiltrosLicencias() {
-            const selectColab = document.getElementById('filtro-colaborador-licencia');
+            const selectColaborador = document.getElementById('filtro-colaborador-licencia');
             const selectTipo = document.getElementById('filtro-tipo-ausencia-licencia');
-            if(!selectColab || !selectTipo) return;
+            const colaboradorActual = selectColaborador.value;
+            const tipoActual = selectTipo.value;
+            const colaboradores = new Map();
+            const tipos = new Set();
 
-            // Poblar Colaboradores
-            const colaboradoresUnicos = {};
-            const tiposAusenciaUnicos = new Set();
-
-            datosLicenciasGlobal.forEach(l => {
-                if (l.rut && l.nombre) colaboradoresUnicos[l.rut] = l.nombre;
-                if (l.tipo_ausencia) tiposAusenciaUnicos.add(l.tipo_ausencia);
+            datosLicenciasGlobal.forEach(registro => {
+                if (registro.rut) {
+                    colaboradores.set(registro.rut, registro.nombre || 'Sin nombre');
+                }
+                if (registro.tipo_ausencia) {
+                    tipos.add(registro.tipo_ausencia);
+                }
             });
 
-            const listaColab = Object.keys(colaboradoresUnicos).map(rut => ({
-                rut: rut,
-                nombre: colaboradoresUnicos[rut]
-            })).sort((a, b) => a.nombre.localeCompare(b.nombre));
+            selectColaborador.innerHTML = '<option value="TODOS">Todos los colaboradores</option>';
+            [...colaboradores.entries()]
+                .sort((a, b) => a[1].localeCompare(b[1], 'es'))
+                .forEach(([rut, nombre]) => {
+                    const option = document.createElement('option');
+                    option.value = rut;
+                    option.textContent = `${nombre} (${rut})`;
+                    selectColaborador.appendChild(option);
+                });
 
-            const valColabActual = selectColab.value;
-            selectColab.innerHTML = `<option value="TODOS">Todos los colaboradores (${listaColab.length} personas)</option>` +
-                listaColab.map(c => `<option value="${c.rut}">${c.nombre} (${c.rut})</option>`).join('');
-            selectColab.value = valColabActual;
+            selectTipo.innerHTML = '<option value="TODOS">Todos los tipos</option>';
+            [...tipos]
+                .sort((a, b) => a.localeCompare(b, 'es'))
+                .forEach(tipo => {
+                    const option = document.createElement('option');
+                    option.value = tipo;
+                    option.textContent = tipo;
+                    selectTipo.appendChild(option);
+                });
 
-            // Poblar Tipos de Ausencia
-            const valTipoActual = selectTipo.value;
-            const listaTipos = Array.from(tiposAusenciaUnicos).sort();
-            selectTipo.innerHTML = `<option value="TODOS">Todos los tipos de ausencia (${listaTipos.length})</option>` +
-                listaTipos.map(t => `<option value="${t}">${t}</option>`).join('');
-            selectTipo.value = valTipoActual;
-
+            selectColaborador.value = colaboradores.has(colaboradorActual) ? colaboradorActual : 'TODOS';
+            selectTipo.value = tipos.has(tipoActual) ? tipoActual : 'TODOS';
             renderizarTablaLicencias();
         }
 
         function renderizarTablaLicencias() {
-            const filtroColab = document.getElementById('filtro-colaborador-licencia').value;
-            const filtroTipo = document.getElementById('filtro-tipo-ausencia-licencia').value;
-            const filtroVigencia = document.getElementById('filtro-vigencia-licencia').value;
-            const tbody = document.getElementById('tabla-licencias-body');
-
-            let datosFiltrados = datosLicenciasGlobal;
-
-            if (filtroColab !== 'TODOS') {
-                datosFiltrados = datosFiltrados.filter(l => l.rut === filtroColab);
-            }
-
-            if (filtroTipo !== 'TODOS') {
-                datosFiltrados = datosFiltrados.filter(l => l.tipo_ausencia === filtroTipo);
-            }
-
+            const colaborador = document.getElementById('filtro-colaborador-licencia').value;
+            const tipo = document.getElementById('filtro-tipo-ausencia-licencia').value;
+            const vigencia = document.getElementById('filtro-vigencia-licencia').value;
+            const busqueda = document.getElementById('busqueda-licencias').value.trim().toLowerCase();
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
 
-            const datosConVigencia = datosFiltrados.map(l => {
-                let fechaFinObj = parsearFechaExcel(l.fecha_fin);
-                let esVigente = false;
-                if (fechaFinObj) {
-                    fechaFinObj.setHours(0, 0, 0, 0);
-                    esVigente = fechaFinObj >= hoy;
-                }
-                return { ...l, esVigente, fechaFinObj };
+            let filtrados = datosLicenciasGlobal.map(registro => {
+                const fechaFin = parsearFechaExcel(registro.fecha_fin);
+                const esVigente = Boolean(fechaFin && fechaFin >= hoy);
+                return {
+                    ...registro,
+                    esVigente
+                };
             });
 
-            let finalFiltrados = datosConVigencia;
-            if (filtroVigencia === 'VIGENTE') {
-                finalFiltrados = datosConVigencia.filter(l => l.esVigente);
-            } else if (filtroVigencia === 'CADUCADA') {
-                finalFiltrados = datosConVigencia.filter(l => !l.esVigente);
+            if (colaborador !== 'TODOS') filtrados = filtrados.filter(registro => registro.rut === colaborador);
+            if (tipo !== 'TODOS') filtrados = filtrados.filter(registro => registro.tipo_ausencia === tipo);
+            if (vigencia === 'VIGENTE') filtrados = filtrados.filter(registro => registro.esVigente);
+            if (vigencia === 'CADUCADA') filtrados = filtrados.filter(registro => !registro.esVigente);
+
+            if (busqueda) {
+                filtrados = filtrados.filter(registro => {
+                    const contenido = [
+                        registro.nombre,
+                        registro.rut,
+                        registro.motivo_ausencia,
+                        registro.sucursal
+                    ].join(' ').toLowerCase();
+                    return contenido.includes(busqueda);
+                });
             }
 
-            document.getElementById('contador-licencias-filtradas').innerText = `Mostrando ${finalFiltrados.length} de ${datosLicenciasGlobal.length} registros`;
+            document.getElementById('contador-licencias-filtradas').innerText = `Mostrando ${Math.min(filtrados.length, LIMITE_RENDER)} de ${filtrados.length} registros`;
 
-            if (finalFiltrados.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">No hay registros que coincidan con los filtros seleccionados.</td></tr>`;
+            const tbody = document.getElementById('tabla-licencias-body');
+
+            if (!filtrados.length) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">No hay registros que coincidan con los filtros.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = finalFiltrados.slice(0, 300).map(l => {
-                let badgeVigencia = l.esVigente 
-                    ? `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[10px] font-bold flex items-center gap-1 w-max"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Vigente</span>`
-                    : `<span class="px-2.5 py-1 bg-red-50 text-red-700 border border-red-200 rounded-full text-[10px] font-bold flex items-center gap-1 w-max"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> No Vigente / Caducada</span>`;
+            tbody.innerHTML = filtrados.slice(0, LIMITE_RENDER).map(registro => {
+                const badge = registro.esVigente
+                    ? '<span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Vigente</span>'
+                    : '<span class="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[10px] font-bold text-red-700"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>No vigente</span>';
 
-                return `<tr class="hover:bg-slate-50 transition border-b border-slate-100">
-                    <td class="p-3">
-                        <div class="font-bold text-slate-900">${l.nombre || 'N/A'}</div>
-                        <div class="text-[10px] font-mono text-slate-400">${l.rut}</div>
-                    </td>
-                    <td class="p-3 font-medium text-slate-700">${l.sucursal || 'N/A'}</td>
-                    <td class="p-3"><span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-[10px] font-bold">${l.tipo_ausencia || 'Permiso'}</span></td>
-                    <td class="p-3 text-slate-600">${l.motivo_ausencia || 'N/A'}</td>
-                    <td class="p-3 font-mono font-bold text-slate-900">${l.dias_ausencia} día(s)</td>
-                    <td class="p-3 font-mono text-xs text-slate-500">${l.fecha_inicio} al ${l.fecha_fin}</td>
-                    <td class="p-3">${badgeVigencia}</td>
-                </tr>`;
+                return `
+                    <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+                        <td class="p-3">
+                            <div class="font-bold text-slate-900">${escaparHTML(registro.nombre || 'N/A')}</div>
+                            <div class="font-mono text-[10px] text-slate-400">${escaparHTML(registro.rut)}</div>
+                        </td>
+                        <td class="p-3 font-medium text-slate-700">${escaparHTML(registro.sucursal || 'N/A')}</td>
+                        <td class="p-3"><span class="rounded bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">${escaparHTML(registro.tipo_ausencia || 'Permiso')}</span></td>
+                        <td class="p-3 text-slate-600">${escaparHTML(registro.motivo_ausencia || 'N/A')}</td>
+                        <td class="p-3 font-mono font-bold text-slate-900">${escaparHTML(registro.dias_ausencia)} día(s)</td>
+                        <td class="p-3 font-mono text-xs text-slate-500">${escaparHTML(registro.fecha_inicio)} al ${escaparHTML(registro.fecha_fin)}</td>
+                        <td class="p-3">${badge}</td>
+                    </tr>
+                `;
             }).join('');
-            lucide.createIcons();
         }
 
-        // ==========================================
-        // EXTRACCIÓN Y SUBIDA DE OTROS EXCEL
-        // ==========================================
+        // ============================================================
+        // COLABORADORES Y SUCURSALES
+        // ============================================================
         async function procesarExcelGenerico(event, tablaDestino) {
-            const file = event.target.files[0];
+            const input = event.target;
+            const file = input.files?.[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const filas = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                    let datosMapeados = [];
 
-                    if (tablaDestino === 'colaboradores') {
-                        datosMapeados = filas.map(r => ({
-                            rut: r['RUT'] ? String(r['RUT']).trim() : null,
-                            nombres: r['Nombre'] ? String(r['Nombre']).trim() : null,
-                            apellidos: `${r['Apellido Paterno'] || ''} ${r['Apellido Materno'] || ''}`.trim(),
-                            cargo: r['Cargo'] ? String(r['Cargo']).trim() : null,
-                            sucursal: r['Sucursal'] ? String(r['Sucursal']).trim() : null
-                        })).filter(c => c.rut);
-                    } else if (tablaDestino === 'sucursales') {
-                        datosMapeados = filas.map(r => ({
-                            unidad: r['UNIDAD '] ? String(r['UNIDAD ']).trim() : null,
-                            nombre: r['NOMBRE SUCURSAL'],
-                            direccion: r['DIRECCIÓN'],
-                            comuna: r['COMUNA'],
-                            supervisor: r['SUPERVISOR'],
-                            geolocalizacion: r['GEOLOCALIZACION']
-                        })).filter(s => s.nombre);
-                    }
+            try {
+                const filas = await leerArchivoExcel(file);
+                let datos = [];
 
-                    const { error } = await _supabase.from(tablaDestino).upsert(datosMapeados);
-                    if (error) throw new Error(error.message);
-                    
-                    alert(`¡Perfecto! Se subieron ${datosMapeados.length} registros a ${tablaDestino}.`);
-                    inicializarDashboard();
-                    if(tablaDestino === 'colaboradores') cargarTablaColaboradores();
-                    if(tablaDestino === 'sucursales') cargarTablaSucursales();
-                } catch (err) { alert("Error al procesar el Excel: " + err.message); }
-            };
-            reader.readAsArrayBuffer(file);
+                if (tablaDestino === 'colaboradores') {
+                    datos = filas.map(fila => ({
+                        rut: normalizarRut(obtenerCampo(fila, ['RUT', 'Rut'])),
+                        nombres: texto(obtenerCampo(fila, ['Nombre', 'Nombres'])),
+                        apellidos: `${texto(obtenerCampo(fila, ['Apellido Paterno']))} ${texto(obtenerCampo(fila, ['Apellido Materno']))}`.trim(),
+                        cargo: texto(obtenerCampo(fila, ['Cargo'])),
+                        sucursal: texto(obtenerCampo(fila, ['Sucursal']))
+                    })).filter(registro => registro.rut);
+                }
+
+                if (tablaDestino === 'sucursales') {
+                    datos = filas.map(fila => ({
+                        unidad: texto(obtenerCampo(fila, ['UNIDAD', 'Unidad'])),
+                        nombre: texto(obtenerCampo(fila, ['NOMBRE SUCURSAL', 'Nombre Sucursal', 'Sucursal'])),
+                        direccion: texto(obtenerCampo(fila, ['DIRECCIÓN', 'DIRECCION', 'Dirección'])),
+                        comuna: texto(obtenerCampo(fila, ['COMUNA', 'Comuna'])),
+                        supervisor: texto(obtenerCampo(fila, ['SUPERVISOR', 'Supervisor'])),
+                        geolocalizacion: texto(obtenerCampo(fila, ['GEOLOCALIZACION', 'Geolocalización']))
+                    })).filter(registro => registro.nombre);
+                }
+
+                const { error } = await _supabase.from(tablaDestino).upsert(datos);
+                if (error) throw construirErrorSupabase(`No se pudo guardar ${tablaDestino}`, error);
+
+                mostrarToast(`Se guardaron ${datos.length} registros en ${tablaDestino}.`, 'success');
+                await inicializarDashboard();
+                if (tablaDestino === 'colaboradores') await cargarTablaColaboradores();
+                if (tablaDestino === 'sucursales') await cargarTablaSucursales();
+            } catch (error) {
+                mostrarToast(error.message, 'error', 12000);
+            } finally {
+                input.value = '';
+            }
         }
 
         async function cargarTablaColaboradores() {
             const tbody = document.getElementById('tabla-colaboradores-body');
-            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando...</td></tr>`;
-            lucide.createIcons();
-            const [colabRes, sucRes] = await Promise.all([
+            tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">Cargando...</td></tr>';
+
+            const [colaboradores, sucursales] = await Promise.all([
                 _supabase.from('colaboradores').select('*'),
-                _supabase.from('sucursales').select('nombre, supervisor')
+                _supabase.from('sucursales').select('nombre,supervisor')
             ]);
-            if (!colabRes.data || colabRes.data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No hay colaboradores registrados. Sube el Excel.</td></tr>`;
+
+            if (colaboradores.error) throw construirErrorSupabase('No se pudieron cargar colaboradores', colaboradores.error);
+            if (sucursales.error) throw construirErrorSupabase('No se pudieron cargar sucursales', sucursales.error);
+
+            if (!colaboradores.data?.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400">No hay colaboradores registrados.</td></tr>';
                 return;
             }
-            const sucursalesMap = {};
-            if (sucRes.data) sucRes.data.forEach(s => { sucursalesMap[s.nombre] = s.supervisor; });
-            tbody.innerHTML = colabRes.data.map(c => {
-                const supZonal = sucursalesMap[c.sucursal] || 'No asignado';
-                const nombreCompleto = `${c.nombres || ''} ${c.apellidos || ''}`.trim();
-                return `<tr class="hover:bg-slate-50/80 transition border-b border-slate-100">
-                    <td class="p-4 font-mono text-xs text-slate-500">${c.rut || 'N/A'}</td>
-                    <td class="p-4 font-semibold text-slate-900">${nombreCompleto || 'N/A'}</td>
-                    <td class="p-4 text-slate-600">${c.cargo || 'N/A'}</td>
-                    <td class="p-4 text-slate-800 font-medium">${c.sucursal || 'Central'}</td>
-                    <td class="p-4 text-simiNavy font-semibold text-[11px]"><i data-lucide="user-check" class="inline w-3 h-3 mr-1 text-emerald-600"></i> ${supZonal}</td>
-                    <td class="p-4"><span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[11px] font-semibold">Activo</span></td>
-                </tr>`;
+
+            const mapa = new Map(
+                (sucursales.data || []).map(sucursal => [
+                    texto(sucursal.nombre).toLowerCase(),
+                    sucursal.supervisor
+                ])
+            );
+
+            tbody.innerHTML = colaboradores.data.map(colaborador => {
+                const nombre = `${colaborador.nombres || ''} ${colaborador.apellidos || ''}`.trim();
+                const supervisor = mapa.get(texto(colaborador.sucursal).toLowerCase()) || 'No asignado';
+                return `
+                    <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+                        <td class="p-4 font-mono text-xs text-slate-500">${escaparHTML(colaborador.rut || 'N/A')}</td>
+                        <td class="p-4 font-semibold text-slate-900">${escaparHTML(nombre || 'N/A')}</td>
+                        <td class="p-4 text-slate-600">${escaparHTML(colaborador.cargo || 'N/A')}</td>
+                        <td class="p-4 font-medium text-slate-800">${escaparHTML(colaborador.sucursal || 'Central')}</td>
+                        <td class="p-4 text-[11px] font-semibold text-simiNavy">${escaparHTML(supervisor)}</td>
+                        <td class="p-4"><span class="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">Activo</span></td>
+                    </tr>
+                `;
             }).join('');
-            lucide.createIcons();
         }
 
         async function cargarTablaSucursales() {
             const tbody = document.getElementById('tabla-sucursales-body');
-            const { data } = await _supabase.from('sucursales').select('*');
-            if (data && data.length > 0) {
-                tbody.innerHTML = data.map(s => {
-                    let direccionBusqueda = `${s.direccion || ''}, ${s.comuna || ''}, Chile`.trim();
-                    let linkMapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccionBusqueda)}`;
-                    return `<tr class="hover:bg-slate-50/80 transition border-b border-slate-100">
-                        <td class="p-4 font-mono text-xs text-slate-500">${s.unidad || ''}</td>
-                        <td class="p-4 font-semibold text-slate-900">${s.nombre || ''}</td>
-                        <td class="p-4 text-slate-600 text-xs">${s.direccion || ''}, ${s.comuna || ''}</td>
-                        <td class="p-4 text-simiNavy font-semibold text-[11px]"><i data-lucide="user-check" class="inline w-3 h-3 mr-1 text-emerald-600"></i> ${s.supervisor || 'N/A'}</td>
-                        <td class="p-4"><a href="${linkMapa}" target="_blank" rel="noopener noreferrer" class="text-simiRed font-bold hover:underline text-[11px] flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Ver Mapa</a></td>
-                    </tr>`;
-                }).join('');
-            } else {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">No hay sucursales registradas. Sube el Excel del Directorio.</td></tr>`;
+            tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Cargando...</td></tr>';
+
+            const { data, error } = await _supabase.from('sucursales').select('*');
+            if (error) throw construirErrorSupabase('No se pudieron cargar sucursales', error);
+
+            if (!data?.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">No hay sucursales registradas.</td></tr>';
+                return;
             }
-            lucide.createIcons();
+
+            tbody.innerHTML = data.map(sucursal => {
+                const direccion = `${sucursal.direccion || ''}, ${sucursal.comuna || ''}, Chile`;
+                const mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccion)}`;
+                return `
+                    <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+                        <td class="p-4 font-mono text-xs text-slate-500">${escaparHTML(sucursal.unidad || '')}</td>
+                        <td class="p-4 font-semibold text-slate-900">${escaparHTML(sucursal.nombre || '')}</td>
+                        <td class="p-4 text-xs text-slate-600">${escaparHTML(`${sucursal.direccion || ''}, ${sucursal.comuna || ''}`)}</td>
+                        <td class="p-4 text-[11px] font-semibold text-simiNavy">${escaparHTML(sucursal.supervisor || 'N/A')}</td>
+                        <td class="p-4"><a href="${mapa}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1 text-[11px] font-bold text-simiRed hover:underline">Ver mapa</a></td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        function toggleModalColaborador(show) { document.getElementById('modal-colaborador').classList.replace(show ? 'hidden' : 'flex', show ? 'flex' : 'hidden'); }
-        async function guardarColaborador(e) {
-            e.preventDefault();
-            const { error } = await _supabase.from('colaboradores').insert([{ 
-                rut: document.getElementById('input-rut').value, 
-                nombres: document.getElementById('input-nombres').value,
-                apellidos: document.getElementById('input-apellidos').value,
-                cargo: document.getElementById('input-cargo').value,
-                sucursal: document.getElementById('input-sucursal').value
-            }]);
-            if (!error) { toggleModalColaborador(false); document.getElementById('form-nuevo-colaborador').reset(); cargarTablaColaboradores(); inicializarDashboard(); }
+        function toggleModalColaborador(mostrar) {
+            const modal = document.getElementById('modal-colaborador');
+            modal.classList.toggle('hidden', !mostrar);
+            modal.classList.toggle('flex', mostrar);
+        }
+
+        async function guardarColaborador(event) {
+            event.preventDefault();
+
+            const registro = {
+                rut: normalizarRut(document.getElementById('input-rut').value),
+                nombres: texto(document.getElementById('input-nombres').value),
+                apellidos: texto(document.getElementById('input-apellidos').value),
+                cargo: texto(document.getElementById('input-cargo').value),
+                sucursal: texto(document.getElementById('input-sucursal').value)
+            };
+
+            const { error } = await _supabase.from('colaboradores').insert([registro]);
+
+            if (error) {
+                mostrarToast(construirErrorSupabase('No se pudo guardar el colaborador', error).message, 'error');
+                return;
+            }
+
+            toggleModalColaborador(false);
+            document.getElementById('form-nuevo-colaborador').reset();
+            await cargarTablaColaboradores();
+            await inicializarDashboard();
+            mostrarToast('Colaborador guardado correctamente.', 'success');
         }
     </script>
+
+    <!--
+    ================================================================
+    SQL OBLIGATORIO PARA SUPABASE
+    ================================================================
+    Ejecutar una sola vez en Supabase > SQL Editor.
+
+    alter table public.registros_asistencia
+      add column if not exists turno text,
+      add column if not exists tipo_ausentismo text,
+      add column if not exists salida_temprana text,
+      add column if not exists sin_marca boolean not null default false,
+      add column if not exists marca_incompleta boolean not null default false,
+      add column if not exists tiene_atraso boolean not null default false,
+      add column if not exists sin_turno_marcas boolean not null default false;
+
+    delete from public.registros_asistencia a
+    using public.registros_asistencia b
+    where a.rut = b.rut
+      and a.fecha = b.fecha
+      and a.id < b.id;
+
+    create unique index if not exists registros_asistencia_rut_fecha_uk
+    on public.registros_asistencia (rut, fecha);
+
+    delete from public.licencias_medicas a
+    using public.licencias_medicas b
+    where a.rut = b.rut
+      and a.fecha_inicio = b.fecha_inicio
+      and a.fecha_fin = b.fecha_fin
+      and a.tipo_ausencia = b.tipo_ausencia
+      and a.id < b.id;
+
+    create unique index if not exists licencias_medicas_registro_uk
+    on public.licencias_medicas (
+      rut,
+      fecha_inicio,
+      fecha_fin,
+      tipo_ausencia
+    );
+
+    alter table public.registros_asistencia enable row level security;
+    alter table public.licencias_medicas enable row level security;
+
+    drop policy if exists "asistencia_select_authenticated"
+    on public.registros_asistencia;
+
+    drop policy if exists "asistencia_insert_authenticated"
+    on public.registros_asistencia;
+
+    drop policy if exists "asistencia_update_authenticated"
+    on public.registros_asistencia;
+
+    create policy "asistencia_select_authenticated"
+    on public.registros_asistencia
+    for select
+    to authenticated
+    using (true);
+
+    create policy "asistencia_insert_authenticated"
+    on public.registros_asistencia
+    for insert
+    to authenticated
+    with check (true);
+
+    create policy "asistencia_update_authenticated"
+    on public.registros_asistencia
+    for update
+    to authenticated
+    using (true)
+    with check (true);
+
+    drop policy if exists "licencias_select_authenticated"
+    on public.licencias_medicas;
+
+    drop policy if exists "licencias_insert_authenticated"
+    on public.licencias_medicas;
+
+    drop policy if exists "licencias_update_authenticated"
+    on public.licencias_medicas;
+
+    create policy "licencias_select_authenticated"
+    on public.licencias_medicas
+    for select
+    to authenticated
+    using (true);
+
+    create policy "licencias_insert_authenticated"
+    on public.licencias_medicas
+    for insert
+    to authenticated
+    with check (true);
+
+    create policy "licencias_update_authenticated"
+    on public.licencias_medicas
+    for update
+    to authenticated
+    using (true)
+    with check (true);
+
+    grant select, insert, update
+    on public.registros_asistencia
+    to authenticated;
+
+    grant select, insert, update
+    on public.licencias_medicas
+    to authenticated;
+    ================================================================
+    -->
 </body>
 </html>
