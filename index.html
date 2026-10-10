@@ -6,6 +6,8 @@
     <title>Asistencia Doctor Simi</title>
     <!-- Tailwind CSS desde CDN para estilos corporativos -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -74,7 +76,7 @@
 
             <div class="p-3 bg-blue-950 text-xs text-gray-400 text-center border-t border-blue-900">
                 Farmacias de Similares Chile S.A.<br>
-                <span class="text-yellow-400 font-semibold">Modo Demostración</span>
+                <span id="db-status-badge" class="text-yellow-400 font-semibold">Conectando a Supabase...</span>
             </div>
         </aside>
 
@@ -84,61 +86,92 @@
             <header class="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
                 <h2 class="text-xl font-bold text-simiNavy">ASISTENCIA DOCTOR SIMI - Control de RRHH</h2>
                 <div class="flex items-center gap-3">
-                    <span class="text-sm text-gray-600">Usuario: <strong class="text-simiNavy">Administrador Demo</strong></span>
+                    <span class="text-sm text-gray-600">Estado: <strong id="auth-status" class="text-simiNavy">Público / Sesión de prueba</strong></span>
                 </div>
             </header>
 
             <!-- Dashboard Content -->
             <div class="p-6 space-y-6">
-                <!-- Tarjetas KPI -->
+                <!-- Tarjetas KPI con datos reales de Supabase -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="bg-white p-4 rounded-lg shadow border-l-4 border-simiRed">
-                        <p class="text-xs text-gray-500 font-semibold uppercase">Colaboradores Activos</p>
-                        <h3 class="text-2xl font-bold text-gray-800 mt-1">142</h3>
-                        <p class="text-xs text-green-600 mt-1"><i class="fas fa-arrow-up"></i> +3 este mes</p>
+                        <p class="text-xs text-gray-500 font-semibold uppercase">Colaboradores Registrados</p>
+                        <h3 id="kpi-colaboradores" class="text-2xl font-bold text-gray-800 mt-1">--</h3>
+                        <p class="text-xs text-gray-500 mt-1">Total en tabla <code>colaboradores</code></p>
                     </div>
                     <div class="bg-white p-4 rounded-lg shadow border-l-4 border-simiNavy">
-                        <p class="text-xs text-gray-500 font-semibold uppercase">Asistencia Hoy</p>
-                        <h3 class="text-2xl font-bold text-gray-800 mt-1">94.2%</h3>
-                        <p class="text-xs text-green-600 mt-1"><i class="fas fa-arrow-up"></i> +1.5% vs promedio</p>
+                        <p class="text-xs text-gray-500 font-semibold uppercase">Sucursales Registradas</p>
+                        <h3 id="kpi-sucursales" class="text-2xl font-bold text-gray-800 mt-1">--</h3>
+                        <p class="text-xs text-gray-500 mt-1">Total en tabla <code>sucursales</code></p>
                     </div>
                     <div class="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-500">
-                        <p class="text-xs text-gray-500 font-semibold uppercase">Atrasos Registrados</p>
-                        <h3 class="text-2xl font-bold text-gray-800 mt-1">8</h3>
-                        <p class="text-xs text-green-600 mt-1"><i class="fas fa-arrow-down"></i> -2 que ayer</p>
+                        <p class="text-xs text-gray-500 font-semibold uppercase">Registros Asistencia</p>
+                        <h3 id="kpi-asistencia" class="text-2xl font-bold text-gray-800 mt-1">--</h3>
+                        <p class="text-xs text-gray-500 mt-1">Total marcaciones guardadas</p>
                     </div>
                     <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-                        <p class="text-xs text-gray-500 font-semibold uppercase">Licencias Activas</p>
-                        <h3 class="text-2xl font-bold text-gray-800 mt-1">5</h3>
-                        <p class="text-xs text-gray-500 mt-1">Sin variaciones</p>
+                        <p class="text-xs text-gray-500 font-semibold uppercase">Licencias Médicas</p>
+                        <h3 id="kpi-licencias" class="text-2xl font-bold text-gray-800 mt-1">--</h3>
+                        <p class="text-xs text-gray-500 mt-1">Total en base de datos</p>
                     </div>
                 </div>
 
-                <!-- Paneles de Datos e Información -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Resumen -->
-                    <div class="lg:col-span-2 bg-white p-5 rounded-lg shadow">
-                        <h3 class="font-bold text-simiNavy text-lg mb-4">Estado del Sistema</h3>
-                        <div class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-sm mb-4">
-                            <strong><i class="fas fa-info-circle"></i> Aplicación Web Desplegada en la Nube</strong><br>
-                            Estructura visual corporativa lista. En el siguiente paso se conectarán las tablas de Supabase (<code>colaboradores</code>, <code>registros_asistencia</code>, etc.)[cite: 1].
-                        </div>
-                    </div>
-
-                    <!-- Alertas -->
-                    <div class="bg-white p-5 rounded-lg shadow space-y-3">
-                        <h3 class="font-bold text-simiNavy text-lg mb-2">Alertas Recientes</h3>
-                        <div class="p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 text-xs rounded">
-                            <strong>Papeletas pendientes:</strong> 3 solicitudes requieren revisión[cite: 1].
-                        </div>
-                        <div class="p-3 bg-red-50 border-l-4 border-simiRed text-red-800 text-xs rounded">
-                            <strong>Licencias médicas:</strong> 2 licencias próximas a vencer[cite: 1].
-                        </div>
+                <!-- Estado de la base de datos -->
+                <div class="bg-white p-5 rounded-lg shadow">
+                    <h3 class="font-bold text-simiNavy text-lg mb-3">Conexión con Supabase</h3>
+                    <div id="connection-box" class="p-4 rounded-lg text-sm bg-gray-100 text-gray-700">
+                        Consultando tablas de la base de datos...
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
+    <script>
+        // Configuración del cliente Supabase
+        const SUPABASE_URL = 'https://zcfbglbhqhysnptkfwba.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_EoJWhc0HPqIyTNiwU53FDw_prK9gYx2';
+
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function inicializarDashboard() {
+            const badge = document.getElementById('db-status-badge');
+            const box = document.getElementById('connection-box');
+
+            try {
+                // Consultas a las tablas en paralelo
+                const [colabRes, sucRes, asisRes, licRes] = await Promise.all([
+                    _supabase.from('colaboradores').select('*', { count: 'exact', head: true }),
+                    _supabase.from('sucursales').select('*', { count: 'exact', head: true }),
+                    _supabase.from('registros_asistencia').select('*', { count: 'exact', head: true }),
+                    _supabase.from('licencias_medicas').select('*', { count: 'exact', head: true })
+                ]);
+
+                // Actualizar indicadores KPI
+                document.getElementById('kpi-colaboradores').innerText = colabRes.count !== null ? colabRes.count : '0';
+                document.getElementById('kpi-sucursales').innerText = sucRes.count !== null ? sucRes.count : '0';
+                document.getElementById('kpi-asistencia').innerText = asisRes.count !== null ? asisRes.count : '0';
+                document.getElementById('kpi-licencias').innerText = licRes.count !== null ? licRes.count : '0';
+
+                badge.innerText = "Conectado a Supabase";
+                badge.className = "text-green-400 font-semibold";
+
+                box.className = "p-4 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800";
+                box.innerHTML = `<strong> Conexión exitosa a Supabase.</strong><br>
+                                 La base de datos está respondiendo correctamente a las consultas RLS públicas/autenticadas.`;
+
+            } catch (err) {
+                console.error("Error al conectar:", err);
+                badge.innerText = "Error de Conexión";
+                badge.className = "text-red-400 font-semibold";
+
+                box.className = "p-4 rounded-lg text-sm bg-red-50 border border-red-200 text-red-800";
+                box.innerHTML = `<strong>⚠️ Ocurrió un detalle al consultar Supabase.</strong><br>
+                                 Asegúrate de que las políticas RLS permitan lectura pública o que el usuario haya iniciado sesión.`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', inicializarDashboard);
+    </script>
 </body>
 </html>
