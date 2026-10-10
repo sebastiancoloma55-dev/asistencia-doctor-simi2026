@@ -4167,6 +4167,15 @@ body{overflow-x:hidden}
 .map-estimate-2026 strong{display:block;color:#075985;font-size:clamp(17px,2vw,23px);font-weight:850;line-height:1.3}
 .map-estimate-2026 span{display:block;margin-top:6px;color:#64748b;font-size:12px;line-height:1.45}
 @media(max-width:700px){.module-intro{padding:17px;border-radius:16px}#mapa14-frame.map-frame{height:420px;min-height:420px}.ui-card{border-radius:15px}}
+
+/* Navegación, tablas y superficies con jerarquía visual consistente */
+nav button,aside button,[role="navigation"] button{transition:background .18s ease,color .18s ease,transform .18s ease}
+nav button:hover,aside button:hover,[role="navigation"] button:hover{transform:translateX(2px)}
+table thead th{background:#f4f8fb;color:#52647a;font-size:11px;font-weight:800;letter-spacing:.045em;text-transform:uppercase}
+table tbody tr{transition:background .14s ease}
+table tbody tr:hover{background:#f6fbfd}
+button:focus-visible,a:focus-visible{outline:3px solid rgba(8,145,178,.35);outline-offset:2px}
+input[type="checkbox"],input[type="radio"]{accent-color:#0785a2}
 </style>
 <script>
 (function(){
@@ -4220,7 +4229,7 @@ body{overflow-x:hidden}
   }
   var originalRoute=window.mostrarRutaMapa14;
   var mapaRutaLeaflet=null,capaRutaLeaflet=null,marcadoresRutaLeaflet=[];
-  function asegurarMapaLeaflet(){var el=document.getElementById('mapa14-frame');if(!el||!window.L)return null;if(!mapaRutaLeaflet){mapaRutaLeaflet=L.map(el,{scrollWheelZoom:true}).setView([-33.45,-70.66],5);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(mapaRutaLeaflet);}setTimeout(function(){if(mapaRutaLeaflet)mapaRutaLeaflet.invalidateSize();},150);return mapaRutaLeaflet;}
+  function asegurarMapaLeaflet(){var el=document.getElementById('mapa14-frame');if(!el||!window.L)return null;if(!mapaRutaLeaflet){mapaRutaLeaflet=L.map(el,{scrollWheelZoom:true}).setView([-33.45,-70.66],5);var osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(mapaRutaLeaflet);osm.on('tileerror',function(){if(mapaRutaLeaflet&& !mapaRutaLeaflet._tilesAlternativos){mapaRutaLeaflet._tilesAlternativos=true;try{mapaRutaLeaflet.removeLayer(osm);L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors © CARTO'}).addTo(mapaRutaLeaflet);}catch(e){}}});}setTimeout(function(){if(mapaRutaLeaflet)mapaRutaLeaflet.invalidateSize();},150);return mapaRutaLeaflet;}
   async function estimateRoute(){
     var a=document.getElementById('map14-origen'),b=document.getElementById('map14-destino'),m=document.getElementById('map14-modo'),summary=document.getElementById('mapa14-resumen');if(!a||!b||!m||!summary||!a.value||!b.value)return;
     var box=document.getElementById('mapa14-estimacion-2026');if(!box){box=document.createElement('div');box.id='mapa14-estimacion-2026';box.className='map-estimate-2026';summary.parentNode.insertAdjacentElement('afterend',box);}
