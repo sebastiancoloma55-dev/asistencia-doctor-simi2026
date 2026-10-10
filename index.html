@@ -1994,7 +1994,7 @@
             };
             const periodo = document.getElementById('dashboard-periodo')?.value || 'mes';
             let desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-            let hasta = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+            let hasta = new Date(hoy);
             if (periodo === '7' || periodo === '30' || periodo === '90') {
                 desde = new Date(hoy);
                 desde.setDate(desde.getDate() - (Number(periodo) - 1));
@@ -2033,6 +2033,12 @@
                 futuro.setDate(futuro.getDate() + 7);
                 const isoFuturo = new Date(futuro.getTime() - futuro.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 
+                const contarLicencias = (filtro) => {
+                    let consulta = _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true })
+                        .ilike('tipo_ausencia', '%licencia%');
+                    if (sucursal) consulta = consulta.eq('sucursal', sucursal);
+                    return filtro(consulta);
+                };
                 const respuestas = await Promise.all([
                     contarAsistencia(),
                     contarAsistencia(q => q.eq('tiene_atraso', true)),
@@ -2041,10 +2047,8 @@
                     contarAsistencia(q => q.ilike('tipo_ausentismo', 'Falta injustificada')),
                     contarAsistencia(q => q.eq('estado', 'Inexistente')),
                     contarAsistencia(q => q.in('estado', ['Anomalía', 'En revisión'])),
-                    _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true })
-                        .ilike('tipo_ausencia', '%licencia%').lte('fecha_inicio', isoHoy).gte('fecha_fin', isoHoy),
-                    _supabase.from('licencias_medicas').select('id', { count: 'exact', head: true })
-                        .ilike('tipo_ausencia', '%licencia%').gte('fecha_fin', isoHoy).lte('fecha_fin', isoFuturo)
+                    contarLicencias(q => q.lte('fecha_inicio', isoHoy).gte('fecha_fin', isoHoy)),
+                    contarLicencias(q => q.gte('fecha_fin', isoHoy).lte('fecha_fin', isoFuturo))
                 ]);
                 for (const respuesta of respuestas) {
                     if (respuesta.error) throw respuesta.error;
