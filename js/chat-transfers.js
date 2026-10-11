@@ -91,7 +91,6 @@
       Array.from($("chat-usuarios-nuevos").options).forEach(o=>o.selected=false);
       activeConversation=conversation.id;
       await cargarChatInterno();
-      await abrirConversacionChat(conversation.id);
     }catch(error){console.error("Crear conversación:",error);setStatus("chat-estado",error.message||"No se pudo crear la conversación.",true);}
     finally{chatBusy=false;}
   }
@@ -251,10 +250,10 @@
   async function resolverTraslado(id,state) {
     if(!canApproveTransfers||!["APROBADO","RECHAZADO"].includes(state))return;
     try{
-      const me=await currentUserId();
-      const {error}=await _supabase.from("traslados_personal").update({estado:state,revisado_por:me,revisado_en:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id).eq("estado","SOLICITADO");
+      const {data,error}=await _supabase.rpc("resolver_traslado_personal",{p_id:id,p_estado:state});
       if(error)throw error;
-      setStatus("traslado-estado","Solicitud "+(state==="APROBADO"?"aprobada":"rechazada")+". El maestro del colaborador no se modifica automáticamente.");
+      const updated=data?.maestro_actualizado;
+      setStatus("traslado-estado",state==="APROBADO"?(updated?"Solicitud aprobada y sucursal del colaborador actualizada.":"Solicitud aprobada. El cambio de sucursal se aplicará cuando comience el traslado."):"Solicitud rechazada.");
       await cargarTrasladosPersonal();
     }catch(error){console.error("Resolver traslado:",error);setStatus("traslado-estado",error.message||"No se pudo actualizar el estado. Comprueba el permiso traslados_aprobar.",true);}
   }
