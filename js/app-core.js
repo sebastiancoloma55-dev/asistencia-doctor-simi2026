@@ -626,6 +626,7 @@
                 document.getElementById('login-overlay').classList.add('hidden');
                 await cambiarModulo(tienePermisoModulo('dashboard') ? 'dashboard' : modulosPermitidosActuales[0], false);
                 await inicializarDashboard();
+                if (window.cargarResumenEspacioDashboard) await window.cargarResumenEspacioDashboard();
                 await actualizarContadorNotificacionesTopbar();
             } catch (error) {
                 try { await _supabase.auth.signOut(); } catch (_) {}
@@ -677,7 +678,9 @@
                 const boton = document.getElementById(`btn-${nombre}`);
 
                 if (boton) {
-                    boton.className = `menu-btn ui-button flex w-full items-center gap-3 rounded-lg px-3 py-2.5 ${nombre === modulo ? 'bg-simiRed font-semibold text-white' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'}`;
+                    boton.className = `menu-btn ui-button flex w-full items-center gap-3 rounded-lg px-3 py-2.5 ${nombre === modulo ? 'active font-semibold text-white' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'}`;
+                    if (nombre === modulo) boton.setAttribute('aria-current', 'page');
+                    else boton.removeAttribute('aria-current');
                 }
 
                 const vista = document.getElementById(`view-${nombre}`);
@@ -699,6 +702,7 @@
 
             if (vista) {
                 vista.classList.remove('hidden');
+                if (window.actualizarContextoModulo) window.actualizarContextoModulo(modulo);
             } else {
                 document
                     .getElementById('view-generic')
@@ -717,6 +721,8 @@
             }
 
             try {
+                if (modulo === 'espacio' && window.cargarEspacioTrabajo) await window.cargarEspacioTrabajo();
+                if (modulo === 'dashboard' && window.cargarResumenEspacioDashboard) await window.cargarResumenEspacioDashboard();
                 if (modulo === 'chat' && window.cargarChatInterno) await window.cargarChatInterno();
                 if (modulo === 'traslados' && window.iniciarModuloTraslados) await window.iniciarModuloTraslados();
                 if (modulo === 'reportes') await prepararFiltrosReportesRRHH();
@@ -774,6 +780,7 @@
         // ============================================================
         const etiquetasBusquedaGlobal={
             dashboard:['inicio','resumen','indicadores','kpi'],
+            espacio:['notas','posit','post it','bitácora','recordatorios','mi espacio'],
             colaboradores:['personas','empleados','trabajadores','rut'],
             sucursales:['locales','farmacias','directorio','direcciones'],
             asistencia:['marcas','atrasos','entrada','salida','turnos'],
