@@ -21,30 +21,77 @@
             if(error){select.innerHTML='<option value="">No se pudieron cargar sucursales</option>';const status=document.getElementById('dot-estado');if(status)status.textContent='No se pudo cargar el listado de sucursales: '+error.message;return;}
             select.innerHTML='<option value="">Selecciona una sucursal</option>'+(data||[]).map(x=>'<option value="'+escaparHTML(x.id)+'">'+escaparHTML(x.nombre)+'</option>').join('');
         }
+        async function cargarDestinatariosDotacion(){
+            const select=document.getElementById('dot-destinatario');
+            if(!select)return;
+            select.innerHTML='<option value="">Cargando usuarios activos…</option>';
+            try{
+                const {data,error}=await _supabase.rpc('listar_destinatarios_cobertura');
+                if(error)throw error;
+                const usuarios=(data||[]).filter(u=>u&&u.id!=null);
+                if(!usuarios.length){
+                    select.innerHTML='<option value="">No hay usuarios disponibles</option>';
+                    return;
+                }
+                select.innerHTML='<option value="">Selecciona quién recibirá esta alerta</option>'+usuarios.map(u=>{
+                    const nombre=String(u.nombre||u.email||('Usuario '+u.id));
+                    const detalle=[u.rol,u.email].filter(Boolean).join(' · ');
+                    return '<option value="'+escaparHTML(u.id)+'">'+escaparHTML(nombre)+(detalle?' — '+escaparHTML(detalle):'')+'</option>';
+                }).join('');
+            }catch(error){
+                console.error('Cargar destinatarios de cobertura:',error);
+                select.innerHTML='<option value="">No fue posible cargar usuarios</option>';
+                mostrarToast('No se pudieron cargar los usuarios destinatarios. Verifica permisos y conexión.','error',8000);
+            }
+        }
         async function crearSolicitudDotacion(event){
             event.preventDefault();
             const status=document.getElementById('dot-estado'),form=document.getElementById('form-alerta-dotacion');
             const sucursalId=document.getElementById('dot-sucursal')?.value,opcion=document.getElementById('dot-sucursal')?.selectedOptions?.[0];
             const inicio=document.getElementById('dot-inicio')?.value,fin=document.getElementById('dot-fin')?.value;
             const turno=document.getElementById('dot-turno')?.value,horaini=document.getElementById('dot-hora-inicio')?.value||null,horafin=document.getElementById('dot-hora-fin')?.value||null;
+            const destinatario=document.getElementById('dot-destinatario')?.value;
             if(!sucursalId||!inicio||!fin||fin<inicio)return mostrarToast('Selecciona una sucursal y revisa las fechas de la solicitud.','warning');
+            if(!destinatario)return mostrarToast('Selecciona qué usuario debe recibir la alerta.','warning');
             if(horaini&&horafin&&horafin<=horaini)return mostrarToast('La hora de término debe ser posterior a la hora de inicio.','warning');
             try{
-                if(status)status.textContent='Guardando alerta de cobertura…';
-                const me=await _supabase.rpc('chat_usuario_actual_id');if(me.error||!me.data)throw me.error||new Error('Tu usuario no tiene un perfil activo.');
-                const payload={sucursal_id:sucursalId,sucursal_nombre:opcion?.textContent||'',fecha_inicio:inicio,fecha_fin:fin,cantidad:Number(document.getElementById('dot-cantidad')?.value||1),cargo_requerido:document.getElementById('dot-cargo')?.value||'AF',turno,hora_inicio:horaini,hora_fin:horafin,motivo:document.getElementById('dot-motivo')?.value?.trim(),observaciones:document.getElementById('dot-observaciones')?.value?.trim()||null,solicitada_por:me.data,estado:'PENDIENTE'};
-                const {data,error}=await _supabase.from('solicitudes_dotacion').insert(payload).select('id').single();if(error)throw error;
-                await registrarAuditoria('coberturas','CREA_ALERTA_DOTACION',payload.sucursal_nombre+' · '+payload.cargo_requerido+' · '+payload.turno+' · '+payload.fecha_inicio+' a '+payload.fecha_fin);
-                if(status)status.textContent='Alerta enviada · '+new Date().toLocaleString('es-CL',{timeZone:'America/Santiago'})+'. Solicitud '+data.id.slice(0,8)+'.';
-                form?.reset();document.getElementById('dot-dias').value='';actualizarHorarioDotacion();
-                mostrarToast('Alerta de necesidad de personal enviada a la cola de revisión de Traslados.','success',8000);
+                if(status)status.textContent='Guardando la necesidad y enviando la notificación…';
+                const payload={
+                    p_sucursal_id:sucursalId,
+                    p_sucursal_nombre:opcion?.textContent||'',
+                    p_fecha_inicio:inicio,
+                    p_fecha_fin:fin,
+                    p_cantidad:Number(document.getElementById('dot-cantidad')?.value||1),
+                    p_cargo_requerido:document.getElementById('dot-cargo')?.value||'AF',
+                    p_turno:turno,
+                    p_hora_inicio:horaini,
+                    p_hora_fin:horafin,
+                    p_motivo:document.getElementById('dot-motivo')?.value?.trim(),
+                    p_observaciones:document.getElementById('dot-observaciones')?.value?.trim()||null,
+                    p_destinatario_id:Number(destinatario)
+                };
+                const {data,error}=await _supabase.rpc('crear_solicitud_dotacion_con_destinatario',payload);
+                if(error)throw error;
+                const solicitudId=data;
+                await registrarAuditoria('coberturas','CREA_ALERTA_DOTACION',payload.p_sucursal_nombre+' · '+payload.p_cargo_requerido+' · '+payload.p_turno+' · '+payload.p_fecha_inicio+' a '+payload.p_fecha_fin+' · destinatario '+destinatario);
+                if(status)status.textContent='Necesidad guardada y notificación enviada. Queda pendiente de encontrar y confirmar a la persona. Solicitud '+String(solicitudId).slice(0,8)+'.';
+                form?.reset();
+                const dias=document.getElementById('dot-dias');if(dias)dias.value='';
+                actualizarHorarioDotacion();
+                await cargarDestinatariosDotacion();
+                mostrarToast('Necesidad guardada y alerta enviada al usuario seleccionado. No se creó ningún traslado.','success',9000);
                 if(typeof cargarSolicitudesDotacion==='function')await cargarSolicitudesDotacion();
-            }catch(error){console.error('Crear alerta dotación:',error);if(status)status.textContent='No se pudo enviar: '+(error.message||'Error desconocido');mostrarToast('No se pudo guardar la alerta: '+(error.message||''),'error',10000);}
+            }catch(error){
+                console.error('Crear alerta dotación:',error);
+                if(status)status.textContent='No se pudo guardar la solicitud: '+(error.message||'Error desconocido');
+                mostrarToast('No se pudo guardar la necesidad o notificar al destinatario: '+(error.message||''),'error',10000);
+            }
         }
-        async function prepararMapaYConfiguracionSucursales(){
+                async function prepararMapaYConfiguracionSucursales(){
             const lista=await obtenerSucursalesConfig(), opts='<option value="">Seleccione sucursal</option>'+lista.map(x=>`<option value="${escaparHTML(direccionSucursal(x))}">${escaparHTML(x.nombre)}</option>`).join('');
             document.getElementById('map-origen').innerHTML=opts;document.getElementById('map-destino').innerHTML=opts;
             await cargarSucursalesDotacion();
+            await cargarDestinatariosDotacion();
             document.getElementById('tabla-config-sucursales').innerHTML=lista.map(x=>`<tr><td class="p-3 font-bold">${escaparHTML(x.nombre)}</td><td class="p-3">${escaparHTML(direccionSucursal(x))}</td><td class="p-3">${escaparHTML(x.horario_apertura||'')}</td><td class="p-3">${escaparHTML(x.horario_cierre||'')}</td><td class="p-3">${escaparHTML(x.correo_sucursal||'')}</td><td class="p-3">${escaparHTML(x.correo_copia||'')}</td></tr>`).join('');
         }
         function mostrarRutaSucursales(){const o=document.getElementById('map-origen').value,d=document.getElementById('map-destino').value,m=document.getElementById('map-modo').value;if(!o||!d){mostrarToast('Selecciona origen y destino.','warning');return;}document.getElementById('mapa-sucursales').src=`https://www.google.com/maps?output=embed&saddr=${encodeURIComponent(o)}&daddr=${encodeURIComponent(d)}&dirflg=${m}`;}
