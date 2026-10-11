@@ -302,8 +302,8 @@
             mapa14Sucursales = await obtenerSucursalesConfig();
             renderOpcionesMapa14('origen', document.getElementById('map14-buscar-origen')?.value || '');
             renderOpcionesMapa14('destino', document.getElementById('map14-buscar-destino')?.value || '');
-            document.getElementById('map14-buscar-origen')?.addEventListener('input', e => renderOpcionesMapa14('origen', e.target.value));
-            document.getElementById('map14-buscar-destino')?.addEventListener('input', e => renderOpcionesMapa14('destino', e.target.value));
+            if(document.getElementById('map14-buscar-origen'))document.getElementById('map14-buscar-origen').oninput=e=>renderOpcionesMapa14('origen',e.target.value);
+            if(document.getElementById('map14-buscar-destino'))document.getElementById('map14-buscar-destino').oninput=e=>renderOpcionesMapa14('destino',e.target.value);
             inicializarMapa14(mapa14Sucursales);
             if (window.lucide) lucide.createIcons();
         }
