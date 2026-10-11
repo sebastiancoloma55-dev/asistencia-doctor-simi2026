@@ -615,6 +615,7 @@
         // NAVEGACIÓN
         // ============================================================
         async function cambiarModulo(modulo, cargar = true) {
+            if (window.cargarActualizacionesFuentes) cargarActualizacionesFuentes().catch(error => console.warn('Trazabilidad de archivos:', error));
             if(perfilActualSistema&&!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para acceder a este apartado.','warning');const primero=modulos.find(nombre=>tienePermisoModulo(nombre));if(primero&&primero!==modulo)return cambiarModulo(primero,cargar);return;}
             modulos.forEach(nombre => {
                 const boton = document.getElementById(`btn-${nombre}`);
