@@ -4,7 +4,7 @@ var colors=["amarillo","menta","celeste","lila","rosa","neutro"];
 var categories=["General","Seguimiento","Asistencia","Licencias","Cobertura","Sucursal","Reunión","Urgente"];
 var logCategories=["Gestión","Incidencia","Seguimiento","Decisión","Reunión","Cobertura","Asistencia","Licencias","Otro"];
 var modules=[["general","Gestión general"],["dashboard","Dashboard"],["espacio","Mi espacio"],["colaboradores","Colaboradores"],["sucursales","Sucursales"],["asistencia","Asistencia"],["licencias","Licencias"],["vacaciones","Vacaciones"],["papeletas","Papeletas"],["correos","Borradores de correo"],["amonestaciones","Coberturas"],["reportes","Reportes"],["usuarios","Usuarios y roles"],["auditoria","Auditoría"],["configcorreos","Correos sucursales"],["mapas","Mapa y distancias"],["tareas","Tareas diarias"],["operaciones","Centro de operaciones"],["calidad","Calidad de datos"],["notificaciones","Notificaciones"],["integraciones","Integraciones"],["chat","Chat interno"],["traslados","Traslados"]];
-var state={notes:[],logs:[],userId:null,filter:"ACTIVAS",search:"",logSearch:"",tab:"notas"};
+var state={notes:[],logs:[],userId:null,notesError:null,logsError:null,filter:"ACTIVAS",search:"",logSearch:"",tab:"notas"};
 var $=function(id){return document.getElementById(id);};
 var esc=function(v){if(typeof window.escaparHTML==="function")return window.escaparHTML(String(v==null?"":v));return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
 var toast=function(m,t){if(typeof window.mostrarToast==="function")window.mostrarToast(m,t||"info",6000);else console.log(m);};
@@ -20,14 +20,22 @@ function metrics(){
  var overdue=state.notes.filter(function(n){return n.estado==="ACTIVA"&&n.vence_en&&new Date(n.vence_en)<new Date();}).length;
  var week=Date.now()-7*86400000;
  var logsWeek=state.logs.filter(function(l){return new Date(l.ocurrio_en).getTime()>=week;}).length;
+ var activeValue=state.notesError?"Error":active;
+ var pinnedValue=state.notesError?"Error":pinned;
+ var overdueValue=state.notesError?"Error":overdue;
+ var logsValue=state.logsError?"Error":logsWeek;
  var box=$("space-metrics");
  if(box){
-  var vals=[["Notas activas",active,"sticky-note","teal"],["Fijadas",pinned,"pin","violet"],["Por revisar",overdue,"clock-alert","amber"],["Gestiones · 7 días",logsWeek,"history","blue"]];
+  var vals=[["Notas activas",activeValue,"sticky-note","teal"],["Fijadas",pinnedValue,"pin","violet"],["Por revisar",overdueValue,"clock-alert","amber"],["Gestiones · 7 días",logsValue,"history","blue"]];
   box.innerHTML=vals.map(function(x){return '<div class="space-metric space-metric-'+x[3]+'"><span class="space-metric-icon"><i data-lucide="'+x[2]+'"></i></span><span class="space-metric-copy"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></span></div>';}).join("");
  }
  var dash=$("dashboard-space-summary");
  if(dash){
-  dash.innerHTML='<div class="dash-space-intro"><div><span class="dash-space-kicker">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo(\'espacio\')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div><div class="dash-space-stat-grid"><div><span class="dash-space-stat-icon"><i data-lucide="sticky-note"></i></span><span><b>'+active+'</b><small>Notas activas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="pin"></i></span><span><b>'+pinned+'</b><small>Notas fijadas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-alert"></i></span><span><b>'+overdue+'</b><small>Fuera de plazo</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="history"></i></span><span><b>'+logsWeek+'</b><small>Gestiones recientes</small></span></div></div>';
+  dash.innerHTML='<div class="dash-space-intro"><div><span class="dash-space-kicker">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo(\\'espacio\\')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div><div class="dash-space-stat-grid"><div><span class="dash-space-stat-icon"><i data-lucide="sticky-note"></i></span><span><b>'+activeValue+'</b><small>Notas activas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="pin"></i></span><span><b>'+pinnedValue+'</b><small>Notas fijadas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-alert"></i></span><span><b>'+overdueValue+'</b><small>Fuera de plazo</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="history"></i></span><span><b>'+logsValue+'</b><small>Gestiones recientes</small></span></div></div>';
+  var errors=[];
+  if(state.notesError)errors.push('Notas: '+state.notesError);
+  if(state.logsError)errors.push('Bitácora: '+state.logsError);
+  if(errors.length)dash.insertAdjacentHTML('beforeend','<div class="dash-space-error"><i data-lucide="alert-circle"></i><span><b>No se pudo consultar parte de la información</b><small>'+esc(errors.join(' · '))+'</small></span><button type="button" onclick="cambiarModulo(\\'espacio\\')">Revisar</button></div>');
  }
  icons();
 }
@@ -65,21 +73,56 @@ function renderLogs(){
  }).join("")+'</div>';icons();
 }
 async function cargarEspacioTrabajo(){
- var box=$("rrhh-notas-lista");if(!box)return;
+ var box=$("rrhh-notas-lista"),logBox=$("rrhh-bitacora-lista");if(!box)return;
  box.innerHTML='<div class="space-loading"><span class="space-loader-ring"></span><p>Organizando tu espacio de trabajo…</p></div>';
  try{
-  var s=await userSession(),res=await Promise.all([s.client.from("rrhh_notas").select("*").order("fijada",{ascending:false}).order("updated_at",{ascending:false}).limit(250),s.client.from("rrhh_bitacora").select("*").order("ocurrio_en",{ascending:false}).limit(350)]);
-  if(res[0].error)throw res[0].error;if(res[1].error)throw res[1].error;
-  state.userId=s.user.id;state.notes=res[0].data||[];state.logs=res[1].data||[];metrics();renderNotes();renderLogs();
- }catch(e){box.innerHTML='<div class="space-error"><i data-lucide="cloud-off"></i><div><b>No se pudo cargar el espacio</b><p>'+esc(e.message||"Error de conexión")+'</p><small>Comprueba tu sesión y permisos de acceso en Supabase.</small></div></div>';toast("No se pudo cargar Mi espacio: "+(e.message||"Error de conexión"),"error");icons();}
+  var ss=await userSession();
+  var res=await Promise.all([
+   ss.client.from("rrhh_notas").select("*").order("fijada",{ascending:false}).order("updated_at",{ascending:false}).limit(250),
+   ss.client.from("rrhh_bitacora").select("*").order("ocurrio_en",{ascending:false}).limit(350)
+  ]);
+  state.userId=ss.user.id;
+  state.notesError=res[0].error?String(res[0].error.message||res[0].error):null;
+  state.logsError=res[1].error?String(res[1].error.message||res[1].error):null;
+  state.notes=res[0].error?[]:(res[0].data||[]);
+  state.logs=res[1].error?[]:(res[1].data||[]);
+  metrics();
+  if(state.notesError)box.innerHTML='<div class="space-error"><i data-lucide="cloud-off"></i><div><b>No se pudieron cargar las notas</b><p>'+esc(state.notesError)+'</p><small>Los contadores se marcan como Error hasta resolver el acceso a Supabase.</small></div><button type="button" onclick="cargarEspacioTrabajo()">Reintentar</button></div>';
+  else renderNotes();
+  if(logBox){
+   if(state.logsError)logBox.innerHTML='<div class="space-error"><i data-lucide="cloud-off"></i><div><b>No se pudo cargar la bitácora</b><p>'+esc(state.logsError)+'</p></div><button type="button" onclick="cargarEspacioTrabajo()">Reintentar</button></div>';
+   else renderLogs();
+  }
+  if(state.notesError||state.logsError)toast('Mi espacio se cargó parcialmente. Revisa los avisos de conexión y permisos.','warning',9000);
+ }catch(e){
+  state.notesError=String(e.message||e);state.logsError=String(e.message||e);state.notes=[];state.logs=[];
+  metrics();
+  box.innerHTML='<div class="space-error"><i data-lucide="cloud-off"></i><div><b>No se pudo cargar el espacio</b><p>'+esc(e.message||"Error de conexión")+'</p><small>Comprueba tu sesión y permisos de acceso en Supabase.</small></div><button type="button" onclick="cargarEspacioTrabajo()">Reintentar</button></div>';
+  if(logBox)logBox.innerHTML='<div class="space-error"><i data-lucide="cloud-off"></i><div><b>Bitácora no disponible</b><p>Revisa la conexión y vuelve a intentar.</p></div></div>';
+  toast("No se pudo cargar Mi espacio: "+(e.message||"Error de conexión"),"error");icons();
+ }
 }
 async function cargarResumenEspacioDashboard(){
  var dash=$("dashboard-space-summary");if(!dash)return;
  var canAccess=!!(window.esAdminPrincipalActual&&window.esAdminPrincipalActual())||!!(window.tienePermisoModulo&&(window.tienePermisoModulo("espacio")||window.tienePermisoModulo("tareas")));
  if(!canAccess){dash.classList.add("hidden");return;}
  dash.classList.remove("hidden");
- try{var s=await userSession(),res=await Promise.all([s.client.from("rrhh_notas").select("id,fijada,estado,vence_en,visibilidad"),s.client.from("rrhh_bitacora").select("id,ocurrio_en")]);if(res[0].error)throw res[0].error;if(res[1].error)throw res[1].error;state.userId=s.user.id;state.notes=res[0].data||[];state.logs=res[1].data||[];metrics();}
- catch(e){dash.innerHTML='<div class="dash-space-intro"><div><span class="dash-space-kicker">MI ESPACIO DE TRABAJO</span><h3>Notas y bitácora</h3><p>Guarda recordatorios y registra las gestiones de tu día.</p></div><button type="button" onclick="cambiarModulo(\'espacio\')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div>';icons();}
+ try{
+  var ss=await userSession();
+  var res=await Promise.all([
+   ss.client.from("rrhh_notas").select("id,fijada,estado,vence_en,visibilidad"),
+   ss.client.from("rrhh_bitacora").select("id,ocurrio_en")
+  ]);
+  state.userId=ss.user.id;
+  state.notesError=res[0].error?String(res[0].error.message||res[0].error):null;
+  state.logsError=res[1].error?String(res[1].error.message||res[1].error):null;
+  state.notes=res[0].error?[]:(res[0].data||[]);
+  state.logs=res[1].error?[]:(res[1].data||[]);
+  metrics();
+ }catch(e){
+  state.notesError=String(e.message||e);state.logsError=String(e.message||e);
+  state.notes=[];state.logs=[];metrics();
+ }
 }
 async function guardarNotaRRHH(event){
  event.preventDefault();var form=event.currentTarget,title=$("rrhh-nota-titulo").value.trim(),content=$("rrhh-nota-contenido").value.trim();
