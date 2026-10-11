@@ -47,6 +47,7 @@
                 const resultado=await guardarLotes('vacaciones_historico',consolidado.registros,{onConflict:'rut,fecha_inicio,fecha_fin,tipo_vacaciones'});
                 await cargarVacacionesDesdeNube();
                 await registrarAuditoria('vacaciones','CARGA_EXCEL',`Filas: ${originales.length}; únicos: ${consolidado.registros.length}; duplicados: ${consolidado.duplicados.length}`);
+                await registrarActualizacionFuente('vacaciones', file.name, consolidado.registros.length, 'manual');
                 mostrarToast(`Vacaciones guardadas. ${resultado.confirmados} registros confirmados; ${consolidado.duplicados.length} duplicados consolidados.`,'success',15000);
             } catch(error) { mostrarToast(`No se pudieron guardar vacaciones. ${error.message}`,'error',18000); }
             finally { boton.innerHTML='<i data-lucide="upload-cloud" class="h-4 w-4"></i> Cargar histórico<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarHistorialVacaciones(event)">'; input.value=''; lucide.createIcons(); }
