@@ -673,9 +673,17 @@
         // NAVEGACIÓN
         // ============================================================
         let secuenciaCambioModulo = 0;
+        let ultimaConsultaActualizacionesFuente = 0;
         async function cambiarModulo(modulo, cargar = true) {
             const secuenciaActual = ++secuenciaCambioModulo;
-            if (window.cargarActualizacionesFuentes) cargarActualizacionesFuentes().catch(error => console.warn('Trazabilidad de archivos:', error));
+            // No repetir una consulta a Supabase por cada clic de navegación.
+            if (window.cargarActualizacionesFuentes && Date.now() - ultimaConsultaActualizacionesFuente > 30000) {
+                ultimaConsultaActualizacionesFuente = Date.now();
+                cargarActualizacionesFuentes().catch(error => {
+                    ultimaConsultaActualizacionesFuente = 0;
+                    console.warn('Trazabilidad de archivos:', error);
+                });
+            }
             if(perfilActualSistema&&!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para acceder a este apartado.','warning');const primero=modulos.find(nombre=>tienePermisoModulo(nombre));if(primero&&primero!==modulo)return cambiarModulo(primero,cargar);return;}
             modulos.forEach(nombre => {
                 const boton = document.getElementById(`btn-${nombre}`);
