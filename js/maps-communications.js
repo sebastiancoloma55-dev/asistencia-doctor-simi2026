@@ -464,6 +464,7 @@
             return 'EN CURSO';
         }
         async function cargarCoberturas(){
+            await cargarSucursalesDotacion();
             const {data,error}=await _supabase.from('coberturas').select('*').order('fecha_inicio',{ascending:false});
             if(error)return mostrarToast(error.message,'error');
             datosCoberturasGlobal=data||[];
