@@ -10,28 +10,72 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 LOG = logging.getLogger("talana-cloud")
 
 
+def eligibility(cloud):
+    """Devuelve (modo, run_id, motivo) sin iniciar una descarga."""
+    state = cloud.poll()
+    config = state.get("config") or {}
+    mode = config.get("run_mode")
+    pending = state.get("pending_manual_run")
+
+    if pending and mode in ("both", "manual"):
+        return "manual", pending.get("id"), "hay una ejecución manual en cola"
+    if config.get("enabled") and mode in ("both", "automatic"):
+        return "automatic", None, "bot habilitado para ejecución automática"
+    if not config.get("enabled"):
+        return None, None, "el bot está pausado en el panel de administración"
+    return None, None, f"el modo configurado ({mode}) no permite esta ejecución"
+
+
+def write_output(should_run, reason):
+    output = os.getenv("GITHUB_OUTPUT")
+    if output:
+        with open(output, "a", encoding="utf-8") as file:
+            file.write(f"run_bot={'true' if should_run else 'false'}\n")
+            file.write("skip_reason=" + reason.replace("\n", " ") + "\n")
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--once", action="store_true", help="Ejecuta una sola descarga y termina")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--once", action="store_true", help="Ejecuta una sola descarga y termina")
+    group.add_argument("--check", action="store_true", help="Comprueba si el panel permite ejecutar, sin descargar")
     args = parser.parse_args()
-    if not args.once:
-        parser.error("En GitHub Actions se requiere --once para no consumir minutos innecesarios.")
+
+    cloud = TalanaBotCloud()
+    if args.check:
+        mode, _, reason = eligibility(cloud)
+        write_output(mode is not None, reason)
+        LOG.info("Preflight: %s", reason)
+        return
 
     user = os.getenv("TALANA_USER", "").strip()
     password = os.getenv("TALANA_PASSWORD", "")
     if not user or not password:
         raise RuntimeError("Faltan los secretos TALANA_USER o TALANA_PASSWORD.")
 
-    # El módulo de descarga se incorpora como archivo independiente; no se embeben credenciales.
+    mode, queued_id, reason = eligibility(cloud)
+    if mode is None:
+        LOG.info("No se ejecuta descarga: %s", reason)
+        return
+
+    if mode == "manual":
+        claim = cloud.claim_manual(queued_id)
+        if not claim.get("claimed"):
+            LOG.info("La solicitud manual ya fue tomada por otro proceso; no se ejecuta.")
+            return
+        run_id = queued_id
+        trigger = "manual"
+    else:
+        run_id = cloud.start_run("automatic")
+        trigger = "automatic"
+
     from talana_downloader import ejecutar_descargas, DOWNLOAD_DIR
 
-    cloud = TalanaBotCloud()
-    run_id = cloud.start_run("automatic")
     results = []
     errors = []
     uploaded = 0
     try:
-        LOG.info("Comienza la descarga programada de reportes Talana.")
+        LOG.info("Comienza descarga Talana (modo=%s, run=%s).", trigger, run_id)
         results, errors = ejecutar_descargas(user, password, headless=True)
         for title, path in results:
             file_path = Path(path)
@@ -55,16 +99,12 @@ def main():
         else:
             status = "failed"
         cloud.finish_run(
-            run_id,
-            status,
-            downloaded=len(results),
-            errors=errors,
+            run_id, status, downloaded=len(results), errors=errors,
             details={"uploaded": uploaded, "download_directory": str(DOWNLOAD_DIR)},
         )
-        LOG.info("Finaliza: estado=%s descargados=%s cargados=%s errores=%s", status, len(results), uploaded, len(errors))
+        LOG.info("Finaliza: estado=%s descargados=%s cargados=%s errores=%s",
+                 status, len(results), uploaded, len(errors))
         if status == "failed":
-            # El estado failed ya quedó registrado arriba; terminar sin cerrar dos veces.
-            LOG.error("No se descargó ningún reporte: %s", "; ".join(map(str, errors)) or "sin detalle")
             raise SystemExit(1)
     except SystemExit:
         raise
