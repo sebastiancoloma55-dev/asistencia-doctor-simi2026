@@ -69,6 +69,15 @@ Los cambios nuevos se trabajan en `feature/talana-bot-integration` y en migracio
 - [ ] Definir qué datos pueden salir a servicios externos de IA o geocodificación.
 - [ ] Medir rendimiento, tiempos de carga, errores de importación y cumplimiento de KPI.
 
+## Mejoras agregadas en la iteración de octubre de 2026
+
+- Botón de notificaciones en la barra superior, con contador de avisos sin leer y acceso directo a la bandeja.
+- Formulario de alerta de dotación para pedir personal en una sucursal por fechas, cantidad de días, cargo QF/AF, turno AM/PM/completo/flexible y horario opcional.
+- Cola de alertas en Traslados de personal, con aprobación/rechazo restringidos al administrador principal o al permiso específico de aprobación.
+- Notificaciones automáticas al equipo con permisos de Traslados/Coberturas cuando se crea una necesidad, y al solicitante cuando se resuelve.
+- Dashboard ejecutivo con ranking horizontal de incidencias, indicador circular de atrasos y barras de carga operativa; no se fabrican series históricas si la fuente no las entrega.
+- Iconografía destacada para los módulos 9 y 13.
+
 ## Criterios para dar por terminado el trabajo
 1. Cada módulo nuevo se ve solo a los usuarios autorizados y las mismas reglas se aplican en base de datos.
 2. Dos usuarios no participantes no pueden consultar mensajes ni adjuntos de una conversación privada.
