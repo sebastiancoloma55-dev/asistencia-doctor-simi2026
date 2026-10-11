@@ -74,5 +74,18 @@ for (const file of frontendFiles) {
   if (content.includes('SUPABASE_SERVICE_ROLE_KEY')) fail(`Posible clave privilegiada en frontend: ${file}`);
 }
 
+const loginRequiredIds = ['login-overlay', 'login-email', 'login-pass', 'login-remember', 'login-error', 'btn-login'];
+for (const id of loginRequiredIds) {
+  if (!html.includes(`id="${id}"`)) fail(`El login NOVA V3 no contiene el elemento requerido #${id}.`);
+}
+for (const marker of ['nova-v3-overlay', 'nova-v3-orbit-scene', 'nova-v3-auth', 'prefers-reduced-motion']) {
+  if (!html.includes(marker)) fail(`Falta el componente visual/accessibilidad ${marker} del login NOVA V3.`);
+}
+if (!existsSync(path.join(root, 'doctor-simi-logo.jpg'))) fail('No existe el recurso local doctor-simi-logo.jpg del login.');
+const appCore = readFileSync(path.join(root, 'js/app-core.js'), 'utf8');
+for (const marker of ['syncRememberedLoginEmail', 'Verificando acceso', 'signInWithPassword']) {
+  if (!appCore.includes(marker)) fail(`Falta la integración de autenticación esperada: ${marker}.`);
+}
+
 if (process.exitCode) process.exit(process.exitCode);
 console.log(`Validación correcta: ${localScripts.length} scripts locales, ${jsFiles.length} archivos JS, ${buttons.size} módulos navegables y APIs protegidas.`);
