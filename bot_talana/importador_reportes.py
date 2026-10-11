@@ -90,7 +90,7 @@ def _number(value):
         return None
     if isinstance(value, (int, float)):
         return value
-    match = re.search(r"-?\\d+(?:[.,]\\d+)?", str(value).replace(" ", ""))
+    match = re.search(r"-?\d+(?:[.,]\d+)?", str(value).replace(" ", ""))
     if not match:
         return None
     number = float(match.group(0).replace(",", "."))
