@@ -72,6 +72,14 @@ def click_texto(page, texto, timeout=15000):
         )),
     ]
     while time.monotonic() < deadline:
+        # Talana abre modales de generación de forma asíncrona; nunca intentes
+        # pulsar el siguiente reporte mientras el modal esté bloqueando la página.
+        try:
+            if modal_progreso_visible(page):
+                esperar_fin_modal_progreso(page, timeout_segundos=600)
+                page.wait_for_timeout(500)
+        except NameError:
+            pass
         cerrar_popups(page)
         for strategy_name, build_locator in strategies:
             for frame in list(page.frames):
@@ -287,7 +295,18 @@ def descargar_solicitudes_vacaciones(page, fecha_desde, eventos):
         page.wait_for_timeout(500)
     if not texto_visible(page, report):
         raise RuntimeError("No aparece «Detalle solicitudes de vacaciones históricas» dentro de VACACIONES.")
-    click_texto(page, report)
+    # Usa el identificador estable de Talana cuando está presente; el texto
+    # visible queda como alternativa para cambios menores de interfaz.
+    enlace = page.locator('a[data-cy="gdp-employees-report-detail-historical-vacation-requests"]')
+    try:
+        if enlace.count() and enlace.first.is_visible():
+            if modal_progreso_visible(page):
+                esperar_fin_modal_progreso(page, timeout_segundos=600)
+            enlace.first.click(timeout=15000)
+        else:
+            click_texto(page, report)
+    except Exception:
+        click_texto(page, report)
     page.wait_for_timeout(500)
     seleccionar_desde(page, fecha_desde)
     n = len(eventos)
