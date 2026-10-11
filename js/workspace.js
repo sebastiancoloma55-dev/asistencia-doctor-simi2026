@@ -46,7 +46,8 @@ function renderNotes(){
   var actions=puedeGestionarNota?(n.estado==="ACTIVA"?'<button type="button" class="space-note-action" title="'+(n.fijada?"Desfijar nota":"Fijar nota")+'" onclick="alternarFijadoNotaRRHH(\''+n.id+'\','+(!n.fijada)+')"><i data-lucide="'+(n.fijada?"pin-off":"pin")+'"></i></button><button type="button" class="space-note-action" title="Marcar resuelta" onclick="cambiarEstadoNotaRRHH(\''+n.id+'\',\'RESUELTA\')"><i data-lucide="check"></i></button><button type="button" class="space-note-action" title="Archivar" onclick="cambiarEstadoNotaRRHH(\''+n.id+'\',\'ARCHIVADA\')"><i data-lucide="archive"></i></button>':'<button type="button" class="space-note-action" title="Reactivar" onclick="cambiarEstadoNotaRRHH(\''+n.id+'\',\'ACTIVA\')"><i data-lucide="rotate-ccw"></i></button>'):'<span class="space-readonly-note" title="Solo el creador o el administrador pueden modificarla"><i data-lucide="lock-keyhole"></i></span>';
   var deleteAction=puedeGestionarNota?'<button type="button" class="space-note-action space-note-delete" title="Eliminar nota" onclick="eliminarNotaRRHH(\''+n.id+'\')"><i data-lucide="trash-2"></i></button>':'';
 
-  return '<article class="space-note space-note-'+color+' '+(n.fijada?"is-pinned ":"")+(n.estado!=="ACTIVA"?"is-muted":"")+'"><div class="space-note-top"><span class="space-note-category">'+esc(n.categoria||"General")+'</span><div class="space-note-actions">'+actions+deleteAction+'</div></div><h4>'+esc(n.titulo)+'</h4><p class="space-note-content">'+(esc(n.contenido).replace(/\n/g,"<br>")||'<span class="space-note-placeholder">Sin descripción adicional.</span>')+'</p><div class="space-note-foot"><span class="space-note-owner"><i data-lucide="'+(shared?"users":"lock-keyhole")+'"></i>'+(shared?"Compartida":"Personal")+' · '+esc(creator)+'</span>'+(n.vence_en?'<span class="space-note-due '+(new Date(n.vence_en)<new Date()&&n.estado==="ACTIVA"?"is-late":"")+'"><i data-lucide="calendar-clock"></i>'+esc(fmtDate(n.vence_en))+'</span>':"")+'</div><div class="space-note-bottom">'+status+'<small>Actualizada '+esc(fmtDate(n.updated_at||n.created_at))+'</small></div></article>';
+  var editAction=puedeGestionarNota?'<button type="button" class="space-note-action" title="Editar nota" onclick="editarNotaRRHH(\\''+n.id+'\\')"><i data-lucide="pencil-line"></i></button>':'';
+  return '<article class="space-note space-note-'+color+' '+(n.fijada?"is-pinned ":"")+(n.estado!=="ACTIVA"?"is-muted":"")+'"><div class="space-note-top"><span class="space-note-category">'+esc(n.categoria||"General")+'</span><div class="space-note-actions">'+editAction+actions+deleteAction+'</div></div><h4>'+esc(n.titulo)+'</h4><p class="space-note-content">'+(esc(n.contenido).replace(/\n/g,"<br>")||'<span class="space-note-placeholder">Sin descripción adicional.</span>')+'</p><div class="space-note-foot"><span class="space-note-owner"><i data-lucide="'+(shared?"users":"lock-keyhole")+'"></i>'+(shared?"Compartida":"Personal")+' · '+esc(creator)+'</span>'+(n.vence_en?'<span class="space-note-due '+(new Date(n.vence_en)<new Date()&&n.estado==="ACTIVA"?"is-late":"")+'"><i data-lucide="calendar-clock"></i>'+esc(fmtDate(n.vence_en))+'</span>':"")+'</div><div class="space-note-bottom">'+status+'<small>Actualizada '+esc(fmtDate(n.updated_at||n.created_at))+'</small></div></article>';
  }).join("");
  icons();
 }
@@ -86,6 +87,29 @@ async function guardarNotaRRHH(event){
  try{var s=await userSession(),vis=$("rrhh-nota-visibilidad").value==="COMPARTIDA"?"COMPARTIDA":"PERSONAL",due=$("rrhh-nota-vence").value,row={user_id:s.user.id,created_by_email:s.user.email||"",titulo:title,contenido:content,categoria:categories.indexOf($("rrhh-nota-categoria").value)>=0? $("rrhh-nota-categoria").value:"General",color:colors.indexOf($("rrhh-nota-color").value)>=0? $("rrhh-nota-color").value:"amarillo",fijada:$("rrhh-nota-fijada").checked,visibilidad:vis,estado:"ACTIVA",vence_en:due?new Date(due).toISOString():null,updated_at:new Date().toISOString()};var out=await s.client.from("rrhh_notas").insert([row]);if(out.error)throw out.error;form.reset();$("rrhh-nota-color").value="amarillo";$("rrhh-nota-visibilidad").value="PERSONAL";await cargarEspacioTrabajo();await cargarResumenEspacioDashboard();toast("Nota guardada en la nube.","success");await registrarEvento("NOTA_CREADA",title);}
  catch(e){toast("No se pudo guardar la nota: "+(e.message||"Error"),"error");}
 }
+function editarNotaRRHH(id){
+ var n=state.notes.find(function(x){return x.id===id;});if(!n)return;
+ var canManage=n.user_id===state.userId||!!(window.esAdminPrincipalActual&&window.esAdminPrincipalActual());
+ if(!canManage)return toast("Solo el creador o el administrador pueden modificar esta nota.","warning");
+ $("rrhh-edit-nota-id").value=n.id;$("rrhh-edit-nota-titulo").value=n.titulo||"";$("rrhh-edit-nota-contenido").value=n.contenido||"";
+ $("rrhh-edit-nota-categoria").value=categories.indexOf(n.categoria)>=0?n.categoria:"General";
+ $("rrhh-edit-nota-color").value=colors.indexOf(n.color)>=0?n.color:"amarillo";
+ $("rrhh-edit-nota-vence").value=n.vence_en?localInput(n.vence_en):"";
+ $("rrhh-edit-nota-visibilidad").value=n.visibilidad==="COMPARTIDA"?"COMPARTIDA":"PERSONAL";
+ $("rrhh-edit-nota-fijada").checked=!!n.fijada;
+ var modal=$("rrhh-modal-editar-nota");modal.classList.remove("hidden");$("rrhh-edit-nota-titulo").focus();icons();
+}
+function cerrarEdicionNotaRRHH(){var modal=$("rrhh-modal-editar-nota");if(modal)modal.classList.add("hidden");}
+async function guardarEdicionNotaRRHH(event){
+ event.preventDefault();var id=$("rrhh-edit-nota-id").value,n=state.notes.find(function(x){return x.id===id;});
+ if(!n)return cerrarEdicionNotaRRHH();
+ if(!(n.user_id===state.userId||!!(window.esAdminPrincipalActual&&window.esAdminPrincipalActual())))return toast("No tienes permiso para editar esta nota.","warning");
+ var title=$("rrhh-edit-nota-titulo").value.trim();if(!title)return toast("El título no puede quedar vacío.","warning");
+ var due=$("rrhh-edit-nota-vence").value;
+ var payload={titulo:title,contenido:$("rrhh-edit-nota-contenido").value.trim(),categoria:categories.indexOf($("rrhh-edit-nota-categoria").value)>=0? $("rrhh-edit-nota-categoria").value:"General",color:colors.indexOf($("rrhh-edit-nota-color").value)>=0? $("rrhh-edit-nota-color").value:"amarillo",vence_en:due?new Date(due).toISOString():null,visibilidad:$("rrhh-edit-nota-visibilidad").value==="COMPARTIDA"?"COMPARTIDA":"PERSONAL",fijada:$("rrhh-edit-nota-fijada").checked,updated_at:new Date().toISOString()};
+ try{var ss=await userSession(),r=await ss.client.from("rrhh_notas").update(payload).eq("id",id);if(r.error)throw r.error;cerrarEdicionNotaRRHH();await cargarEspacioTrabajo();await cargarResumenEspacioDashboard();toast("Nota actualizada en la nube.","success");await registrarEvento("NOTA_EDITADA",title);}
+ catch(e){toast("No se pudo editar la nota: "+(e.message||"Error"),"error");}
+}
 async function actualizarNota(id,payload,message){
  try{var s=await userSession(),r=await s.client.from("rrhh_notas").update(Object.assign({},payload,{updated_at:new Date().toISOString()})).eq("id",id);if(r.error)throw r.error;await cargarEspacioTrabajo();await cargarResumenEspacioDashboard();toast(message,"success");}
  catch(e){toast("No se pudo actualizar la nota: "+(e.message||"Error"),"error");}
@@ -117,6 +141,9 @@ document.addEventListener("DOMContentLoaded",function(){
 window.cargarEspacioTrabajo=cargarEspacioTrabajo;
 window.cargarResumenEspacioDashboard=cargarResumenEspacioDashboard;
 window.guardarNotaRRHH=guardarNotaRRHH;
+window.editarNotaRRHH=editarNotaRRHH;
+window.cerrarEdicionNotaRRHH=cerrarEdicionNotaRRHH;
+window.guardarEdicionNotaRRHH=guardarEdicionNotaRRHH;
 window.guardarRegistroBitacoraRRHH=guardarRegistroBitacoraRRHH;
 window.alternarFijadoNotaRRHH=alternarFijadoNotaRRHH;
 window.cambiarEstadoNotaRRHH=cambiarEstadoNotaRRHH;
