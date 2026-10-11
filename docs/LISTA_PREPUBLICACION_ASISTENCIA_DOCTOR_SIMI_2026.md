@@ -30,6 +30,7 @@ supabase/migrations/20261011073437_talana_importer_privileges_and_key_contract_2
 La migración concede SELECT, INSERT y UPDATE solamente a service_role en las tablas necesarias para la importación y uso de secuencias de identidad. No agrega acceso a anon. Se eliminó el nombre alternativo con marca horaria distinta para no duplicar la misma operación durante una publicación futura.
 
 Antes de fusionar, confirma que el repositorio contiene esta única versión de la migración y no ejecutes manualmente de nuevo el mismo bloque de permisos.
+La lista activa de los cuatro reportes está versionada por separado en supabase/migrations/20261011181841_talana_four_reports_config_20261011.sql; esta migración actualiza solo la configuración y no inicia una descarga ni cambia el estado habilitado del bot.
 
 ## 3. Talana y la Edge Function
 
@@ -57,7 +58,7 @@ No se puede comprobar por lectura del repositorio que todos esos secretos estén
 
 ### Estado verificado del bot al 11 de octubre de 2026
 
-- La configuración de Supabase está habilitada, en modo automático/manual y con frecuencia de 60 minutos. La lista de reportes se actualizó a los cuatro tipos: ausentismos históricos, vacaciones históricas, maestro de empleado y jornadas/asistencia.
+- La configuración de Supabase está habilitada, en modo automático/manual y con frecuencia de 60 minutos. La lista de reportes se actualizó a los cuatro tipos: ausentismos históricos, vacaciones históricas, maestro de empleado y jornadas/asistencia. El cambio quedó aplicado y versionado en supabase/migrations/20261011181841_talana_four_reports_config_20261011.sql.
 - Las comprobaciones de permisos a nivel de PostgreSQL confirman que service_role tiene SELECT/INSERT/UPDATE sobre vacaciones históricas y permisos de escritura en las tablas importadas, con uso de secuencias.
 - La última ejecución registrada sigue siendo parcial y es anterior a la aplicación de los permisos del importador. Los fallos registrados incluían permiso denegado para vacaciones/maestro y que el flujo de Talana no identificó el control de descarga de Jornadas.
 - Por lo tanto, los permisos de base de datos están corregidos, pero **la importación completa de los cuatro archivos aún no está certificada**. La siguiente ejecución manual debe confirmar el funcionamiento después de esos cambios sin asumir éxito por la sola validación estática.
