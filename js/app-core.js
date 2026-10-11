@@ -796,6 +796,7 @@
             const card=(t,v,d,ic)=>'<div class="ui-card p-5"><div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">'+opsEsc(t)+'</span><i data-lucide="'+ic+'" class="h-5 w-5 text-blue-600"></i></div><strong class="mt-3 block text-3xl font-black">'+opsEsc(v)+'</strong><p class="mt-1 text-xs text-slate-500">'+opsEsc(d)+'</p></div>';
             k.innerHTML=card('Total cargadas',notificacionesCentroGlobal.length,'Máximo 250 más recientes','bell')+card('Sin leer',unread,'Requieren atención','bell-dot')+card('Leídas',notificacionesCentroGlobal.length-unread,'Avisos revisados','check-check');
             const navBadge=document.getElementById('nav-notif-count');if(navBadge){navBadge.textContent=unread>99?'99+':String(unread);navBadge.classList.toggle('hidden',unread===0);}
+            const topBadge=document.getElementById('topbar-notif-count');if(topBadge){topBadge.textContent=unread>99?'99+':String(unread);topBadge.classList.toggle('hidden',unread===0);}
             lista.innerHTML=rows.length?rows.map(x=>'<article class="notif-item flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-start '+(!x.leida?'unread':'')+'"><span class="notif-symbol"><i data-lucide="'+(/error|urg|venc/i.test((x.tipo||'')+' '+(x.titulo||''))?'alert-triangle':'bell')+'" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm">'+opsEsc(x.titulo||'Notificación')+'</strong>'+(!x.leida?'<span class="notif-pill">Nueva</span>':'')+'</div><p class="mt-1 whitespace-pre-wrap text-sm text-slate-600">'+opsEsc(x.mensaje||'Sin detalle adicional')+'</p><p class="mt-2 text-xs text-slate-400">'+opsEsc(x.tipo||'Aviso')+' · '+opsEsc(x.created_at?new Date(x.created_at).toLocaleString('es-CL'):'Fecha no disponible')+'</p></div>'+(!x.leida?'<button type="button" class="notif-mark" onclick="marcarNotificacionLeida('+Number(x.id)+')"><i data-lucide="check" class="h-4 w-4"></i> Marcar leída</button>':'<span class="self-center text-xs text-slate-400">Leída</span>')+'</article>').join(''):'<div class="rounded-xl border border-dashed border-slate-300 p-8 text-center"><i data-lucide="bell-off" class="mx-auto h-8 w-8 text-slate-400"></i><p class="mt-3 font-bold text-slate-700">No hay notificaciones en esta vista</p><p class="mt-1 text-sm text-slate-500">Cuando se registren avisos para tu perfil, aparecerán aquí.</p></div>';
             if(window.lucide)lucide.createIcons();
         }
@@ -1042,6 +1043,7 @@
                     const el = document.getElementById(id);
                     if (el) el.textContent = Number(valor ?? 0).toLocaleString('es-CL');
                 });
+                renderDashboardGerencialCharts();
                 if (periodoLabel) periodoLabel.textContent = 'Período de asistencia: ' + rango.etiqueta + (sucursal ? ' · ' + sucursal : ' · Todas las sucursales');
             } catch (error) {
                 if (errorBox) {
@@ -1052,6 +1054,21 @@
                 if (loading) loading.classList.add('hidden');
                 if (window.lucide) lucide.createIcons();
             }
+        }
+
+        function renderDashboardGerencialCharts(){
+            const read=id=>{const el=document.getElementById(id);return Math.max(0,Number(String(el?.textContent||'0').replace(/[^0-9-]/g,''))||0);};
+            const total=read('ind-total'),atrasos=read('ind-atrasos'),incompletas=read('ind-incompletas'),sinMarca=read('ind-sin-marca'),faltas=read('ind-faltas'),inexistentes=read('ind-inexistentes'),anomalias=read('ind-anomalias'),licVig=read('ind-licencias-vigentes'),licProx=read('ind-licencias-proximas');
+            const bars=document.getElementById('dashboard-chart-incidencias'),gauge=document.getElementById('dashboard-chart-atrasos'),load=document.getElementById('dashboard-chart-carga');
+            if(!bars||!gauge||!load)return;
+            const items=[{label:'Atrasos',value:atrasos,color:'#f59e0b'},{label:'Marcas incompletas',value:incompletas,color:'#f97316'},{label:'Sin marca',value:sinMarca,color:'#e11d48'},{label:'Faltas injustificadas',value:faltas,color:'#be123c'},{label:'Anomalías / revisión',value:anomalias,color:'#7c3aed'}];
+            const max=Math.max(1,...items.map(x=>x.value));
+            bars.innerHTML=items.map(x=>'<div><div class="mb-1 flex items-center justify-between gap-3"><span class="text-xs font-semibold text-slate-600">'+escaparHTML(x.label)+'</span><b class="text-xs text-slate-800">'+x.value.toLocaleString('es-CL')+'</b></div><div class="dash-bar-track"><div class="dash-bar-fill" style="width:'+Math.max(x.value?2:0,Math.min(100,x.value/max*100))+'%;background:'+x.color+'"></div></div></div>').join('');
+            const rate=total?Math.min(100,atrasos/total*100):0,angle=rate/100*360;
+            gauge.innerHTML='<div class="dash-gauge" style="--angle:'+angle+'deg"><div><strong class="block text-2xl font-black text-slate-900">'+rate.toLocaleString('es-CL',{maximumFractionDigits:1})+'%</strong><span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Atrasos</span></div></div><p class="mt-4 text-center text-xs text-slate-500">'+atrasos.toLocaleString('es-CL')+' de '+total.toLocaleString('es-CL')+' registros de asistencia.</p><div class="mt-3 rounded-lg bg-amber-50 p-3 text-[11px] leading-5 text-amber-900">Indicador descriptivo del período. No equivale a una tasa de personas únicas.</div>';
+            const loadItems=[{label:'Licencias vigentes',value:licVig,color:'#0891b2'},{label:'Licencias próximas a terminar',value:licProx,color:'#6366f1'},{label:'Registros inexistentes',value:inexistentes,color:'#64748b'},{label:'Incidencias / revisión',value:anomalias,color:'#8b5cf6'}];
+            const maxLoad=Math.max(1,...loadItems.map(x=>x.value));
+            load.innerHTML=loadItems.map(x=>'<div class="mb-4"><div class="mb-1 flex items-center justify-between gap-2"><span class="text-xs font-semibold text-slate-600">'+escaparHTML(x.label)+'</span><b class="text-xs">'+x.value.toLocaleString('es-CL')+'</b></div><div class="dash-bar-track"><div class="dash-bar-fill" style="width:'+Math.max(x.value?2:0,Math.min(100,x.value/maxLoad*100))+'%;background:'+x.color+'"></div></div></div>').join('')+'<p class="mt-2 border-t border-slate-100 pt-3 text-[10px] text-slate-400">Conteos independientes; una persona o jornada puede aparecer en más de una categoría.</p>';
         }
 
         async function inicializarDashboard() {
