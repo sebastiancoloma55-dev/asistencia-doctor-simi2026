@@ -52,7 +52,9 @@
             'operaciones',
             'calidad',
             'notificaciones',
-            'integraciones'
+            'integraciones',
+            'chat',
+            'traslados'
         ];
 
         const titulos = {
@@ -74,6 +76,8 @@
             operaciones: '16. Centro de operaciones',
             calidad: '17. Calidad de datos',
             notificaciones: '18. Notificaciones',
-            integraciones: '19. Integraciones y monitoreo'
+            integraciones: '19. Integraciones y monitoreo',
+            chat: '20. Chat interno',
+            traslados: '21. Traslados de personal'
         };
 
