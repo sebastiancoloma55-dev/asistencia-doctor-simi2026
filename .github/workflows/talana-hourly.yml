@@ -35,7 +35,7 @@ jobs:
   run-talana:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 20
     steps:
       - name: Descargar código
         uses: actions/checkout@v4
