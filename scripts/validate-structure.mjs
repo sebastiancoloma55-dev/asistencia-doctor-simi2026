@@ -130,6 +130,7 @@ for (const redundantMigration of ['20261011120000_talana_importer_privileges_and
   if (migrationNames.includes(redundantMigration)) fail('La migración Talana redundante sigue en el proyecto: ' + redundantMigration);
 }
 if (!migrationNames.includes('20261011073437_talana_importer_privileges_and_key_contract_20261011.sql')) fail('Falta alinear la migración del importador con la versión aplicada en Supabase.');
+if (!migrationNames.includes('20261011181841_talana_four_reports_config_20261011.sql')) fail('Falta versionar la configuración del bot con los cuatro reportes activos.');
 
 if (process.exitCode) process.exit(process.exitCode);
 console.log(`Validación correcta: ${localScripts.length} scripts locales, ${jsFiles.length} archivos JS, ${buttons.size} módulos navegables y APIs protegidas.`);
