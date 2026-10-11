@@ -73,6 +73,15 @@
             sel.value=personas.has(actual)?actual:'TODOS'; renderizarVacaciones();
         }
 
+        function seleccionarFiltroVacaciones(tipo) {
+            const vigencia=document.getElementById('filtro-vac-vigencia');
+            const cruce=document.getElementById('filtro-vac-cruce');
+            if(tipo==='CON_MARCAS'){if(vigencia)vigencia.value='TODOS';if(cruce)cruce.value='CON_MARCAS';}
+            else {if(vigencia)vigencia.value=tipo;if(cruce)cruce.value='TODOS';}
+            renderizarVacaciones();
+            document.getElementById('tabla-vacaciones-body')?.scrollIntoView({behavior:'smooth',block:'start'});
+        }
+
         function renderizarVacaciones() {
             const persona=document.getElementById('filtro-vac-persona').value, vig=document.getElementById('filtro-vac-vigencia').value, cruce=document.getElementById('filtro-vac-cruce').value, buscar=document.getElementById('busqueda-vacaciones').value.toLowerCase().trim();
             let enriquecidos=datosVacacionesGlobal.map(v=>({...v,vigencia:estadoVacacion(v),marcas:obtenerMarcasVacacion(v)}));
