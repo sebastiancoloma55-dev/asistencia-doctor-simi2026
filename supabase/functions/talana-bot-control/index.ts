@@ -48,7 +48,7 @@ if(a==="bot_import"){
  }
  if(table==="colaboradores"){
   const unique=new Map<string,any>();for(const row of valid)unique.set(normRut(row.rut),row);
-  const rutList=[...unique.values()].map((r:any)=>String(r.rut));
+  const rutList=[...new Set([...unique.values()].flatMap((r:any)=>[String(r.rut),normRut(r.rut)]))];
   const {data:existing,error:lookupError}=await admin.from(table).select("rut,estado").in("rut",rutList);
   if(lookupError)return json({error:lookupError.message},500);
   const existingMap=new Map((existing||[]).map((r:any)=>[normRut(r.rut),r]));
@@ -63,7 +63,7 @@ if(a==="bot_import"){
   }
   skipped+=valid.length-toUpsert.length;
  }else{
-  const ruts=[...new Set(valid.map((r:any)=>String(r.rut)))];
+  const ruts=[...new Set(valid.flatMap((r:any)=>[String(r.rut),normRut(r.rut)]))];
   let existingRows:any[]=[];
   if(ruts.length){const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia,motivo_ausencia":table==="vacaciones_historico"?"id,rut,fecha_solicitud,fecha_inicio,fecha_fin,tipo_vacaciones":"id,rut,fecha,entrada,salida,turno";
    const {data,error}=await admin.from(table).select(selectCols).in("rut",ruts).limit(20000);if(error)return json({error:error.message},500);existingRows=data||[];}
