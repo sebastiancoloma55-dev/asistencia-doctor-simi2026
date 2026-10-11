@@ -46,6 +46,7 @@
                     throw errorSupabase(`No se pudo guardar ${tabla}`, error);
                 }
 
+                await registrarActualizacionFuente(tabla, file.name, datos.length, 'manual');
                 mostrarToast(
                     `Se guardaron ${datos.length} registros en ${tabla}.`,
                     'success'
