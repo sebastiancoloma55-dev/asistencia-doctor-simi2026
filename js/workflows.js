@@ -473,7 +473,9 @@
             tbody.innerHTML=users.map(({u,index})=>{
                 const global=usuarioTieneAlcanceGlobal(u);
                 const role=rolNormalizadoUsuario(u.rol);
-                const roleClass=role==='CONSULTA'?'role-view':global?'role-admin':'';
+                const isPrimaryOwner=String(u.email||'').trim().toLowerCase()===EMAIL_ADMIN_PRINCIPAL;
+                const roleClass=isPrimaryOwner?'role-admin is-owner':role==='CONSULTA'?'role-view':global?'role-admin':'';
+                const roleLabel=isPrimaryOwner?'Administrador principal · propietario':etiquetaRolUsuario(u.rol);
                 const assignedModules=recursosEfectivosUsuario(u);
                 const modules=assignedModules.map(p=>'<span class="usr-resource-chip is-granted">'+escaparHTML(etiquetasPermisosUsuarios[p]||p)+'</span>').join('');
                 const supervisors=(u.usuarios_supervisores||[]).map(x=>String(x.supervisor||'').trim()).filter(Boolean);
@@ -492,7 +494,7 @@
                 const status=u.activo===true?'<span class="usr-state-pill is-active">Activo</span>':'<span class="usr-state-pill is-inactive">Inactivo</span>';
                 return '<tr>'+
                     '<td class="p-3"><div class="usr-user-name">'+escaparHTML(u.nombre||'Nombre no informado')+'</div><div class="usr-user-email">'+escaparHTML(u.email||'')+'</div></td>'+
-                    '<td class="p-3"><span class="usr-role-pill '+roleClass+'">'+escaparHTML(etiquetaRolUsuario(u.rol))+'</span>'+(global?'<div><span class="usr-role-pill role-global">Acceso global</span></div>':'')+'</td>'+
+                    '<td class="p-3"><span class="usr-role-pill '+roleClass+'">'+(isPrimaryOwner?'<i data-lucide="crown"></i>':'')+escaparHTML(roleLabel)+'</span>'+(global?'<div><span class="usr-role-pill role-global">'+(isPrimaryOwner?'CONTROL PRINCIPAL':'Acceso global')+'</span></div>':'')+'</td>'+
                     '<td class="p-3">'+scopeHtml+'</td>'+
                     '<td class="p-3"><div class="usr-resource-summary">'+modules+'</div>'+fullResources+'</td>'+
                     '<td class="p-3">'+status+'</td>'+
@@ -537,6 +539,8 @@
             document.getElementById('usr-email').value = u.email || '';
             document.getElementById('usr-nombre').value = u.nombre || '';
             document.getElementById('usr-rol').value = u.rol || 'CONSULTA';
+            const roleDescription = document.getElementById('usr-rol-description');
+            if (roleDescription) roleDescription.textContent = descripcionRolUsuario(u.rol || 'CONSULTA');
 
             construirChecksPermisos();
 
