@@ -437,14 +437,28 @@ def descargar_reporte_jornadas(page, eventos):
         'button:has-text("Descargar reporte")',
         'a:has-text("Descargar reporte")',
         '[role="button"]:has-text("Descargar reporte")',
+        '[role="menuitem"]:has-text("Descargar")',
+        '[role="menuitem"]:has-text("Exportar")',
         '[data-cy*="download" i]',
         '[data-testid*="download" i]',
+        '[data-action*="download" i]',
         '[aria-label*="descargar" i]',
         '[title*="descargar" i]',
+        '[aria-label*="exportar" i]',
+        '[title*="exportar" i]',
+        '[aria-label*="download" i]',
+        '[title*="download" i]',
+        '[aria-label*="excel" i]',
+        '[title*="excel" i]',
+        '[data-cy*="export" i]',
+        '[data-testid*="export" i]',
+        '[data-action*="export" i]',
         'button:has-text("Exportar")',
         'a:has-text("Exportar")',
         'button:has-text("Descargar")',
         'a:has-text("Descargar")',
+        'button:has-text("Excel")',
+        'a:has-text("Excel")',
     )
     boton, limite = None, time.monotonic() + 60
     while time.monotonic() < limite and boton is None:
@@ -485,18 +499,23 @@ def descargar_reporte_jornadas(page, eventos):
         controles = []
         for frame in list(page.frames):
             try:
-                loc = frame.locator("button, a, [role='button']")
-                for i in range(min(loc.count(), 80)):
+                loc = frame.locator(
+                    "button, a, input[type='button'], input[type='submit'], "
+                    "[role='button'], [role='menuitem'], [data-cy], [data-testid], "
+                    "[data-action], [aria-label], [title], [tabindex='0']"
+                )
+                for i in range(min(loc.count(), 120)):
                     el = loc.nth(i)
                     if el.is_visible():
-                        label = (el.inner_text(timeout=300) or "").strip().replace("\n", " ")
+                        label = (el.inner_text(timeout=300) or "").strip().replace("\\n", " ")
                         aria = el.get_attribute("aria-label") or ""
                         title = el.get_attribute("title") or ""
-                        candidate = " ".join(x for x in (label, aria, title) if x)
-                        if candidate:
-                            controles.append(candidate[:100])
-            except Exception:
-                continue
+                        data_cy = el.get_attribute("data-cy") or ""
+                        data_testid = el.get_attribute("data-testid") or ""
+                        data_action = el.get_attribute("data-action") or ""
+                        candidate = " | ".join(x for x in (label, aria, title, data_cy, data_testid, data_action) if x)
+                        if candidate and re.search(r"(descarg|export|excel|xlsx|jornada|reporte|download)", candidate, re.I):
+                            controles.append(candidate[:140])
         resumen = " | ".join(controles[:35])
         raise RuntimeError(
             "No se encontró el control de descarga en Jornadas. "
