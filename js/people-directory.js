@@ -73,7 +73,7 @@
 
             const [colaboradores, sucursales] = await Promise.all([
                 _supabase.from('colaboradores').select('*'),
-                _supabase.from('sucursales').select('nombre,supervisor')
+                _supabase.from('sucursales').select('id,nombre,supervisor')
             ]);
 
             if (colaboradores.error) {
@@ -91,12 +91,30 @@
                 ])
             );
 
-            if (!colaboradores.data?.length) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center">Sin colaboradores.</td></tr>';
+            const search = texto(document.getElementById('col-filtro-busqueda')?.value).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().trim();
+            const branchFilter = texto(document.getElementById('col-filtro-sucursal')?.value);
+            const branchSelect = document.getElementById('col-filtro-sucursal');
+            if (branchSelect) {
+                const current = branchSelect.value;
+                const options = [...new Set((sucursales.data || []).map(x => texto(x.nombre)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+                branchSelect.innerHTML = '<option value="">Todas las sucursales</option>' + options.map(n => '<option value="' + escaparHTML(n) + '">' + escaparHTML(n) + '</option>').join('');
+                branchSelect.value = options.includes(current) ? current : branchFilter;
+            }
+            const { data: stamp } = await _supabase.from('actualizaciones_fuentes').select('modulo').eq('modulo','colaboradores').maybeSingle();
+            if (!stamp && colaboradores.data?.length) {
+                await registrarActualizacionFuente('colaboradores', 'Referencia inicial; fecha original no disponible', colaboradores.data.length, 'sistema', { baseline: true });
+            }
+            const visible = (colaboradores.data || []).filter(registro => {
+                const nombre = `${registro.nombres || ''} ${registro.apellidos || ''}`;
+                const textoBusqueda = `${nombre} ${registro.rut || ''} ${registro.cargo || ''} ${registro.sucursal || ''}`.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
+                return (!search || textoBusqueda.includes(search)) && (!branchFilter || texto(registro.sucursal) === branchFilter);
+            });
+            if (!visible.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500">No hay colaboradores que coincidan con los filtros.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = colaboradores.data
+            tbody.innerHTML = visible
                 .map(registro => {
                     const nombre = `${registro.nombres || ''} ${registro.apellidos || ''}`.trim();
                     const supervisor = mapa.get(texto(registro.sucursal).toLowerCase()) || 'No asignado';
@@ -143,14 +161,29 @@
                             <td class="p-4">${escaparHTML(direccion)}</td>
                             <td class="p-4">${escaparHTML(registro.supervisor)}</td>
                             <td class="p-4">
-                                <a href="${mapa}" target="_blank" rel="noopener noreferrer" class="font-bold text-simiRed">
-                                    Ver mapa
-                                </a>
+                                <div class="flex flex-col items-start gap-2">
+                                    <a href="${mapa}" target="_blank" rel="noopener noreferrer" class="font-bold text-simiRed">Ver mapa</a>
+                                    <button type="button" onclick="verColaboradoresSucursal('${escaparHTML(registro.nombre).replace(/'/g, '&#39;')}')" class="rounded-lg bg-sky-50 px-2.5 py-1.5 text-[11px] font-extrabold text-sky-800 hover:bg-sky-100">Ver colaboradores</button>
+                                </div>
                             </td>
                         </tr>
                     `;
                 })
                 .join('');
+        }
+
+        function filtrarTablaColaboradores() {
+            cargarTablaColaboradores().catch(error => mostrarToast('No se pudo filtrar la nómina: ' + error.message, 'error'));
+        }
+
+        function verColaboradoresSucursal(nombre) {
+            const filtro = document.getElementById('col-filtro-sucursal');
+            const buscar = document.getElementById('col-filtro-busqueda');
+            if (filtro) filtro.value = nombre;
+            if (buscar) buscar.value = '';
+            cambiarModulo('colaboradores');
+            cargarTablaColaboradores().catch(error => mostrarToast(error.message, 'error'));
+            setTimeout(() => document.getElementById('col-filtro-sucursal')?.focus(), 100);
         }
 
         function toggleModalColaborador(mostrar) {
@@ -179,6 +212,7 @@
                 return;
             }
 
+            await registrarActualizacionFuente('colaboradores', 'Alta manual de colaborador', 1, 'manual');
             toggleModalColaborador(false);
             document.getElementById('form-nuevo-colaborador').reset();
             await cargarTablaColaboradores();
