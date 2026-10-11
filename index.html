@@ -882,6 +882,7 @@ body{overflow-x:hidden}
                                 onchange="procesarExcelGenerico(event, 'colaboradores')"
                             >
                         </label>
+                        <span data-update-stamp="colaboradores" class="self-center text-[11px] text-slate-500">Consultando última carga…</span>
 
                         <button
                             onclick="toggleModalColaborador(true)"
@@ -936,6 +937,7 @@ body{overflow-x:hidden}
                             onchange="procesarExcelGenerico(event, 'sucursales')"
                         >
                     </label>
+                    <span data-update-stamp="sucursales" class="self-center text-[11px] text-slate-500">Consultando última carga…</span>
                 </div>
 
                 <div class="ui-card table-scroll">
@@ -961,7 +963,7 @@ body{overflow-x:hidden}
                 </div>
 
                 <div class="ui-card p-5">
-                    <div class="flex flex-wrap items-center justify-between gap-3"><div><h3 class="section-title">Mapa y configuración operacional</h3><p class="mt-1 text-xs text-slate-500">Consulta sucursales y rutas caminando, en transporte público o en auto. Configura correos, copias y horarios mediante plantilla Excel.</p></div><div class="flex gap-2"><button onclick="descargarPlantillaSucursales()" class="corp-button-dark text-xs">Descargar plantilla</button><label class="corp-button cursor-pointer text-xs">Subir configuración<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarConfiguracionSucursales(event)"></label></div></div>
+                    <div class="flex flex-wrap items-center justify-between gap-3"><div><h3 class="section-title">Mapa y configuración operacional</h3><p class="mt-1 text-xs text-slate-500">Consulta sucursales y rutas caminando, en transporte público o en auto. Configura correos, copias y horarios mediante plantilla Excel.</p></div><div class="flex gap-2"><button onclick="descargarPlantillaSucursales()" class="corp-button-dark text-xs">Descargar plantilla</button><label class="corp-button cursor-pointer text-xs">Subir configuración<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarConfiguracionSucursales(event)"></label><span data-update-stamp="config_sucursales" class="self-center text-[11px] text-slate-500">Consultando última carga…</span></div></div>
                     <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4"><select id="map-origen" class="form-field"><option value="">Sucursal origen</option></select><select id="map-destino" class="form-field"><option value="">Sucursal destino</option></select><select id="map-modo" class="form-field"><option value="d">Auto</option><option value="r">Metro / micro / transporte público</option><option value="w">Caminando</option></select><button onclick="mostrarRutaSucursales()" class="corp-button">Ver ruta interactiva</button></div>
                     <iframe id="mapa-sucursales" class="map-frame mt-4" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
@@ -995,6 +997,7 @@ body{overflow-x:hidden}
                             onchange="procesarReporteAsistencia(event)"
                         >
                     </label>
+                    <span data-update-stamp="asistencia" class="self-center text-[11px] text-slate-500">Consultando última carga…</span>
                 </div>
 
                 <div class="ui-card grid grid-cols-1 gap-4 p-4 sm:grid-cols-3">
@@ -1133,6 +1136,7 @@ body{overflow-x:hidden}
                             onchange="procesarHistorialLicencias(event)"
                         >
                     </label>
+                    <span data-update-stamp="licencias" class="self-center text-[11px] text-slate-500">Consultando última carga…</span>
                 </div>
 
                 <div class="ui-card grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -1235,6 +1239,7 @@ body{overflow-x:hidden}
                         <i data-lucide="upload-cloud" class="h-4 w-4"></i> Cargar histórico
                         <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarHistorialVacaciones(event)">
                     </label>
+                    <span data-update-stamp="vacaciones" class="self-center text-[11px] text-slate-500">Consultando última carga…</span>
                 </div>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
                     <div class="ui-card border-l-4 border-emerald-500 p-4"><p class="text-xs uppercase text-slate-500">Vigentes</p><h4 id="vac-stat-vigentes" class="text-2xl font-black">0</h4></div>
@@ -1425,7 +1430,7 @@ body{overflow-x:hidden}
             <!-- CONFIGURACIÓN DE CORREOS -->
             <section id="view-configcorreos" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro">
-                    <div class="flex flex-wrap items-start justify-between gap-3"><div><span class="module-kicker">Punto 13 · Configuración</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Destinatarios y firma por sucursal</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Cada sucursal tiene su ficha. Busca una sucursal, revisa el correo principal y las copias, ajusta los horarios y guarda los cambios visibles.</p></div><div class="flex flex-wrap gap-2"><button onclick="descargarPlantillaCorreosSucursales()" class="corp-button-dark text-xs">Descargar Excel</button><label class="corp-button cursor-pointer text-xs">Importar Excel<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarCorreosSucursales(event)"></label></div></div>
+                    <div class="flex flex-wrap items-start justify-between gap-3"><div><span class="module-kicker">Punto 13 · Configuración</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Destinatarios y firma por sucursal</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Cada sucursal tiene su ficha. Busca una sucursal, revisa el correo principal y las copias, ajusta los horarios y guarda los cambios visibles.</p></div><div class="flex flex-wrap gap-2"><button onclick="descargarPlantillaCorreosSucursales()" class="corp-button-dark text-xs">Descargar Excel</button><label class="corp-button cursor-pointer text-xs">Importar Excel<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarCorreosSucursales(event)"></label><span data-update-stamp="config_correos" class="self-center text-[11px] text-slate-500">Consultando última carga…</span></div></div>
                 </div>
                 <div class="ui-card p-4"><div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]"><div><label class="text-xs font-bold text-slate-600">Buscar</label><input id="config-correo-buscar" oninput="renderizarConfigCorreos()" class="form-field mt-1" placeholder="Escribe el nombre de sucursal o supervisor"></div><button onclick="guardarConfigCorreosVisibles()" class="corp-button self-end"><i data-lucide="save" class="mr-2 inline h-4 w-4"></i>Guardar cambios visibles</button></div><div id="config-correo-resumen" class="mt-3 text-xs text-slate-500">Preparando configuración…</div></div>
                 <div id="tabla-config-correos" class="grid grid-cols-1 gap-4 xl:grid-cols-2"></div>
@@ -1541,7 +1546,7 @@ body{overflow-x:hidden}
                     </div>
                 </div>
                 <div id="talana-bot-panel" class="ui-card hidden overflow-hidden">
-                    <div class="border-b border-slate-100 p-5"><h4 class="text-lg font-black">Bot de reportes Talana</h4><p class="mt-1 text-sm text-slate-500">Control remoto del agente Windows. Los reportes se almacenan en Supabase Storage privado.</p><p id="talana-bot-status" class="mt-3 text-sm text-slate-600">Consultando estado…</p></div>
+                    <div class="border-b border-slate-100 p-5"><h4 class="text-lg font-black">Bot de reportes Talana</h4><p class="mt-1 text-sm text-slate-500">Control remoto del agente Windows. Los reportes se almacenan en Supabase Storage privado.</p><p id="talana-bot-status" class="mt-3 text-sm text-slate-600">Consultando estado…</p><p data-update-stamp="talana_bot" class="mt-2 text-xs text-slate-500">Consultando última carga…</p></div>
                     <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-3">
                       <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-3"><input id="talana-bot-enabled" type="checkbox" class="h-4 w-4"><span><strong class="block text-sm">Automatización habilitada</strong><span class="text-xs text-slate-500">El PC y el agente deben permanecer activos.</span></span></label>
                       <label class="text-sm font-semibold">Frecuencia<select id="talana-bot-interval" class="mt-2 w-full rounded-lg border border-slate-300 p-2"><option value="30">Cada 30 minutos</option><option value="60">Cada hora</option><option value="120">Cada 2 horas</option><option value="360">Cada 6 horas</option><option value="720">Cada 12 horas</option><option value="1440">Diario</option></select></label>
