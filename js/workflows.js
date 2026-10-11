@@ -171,7 +171,30 @@
             const {data:{session}}=await _supabase.auth.getSession();const registro={rut,nombre,sucursal,tipo_permiso:tipo,fecha_inicio:inicio,fecha_fin:fin,fecha_retorno:retorno,dias:Number(dias)||1,remuneracion,motivo,firma_responsable:firma,generado_por:session?.user?.email||''};const {error}=await _supabase.from('papeletas_permiso').insert([registro]);if(error)mostrarToast(`PDF generado, pero no se pudo registrar: ${error.message}`,'warning');else{await registrarAuditoria('papeletas','GENERA_PDF',`${nombre} · ${tipo} · ${inicio} a ${fin}`);await cargarPapeletas();mostrarToast('Papeleta completa, firmada y registrada.','success');}
         }
 
-        async function cargarPapeletas() { const tbody=document.getElementById('tabla-papeletas-body'); if(!tbody)return; const {data,error}=await _supabase.from('papeletas_permiso').select('*').order('created_at',{ascending:false}).limit(300); if(error){tbody.innerHTML=`<tr><td colspan="5" class="p-8 text-center text-red-600">${escaparHTML(error.message)}</td></tr>`;return;} tbody.innerHTML=data?.length?data.map(p=>`<tr><td class="p-3">${escaparHTML(p.created_at?.slice(0,10))}</td><td class="p-3"><b>${escaparHTML(p.nombre)}</b><br>${escaparHTML(p.rut)}</td><td class="p-3">${escaparHTML(p.tipo_permiso)}</td><td class="p-3">${escaparHTML(p.fecha_inicio)} a ${escaparHTML(p.fecha_fin)}</td><td class="p-3">${escaparHTML(p.generado_por)}</td></tr>`).join(''):'<tr><td colspan="5" class="p-8 text-center text-slate-400">Sin registros.</td></tr>'; }
+        async function cargarPapeletas() {
+            const tbody=document.getElementById('tabla-papeletas-body'); if(!tbody)return;
+            const {data,error}=await _supabase.from('papeletas_permiso').select('*').order('created_at',{ascending:false}).limit(300);
+            if(error){tbody.innerHTML=`<tr><td colspan="6" class="p-8 text-center text-red-600">${escaparHTML(error.message)}</td></tr>`;return;}
+            const {data:sessionData}=await _supabase.auth.getSession();
+            const esSuperAdmin=String(sessionData?.session?.user?.email||'').toLowerCase()===String(EMAIL_ADMIN_PRINCIPAL||'scoloma@farmaciasdoctorsimi.cl').toLowerCase();
+            tbody.innerHTML=data?.length?data.map(p=>{
+                const fecha=p.created_at?new Date(p.created_at).toLocaleString('es-CL',{timeZone:'America/Santiago',dateStyle:'short',timeStyle:'short'}):'—';
+                const accion=esSuperAdmin?`<button type="button" onclick="eliminarPapeleta(${Number(p.id)})" class="rounded-lg bg-rose-50 px-2.5 py-1.5 text-[11px] font-extrabold text-rose-700 hover:bg-rose-100">Eliminar</button>`:'<span class="text-slate-400">Solo superadministrador</span>';
+                return `<tr><td class="p-3">${escaparHTML(fecha)}</td><td class="p-3"><b>${escaparHTML(p.nombre)}</b><br>${escaparHTML(p.rut)}</td><td class="p-3">${escaparHTML(p.tipo_permiso)}</td><td class="p-3">${escaparHTML(p.fecha_inicio)} a ${escaparHTML(p.fecha_fin)}</td><td class="p-3">${escaparHTML(p.generado_por)}</td><td class="p-3">${accion}</td></tr>`;
+            }).join(''):'<tr><td colspan="6" class="p-8 text-center text-slate-400">Sin registros.</td></tr>';
+        }
+
+        async function eliminarPapeleta(id) {
+            const {data:sessionData}=await _supabase.auth.getSession();
+            const email=String(sessionData?.session?.user?.email||'').toLowerCase();
+            if(email!==String(EMAIL_ADMIN_PRINCIPAL||'scoloma@farmaciasdoctorsimi.cl').toLowerCase()) return mostrarToast('Solo el superadministrador puede eliminar papeletas.','error');
+            if(!Number.isFinite(Number(id))||!confirm('¿Eliminar definitivamente esta papeleta del historial? Esta acción no se puede deshacer.')) return;
+            const {error}=await _supabase.from('papeletas_permiso').delete().eq('id',Number(id));
+            if(error) return mostrarToast('No se pudo eliminar la papeleta: '+error.message,'error',10000);
+            await registrarAuditoria('papeletas','ELIMINA_PAPELETA','ID '+id);
+            await cargarPapeletas();
+            mostrarToast('Papeleta eliminada por superadministrador.','success');
+        }
 
         function filtrarPeriodo(datos,campo,desde,hasta){return datos.filter(r=>(!desde||r[campo]>=desde)&&(!hasta||r[campo]<=hasta));}
         async function generarReporte() {
@@ -391,6 +414,8 @@
             document.getElementById('tarea-responsable').innerHTML='<option value="">Selecciona responsable</option>'+responsables.map(opt).join('');
             document.getElementById('tarea-revisor').innerHTML='<option value="">Sin revisor</option>'+revisores.map(opt).join('');
             document.getElementById('tarea-sucursal').innerHTML='<option value="">Todas / No aplica</option>'+(sucursales||[]).map(x=>`<option value="${x.id}">${escaparHTML(x.nombre)}</option>`).join('');
+            const kpiBranch=document.getElementById('tarea-kpi-sucursal');
+            if(kpiBranch){const current=kpiBranch.value;kpiBranch.innerHTML='<option value="">Todas las sucursales</option>'+(sucursales||[]).map(x=>`<option value="${x.id}">${escaparHTML(x.nombre)}</option>`).join('');kpiBranch.value=current;}
             const vencimiento=document.getElementById('tarea-vencimiento');
             if(vencimiento && !vencimiento.value){const d=new Date();d.setHours(23,59,0,0);vencimiento.value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
             await cargarTareas();
@@ -426,6 +451,16 @@
         }
         function estadoTareaCalculado(t){if(!['APROBADA','CANCELADA','DEVUELTA'].includes(t.estado)&&new Date(t.fecha_limite)<new Date())return'VENCIDA';return t.estado;}
         async function cargarTareas(){const {data,error}=await _supabase.from('tareas').select('*,responsable:usuarios_roles!tareas_responsable_rol_id_fkey(nombre,email),revisor:usuarios_roles!tareas_revisor_rol_id_fkey(nombre,email),sucursal:sucursales(nombre)').order('fecha_limite',{ascending:true});if(error)return mostrarToast(error.message,'error');tareasGlobal=(data||[]).map(x=>({...x,estado_calculado:estadoTareaCalculado(x)}));renderizarTareas();}
+        function exportarKpiTareasCSV(){
+            const desde=document.getElementById('tarea-kpi-desde')?.value||'',hasta=document.getElementById('tarea-kpi-hasta')?.value||'',sucursal=document.getElementById('tarea-kpi-sucursal')?.value||'';
+            const isoChile=x=>x?new Date(x).toLocaleDateString('sv-SE',{timeZone:'America/Santiago'}):'';
+            const rows=tareasGlobal.filter(t=>{const d=isoChile(t.created_at||t.fecha_limite);return(!desde||d>=desde)&&(!hasta||d<=hasta)&&(!sucursal||String(t.sucursal_id||'')===sucursal);});
+            const csvCell=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+            const lines=[['ID','Tarea','Responsable','Estado','Prioridad','Vencimiento','Creada','Actualizada','Sucursal'].map(csvCell).join(',')];
+            rows.forEach(t=>lines.push([t.id,t.titulo,t.responsable?.nombre||t.responsable?.email,t.estado_calculado,t.prioridad,t.fecha_limite,t.created_at,t.updated_at,t.sucursal?.nombre||''].map(csvCell).join(',')));
+            const blob=new Blob(['\\ufeff'+lines.join('\\r\\n')],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='KPI_Tareas_RRHH_'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+        }
+
         function renderizarTareas(){
             const estado=document.getElementById('tarea-filtro-estado')?.value||'TODOS',responsableFiltro=document.getElementById('tarea-filtro-responsable')?.value||'TODOS',q=texto(document.getElementById('tarea-filtro-buscar')?.value).toLowerCase();
             let f=tareasGlobal;if(estado!=='TODOS')f=f.filter(x=>x.estado_calculado===estado);if(responsableFiltro!=='TODOS')f=f.filter(x=>String(x.responsable_rol_id)===responsableFiltro);if(q)f=f.filter(x=>`${x.titulo} ${x.descripcion} ${x.responsable?.nombre} ${x.responsable?.email} ${x.sucursal?.nombre}`.toLowerCase().includes(q));
@@ -435,6 +470,15 @@
             const terminadas=medibles.filter(x=>x.estado_calculado==='APROBADA');
             document.getElementById('tk-cumplimiento').innerText=(medibles.length?Math.round(100*terminadas.length/medibles.length):0)+'%';
             document.getElementById('tk-tiempo').innerText=(terminadas.length?Math.round(100*terminadas.filter(x=>new Date(x.updated_at||x.created_at)<=new Date(x.fecha_limite)).length/terminadas.length):0)+'%';
+            const kpiDesde=document.getElementById('tarea-kpi-desde')?.value||'',kpiHasta=document.getElementById('tarea-kpi-hasta')?.value||'',kpiSucursal=document.getElementById('tarea-kpi-sucursal')?.value||'';
+            const isoChile=x=>x?new Date(x).toLocaleDateString('sv-SE',{timeZone:'America/Santiago'}):'';
+            const kpiTareas=tareasGlobal.filter(t=>{const fecha=isoChile(t.created_at||t.fecha_limite);return (!kpiDesde||fecha>=kpiDesde)&&(!kpiHasta||fecha<=kpiHasta)&&(!kpiSucursal||String(t.sucursal_id||'')===kpiSucursal);});
+            const kpiCerradas=kpiTareas.filter(t=>t.estado_calculado==='APROBADA'),kpiVencidas=kpiTareas.filter(t=>t.estado_calculado==='VENCIDA');
+            const kpiPuntuales=kpiCerradas.filter(t=>new Date(t.updated_at||t.created_at)<=new Date(t.fecha_limite));
+            const kpiCierre=kpiTareas.filter(t=>t.estado_calculado!=='CANCELADA');
+            const kpiMetrics=[['Tareas medibles',kpiCierre.length,'text-white'],['Aprobadas',kpiCerradas.length,'text-emerald-200'],['Vencidas',kpiVencidas.length,'text-rose-200'],['Cumplimiento', (kpiCierre.length?Math.round(kpiCerradas.length*100/kpiCierre.length):0)+'%','text-cyan-100'],['Cierre a tiempo',(kpiCerradas.length?Math.round(kpiPuntuales.length*100/kpiCerradas.length):0)+'%','text-violet-100']];
+            const kpiHost=document.getElementById('tarea-kpi-resumen');
+            if(kpiHost)kpiHost.innerHTML=kpiMetrics.map(([label,value,color])=>`<div><span class="block text-xs text-cyan-100">${label}</span><b class="mt-1 block text-2xl ${color}">${value}</b></div>`).join('');
             const filtroKpi=document.getElementById('tarea-kpi-filtro-usuario')?.value||'TODOS';
             const porUsuario=new Map();
             tareasGlobal.filter(t=>filtroKpi==='TODOS'||String(t.responsable_rol_id)===filtroKpi).forEach(t=>{const id=String(t.responsable_rol_id||'sin-asignar'),nombre=t.responsable?.nombre||t.responsable?.email||'Sin responsable';if(!porUsuario.has(id))porUsuario.set(id,{id,nombre,total:0,aprobadas:0,pendientes:0,vencidas:0,validar:0});const k=porUsuario.get(id);k.total++;if(t.estado_calculado==='APROBADA')k.aprobadas++;if(['PENDIENTE','EN_PROCESO'].includes(t.estado_calculado))k.pendientes++;if(t.estado_calculado==='VENCIDA')k.vencidas++;if(t.estado_calculado==='COMPLETADA_POR_VALIDAR')k.validar++;});
