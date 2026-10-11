@@ -67,9 +67,9 @@ if(a==="bot_import"){
   skipped+=valid.length-toUpsert.length;
  }else{
   const ruts=[...new Set(valid.flatMap((r:any)=>[String(r.rut),normRut(r.rut)]))];
+  const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia":table==="vacaciones_historico"?"id,rut,fecha_inicio,fecha_fin,tipo_vacaciones":"id,rut,fecha";
   let existingRows:any[]=[];
-  if(ruts.length){const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia":table==="vacaciones_historico"?"id,rut,fecha_inicio,fecha_fin,tipo_vacaciones":"id,rut,fecha";
-   const {data,error}=await admin.from(table).select(selectCols).in("rut",ruts).order("id",{ascending:false}).limit(20000);if(error)return json({error:error.message},500);existingRows=data||[];}
+  if(ruts.length){const {data,error}=await admin.from(table).select(selectCols).in("rut",ruts).order("id",{ascending:false}).limit(20000);if(error)return json({error:error.message},500);existingRows=data||[];}
   const existingByKey=new Map<string,any>(); for(const old of existingRows){const oldKey=keyOf(old);if(oldKey&&!existingByKey.has(oldKey))existingByKey.set(oldKey,old);} const seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
   for(const row of valid){
    const k=keyOf(row);
@@ -88,7 +88,26 @@ if(a==="bot_import"){
    else updated++;
   }
   if(pending.length){const {data,error}=await admin.from(table).insert(pending).select("id");if(error){
-    for(const row of pending){const {error:oneError}=await admin.from(table).insert(row);if(oneError){failed++;errors.push(table+" RUT "+row.rut+": "+oneError.message.slice(0,180));}else inserted++;}
+    for(const row of pending){
+     const {error:oneError}=await admin.from(table).insert(row);
+     if(!oneError){inserted++;continue;}
+     const duplicateConflict=(oneError as any).code==="23505"||(oneError as any).status===409;
+     if(duplicateConflict){
+      let lookup=admin.from(table).select(selectCols).order("id",{ascending:false}).limit(1);
+      for(const field of importKeyFields(reportType)||[]){lookup=lookup.eq(field,row[field]);}
+      const {data:existing,error:lookupError}=await lookup.maybeSingle();
+      if(!lookupError&&existing){
+       const updateRow={...row};
+       for(const field of importKeyFields(reportType)||[]){updateRow[field]=existing[field]??updateRow[field];}
+       const {error:updateError}=await admin.from(table).update(updateRow).eq("id",existing.id);
+       if(!updateError){updated++;continue;}
+       errors.push(table+" RUT "+row.rut+": conflicto duplicado; no se pudo actualizar el registro existente ("+updateError.message.slice(0,120)+").");
+      }else if(lookupError){
+       errors.push(table+" RUT "+row.rut+": falló la búsqueda tras conflicto de unicidad ("+lookupError.message.slice(0,120)+").");
+      }
+     }
+     failed++;errors.push(table+" RUT "+row.rut+": "+oneError.message.slice(0,180));
+    }
    }else inserted=(data||[]).length;}
  }
  const moduleNames=reportType==="ausentismos_historico"?["talana_bot","licencias","talana_ausentismos"]:reportType==="solicitudes_vacaciones_historicas"?["talana_bot","vacaciones","talana_vacaciones"]:reportType==="maestro_empleado"?["talana_bot","colaboradores"]:["talana_bot","asistencia","talana_asistencia"];
