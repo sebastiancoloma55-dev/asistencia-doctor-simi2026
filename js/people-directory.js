@@ -68,125 +68,174 @@
             }
         }
 
+        let cacheColaboradoresCompletoRRHH = null;
+        let cacheSucursalesCompletoRRHH = null;
+        let totalColaboradoresVisibleRRHH = 0;
+        let paginaActualColaboradoresRRHH = 1;
+        const FILAS_POR_PAGINA_COLABORADORES_RRHH = 100;
+
+        async function leerTablaCompletaPaginadaRRHH(tabla, columnas, columnaOrden = 'id') {
+            const tamanoBloque = 1000;
+            const filas = [];
+            let total = null;
+            let desde = 0;
+
+            while (true) {
+                let consulta = desde === 0
+                    ? _supabase.from(tabla).select(columnas, { count: 'exact' })
+                    : _supabase.from(tabla).select(columnas);
+                if (columnaOrden) consulta = consulta.order(columnaOrden, { ascending: true });
+                const { data, error, count } = await consulta.range(desde, desde + tamanoBloque - 1);
+                if (error) throw error;
+                const bloque = data || [];
+                if (desde === 0) total = Number.isFinite(count) ? count : null;
+                filas.push(...bloque);
+
+                if (bloque.length < tamanoBloque) break;
+                desde += tamanoBloque;
+                if (desde >= 1000000) throw new Error('La nómina supera el máximo seguro de lectura por esta pantalla. Usa los reportes de exportación para consultar el total.');
+            }
+            return { data: filas, count: total ?? filas.length };
+        }
+
         async function cargarTablaColaboradores() {
             const tbody = document.getElementById('tabla-colaboradores-body');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500"><span class="inline-flex items-center gap-2"><i data-lucide="loader-circle" class="h-4 w-4 animate-spin"></i> Cargando nómina completa desde la nube…</span></td></tr>';
+            const pagination = document.getElementById('colab-paginacion');
+            if (pagination) pagination.innerHTML = '<span class="colab-pagination-loading">Consultando todos los registros de Supabase…</span>';
 
-            const [colaboradores, sucursales] = await Promise.all([
-                _supabase.from('colaboradores').select('*'),
-                _supabase.from('sucursales').select('id,nombre,supervisor')
-            ]);
+            try {
+                const [colaboradoresResult, sucursalesResult] = await Promise.all([
+                    leerTablaCompletaPaginadaRRHH('colaboradores', '*', 'id'),
+                    leerTablaCompletaPaginadaRRHH('sucursales', 'id,nombre,supervisor', 'id')
+                ]);
+                cacheColaboradoresCompletoRRHH = colaboradoresResult.data;
+                cacheSucursalesCompletoRRHH = sucursalesResult.data;
+                totalColaboradoresVisibleRRHH = colaboradoresResult.count;
+                paginaActualColaboradoresRRHH = 1;
 
-            if (colaboradores.error) {
-                throw colaboradores.error;
+                const { data: stamp, error: stampError } = await _supabase
+                    .from('actualizaciones_fuentes').select('modulo').eq('modulo','colaboradores').maybeSingle();
+                if (stampError) console.warn('No se pudo consultar la fecha base de colaboradores:', stampError.message);
+                if (!stamp && cacheColaboradoresCompletoRRHH.length) {
+                    await registrarActualizacionFuente('colaboradores', 'Referencia inicial; fecha original no disponible', cacheColaboradoresCompletoRRHH.length, 'sistema', { baseline: true });
+                }
+                renderizarTablaColaboradores();
+            } catch (error) {
+                if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center"><div class="colab-load-error"><i data-lucide="database-zap"></i><b>No se pudo cargar la nómina</b><p>'+escaparHTML(error.message || error)+'</p><small>La base de datos contiene registros; revisa la sesión, el permiso “Colaboradores” y las políticas de lectura de Supabase.</small><button type="button" onclick="cargarTablaColaboradores()">Reintentar carga</button></div></td></tr>';
+                if (pagination) pagination.innerHTML = '<span class="colab-pagination-error">Carga incompleta. Pulsa “Reintentar carga”.</span>';
+                if (window.lucide) lucide.createIcons();
+                throw error;
+            }
+        }
+
+        function renderizarTablaColaboradores() {
+            const tbody = document.getElementById('tabla-colaboradores-body');
+            if (!tbody) return;
+            if (!Array.isArray(cacheColaboradoresCompletoRRHH) || !Array.isArray(cacheSucursalesCompletoRRHH)) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500">Preparando conexión con la nómina…</td></tr>';
+                return;
             }
 
-            if (sucursales.error) {
-                throw sucursales.error;
-            }
-
-            const mapa = new Map(
-                (sucursales.data || []).map(sucursal => [
-                    texto(sucursal.nombre).toLowerCase(),
-                    sucursal.supervisor
-                ])
-            );
-
-            const registrosTodos = colaboradores.data || [];
+            const registrosTodos = cacheColaboradoresCompletoRRHH;
+            const sucursalesTodos = cacheSucursalesCompletoRRHH;
+            const mapa = new Map(sucursalesTodos.map(sucursal => [
+                texto(sucursal.nombre).toLowerCase(),
+                sucursal.supervisor
+            ]));
             const totalActivos = registrosTodos.filter(x => String(x.estado || 'activo').trim().toLowerCase() !== 'inactivo').length;
             const totalInactivos = registrosTodos.length - totalActivos;
             const totalSucursales = new Set(registrosTodos.map(x => texto(x.sucursal)).filter(Boolean).map(x => x.toLowerCase())).size;
             const kpi = document.getElementById('colab-kpi-grid');
             if (kpi) {
                 const tarjetas = [
-                    {icon:'users',label:'Colaboradores en nómina',value:registrosTodos.length},
+                    {icon:'users',label:'Colaboradores cargados',value:registrosTodos.length},
                     {icon:'user-check',label:'Activos',value:totalActivos},
                     {icon:'user-round-x',label:'Inactivos',value:totalInactivos},
                     {icon:'building-2',label:'Sucursales con nómina',value:totalSucursales}
                 ];
-                kpi.innerHTML = tarjetas.map(x => '<div class="colab-kpi"><span><i data-lucide="'+x.icon+'"></i></span><div><small>'+x.label+'</small><strong>'+x.value.toLocaleString('es-CL')+'</strong></div></div>').join('');
-                if (window.lucide) lucide.createIcons();
+                kpi.innerHTML = tarjetas.map(x => '<div class="colab-kpi"><span><i data-lucide="'+x.icon+'"></i></span><div><small>'+x.label+'</small><strong>'+Number(x.value).toLocaleString('es-CL')+'</strong></div></div>').join('');
             }
-            const search = texto(document.getElementById('col-filtro-busqueda')?.value).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().trim();
-            const branchFilter = texto(document.getElementById('col-filtro-sucursal')?.value);
-            const statusFilter = texto(document.getElementById('col-filtro-estado')?.value).toLowerCase();
+
             const branchSelect = document.getElementById('col-filtro-sucursal');
+            const currentBranch = texto(branchSelect?.value);
             if (branchSelect) {
-                const current = branchSelect.value;
-                const options = [...new Set((sucursales.data || []).map(x => texto(x.nombre)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
-                branchSelect.innerHTML = '<option value="">Todas las sucursales</option>' + options.map(n => '<option value="' + escaparHTML(n) + '">' + escaparHTML(n) + '</option>').join('');
-                branchSelect.value = options.includes(current) ? current : branchFilter;
+                const options = [...new Set(sucursalesTodos.map(x => texto(x.nombre)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+                const currentOptions = [...branchSelect.options].map(op=>op.value).filter(Boolean);
+                if (currentOptions.length !== options.length || options.some((name,index)=>name !== currentOptions[index])) {
+                    branchSelect.innerHTML = '<option value="">Todas las sucursales</option>' + options.map(n => '<option value="' + escaparHTML(n) + '">' + escaparHTML(n) + '</option>').join('');
+                }
+                branchSelect.value = options.includes(currentBranch) ? currentBranch : '';
             }
-            const { data: stamp } = await _supabase.from('actualizaciones_fuentes').select('modulo').eq('modulo','colaboradores').maybeSingle();
-            if (!stamp && colaboradores.data?.length) {
-                await registrarActualizacionFuente('colaboradores', 'Referencia inicial; fecha original no disponible', colaboradores.data.length, 'sistema', { baseline: true });
-            }
-            const visible = (colaboradores.data || []).filter(registro => {
-                const nombre = `${registro.nombres || ''} ${registro.apellidos || ''}`;
-                const textoBusqueda = `${nombre} ${registro.rut || ''} ${registro.cargo || ''} ${registro.sucursal || ''}`.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
+
+            const search = texto(document.getElementById('col-filtro-busqueda')?.value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+            const branchFilter = texto(branchSelect?.value);
+            const statusFilter = texto(document.getElementById('col-filtro-estado')?.value).toLowerCase();
+            const visible = registrosTodos.filter(registro => {
+                const nombre = (registro.nombres || '') + ' ' + (registro.apellidos || '');
+                const textoBusqueda = (nombre + ' ' + (registro.rut || '') + ' ' + (registro.cargo || '') + ' ' + (registro.sucursal || '')).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
                 const estadoRegistro = String(registro.estado || 'activo').trim().toLowerCase();
                 const coincideEstado = !statusFilter || (statusFilter === 'activos' ? estadoRegistro !== 'inactivo' : estadoRegistro === 'inactivo');
                 return (!search || textoBusqueda.includes(search)) && (!branchFilter || texto(registro.sucursal) === branchFilter) && coincideEstado;
             });
+
+            const pageSize = FILAS_POR_PAGINA_COLABORADORES_RRHH;
+            const totalPages = Math.max(1, Math.ceil(visible.length / pageSize));
+            paginaActualColaboradoresRRHH = Math.min(Math.max(1, paginaActualColaboradoresRRHH), totalPages);
+            const from = (paginaActualColaboradoresRRHH - 1) * pageSize;
+            const pageRows = visible.slice(from, from + pageSize);
+
             if (!visible.length) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500">No hay colaboradores que coincidan con los filtros.</td></tr>';
+                if (registrosTodos.length === 0 && totalColaboradoresVisibleRRHH > 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center"><div class="colab-load-error"><i data-lucide="shield-alert"></i><b>Supabase informó '+Number(totalColaboradoresVisibleRRHH).toLocaleString('es-CL')+' registros, pero no entregó filas a esta sesión.</b><p>Esto suele indicar permisos de lectura o una política RLS. Revisa el perfil y el permiso “Colaboradores”.</p></div></td></tr>';
+                } else if (!registrosTodos.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center"><div class="colab-load-error"><i data-lucide="database"></i><b>La consulta no devolvió colaboradores.</b><p>La tabla de Supabase puede contener datos, pero esta sesión no los está recibiendo. Revisa el perfil y las políticas de acceso.</p><button type="button" onclick="cargarTablaColaboradores()">Reintentar carga</button></div></td></tr>';
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500">No hay colaboradores que coincidan con los filtros actuales.</td></tr>';
+                }
+                actualizarPaginacionColaboradores(visible.length, pageSize, totalPages, from, 0);
+                if (window.lucide) lucide.createIcons();
                 return;
             }
 
-            tbody.innerHTML = visible
-                .map(registro => {
-                    const nombre = `${registro.nombres || ''} ${registro.apellidos || ''}`.trim();
-                    const supervisor = mapa.get(texto(registro.sucursal).toLowerCase()) || 'No asignado';
-                    const esActivo = String(registro.estado || 'activo').trim().toLowerCase() !== 'inactivo';
+            tbody.innerHTML = pageRows.map(registro => {
+                const nombre = ((registro.nombres || '') + ' ' + (registro.apellidos || '')).trim();
+                const supervisor = mapa.get(texto(registro.sucursal).toLowerCase()) || 'No asignado';
+                const esActivo = String(registro.estado || 'activo').trim().toLowerCase() !== 'inactivo';
+                return '<tr>' +
+                    '<td class="p-4 font-mono">' + escaparHTML(registro.rut) + '</td>' +
+                    '<td class="p-4"><b class="block">' + escaparHTML(nombre) + '</b><button type="button" onclick="verFichaColaborador(\'' + escaparHTML(registro.rut).replace(/'/g, '&#39;') + '\')" class="mt-1 rounded-lg bg-gradient-to-r from-indigo-50 to-cyan-50 px-2.5 py-1.5 text-[10px] font-extrabold text-indigo-800 ring-1 ring-indigo-100 hover:from-indigo-100 hover:to-cyan-100">Ver ficha RR. HH.</button></td>' +
+                    '<td class="p-4">' + escaparHTML(registro.cargo) + '</td>' +
+                    '<td class="p-4">' + escaparHTML(registro.sucursal) + '</td>' +
+                    '<td class="p-4">' + escaparHTML(supervisor) + '</td>' +
+                    '<td class="p-4"><span class="' + (esActivo ? 'colab-status-active' : 'colab-status-inactive') + '">' + (esActivo ? 'Activo' : 'Inactivo') + '</span></td>' +
+                    '</tr>';
+            }).join('');
 
-                    return `
-                        <tr>
-                            <td class="p-4 font-mono">${escaparHTML(registro.rut)}</td>
-                            <td class="p-4"><b class="block">${escaparHTML(nombre)}</b><button type="button" onclick="verFichaColaborador('${escaparHTML(registro.rut).replace(/'/g, '&#39;')}')" class="mt-1 rounded-lg bg-gradient-to-r from-indigo-50 to-cyan-50 px-2.5 py-1.5 text-[10px] font-extrabold text-indigo-800 ring-1 ring-indigo-100 hover:from-indigo-100 hover:to-cyan-100">Ver ficha RR. HH.</button></td>
-                            <td class="p-4">${escaparHTML(registro.cargo)}</td>
-                            <td class="p-4">${escaparHTML(registro.sucursal)}</td>
-                            <td class="p-4">${escaparHTML(supervisor)}</td>
-                            <td class="p-4"><span class="${esActivo ? 'colab-status-active' : 'colab-status-inactive'}">${esActivo ? 'Activo' : 'Inactivo'}</span></td>
-                        </tr>
-                    `;
-                })
-                .join('');
+            actualizarPaginacionColaboradores(visible.length, pageSize, totalPages, from, pageRows.length);
+            if (window.lucide) lucide.createIcons();
         }
 
-        function obtenerModalFichaColaborador() {
-            let modal = document.getElementById('modal-ficha-colaborador');
-            if (modal) return modal;
-            modal = document.createElement('div');
-            modal.id = 'modal-ficha-colaborador';
-            modal.className = 'fixed inset-0 z-[100] hidden items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm sm:p-6';
-            modal.innerHTML = `
-                <div role="dialog" aria-modal="true" aria-labelledby="ficha-colaborador-title" class="max-h-[92vh] w-full max-w-6xl overflow-hidden rounded-3xl border border-white/40 bg-slate-50 shadow-2xl">
-                    <div class="flex items-start justify-between gap-3 bg-gradient-to-r from-slate-950 via-indigo-950 to-cyan-900 p-5 text-white sm:p-6">
-                        <div><span class="text-[10px] font-extrabold uppercase tracking-[.2em] text-cyan-200">Expediente operativo · RR. HH.</span><h3 id="ficha-colaborador-title" class="mt-2 text-xl font-black">Ficha del colaborador</h3><p id="ficha-colaborador-subtitle" class="mt-1 text-xs text-slate-200">Licencias, vacaciones, asistencia y atrasos.</p></div>
-                        <button type="button" onclick="cerrarFichaColaborador()" class="rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-bold text-white hover:bg-white/20" aria-label="Cerrar ficha">Cerrar ✕</button>
-                    </div>
-                    <div id="ficha-colaborador-body" class="max-h-[calc(92vh-105px)] overflow-y-auto p-4 sm:p-6"><p class="text-sm text-slate-500">Consultando registros autorizados…</p></div>
-                </div>`;
-            modal.addEventListener('click', event => { if (event.target === modal) cerrarFichaColaborador(); });
-            document.body.append(modal);
-            return modal;
+        function actualizarPaginacionColaboradores(total, pageSize, totalPages, start, visibleOnPage) {
+            const pagination = document.getElementById('colab-paginacion');
+            if (!pagination) return;
+            const first = total ? start + 1 : 0;
+            const last = total ? start + visibleOnPage : 0;
+            pagination.innerHTML = '<div class="colab-pagination-info"><b>' +
+                Number(total).toLocaleString('es-CL') + ' resultado(s) con los filtros</b><span>Mostrando ' +
+                first.toLocaleString('es-CL') + '–' + last.toLocaleString('es-CL') + ' de ' +
+                Number(total).toLocaleString('es-CL') + ' · Nómina cargada: ' +
+                Number(cacheColaboradoresCompletoRRHH?.length || 0).toLocaleString('es-CL') +
+                ' · ' + pageSize + ' por página</span></div><div class="colab-pagination-controls">' +
+                '<button type="button" onclick="cambiarPaginaColaboradoresRRHH(-1)" ' + (paginaActualColaboradoresRRHH <= 1 ? 'disabled' : '') + ' aria-label="Página anterior"><i data-lucide="chevron-left"></i> Anterior</button>' +
+                '<span>Página <b>' + paginaActualColaboradoresRRHH + '</b> de <b>' + totalPages + '</b></span>' +
+                '<button type="button" onclick="cambiarPaginaColaboradoresRRHH(1)" ' + (paginaActualColaboradoresRRHH >= totalPages ? 'disabled' : '') + ' aria-label="Página siguiente">Siguiente <i data-lucide="chevron-right"></i></button></div>';
+            if (window.lucide) lucide.createIcons();
         }
 
-        function cerrarFichaColaborador() {
-            const modal = document.getElementById('modal-ficha-colaborador');
-            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
-        }
-
-        async function leerRegistrosColaborador(tabla, rut, columnaFecha) {
-            const acumulados = [];
-            const pageSize = 1000;
-            for (let offset = 0; offset < 10000; offset += pageSize) {
-                let query = _supabase.from(tabla).select('*').eq('rut', rut).order(columnaFecha, { ascending: false }).range(offset, offset + pageSize - 1);
-                const { data, error } = await query;
-                if (error) return { data: null, error };
-                acumulados.push(...(data || []));
-                if (!data || data.length < pageSize) break;
-            }
-            return { data: acumulados, error: null };
+        function cambiarPaginaColaboradoresRRHH(delta) {
+            paginaActualColaboradoresRRHH += Number(delta || 0);
+            renderizarTablaColaboradores();
         }
 
         function fechaFichaColaborador(value, missing='Fecha no registrada') {
@@ -363,9 +412,14 @@
         function filtrarTablaColaboradores() {
             if (temporizadorFiltroColaboradores) clearTimeout(temporizadorFiltroColaboradores);
             temporizadorFiltroColaboradores = setTimeout(() => {
-                cargarTablaColaboradores().catch(error => mostrarToast('No se pudo filtrar la nómina: ' + error.message, 'error'));
-            }, 180);
+                paginaActualColaboradoresRRHH = 1;
+                if (Array.isArray(cacheColaboradoresCompletoRRHH)) renderizarTablaColaboradores();
+                else cargarTablaColaboradores().catch(error => mostrarToast('No se pudo filtrar la nómina: ' + error.message, 'error'));
+            }, 120);
         }
+
+        window.renderizarTablaColaboradores = renderizarTablaColaboradores;
+        window.cambiarPaginaColaboradoresRRHH = cambiarPaginaColaboradoresRRHH;
 
         function verColaboradoresSucursal(nombre) {
             const filtro = document.getElementById('col-filtro-sucursal');
