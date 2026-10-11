@@ -138,7 +138,7 @@
                     const supervisor = mapa.get(texto(registro.sucursal).toLowerCase()) || 'No asignado';
                     const esActivo = String(registro.estado || 'activo').trim().toLowerCase() !== 'inactivo';
 
-                    return \`
+                    return `
                         <tr>
                             <td class="p-4 font-mono">${escaparHTML(registro.rut)}</td>
                             <td class="p-4"><b class="block">${escaparHTML(nombre)}</b><button type="button" onclick="verFichaColaborador('${escaparHTML(registro.rut).replace(/'/g, '&#39;')}')" class="mt-1 rounded-lg bg-gradient-to-r from-indigo-50 to-cyan-50 px-2.5 py-1.5 text-[10px] font-extrabold text-indigo-800 ring-1 ring-indigo-100 hover:from-indigo-100 hover:to-cyan-100">Ver ficha RR. HH.</button></td>
