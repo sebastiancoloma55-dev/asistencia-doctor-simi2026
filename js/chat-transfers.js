@@ -201,7 +201,8 @@
       collaborators=(collabResult.data||[]).filter(c=>!c.estado||!["INACTIVO","INACTIVA","DESVINCULADO"].includes(String(c.estado).toUpperCase()));
       branches=branchResult.data||[];
       canApproveTransfers=!!permissionResult.data;
-      fillSelect($("traslado-colaborador"),collaborators.map(c=>({id:c.id,nombre:((c.nombres||"")+" "+(c.apellidos||"")).trim()+" · "+(c.rut||"Sin RUT")})),"Selecciona colaborador");
+      filtrarColaboradoresTraslado();
+      $("traslado-buscar-colaborador")?.addEventListener("input",filtrarColaboradoresTraslado);
       fillSelect($("traslado-origen"),branches.map(b=>({id:b.id,nombre:b.nombre})),"Selecciona origen");
       fillSelect($("traslado-destino"),branches.map(b=>({id:b.id,nombre:b.nombre})),"Selecciona destino");
       $("traslado-colaborador")?.addEventListener("change",autofillTransferOrigin);
@@ -214,6 +215,18 @@
       setStatus("traslado-estado",error.message||"No se pudieron cargar los datos de traslados. Comprueba tus permisos.",true);
       if($("traslado-tabla-body"))$("traslado-tabla-body").innerHTML='<tr><td colspan="7" class="p-6 text-center text-rose-700">No se pudo cargar el módulo. Comprueba tu permiso de Traslados de personal.</td></tr>';
     }
+  }
+
+  function filtrarColaboradoresTraslado() {
+    const select=$("traslado-colaborador");if(!select)return;
+    const query=norm($("traslado-buscar-colaborador")?.value||"");
+    const previous=select.value;
+    const filtered=collaborators.filter(c=>norm([c.nombres,c.apellidos,c.rut,c.cargo,c.sucursal].join(" ")).includes(query)).slice(0,3000);
+    select.replaceChildren();
+    const blank=document.createElement("option");blank.value="";blank.textContent=query?"Selecciona coincidencia ("+filtered.length+")":"Selecciona colaborador";select.append(blank);
+    filtered.forEach(c=>{const option=document.createElement("option");option.value=String(c.id);option.textContent=((c.nombres||"")+" "+(c.apellidos||"")).trim()+" · "+(c.rut||"Sin RUT")+(c.sucursal?" · "+c.sucursal:"");select.append(option);});
+    if(filtered.some(c=>String(c.id)===previous))select.value=previous;
+    if(query&&filtered.length===1){select.value=String(filtered[0].id);autofillTransferOrigin();}
   }
 
   function autofillTransferOrigin() {
@@ -250,7 +263,7 @@
     const host=$("traslado-tabla-body");if(!host)return;
     host.innerHTML='<tr><td colspan="7" class="p-6 text-center text-slate-500">Cargando solicitudes…</td></tr>';
     try{
-      const {data,error}=await _supabase.from("traslados_personal").select("id,colaborador_id,rut,colaborador_nombre,cargo,sucursal_origen_id,sucursal_origen_nombre,sucursal_destino_id,sucursal_destino_nombre,fecha_inicio,fecha_termino,indefinido,motivo,estado,aplicado_en,created_at,solicitado_por,revisado_por").order("created_at",{ascending:false}).limit(1000);
+      const {data,error}=await _supabase.from("traslados_personal").select("id,colaborador_id,rut,colaborador_nombre,cargo,sucursal_origen_id,sucursal_origen_nombre,sucursal_destino_id,sucursal_destino_nombre,fecha_inicio,fecha_termino,indefinido,motivo,estado,aplicado_en,created_at,solicitado_por,revisado_por,tipo_movimiento,cobertura_id").order("created_at",{ascending:false}).limit(1000);
       if(error)throw error;
       const allRows=data||[];
       renderTransferCalendar(allRows);
@@ -266,7 +279,8 @@
         let actions='<span class="text-slate-400">Sin acciones</span>';
         if(canApproveTransfers&&r.estado==="SOLICITADO")actions='<div class="flex gap-2"><button type="button" data-transfer-action="APROBADO" data-id="'+esc(r.id)+'" class="rounded-lg bg-emerald-600 px-2 py-1.5 font-bold text-white">Aprobar</button><button type="button" data-transfer-action="RECHAZADO" data-id="'+esc(r.id)+'" class="rounded-lg bg-rose-600 px-2 py-1.5 font-bold text-white">Rechazar</button></div>';
         const stateLabel=r.estado==="APROBADO"?(r.aplicado_en?"APROBADO · APLICADO":"APROBADO · PROGRAMADO"):r.estado;
-        const cells=[(r.colaborador_nombre||"")+" · "+(r.rut||"Sin RUT"),r.sucursal_origen_nombre,r.sucursal_destino_nombre,dateText,r.motivo,stateLabel,actions];
+        const movementLabel=r.tipo_movimiento==="COBERTURA"?"Cobertura temporal · ":"";
+        const cells=[movementLabel+(r.colaborador_nombre||"")+" · "+(r.rut||"Sin RUT"),r.sucursal_origen_nombre,r.sucursal_destino_nombre,dateText,r.motivo,stateLabel,actions];
         cells.forEach((v,i)=>{const td=document.createElement("td");td.className="p-3 align-top";if(i===5)td.innerHTML='<span class="rounded-full px-2 py-1 font-bold '+stateClass+'">'+esc(v)+'</span>';else if(i===6)td.innerHTML=v;else td.textContent=v||"—";tr.append(td);});
         host.append(tr);
       });
