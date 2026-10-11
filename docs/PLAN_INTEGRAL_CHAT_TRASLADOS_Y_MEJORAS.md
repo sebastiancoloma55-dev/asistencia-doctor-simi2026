@@ -9,7 +9,15 @@ Los cambios nuevos se trabajan en `feature/talana-bot-integration` y en migracio
 - Adjuntos privados de hasta 10 MB (PDF, Word, Excel, CSV, TXT, JPG, PNG, WEBP), con enlaces firmados de corta duración.
 - Tablas de chat protegidas con RLS; solo participantes autorizados pueden leer mensajes y adjuntos.
 - Permisos administrativos configurables: `chat`, `traslados` y `traslados_aprobar`.
-- Módulo 21: solicitudes de traslado con colaborador, origen, destino, fecha inicial/final o indefinido, motivo, estado y revisor.\n- Las coberturas temporales se envían a la bandeja de traslados para aprobar o rechazar; aprobar una cobertura no cambia la sucursal permanente del colaborador.\n- Búsqueda por nombre/RUT en el formulario de traslado y filtros por nombre/RUT/sucursal en la nómina de colaboradores.\n- Acceso rápido desde el directorio de sucursales a la nómina filtrada de esa sucursal.\n- Seguimiento de fecha y hora de cargas en hora de Chile para archivos manuales y del bot. Las referencias iniciales están etiquetadas como seguimiento iniciado cuando no se conoce la fecha histórica original.\n- Mapa de sucursales con marcadores GPS por defecto y línea orientativa al seleccionar origen y destino; Google Maps mantiene el cálculo vial real.\n- Tarjetas interactivas de vigencia de vacaciones, mejoras visuales en asistencia y un generador KPI de tareas con filtros y exportación CSV.\n- Centro de reportes ampliado con nómina, sucursales, coberturas, tareas, traslados, papeletas, trazabilidad, auditoría, documentos, importaciones, bot Talana, solicitudes, historial, gestiones de correo, metadatos de chat y notificaciones. No exporta el contenido privado de mensajes ni el cuerpo de los correos.\n- Eliminación de papeletas restringida en base de datos al superadministrador principal.
+- Módulo 21: solicitudes de traslado con colaborador, origen, destino, fecha inicial/final o indefinido, motivo, estado y revisor.
+- Las coberturas temporales se envían a la bandeja de traslados para aprobar o rechazar; aprobar una cobertura no cambia la sucursal permanente del colaborador.
+- Búsqueda por nombre/RUT en el formulario de traslado y filtros por nombre/RUT/sucursal en la nómina de colaboradores.
+- Acceso rápido desde el directorio de sucursales a la nómina filtrada de esa sucursal.
+- Seguimiento de fecha y hora de cargas en hora de Chile para archivos manuales y del bot. Las referencias iniciales están etiquetadas como seguimiento iniciado cuando no se conoce la fecha histórica original.
+- Mapa de sucursales con marcadores GPS por defecto y línea orientativa al seleccionar origen y destino; Google Maps mantiene el cálculo vial real.
+- Tarjetas interactivas de vigencia de vacaciones, mejoras visuales en asistencia y un generador KPI de tareas con filtros y exportación CSV.
+- Centro de reportes ampliado con nómina, sucursales, coberturas, tareas, traslados, papeletas, trazabilidad, auditoría, documentos, importaciones, bot Talana, solicitudes, historial, gestiones de correo, metadatos de chat y notificaciones. No exporta el contenido privado de mensajes ni el cuerpo de los correos.
+- Eliminación de papeletas restringida en base de datos al superadministrador principal.
 - Aprobación mediante RPC con control de permisos. Si el traslado aprobado está vigente, actualiza la sucursal del colaborador; si es futuro, queda programado.
 - Proceso diario existente `api/cron-alertas.js` ampliado para aplicar traslados aprobados que alcancen su fecha de inicio.
 - Notificaciones para nuevos mensajes, nuevas solicitudes de traslado y decisiones de aprobación.
@@ -22,7 +30,8 @@ Los cambios nuevos se trabajan en `feature/talana-bot-integration` y en migracio
 - [x] Aplicar RLS a las nuevas tablas de chat y traslados.
 - [x] Mantener adjuntos en un bucket privado con control por participantes.
 - [x] Limitar la aprobación de traslados a permiso específico.
-- [ ] Ejecutar pruebas de acceso positivo y negativo con cuentas reales de cada rol.\n- [x] Prueba transaccional reversible de aprobación de traslado permanente (actualiza maestro) y cobertura temporal (no cambia sucursal permanente).
+- [ ] Ejecutar pruebas de acceso positivo y negativo con cuentas reales de cada rol.
+- [x] Prueba transaccional reversible de aprobación de traslado permanente (actualiza maestro) y cobertura temporal (no cambia sucursal permanente).
 - [ ] Auditar RLS de todas las tablas existentes y endpoints, no solo de los módulos nuevos.
 - [ ] Probar importaciones con duplicados, fechas inválidas, turnos nocturnos y archivos parcialmente incorrectos.
 - [ ] Confirmar restauración de backup y plan de reversión.
@@ -34,17 +43,23 @@ Los cambios nuevos se trabajan en `feature/talana-bot-integration` y en migracio
 - [ ] Bandeja unificada de aprobaciones: tareas por validar, vacaciones, permisos, coberturas, correcciones y traslados.
 - [x] Historial automático de cambios del maestro de colaborador (RUT, nombres, cargo, sucursal, estado y fecha de ingreso), con usuario y fecha; consulta por RUT.
 - [ ] Conciliación de asistencia contra turno programado y bandeja de excepciones.
-- [x] Calendario de solicitudes y traslados aprobados para los próximos 90 días, más resumen de dotación activa y movimientos por sucursal.\n- [ ] Ampliar el calendario para incluir turnos, ausencias, coberturas, feriados y vencimientos.
-- [x] Búsqueda por nombre/RUT en colaboradores y traslados; acceso desde sucursal a nómina filtrada.\n- [x] Tarjetas de vacaciones interactivas, mapa con sucursales GPS por defecto y mejoras visuales en asistencia/traslados.\n- [ ] Completar paginación, pruebas de accesibilidad y navegación móvil.
+- [x] Calendario de solicitudes y traslados aprobados para los próximos 90 días, más resumen de dotación activa y movimientos por sucursal.
+- [ ] Ampliar el calendario para incluir turnos, ausencias, coberturas, feriados y vencimientos.
+- [x] Búsqueda por nombre/RUT en colaboradores y traslados; acceso desde sucursal a nómina filtrada.
+- [x] Tarjetas de vacaciones interactivas, mapa con sucursales GPS por defecto y mejoras visuales en asistencia/traslados.
+- [ ] Completar paginación, pruebas de accesibilidad y navegación móvil.
 - [ ] Completar auditoría de cambios críticos con actor, hora, objeto y resultado.
 
 ### P2 — Planificación y automatización
 - [ ] Planificación de dotación por sucursal y turno: requerido vs. disponible, déficit y propuesta de cobertura.
 - [ ] Documentos laborales con vencimientos, permisos y alertas.
 - [ ] Portal de solicitudes para que el colaborador solicite vacaciones, permisos y correcciones y consulte el estado.
-- [x] Centro de reportes con datasets de los módulos disponibles, filtros por período/sucursal y Excel/CSV/ZIP/PDF.\n- [ ] Reportes programados con destinatarios autorizados, formato, período y registro de ejecución.
-- [x] Generador de KPI de tareas con filtros por fecha/sucursal, métricas de cumplimiento y exportación CSV.\n- [ ] Definir fórmulas oficiales de KPI, fecha de corte y señal de datos incompletos.
-- [x] Vista de calendario y resumen de dotación actual/movimientos entrantes y salientes por sucursal.\n- [ ] Ampliar el proyecto de traslados con calendario mensual, filtros por supervisor/sucursal, control de solapamientos y exportación.
+- [x] Centro de reportes con datasets de los módulos disponibles, filtros por período/sucursal y Excel/CSV/ZIP/PDF.
+- [ ] Reportes programados con destinatarios autorizados, formato, período y registro de ejecución.
+- [x] Generador de KPI de tareas con filtros por fecha/sucursal, métricas de cumplimiento y exportación CSV.
+- [ ] Definir fórmulas oficiales de KPI, fecha de corte y señal de datos incompletos.
+- [x] Vista de calendario y resumen de dotación actual/movimientos entrantes y salientes por sucursal.
+- [ ] Ampliar el proyecto de traslados con calendario mensual, filtros por supervisor/sucursal, control de solapamientos y exportación.
 
 ### P3 — Analítica y conocimiento
 - [ ] Indicadores históricos comparables por sucursal, período y tipo de incidencia.
