@@ -541,6 +541,7 @@
                         document.getElementById('login-overlay').classList.add('hidden');
                         await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
                         await inicializarDashboard();
+                        await actualizarContadorNotificacionesTopbar();
                     }catch(perfilError){
                         await _supabase.auth.signOut();
                         perfilActualSistema=null;modulosPermitidosActuales=[];
@@ -581,6 +582,7 @@
                 document.getElementById('login-overlay').classList.add('hidden');
                 await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
                 await inicializarDashboard();
+                await actualizarContadorNotificacionesTopbar();
             } catch (error) {
                 try{await _supabase.auth.signOut();}catch(_){}
                 perfilActualSistema=null;modulosPermitidosActuales=[];
@@ -781,6 +783,16 @@
         // NOTIFICACIONES · Bandeja personal con actualización segura
         // ============================================================
         let notificacionesCentroGlobal=[];
+        async function actualizarContadorNotificacionesTopbar(){
+            const badge=document.getElementById('topbar-notif-count'),nav=document.getElementById('nav-notif-count');
+            if(!badge&&!nav)return;
+            try{
+                const {count,error}=await _supabase.from('notificaciones').select('id',{count:'exact',head:true}).eq('leida',false);
+                if(error)throw error;
+                const n=Number(count||0);
+                [badge,nav].filter(Boolean).forEach(node=>{node.textContent=n>99?'99+':String(n);node.classList.toggle('hidden',n===0);});
+            }catch(error){console.warn('Contador de notificaciones:',error.message);}
+        }
         async function cargarCentroNotificaciones(){
             const lista=document.getElementById('notif-lista');if(!lista)return;
             lista.innerHTML='<p class="text-sm text-slate-500">Consultando tu bandeja...</p>';
