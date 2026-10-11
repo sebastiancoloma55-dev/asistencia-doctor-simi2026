@@ -516,6 +516,8 @@ def descargar_reporte_jornadas(page, eventos):
                         candidate = " | ".join(x for x in (label, aria, title, data_cy, data_testid, data_action) if x)
                         if candidate and re.search(r"(descarg|export|excel|xlsx|jornada|reporte|download)", candidate, re.I):
                             controles.append(candidate[:140])
+            except Exception:
+                continue
         resumen = " | ".join(controles[:35])
         raise RuntimeError(
             "No se encontró el control de descarga en Jornadas. "
