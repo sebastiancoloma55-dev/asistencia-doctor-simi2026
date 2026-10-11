@@ -646,7 +646,16 @@ body{overflow-x:hidden}
                     <i data-lucide="plug-zap" class="h-4 w-4"></i>
                     19. Integraciones
                 </button>
-            </nav>
+                            <div class="nova-nav-divider"><span>COMUNICACIÓN Y DOTACIÓN</span></div>
+                <button id="btn-chat" class="menu-btn" onclick="cambiarModulo('chat')">
+                    <i data-lucide="messages-square" class="h-4 w-4"></i>
+                    20. Chat interno
+                </button>
+                <button id="btn-traslados" class="menu-btn" onclick="cambiarModulo('traslados')">
+                    <i data-lucide="users-round" class="h-4 w-4"></i>
+                    21. Traslados de personal
+                </button>
+</nav>
         </aside>
 
         <main class="flex min-w-0 flex-1 flex-col overflow-y-auto">
@@ -1572,6 +1581,63 @@ body{overflow-x:hidden}
                 <div class="helper-note"><strong>Seguridad:</strong> no pegues claves privadas de Talana, IMED, Google, Microsoft ni Supabase en esta pantalla. Las credenciales deben almacenarse como variables de entorno en el servidor.</div>
             </section>
 
+            <section id="view-chat" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="module-intro">
+                    <span class="module-kicker"><i data-lucide="messages-square" class="h-3 w-3"></i> Comunicación interna</span>
+                    <h3 class="mt-3 text-xl font-extrabold text-slate-900">Chat de Recursos Humanos</h3>
+                    <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Conversaciones privadas y grupos con usuarios habilitados. Los mensajes se guardan en Supabase y solo los participantes autorizados pueden leerlos.</p>
+                </div>
+                <div class="ui-card grid min-h-[560px] grid-cols-1 overflow-hidden lg:grid-cols-[300px_minmax(0,1fr)]">
+                    <aside class="border-b border-slate-200 bg-slate-50 p-4 lg:border-b-0 lg:border-r">
+                        <h4 class="font-extrabold text-slate-900">Nueva conversación</h4>
+                        <label class="mt-3 block text-xs font-bold text-slate-600">Nombre del grupo (opcional)</label>
+                        <input id="chat-titulo-nuevo" class="form-field mt-1" maxlength="80" placeholder="Ej. Equipo de asistencia">
+                        <label class="mt-3 block text-xs font-bold text-slate-600">Participantes</label>
+                        <select id="chat-usuarios-nuevos" class="form-field mt-1 min-h-32" multiple size="5" aria-label="Seleccionar participantes"></select>
+                        <button type="button" class="corp-button mt-3 w-full" onclick="crearConversacionChat()">Crear conversación</button>
+                        <div class="my-4 border-t border-slate-200"></div>
+                        <div class="flex items-center justify-between"><h4 class="font-extrabold text-slate-900">Tus conversaciones</h4><button type="button" class="text-xs font-bold text-blue-700" onclick="cargarChatInterno()">Actualizar</button></div>
+                        <div id="chat-conversaciones-list" class="mt-3 space-y-2"><p class="text-sm text-slate-500">Cargando conversaciones…</p></div>
+                    </aside>
+                    <div class="flex min-h-[540px] min-w-0 flex-col">
+                        <div id="chat-conversacion-titulo" class="border-b border-slate-200 p-4"><h4 class="font-extrabold">Selecciona una conversación</h4><p class="mt-1 text-xs text-slate-500">Los mensajes solo son visibles para sus participantes.</p></div>
+                        <div id="chat-mensajes" class="flex-1 space-y-3 overflow-y-auto bg-white p-4"><p class="text-sm text-slate-500">Elige una conversación para ver los mensajes.</p></div>
+                        <form id="chat-form-mensaje" class="flex gap-2 border-t border-slate-200 bg-slate-50 p-3" onsubmit="enviarMensajeChat(event)">
+                            <input id="chat-mensaje-input" class="form-field min-w-0 flex-1" maxlength="5000" placeholder="Escribe un mensaje…" autocomplete="off" disabled>
+                            <button id="chat-enviar" class="corp-button" disabled>Enviar</button>
+                        </form>
+                        <p id="chat-estado" class="px-4 pb-3 text-xs text-slate-500" aria-live="polite">Conectando con el chat seguro…</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-traslados" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="module-intro">
+                    <span class="module-kicker"><i data-lucide="users-round" class="h-3 w-3"></i> Movimientos de personal</span>
+                    <h3 class="mt-3 text-xl font-extrabold text-slate-900">Traslados entre sucursales</h3>
+                    <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Registra la sucursal de origen y destino, las fechas y el motivo. Cada solicitud queda en la nube con estado, responsable y trazabilidad de aprobación.</p>
+                </div>
+                <div class="ui-card p-5">
+                    <h4 class="font-extrabold text-slate-900">Nueva solicitud de traslado</h4>
+                    <form id="traslado-form" class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" onsubmit="crearSolicitudTraslado(event)">
+                        <div class="xl:col-span-2"><label class="block text-xs font-bold text-slate-600">Colaborador</label><select id="traslado-colaborador" class="form-field mt-1" required><option value="">Cargando colaboradores…</option></select></div>
+                        <div><label class="block text-xs font-bold text-slate-600">Sucursal de origen</label><select id="traslado-origen" class="form-field mt-1" required></select></div>
+                        <div><label class="block text-xs font-bold text-slate-600">Sucursal de destino</label><select id="traslado-destino" class="form-field mt-1" required></select></div>
+                        <div><label class="block text-xs font-bold text-slate-600">Inicio</label><input id="traslado-inicio" type="date" class="form-field mt-1" required></div>
+                        <div><label class="block text-xs font-bold text-slate-600">Término (si aplica)</label><input id="traslado-termino" type="date" class="form-field mt-1"></div>
+                        <label class="flex items-center gap-2 self-end rounded-lg border border-slate-200 p-3 text-sm"><input id="traslado-indefinido" type="checkbox"> Traslado indefinido</label>
+                        <div class="xl:col-span-4"><label class="block text-xs font-bold text-slate-600">Motivo</label><textarea id="traslado-motivo" class="form-field mt-1" rows="2" maxlength="1500" required placeholder="Explica el motivo de la solicitud"></textarea></div>
+                        <div class="xl:col-span-4 flex justify-end"><button class="corp-button">Enviar solicitud</button></div>
+                    </form>
+                    <p id="traslado-estado" class="mt-3 text-xs text-slate-500" aria-live="polite"></p>
+                </div>
+                <div class="ui-card overflow-hidden">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 p-4"><div><h4 class="font-extrabold">Solicitudes e historial</h4><p class="mt-1 text-xs text-slate-500">Las aprobaciones requieren el permiso específico de traslados.</p></div><div class="flex gap-2"><select id="traslado-filtro-estado" class="form-field" onchange="cargarTrasladosPersonal()"><option value="TODOS">Todos los estados</option><option>SOLICITADO</option><option>APROBADO</option><option>RECHAZADO</option><option>CANCELADO</option><option>COMPLETADO</option></select><button type="button" class="corp-button-dark" onclick="cargarTrasladosPersonal()">Actualizar</button></div></div>
+                    <div class="table-scroll"><table class="w-full min-w-[1050px] text-left"><thead class="bg-white text-[11px] uppercase text-slate-500"><tr><th class="p-3">Colaborador</th><th class="p-3">Origen</th><th class="p-3">Destino</th><th class="p-3">Fechas</th><th class="p-3">Motivo</th><th class="p-3">Estado</th><th class="p-3">Acciones</th></tr></thead><tbody id="traslado-tabla-body" class="divide-y divide-slate-100 text-xs"><tr><td colspan="7" class="p-6 text-center text-slate-500">Cargando solicitudes…</td></tr></tbody></table></div>
+                </div>
+                <div class="helper-note">El registro de un traslado no cambia por sí solo el maestro del colaborador. El cambio de sucursal debe reflejarse en el maestro únicamente después de una aprobación y una verificación operativa.</div>
+            </section>
+
             <div id="global-search-overlay" class="global-search-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="global-search-title" style="display:none" onclick="if(event.target===this)cerrarBuscadorGlobal()">
                 <div class="global-search-panel">
                     <div class="flex items-center gap-3 border-b border-slate-100 p-4">
@@ -1876,8 +1942,8 @@ body.search-open{overflow:hidden}
   window.actualizarContadoresSelectores2026=updateSelectorCounts;
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
   var allowed=new Set(['dashboard']);
-  var moduleNames=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
-  var allModulePermissions=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
+  var moduleNames=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
+  var allModulePermissions=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
   function permissionName(m){return m;}
   function hasModulePermission(m){
     if(allowed.has(m))return true;
