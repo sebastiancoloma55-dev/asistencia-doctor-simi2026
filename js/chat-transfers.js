@@ -1,0 +1,274 @@
+(() => {
+  const $ = id => document.getElementById(id);
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const dateTime = value => value ? new Date(value).toLocaleString("es-CL",{timeZone:"America/Santiago",dateStyle:"medium",timeStyle:"short"}) : "—";
+  const dateOnly = value => value ? new Date(value+"T12:00:00").toLocaleDateString("es-CL",{timeZone:"America/Santiago"}) : "—";
+  const setStatus = (id, message, error=false) => { const node=$(id); if(node){node.textContent=message;node.className="mt-3 text-xs "+(error?"text-rose-700":"text-slate-500");} };
+  const norm = value => String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLocaleLowerCase("es-CL");
+  let currentRoleId = null, chatUsers = [], activeConversation = null, chatChannel = null, chatBusy = false;
+  let collaborators = [], branches = [], canApproveTransfers = false;
+
+  async function currentUserId() {
+    if (currentRoleId) return currentRoleId;
+    const {data,error}=await _supabase.rpc("chat_usuario_actual_id");
+    if(error) throw error;
+    if(!data) throw new Error("Tu cuenta no tiene un perfil activo asignado en Usuarios y roles.");
+    currentRoleId=data;
+    return data;
+  }
+
+  async function loadChatUsers() {
+    const {data,error}=await _supabase.rpc("chat_listar_usuarios");
+    if(error) throw error;
+    chatUsers=data||[];
+    const select=$("chat-usuarios-nuevos");
+    if(select){
+      const {data:me}=await _supabase.rpc("chat_usuario_actual_id");
+      select.replaceChildren();
+      chatUsers.filter(u=>Number(u.id)!==Number(me)).forEach(u=>{
+        const option=document.createElement("option");
+        option.value=String(u.id);
+        option.textContent=(u.nombre||u.email)+" · "+(u.rol||"Usuario");
+        select.append(option);
+      });
+    }
+  }
+
+  async function cargarChatInterno() {
+    const status=$("chat-estado");
+    if(status) status.textContent="Conectando con el chat seguro…";
+    try {
+      await currentUserId();
+      await loadChatUsers();
+      const {data,error}=await _supabase.from("chat_conversaciones")
+        .select("id,titulo,tipo,creado_por,created_at,updated_at")
+        .order("updated_at",{ascending:false}).limit(100);
+      if(error) throw error;
+      renderConversations(data||[]);
+      if(status) status.textContent="Conectado · mensajes protegidos por participante · hora de Chile";
+      if(activeConversation && !(data||[]).some(c=>c.id===activeConversation)) activeConversation=null;
+      if(!activeConversation && data?.length) await abrirConversacionChat(data[0].id);
+      else if(activeConversation) await abrirConversacionChat(activeConversation);
+    } catch(error) {
+      console.warn("Chat interno:",error);
+      if(status) status.textContent=error.message||"No se pudo conectar al chat. Revisa que tengas asignado el permiso chat.";
+      if($("chat-conversaciones-list")) $("chat-conversaciones-list").innerHTML='<p class="text-sm text-rose-700">No se pudieron cargar las conversaciones. Comprueba el permiso de Chat interno.</p>';
+    }
+  }
+
+  function renderConversations(items) {
+    const host=$("chat-conversaciones-list"); if(!host)return;
+    host.replaceChildren();
+    if(!items.length){host.append(Object.assign(document.createElement("p"),{className:"text-sm text-slate-500",textContent:"Todavía no tienes conversaciones. Selecciona participantes y crea una."}));return;}
+    items.forEach(item=>{
+      const btn=document.createElement("button");
+      btn.type="button";
+      btn.className="w-full rounded-xl border p-3 text-left transition "+(item.id===activeConversation?"border-blue-300 bg-blue-50":"border-slate-200 bg-white hover:bg-slate-100");
+      const title=document.createElement("span");title.className="block truncate text-sm font-bold text-slate-800";title.textContent=item.titulo||"Conversación";
+      const meta=document.createElement("span");meta.className="mt-1 block text-[11px] text-slate-500";meta.textContent=(item.tipo==="GRUPO"?"Grupo":"Privada")+" · "+dateTime(item.updated_at);
+      btn.append(title,meta);btn.addEventListener("click",()=>abrirConversacionChat(item.id));host.append(btn);
+    });
+  }
+
+  async function crearConversacionChat() {
+    if(chatBusy)return;
+    const chosen=Array.from($("chat-usuarios-nuevos")?.selectedOptions||[]).map(o=>Number(o.value)).filter(Number.isFinite);
+    if(!chosen.length){setStatus("chat-estado","Selecciona al menos un usuario además de ti.",true);return;}
+    chatBusy=true;
+    try{
+      const me=await currentUserId();
+      const title=$("chat-titulo-nuevo")?.value.trim();
+      const chosenUsers=chatUsers.filter(u=>chosen.includes(Number(u.id)));
+      const finalTitle=title||(chosenUsers.length===1?(chosenUsers[0].nombre||chosenUsers[0].email):"Grupo de Recursos Humanos");
+      const {data:conversation,error}=await _supabase.from("chat_conversaciones").insert({
+        titulo:finalTitle.slice(0,80),tipo:chosenUsers.length===1?"PRIVADA":"GRUPO",creado_por:me
+      }).select("id,titulo,tipo,updated_at").single();
+      if(error)throw error;
+      const participants=[...new Set([Number(me),...chosen])].map(usuario_rol_id=>({conversacion_id:conversation.id,usuario_rol_id,agregado_por:me}));
+      const {error:memberError}=await _supabase.from("chat_participantes").insert(participants);
+      if(memberError)throw memberError;
+      $("chat-titulo-nuevo").value="";
+      Array.from($("chat-usuarios-nuevos").options).forEach(o=>o.selected=false);
+      activeConversation=conversation.id;
+      await cargarChatInterno();
+      await abrirConversacionChat(conversation.id);
+    }catch(error){console.error("Crear conversación:",error);setStatus("chat-estado",error.message||"No se pudo crear la conversación.",true);}
+    finally{chatBusy=false;}
+  }
+
+  async function abrirConversacionChat(id) {
+    activeConversation=id;
+    if(chatChannel){try{await _supabase.removeChannel(chatChannel);}catch(_){}chatChannel=null;}
+    const host=$("chat-mensajes");if(host)host.innerHTML='<p class="text-sm text-slate-500">Cargando mensajes…</p>';
+    try{
+      const {data:conv,error:convError}=await _supabase.from("chat_conversaciones").select("id,titulo,tipo,updated_at").eq("id",id).single();
+      if(convError)throw convError;
+      if($("chat-conversacion-titulo"))$("chat-conversacion-titulo").innerHTML='<h4 class="font-extrabold">'+esc(conv.titulo)+'</h4><p class="mt-1 text-xs text-slate-500">'+(conv.tipo==="GRUPO"?"Conversación grupal":"Conversación privada")+' · actualizado '+esc(dateTime(conv.updated_at))+'</p>';
+      const {data,error}=await _supabase.from("chat_mensajes").select("id,conversacion_id,remitente_id,contenido,created_at").eq("conversacion_id",id).is("eliminado_at",null).order("created_at",{ascending:true}).limit(300);
+      if(error)throw error;
+      renderMessages(data||[]);
+      if($("chat-mensaje-input"))$("chat-mensaje-input").disabled=false;
+      if($("chat-enviar"))$("chat-enviar").disabled=false;
+      await _supabase.rpc("chat_marcar_leido",{p_conversacion:id});
+      chatChannel=_supabase.channel("chat-"+id).on("postgres_changes",{event:"INSERT",schema:"public",table:"chat_mensajes",filter:"conversacion_id=eq."+id},payload=>{
+        const msg=payload.new;
+        if(msg && msg.conversacion_id===activeConversation) {
+          const current= $("chat-mensajes");
+          if(current && !current.querySelector('[data-chat-msg="'+msg.id+'"]')) appendMessage(msg);
+          _supabase.rpc("chat_marcar_leido",{p_conversacion:id});
+        }
+      }).subscribe();
+      if($("chat-estado"))$("chat-estado").textContent="Conversación conectada · mensajes en tiempo real";
+      const {data:list}=await _supabase.from("chat_conversaciones").select("id,titulo,tipo,creado_por,created_at,updated_at").order("updated_at",{ascending:false}).limit(100);
+      renderConversations(list||[]);
+    }catch(error){
+      console.warn("Abrir conversación:",error);
+      if(host)host.innerHTML='<p class="text-sm text-rose-700">No tienes acceso a esta conversación o no se pudo cargar.</p>';
+      if($("chat-mensaje-input"))$("chat-mensaje-input").disabled=true;
+      if($("chat-enviar"))$("chat-enviar").disabled=true;
+    }
+  }
+
+  function renderMessages(items) {
+    const host=$("chat-mensajes");if(!host)return;
+    host.replaceChildren();
+    if(!items.length){host.append(Object.assign(document.createElement("p"),{className:"text-sm text-slate-500",textContent:"No hay mensajes todavía. Envía el primero."}));return;}
+    items.forEach(appendMessage);
+    host.scrollTop=host.scrollHeight;
+  }
+  function appendMessage(msg) {
+    const host=$("chat-mensajes");if(!host||host.querySelector('[data-chat-msg="'+msg.id+'"]'))return;
+    const sender=chatUsers.find(u=>Number(u.id)===Number(msg.remitente_id));
+    const row=document.createElement("div");row.dataset.chatMsg=msg.id;row.className="flex "+(Number(msg.remitente_id)===Number(currentRoleId)?"justify-end":"justify-start");
+    const bubble=document.createElement("div");bubble.className="max-w-[88%] rounded-2xl px-4 py-3 "+(Number(msg.remitente_id)===Number(currentRoleId)?"bg-blue-700 text-white":"border border-slate-200 bg-slate-50 text-slate-800");
+    const name=document.createElement("div");name.className="mb-1 text-[10px] font-bold opacity-75";name.textContent=(sender?.nombre||sender?.email||"Usuario")+" · "+dateTime(msg.created_at);
+    const body=document.createElement("p");body.className="whitespace-pre-wrap break-words text-sm";body.textContent=msg.contenido||"Mensaje eliminado";
+    bubble.append(name,body);row.append(bubble);host.append(row);host.scrollTop=host.scrollHeight;
+  }
+
+  async function enviarMensajeChat(event) {
+    event?.preventDefault();
+    const input=$("chat-mensaje-input"),content=input?.value.trim();
+    if(!activeConversation||!content||chatBusy)return;
+    chatBusy=true;
+    try{
+      const me=await currentUserId();
+      const {data,error}=await _supabase.from("chat_mensajes").insert({conversacion_id:activeConversation,remitente_id:me,contenido:content}).select("id,conversacion_id,remitente_id,contenido,created_at").single();
+      if(error)throw error;
+      input.value="";appendMessage(data);
+      if($("chat-estado"))$("chat-estado").textContent="Mensaje enviado · "+dateTime(data.created_at);
+    }catch(error){console.error("Enviar mensaje:",error);setStatus("chat-estado",error.message||"No se pudo enviar el mensaje.",true);}
+    finally{chatBusy=false;input?.focus();}
+  }
+
+  function fillSelect(select,items,placeholder,selectedValue) {
+    if(!select)return;select.replaceChildren();
+    const blank=document.createElement("option");blank.value="";blank.textContent=placeholder;select.append(blank);
+    items.forEach(item=>{const o=document.createElement("option");o.value=item.id;o.textContent=item.nombre;o.selected=String(item.id)===String(selectedValue||"");select.append(o);});
+  }
+
+  async function iniciarModuloTraslados() {
+    try{
+      await currentUserId();
+      const [collabResult,branchResult,permissionResult]=await Promise.all([
+        _supabase.from("colaboradores").select("id,rut,nombres,apellidos,cargo,sucursal_id,sucursal,estado").order("apellidos").limit(3000),
+        _supabase.from("sucursales").select("id,nombre,activa").eq("activa",true).order("nombre").limit(1000),
+        _supabase.rpc("usuario_tiene_permiso",{p_permiso:"traslados_aprobar"})
+      ]);
+      if(collabResult.error)throw collabResult.error;
+      if(branchResult.error)throw branchResult.error;
+      collaborators=(collabResult.data||[]).filter(c=>!c.estado||!["INACTIVO","INACTIVA","DESVINCULADO"].includes(String(c.estado).toUpperCase()));
+      branches=branchResult.data||[];
+      canApproveTransfers=!!permissionResult.data;
+      fillSelect($("traslado-colaborador"),collaborators.map(c=>({id:c.id,nombre:((c.nombres||"")+" "+(c.apellidos||"")).trim()+" · "+(c.rut||"Sin RUT")})),"Selecciona colaborador");
+      fillSelect($("traslado-origen"),branches.map(b=>({id:b.id,nombre:b.nombre})),"Selecciona origen");
+      fillSelect($("traslado-destino"),branches.map(b=>({id:b.id,nombre:b.nombre})),"Selecciona destino");
+      $("traslado-colaborador")?.addEventListener("change",autofillTransferOrigin);
+      $("traslado-indefinido")?.addEventListener("change",()=>{
+        const term=$("traslado-termino");if(term){term.disabled=$("traslado-indefinido").checked;if(term.disabled)term.value="";}
+      });
+      await cargarTrasladosPersonal();
+    }catch(error){
+      console.error("Módulo de traslados:",error);
+      setStatus("traslado-estado",error.message||"No se pudieron cargar los datos de traslados. Comprueba tus permisos.",true);
+      if($("traslado-tabla-body"))$("traslado-tabla-body").innerHTML='<tr><td colspan="7" class="p-6 text-center text-rose-700">No se pudo cargar el módulo. Comprueba tu permiso de Traslados de personal.</td></tr>';
+    }
+  }
+
+  function autofillTransferOrigin() {
+    const c=collaborators.find(x=>String(x.id)===$("traslado-colaborador")?.value);if(!c)return;
+    const branch=branches.find(b=>String(b.id)===String(c.sucursal_id))||branches.find(b=>norm(b.nombre)===norm(c.sucursal));
+    if(branch)$("traslado-origen").value=String(branch.id);
+  }
+
+  async function crearSolicitudTraslado(event) {
+    event?.preventDefault();
+    const form=$("traslado-form");if(!form)return;
+    const c=collaborators.find(x=>String(x.id)===$("traslado-colaborador")?.value);
+    const origin=branches.find(x=>String(x.id)===$("traslado-origen")?.value);
+    const dest=branches.find(x=>String(x.id)===$("traslado-destino")?.value);
+    const start=$("traslado-inicio")?.value, indefinite=$("traslado-indefinido")?.checked||false, end=$("traslado-termino")?.value||null;
+    const reason=$("traslado-motivo")?.value.trim();
+    if(!c||!origin||!dest||!start||!reason){setStatus("traslado-estado","Completa colaborador, origen, destino, inicio y motivo.",true);return;}
+    if(origin.id===dest.id){setStatus("traslado-estado","La sucursal de origen y destino deben ser diferentes.",true);return;}
+    if(!indefinite&&end&&end<start){setStatus("traslado-estado","La fecha de término no puede ser anterior al inicio.",true);return;}
+    try{
+      const me=await currentUserId();
+      const row={colaborador_id:c.id,rut:c.rut||null,colaborador_nombre:((c.nombres||"")+" "+(c.apellidos||"")).trim(),cargo:c.cargo||null,
+        sucursal_origen_id:origin.id,sucursal_origen_nombre:origin.nombre,sucursal_destino_id:dest.id,sucursal_destino_nombre:dest.nombre,
+        fecha_inicio:start,fecha_termino:indefinite?null:end,indefinido:indefinite,motivo:reason,solicitado_por:me,estado:"SOLICITADO"};
+      const {error}=await _supabase.from("traslados_personal").insert(row);
+      if(error)throw error;
+      form.reset();$("traslado-termino").disabled=false;
+      setStatus("traslado-estado","Solicitud registrada en la nube. Queda pendiente de revisión.");
+      await cargarTrasladosPersonal();
+    }catch(error){console.error("Crear traslado:",error);setStatus("traslado-estado",error.message||"No se pudo guardar la solicitud. Verifica el permiso Traslados de personal.",true);}
+  }
+
+  async function cargarTrasladosPersonal() {
+    const host=$("traslado-tabla-body");if(!host)return;
+    host.innerHTML='<tr><td colspan="7" class="p-6 text-center text-slate-500">Cargando solicitudes…</td></tr>';
+    try{
+      const {data,error}=await _supabase.from("traslados_personal").select("id,rut,colaborador_nombre,cargo,sucursal_origen_nombre,sucursal_destino_nombre,fecha_inicio,fecha_termino,indefinido,motivo,estado,created_at,solicitado_por,revisado_por").order("created_at",{ascending:false}).limit(1000);
+      if(error)throw error;
+      const filter=$("traslado-filtro-estado")?.value||"TODOS";
+      const rows=(data||[]).filter(r=>filter==="TODOS"||r.estado===filter);
+      host.replaceChildren();
+      if(!rows.length){host.innerHTML='<tr><td colspan="7" class="p-6 text-center text-slate-500">No hay solicitudes para este filtro.</td></tr>';return;}
+      rows.forEach(r=>{
+        const tr=document.createElement("tr");
+        const dateText=dateOnly(r.fecha_inicio)+" – "+(r.indefinido?"Indefinido":dateOnly(r.fecha_termino));
+        const stateClass=r.estado==="APROBADO"?"bg-emerald-50 text-emerald-700":r.estado==="RECHAZADO"||r.estado==="CANCELADO"?"bg-rose-50 text-rose-700":"bg-amber-50 text-amber-800";
+        let actions='<span class="text-slate-400">Sin acciones</span>';
+        if(canApproveTransfers&&r.estado==="SOLICITADO")actions='<div class="flex gap-2"><button type="button" data-transfer-action="APROBADO" data-id="'+esc(r.id)+'" class="rounded-lg bg-emerald-600 px-2 py-1.5 font-bold text-white">Aprobar</button><button type="button" data-transfer-action="RECHAZADO" data-id="'+esc(r.id)+'" class="rounded-lg bg-rose-600 px-2 py-1.5 font-bold text-white">Rechazar</button></div>';
+        const cells=[(r.colaborador_nombre||"")+" · "+(r.rut||"Sin RUT"),r.sucursal_origen_nombre,r.sucursal_destino_nombre,dateText,r.motivo,r.estado,actions];
+        cells.forEach((v,i)=>{const td=document.createElement("td");td.className="p-3 align-top";if(i===5)td.innerHTML='<span class="rounded-full px-2 py-1 font-bold '+stateClass+'">'+esc(v)+'</span>';else if(i===6)td.innerHTML=v;else td.textContent=v||"—";tr.append(td);});
+        host.append(tr);
+      });
+    }catch(error){console.error("Listar traslados:",error);host.innerHTML='<tr><td colspan="7" class="p-6 text-center text-rose-700">No se pudieron consultar los traslados. Revisa el permiso del módulo.</td></tr>';}
+  }
+
+  async function resolverTraslado(id,state) {
+    if(!canApproveTransfers||!["APROBADO","RECHAZADO"].includes(state))return;
+    try{
+      const me=await currentUserId();
+      const {error}=await _supabase.from("traslados_personal").update({estado:state,revisado_por:me,revisado_en:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id).eq("estado","SOLICITADO");
+      if(error)throw error;
+      setStatus("traslado-estado","Solicitud "+(state==="APROBADO"?"aprobada":"rechazada")+". El maestro del colaborador no se modifica automáticamente.");
+      await cargarTrasladosPersonal();
+    }catch(error){console.error("Resolver traslado:",error);setStatus("traslado-estado",error.message||"No se pudo actualizar el estado. Comprueba el permiso traslados_aprobar.",true);}
+  }
+
+  document.addEventListener("click",event=>{
+    const btn=event.target.closest("[data-transfer-action]");
+    if(btn){resolverTraslado(btn.dataset.id,btn.dataset.transferAction);}
+  });
+
+  window.cargarChatInterno=cargarChatInterno;
+  window.crearConversacionChat=crearConversacionChat;
+  window.abrirConversacionChat=abrirConversacionChat;
+  window.enviarMensajeChat=enviarMensajeChat;
+  window.iniciarModuloTraslados=iniciarModuloTraslados;
+  window.crearSolicitudTraslado=crearSolicitudTraslado;
+  window.cargarTrasladosPersonal=cargarTrasladosPersonal;
+})();
