@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS public.rrhh_bitacora (
   titulo text NOT NULL CHECK (char_length(btrim(titulo)) BETWEEN 1 AND 180),
   detalle text NOT NULL CHECK (char_length(btrim(detalle)) BETWEEN 1 AND 16000),
   categoria text NOT NULL DEFAULT 'Gestión' CHECK (categoria IN ('Gestión','Incidencia','Seguimiento','Decisión','Reunión','Cobertura','Asistencia','Licencias','Otro')),
-  modulo text NOT NULL DEFAULT 'general' CHECK (modulo IN ('general','dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados')),
+  modulo text NOT NULL DEFAULT 'general' CHECK (modulo IN ('general','dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','espacio')),
   sucursal text NOT NULL DEFAULT '' CHECK (char_length(sucursal) <= 180),
   ocurrio_en timestamptz NOT NULL DEFAULT now(),
   visibilidad text NOT NULL DEFAULT 'PERSONAL' CHECK (visibilidad IN ('PERSONAL','COMPARTIDA')),
