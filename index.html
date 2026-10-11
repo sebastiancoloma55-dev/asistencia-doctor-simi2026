@@ -2829,6 +2829,11 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
 @media(max-width:760px){.dashboard-ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ops-summary-tile{padding:10px;gap:8px}.ops-summary-copy strong{font-size:18px}#dashboard-ops-summary{padding:14px}}
 @media(max-width:420px){.dashboard-ops-grid{grid-template-columns:minmax(0,1fr)}.ops-summary-tile{align-items:center}.ops-summary-copy strong{font-size:20px}}
 
+
+/* Transición de módulos: breve, ligera y respetuosa con movimiento reducido */
+@keyframes rrhhModuleEnter{from{opacity:0;transform:translate3d(0,7px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+.rrhh-view-enter{animation:rrhhModuleEnter 190ms cubic-bezier(.2,.75,.25,1) both}
+@media(prefers-reduced-motion:reduce){.rrhh-view-enter{animation:none!important}}
 </style>
 <script>
 (function(){
