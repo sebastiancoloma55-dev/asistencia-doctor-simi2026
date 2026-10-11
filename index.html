@@ -759,6 +759,12 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 .space-readonly-note{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;color:#58737f;background:rgba(255,255,255,.52)}
 .space-readonly-note svg{width:13px;height:13px}
 
+
+.space-edit-overlay{position:fixed;inset:0;z-index:180;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,20,31,.65);backdrop-filter:blur(9px)}
+.space-edit-overlay.hidden{display:none!important}
+.space-edit-dialog{width:min(620px,100%);max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:11px;border:1px solid rgba(255,255,255,.7);border-radius:23px;padding:clamp(18px,3vw,29px);background:linear-gradient(145deg,#fff,#f7fbfc);box-shadow:0 30px 100px rgba(0,0,0,.25)}
+.space-edit-head{display:flex;align-items:center;gap:11px;margin-bottom:8px}.space-edit-head>div{min-width:0;flex:1}.space-edit-head h3{font-size:22px;font-weight:900;letter-spacing:-.04em;color:#18394b;margin:4px 0}.space-edit-head p{font-size:10px;color:#718895;margin:0}.space-edit-dialog>label,.space-edit-dialog .space-form-row label{font-size:10px;font-weight:800;color:#3b5668}.space-edit-dialog .form-field{margin-top:-5px;font-size:11px}.space-edit-actions{display:flex;justify-content:flex-end;align-items:center;gap:9px;margin-top:7px;padding-top:14px;border-top:1px solid #e3edf1}.space-edit-actions .space-create-button{width:auto}.space-edit-cancel{padding:11px 14px;border:1px solid #dbe6eb;border-radius:10px;background:#fff;color:#5e7581;font-size:10px;font-weight:800}
+
 </style>
 </head>
 
@@ -1170,7 +1176,19 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     <div class="space-log-history-head"><div><h4>Historial reciente</h4><p>Más recientes primero · hasta 350 registros visibles.</p></div><div class="space-note-search"><i data-lucide="search"></i><input id="rrhh-bitacora-buscar" type="search" placeholder="Buscar por asunto, sucursal o detalle…"></div></div>
                     <div id="rrhh-bitacora-lista" class="space-log-list"><div class="space-loading"><span class="space-loader-ring"></span><p>Cargando bitácora…</p></div></div>
                 </div>
-            </section>
+                            <div id="rrhh-modal-editar-nota" class="space-edit-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="rrhh-edit-note-title">
+                    <form class="space-edit-dialog" onsubmit="guardarEdicionNotaRRHH(event)">
+                        <div class="space-edit-head"><span class="space-compose-icon"><i data-lucide="pencil-line"></i></span><div><span class="space-section-kicker">ACTUALIZAR RECORDATORIO</span><h3 id="rrhh-edit-note-title">Editar nota</h3><p>Guarda los cambios en tu espacio en la nube.</p></div><button type="button" class="space-note-action" onclick="cerrarEdicionNotaRRHH()" aria-label="Cerrar editor"><i data-lucide="x"></i></button></div>
+                        <input type="hidden" id="rrhh-edit-nota-id">
+                        <label for="rrhh-edit-nota-titulo">Título</label><input id="rrhh-edit-nota-titulo" class="form-field" maxlength="160" required>
+                        <label for="rrhh-edit-nota-contenido">Detalle</label><textarea id="rrhh-edit-nota-contenido" class="form-field" rows="4" maxlength="12000"></textarea>
+                        <div class="space-form-row"><div><label for="rrhh-edit-nota-categoria">Categoría</label><select id="rrhh-edit-nota-categoria" class="form-field"><option>General</option><option>Seguimiento</option><option>Asistencia</option><option>Licencias</option><option>Cobertura</option><option>Sucursal</option><option>Reunión</option><option>Urgente</option></select></div><div><label for="rrhh-edit-nota-color">Color</label><select id="rrhh-edit-nota-color" class="form-field"><option value="amarillo">Amarillo</option><option value="menta">Menta</option><option value="celeste">Celeste</option><option value="lila">Lila</option><option value="rosa">Rosa</option><option value="neutro">Neutro</option></select></div></div>
+                        <div class="space-form-row"><div><label for="rrhh-edit-nota-vence">Fecha límite</label><input id="rrhh-edit-nota-vence" type="datetime-local" class="form-field"></div><div><label for="rrhh-edit-nota-visibilidad">Visibilidad</label><select id="rrhh-edit-nota-visibilidad" class="form-field"><option value="PERSONAL">Solo yo · privada</option><option value="COMPARTIDA">Equipo autorizado · compartida</option></select></div></div>
+                        <label class="space-pin-check"><input id="rrhh-edit-nota-fijada" type="checkbox"><span></span> Fijar al comienzo del tablero</label>
+                        <div class="space-edit-actions"><button type="button" class="space-edit-cancel" onclick="cerrarEdicionNotaRRHH()">Cancelar</button><button type="submit" class="space-create-button"><i data-lucide="check"></i> Guardar cambios</button></div>
+                    </form>
+                </div>
+</section>
 
             <!-- COLABORADORES -->
             <section id="view-colaboradores" class="hidden space-y-6 p-4 sm:p-8">
