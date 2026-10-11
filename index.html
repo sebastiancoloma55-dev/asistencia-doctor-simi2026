@@ -2288,6 +2288,27 @@ body.sidebar-compact .sidebar-credit-copy{display:none}
   .sidebar-credit{margin-bottom:10px}
 }
 
+
+/* Contraste coherente de las cabeceras de módulo al usar modo oscuro */
+body.theme-dark [id^="view-"] .module-intro{
+  color:#e5eefb!important;
+  background:linear-gradient(112deg,
+    color-mix(in srgb,var(--module-accent,#087fa3) 18%,#142238) 0%,
+    #142238 72%)!important;
+  border-color:color-mix(in srgb,var(--module-accent,#087fa3) 35%,#293b55)!important;
+}
+body.theme-dark [id^="view-"] .module-intro .text-slate-600,
+body.theme-dark [id^="view-"] .module-intro .text-slate-500{
+  color:#a6b6cd!important;
+}
+body.theme-dark [id^="view-"] .module-kicker{
+  color:color-mix(in srgb,var(--module-accent,#087fa3) 55%,#fff)!important;
+  background:color-mix(in srgb,var(--module-accent,#087fa3) 17%,#142238)!important;
+  border-color:color-mix(in srgb,var(--module-accent,#087fa3) 37%,#293b55)!important;
+}
+body.theme-dark [id^="view-"] .module-intro:after{
+  opacity:.55;
+}
 </style>
 <script>
 (function(){
