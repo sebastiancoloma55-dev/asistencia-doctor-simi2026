@@ -250,10 +250,13 @@
     const host=$("traslado-tabla-body");if(!host)return;
     host.innerHTML='<tr><td colspan="7" class="p-6 text-center text-slate-500">Cargando solicitudes…</td></tr>';
     try{
-      const {data,error}=await _supabase.from("traslados_personal").select("id,rut,colaborador_nombre,cargo,sucursal_origen_nombre,sucursal_destino_nombre,fecha_inicio,fecha_termino,indefinido,motivo,estado,aplicado_en,created_at,solicitado_por,revisado_por").order("created_at",{ascending:false}).limit(1000);
+      const {data,error}=await _supabase.from("traslados_personal").select("id,colaborador_id,rut,colaborador_nombre,cargo,sucursal_origen_id,sucursal_origen_nombre,sucursal_destino_id,sucursal_destino_nombre,fecha_inicio,fecha_termino,indefinido,motivo,estado,aplicado_en,created_at,solicitado_por,revisado_por").order("created_at",{ascending:false}).limit(1000);
       if(error)throw error;
+      const allRows=data||[];
+      renderTransferCalendar(allRows);
+      renderTransferStaffing(allRows);
       const filter=$("traslado-filtro-estado")?.value||"TODOS";
-      const rows=(data||[]).filter(r=>filter==="TODOS"||r.estado===filter);
+      const rows=allRows.filter(r=>filter==="TODOS"||r.estado===filter);
       host.replaceChildren();
       if(!rows.length){host.innerHTML='<tr><td colspan="7" class="p-6 text-center text-slate-500">No hay solicitudes para este filtro.</td></tr>';return;}
       rows.forEach(r=>{
@@ -268,6 +271,58 @@
         host.append(tr);
       });
     }catch(error){console.error("Listar traslados:",error);host.innerHTML='<tr><td colspan="7" class="p-6 text-center text-rose-700">No se pudieron consultar los traslados. Revisa el permiso del módulo.</td></tr>';}
+  }
+
+  function todayChileISO(){
+    const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Santiago",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+    const values=Object.fromEntries(parts.map(p=>[p.type,p.value]));
+    return values.year+"-"+values.month+"-"+values.day;
+  }
+  function addDaysISO(iso,days){
+    const [y,m,d]=iso.split("-").map(Number);
+    return new Date(Date.UTC(y,m-1,d+days)).toISOString().slice(0,10);
+  }
+  function renderTransferCalendar(rows){
+    const host=$("traslado-calendario");if(!host)return;
+    const today=todayChileISO(),end=addDaysISO(today,90);
+    const items=rows.filter(r=>["SOLICITADO","APROBADO"].includes(r.estado)&&r.fecha_inicio>=today&&r.fecha_inicio<=end)
+      .sort((a,b)=>a.fecha_inicio.localeCompare(b.fecha_inicio)).slice(0,100);
+    host.replaceChildren();
+    if(!items.length){host.append(Object.assign(document.createElement("p"),{className:"text-sm text-slate-500",textContent:"No hay movimientos registrados para los próximos 90 días."}));return;}
+    items.forEach(r=>{
+      const card=document.createElement("div");card.className="flex items-start justify-between gap-3 py-3";
+      const info=document.createElement("div");info.className="min-w-0";
+      const title=document.createElement("b");title.className="block text-sm text-slate-800";title.textContent=r.colaborador_nombre||"Colaborador";
+      const route=document.createElement("p");route.className="mt-1 text-xs text-slate-600";route.textContent=(r.sucursal_origen_nombre||"Origen")+" → "+(r.sucursal_destino_nombre||"Destino");
+      const dateNode=document.createElement("p");dateNode.className="mt-1 text-[11px] text-slate-500";dateNode.textContent=dateOnly(r.fecha_inicio)+" · "+(r.indefinido?"Indefinido":r.fecha_termino?("hasta "+dateOnly(r.fecha_termino)):"Sin fecha de término");
+      info.append(title,route,dateNode);
+      const badge=document.createElement("span");badge.className="shrink-0 rounded-full px-2 py-1 text-[10px] font-bold "+(r.estado==="APROBADO"?"bg-emerald-50 text-emerald-700":"bg-amber-50 text-amber-800");badge.textContent=r.estado==="APROBADO"?(r.aplicado_en?"Aplicado":"Aprobado"):"Solicitado";
+      card.append(info,badge);host.append(card);
+    });
+  }
+  function renderTransferStaffing(rows){
+    const host=$("traslado-dotacion");if(!host)return;
+    const today=todayChileISO();
+    const scheduled=rows.filter(r=>r.estado==="APROBADO"&&!r.aplicado_en&&r.fecha_inicio>today);
+    const pending=rows.filter(r=>r.estado==="SOLICITADO");
+    const counts=branches.map(branch=>{
+      const active=collaborators.filter(c=>String(c.sucursal_id||"")===String(branch.id)||norm(c.sucursal)===norm(branch.nombre)).length;
+      const incoming=scheduled.filter(r=>String(r.sucursal_destino_id||"")===String(branch.id)).length;
+      const outgoing=scheduled.filter(r=>String(r.sucursal_origen_id||"")===String(branch.id)).length;
+      const waiting=pending.filter(r=>String(r.sucursal_destino_id||"")===String(branch.id)).length;
+      return {name:branch.nombre,active,incoming,outgoing,waiting};
+    }).filter(x=>x.active||x.incoming||x.outgoing||x.waiting).sort((a,b)=>a.name.localeCompare(b.name,"es"));
+    host.replaceChildren();
+    if(!counts.length){host.append(Object.assign(document.createElement("p"),{className:"text-sm text-slate-500",textContent:"No hay datos de dotación disponibles para las sucursales activas."}));return;}
+    counts.forEach(item=>{
+      const card=document.createElement("div");card.className="py-3";
+      const top=document.createElement("div");top.className="flex items-center justify-between gap-2";
+      const name=document.createElement("b");name.className="text-sm text-slate-800";name.textContent=item.name;
+      const total=document.createElement("span");total.className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-extrabold text-slate-700";total.textContent=item.active+" activos";
+      top.append(name,total);
+      const detail=document.createElement("p");detail.className="mt-1 text-xs text-slate-500";detail.textContent="Entradas aprobadas: "+item.incoming+" · Salidas aprobadas: "+item.outgoing+" · Solicitudes por revisar: "+item.waiting;
+      card.append(top,detail);host.append(card);
+    });
   }
 
   async function resolverTraslado(id,state) {
