@@ -24,23 +24,23 @@
         async function cargarDestinatariosDotacion(){
             const select=document.getElementById('dot-destinatario');
             if(!select)return;
-            select.innerHTML='<option value="">Cargando usuarios activos…</option>';
+            select.innerHTML='<option value="" disabled>Cargando usuarios activos…</option>';
             try{
                 const {data,error}=await _supabase.rpc('listar_destinatarios_cobertura');
                 if(error)throw error;
                 const usuarios=(data||[]).filter(u=>u&&u.id!=null);
                 if(!usuarios.length){
-                    select.innerHTML='<option value="">No hay usuarios disponibles</option>';
+                    select.innerHTML='<option value="" disabled>No hay usuarios disponibles</option>';
                     return;
                 }
-                select.innerHTML='<option value="">Selecciona quién recibirá esta alerta</option>'+usuarios.map(u=>{
+                select.innerHTML=usuarios.map(u=>{
                     const nombre=String(u.nombre||u.email||('Usuario '+u.id));
                     const detalle=[u.rol,u.email].filter(Boolean).join(' · ');
                     return '<option value="'+escaparHTML(u.id)+'">'+escaparHTML(nombre)+(detalle?' — '+escaparHTML(detalle):'')+'</option>';
                 }).join('');
             }catch(error){
                 console.error('Cargar destinatarios de cobertura:',error);
-                select.innerHTML='<option value="">No fue posible cargar usuarios</option>';
+                select.innerHTML='<option value="" disabled>No fue posible cargar usuarios</option>';
                 mostrarToast('No se pudieron cargar los usuarios destinatarios. Verifica permisos y conexión.','error',8000);
             }
         }
@@ -50,9 +50,9 @@
             const sucursalId=document.getElementById('dot-sucursal')?.value,opcion=document.getElementById('dot-sucursal')?.selectedOptions?.[0];
             const inicio=document.getElementById('dot-inicio')?.value,fin=document.getElementById('dot-fin')?.value;
             const turno=document.getElementById('dot-turno')?.value,horaini=document.getElementById('dot-hora-inicio')?.value||null,horafin=document.getElementById('dot-hora-fin')?.value||null;
-            const destinatario=document.getElementById('dot-destinatario')?.value;
+            const destinatarios=Array.from(document.getElementById('dot-destinatario')?.selectedOptions||[]).map(o=>Number(o.value)).filter(Number.isInteger);
             if(!sucursalId||!inicio||!fin||fin<inicio)return mostrarToast('Selecciona una sucursal y revisa las fechas de la solicitud.','warning');
-            if(!destinatario)return mostrarToast('Selecciona qué usuario debe recibir la alerta.','warning');
+            if(!destinatarios.length)return mostrarToast('Selecciona al menos un usuario que deba recibir la alerta.','warning');
             if(horaini&&horafin&&horafin<=horaini)return mostrarToast('La hora de término debe ser posterior a la hora de inicio.','warning');
             try{
                 if(status)status.textContent='Guardando la necesidad y enviando la notificación…';
@@ -68,18 +68,18 @@
                     p_hora_fin:horafin,
                     p_motivo:document.getElementById('dot-motivo')?.value?.trim(),
                     p_observaciones:document.getElementById('dot-observaciones')?.value?.trim()||null,
-                    p_destinatario_id:Number(destinatario)
+                    p_destinatarios_ids:destinatarios
                 };
-                const {data,error}=await _supabase.rpc('crear_solicitud_dotacion_con_destinatario',payload);
+                const {data,error}=await _supabase.rpc('crear_solicitud_dotacion_con_destinatarios',payload);
                 if(error)throw error;
                 const solicitudId=data;
-                await registrarAuditoria('coberturas','CREA_ALERTA_DOTACION',payload.p_sucursal_nombre+' · '+payload.p_cargo_requerido+' · '+payload.p_turno+' · '+payload.p_fecha_inicio+' a '+payload.p_fecha_fin+' · destinatario '+destinatario);
+                await registrarAuditoria('coberturas','CREA_ALERTA_DOTACION',payload.p_sucursal_nombre+' · '+payload.p_cargo_requerido+' · '+payload.p_turno+' · '+payload.p_fecha_inicio+' a '+payload.p_fecha_fin+' · destinatarios '+destinatarios.join(', '));
                 if(status)status.textContent='Necesidad guardada y notificación enviada. Queda pendiente de encontrar y confirmar a la persona. Solicitud '+String(solicitudId).slice(0,8)+'.';
                 form?.reset();
                 const dias=document.getElementById('dot-dias');if(dias)dias.value='';
                 actualizarHorarioDotacion();
                 await cargarDestinatariosDotacion();
-                mostrarToast('Necesidad guardada y alerta enviada al usuario seleccionado. No se creó ningún traslado.','success',9000);
+                mostrarToast('Necesidad guardada y alerta enviada a '+destinatarios.length+' usuario(s). No se creó ningún traslado.','success',9000);
                 if(typeof cargarSolicitudesDotacion==='function')await cargarSolicitudesDotacion();
             }catch(error){
                 console.error('Crear alerta dotación:',error);
