@@ -58,25 +58,42 @@ def cerrar_popups(page):
 
 
 def click_texto(page, texto, timeout=15000):
+    """Busca una etiqueta primero exacta y luego tolera mayúsculas y texto adicional."""
     deadline = time.monotonic() + timeout / 1000
     last_error = None
+    escaped = re.escape(texto.strip())
+    strategies = [
+        ("exacto", lambda frame: frame.get_by_text(texto, exact=True)),
+        ("exacto sin distinguir mayúsculas", lambda frame: frame.get_by_text(
+            re.compile(r"^\s*" + escaped + r"\s*$", re.I)
+        )),
+        ("coincidencia parcial sin distinguir mayúsculas", lambda frame: frame.get_by_text(
+            re.compile(escaped, re.I), exact=False
+        )),
+    ]
     while time.monotonic() < deadline:
         cerrar_popups(page)
-        for frame in list(page.frames):
-            try:
-                loc = frame.get_by_text(texto, exact=True)
-                for i in range(min(loc.count(), 60)):
-                    item = loc.nth(i)
-                    try:
-                        if item.is_visible() and item.is_enabled():
-                            item.click(timeout=1200)
-                            return
-                    except Exception as exc:
-                        last_error = exc
-            except Exception as exc:
-                last_error = exc
+        for strategy_name, build_locator in strategies:
+            for frame in list(page.frames):
+                try:
+                    loc = build_locator(frame)
+                    for i in range(min(loc.count(), 60)):
+                        item = loc.nth(i)
+                        try:
+                            if item.is_visible() and item.is_enabled():
+                                item.click(timeout=1200)
+                                if strategy_name != "exacto":
+                                    print(f"Etiqueta Talana localizada mediante estrategia: {strategy_name}.")
+                                return
+                        except Exception as exc:
+                            last_error = exc
+                except Exception as exc:
+                    last_error = exc
         page.wait_for_timeout(300)
-    raise RuntimeError(f"No se pudo seleccionar «{texto}» en Talana. {last_error or ''}")
+    raise RuntimeError(
+        f"No se pudo seleccionar «{texto}» en Talana. "
+        f"URL actual: {page.url}. Último detalle: {last_error or 'no hubo coincidencias visibles'}"
+    )
 
 
 def iniciar_sesion_talana(page, rut, clave):
