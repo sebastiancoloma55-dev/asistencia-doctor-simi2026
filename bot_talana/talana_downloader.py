@@ -346,7 +346,7 @@ def cambiar_a_asistencia_y_turnos(page):
 def descargar_reporte_jornadas(page, eventos):
     click_texto(page, "Jornadas")
     boton, limite = None, time.monotonic() + 60
-    patron = re.compile(r"Descargar\\s+reporte", re.I)
+    patron = re.compile(r"Descargar\s+reporte", re.I)
     while time.monotonic() < limite and boton is None:
         for frame in list(page.frames):
             try:
