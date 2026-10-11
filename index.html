@@ -636,6 +636,19 @@ body:has(.nova-v3-overlay){margin:0}
 
 /* Respeta el cierre de sesión visual que controla la lógica existente */
 .nova-v3-overlay.hidden{display:none!important}
+
+/* NOVA V3 — estados accesibles y microinteracciones finales */
+.nova-v3-overlay ::selection{background:rgba(91,220,199,.28);color:#f6fffd}
+.nova-v3-overlay :focus-visible{outline:2px solid #76e7d5!important;outline-offset:3px}
+.nova-v3-submit:disabled{cursor:wait;opacity:.82;transform:none!important;filter:saturate(.82)}
+.nova-v3-submit.is-loading .nova-v3-submit-icon svg{animation:nova-v3-icon-spin 1.1s linear infinite}
+.nova-v3-error:not(.hidden){animation:nova-v3-error-in .22s ease-out}
+.nova-v3-forgot:focus-visible,.nova-v3-eye:focus-visible{border-radius:6px}
+@keyframes nova-v3-icon-spin{to{transform:rotate(360deg)}}
+@keyframes nova-v3-error-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:1200px){.nova-v3-main{padding-top:36px;padding-bottom:54px}.nova-v3-auth{transform:translateY(2px)}}
+@media(max-height:760px) and (min-width:701px){.nova-v3-topbar{padding-top:14px;padding-bottom:14px}.nova-v3-main{padding-top:12px;padding-bottom:18px}.nova-v3-orbit-scene{height:205px}.nova-v3-auth{padding-top:27px;padding-bottom:27px}.nova-v3-auth-heading{margin:22px 0 20px}.nova-v3-form{gap:15px}.nova-v3-auth-foot{margin-top:18px;padding-top:13px}.nova-v3-footer{padding-top:8px;padding-bottom:12px}}
+
 </style>
 </head>
 
