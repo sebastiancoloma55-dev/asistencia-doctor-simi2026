@@ -12,4 +12,5 @@ drop policy if exists "Users can insert own UI preferences" on public.user_ui_pr
 create policy "Users can insert own UI preferences" on public.user_ui_preferences for insert to authenticated with check (auth.uid() = user_id);
 drop policy if exists "Users can update own UI preferences" on public.user_ui_preferences;
 create policy "Users can update own UI preferences" on public.user_ui_preferences for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
-grant select, insert, update on public.user_ui_preferences to authenticated;
+revoke all privileges on table public.user_ui_preferences from anon, authenticated;
+grant select, insert, update on table public.user_ui_preferences to authenticated;
