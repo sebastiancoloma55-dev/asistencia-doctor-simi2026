@@ -670,6 +670,86 @@ body:has(.nova-v3-overlay){margin:0}
 .nova-v3-auth:before{background:linear-gradient(90deg,transparent,var(--user-accent),transparent)}
 .nova-v3-brand-image{border-color:color-mix(in srgb,var(--user-accent) 65%,transparent);box-shadow:0 0 26px color-mix(in srgb,var(--user-accent) 15%,transparent)}
 
+
+/* ORGANIZACIÓN GLOBAL NOVA: jerarquía, consistencia y navegación por grupos */
+.nova-nav-divider{display:flex;align-items:center;gap:8px;margin:16px 6px 7px;padding:8px 4px 4px;color:#7f9baa;font-size:9px;letter-spacing:.16em;line-height:1.35;font-weight:850;text-transform:uppercase;border-top:1px solid rgba(153,190,204,.12)}
+.nova-nav-divider:first-child{margin-top:4px;border-top:0}
+#sidebar nav{scrollbar-width:thin;scrollbar-color:rgba(121,179,194,.25) transparent}
+#sidebar .menu-btn{min-height:39px;display:flex;align-items:center;gap:11px;border-radius:11px;padding:9px 11px;margin:2px 0;color:#c1d2de;font-weight:620;transition:background .18s,color .18s,transform .18s;position:relative}
+#sidebar .menu-btn>span:first-of-type{min-width:0;flex:1}
+#sidebar .menu-btn svg{width:17px;height:17px;flex-shrink:0;opacity:.9}
+#sidebar .menu-btn:hover{background:rgba(255,255,255,.075);color:#fff;transform:translateX(2px)}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{background:linear-gradient(105deg,color-mix(in srgb,var(--user-accent,#0891b2) 27%,#123446),color-mix(in srgb,var(--user-accent,#0891b2) 18%,#0c2537));color:#fff;box-shadow:inset 3px 0 var(--user-accent,#0891b2),inset 0 0 0 1px color-mix(in srgb,var(--user-accent,#0891b2) 23%,transparent)}
+.nav-new-mark{font-size:7px!important;font-weight:900!important;letter-spacing:.07em;background:var(--user-accent,#0891b2)!important;color:white!important;border-radius:5px;padding:3px 5px;flex:0 0 auto!important}
+.module-context-rail{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:0 0 6px;padding:2px 1px 11px;color:#6f8795;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;border-bottom:1px solid #e5edf3}
+.module-context-dot{width:8px;height:8px;border-radius:3px;background:var(--user-accent,#0891b2);box-shadow:0 0 0 4px color-mix(in srgb,var(--user-accent,#0891b2) 12%,transparent)}
+.module-context-sep{opacity:.42}.module-context-name{color:#1b3447;letter-spacing:.08em}
+#quick-module-bar .quick-module-chip{border-radius:999px;padding:8px 13px}
+section[id^="view-"]{scroll-margin-top:76px}
+section[id^="view-"] .module-intro{padding:2px 0 10px}
+section[id^="view-"] .module-intro h3{font-size:clamp(22px,2vw,30px);letter-spacing:-.035em;color:#142d3e!important}
+section[id^="view-"] .module-intro p{max-width:840px;line-height:1.7}
+section[id^="view-"] .ui-card{min-width:0}
+section[id^="view-"] .ui-card>h3,section[id^="view-"] .ui-card h4{letter-spacing:-.018em}
+section[id^="view-"] input:not([type=checkbox]):not([type=radio]):not([type=file]),section[id^="view-"] select,section[id^="view-"] textarea{transition:border-color .16s,box-shadow .16s}
+section[id^="view-"] input:focus-visible,section[id^="view-"] select:focus-visible,section[id^="view-"] textarea:focus-visible{outline:0;border-color:var(--user-accent,#0891b2)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--user-accent,#0891b2) 12%,transparent)}
+section[id^="view-"] table thead{background:#f4f8fb}
+section[id^="view-"] table thead th{font-size:10px;letter-spacing:.08em;font-weight:850;color:#60778a}
+section[id^="view-"] table tbody tr{transition:background .13s}
+section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
+.module-section-caption{display:flex;align-items:center;gap:12px;padding:8px 2px 2px}
+.module-section-caption>span{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:color-mix(in srgb,var(--user-accent,#0891b2) 12%,white);color:var(--user-accent-strong,#06627e)}
+.module-section-caption svg{width:18px;height:18px}
+.module-section-caption b,.module-section-caption small{display:block}
+.module-section-caption b{font-size:13px;color:#183448}.module-section-caption small{font-size:11px;color:#738797;margin-top:3px}
+.colab-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.colab-kpi{display:flex;align-items:center;gap:12px;min-width:0;background:linear-gradient(145deg,#fff,#f8fbfd);border:1px solid #e0eaf0;border-radius:16px;padding:16px;box-shadow:0 8px 22px rgba(16,47,65,.04)}
+.colab-kpi>span{display:grid;place-items:center;width:40px;height:40px;border:1px solid color-mix(in srgb,var(--user-accent,#0891b2) 20%,white);border-radius:13px;background:color-mix(in srgb,var(--user-accent,#0891b2) 9%,white);color:var(--user-accent-strong,#06627e);flex:0 0 auto}
+.colab-kpi svg{width:19px;height:19px}.colab-kpi small,.colab-kpi strong{display:block}.colab-kpi small{font-size:10px;color:#6e8493;line-height:1.4}.colab-kpi strong{font-size:25px;font-weight:900;color:#183548;margin-top:3px;letter-spacing:-.04em}
+.dash-space-card{position:relative;overflow:hidden;border:1px solid color-mix(in srgb,var(--user-accent,#0891b2) 22%,#deebf2);border-radius:20px;padding:19px;background:radial-gradient(ellipse at 95% 0%,color-mix(in srgb,var(--user-accent,#0891b2) 11%,transparent),transparent 42%),linear-gradient(135deg,#fff,#f7fbfc);box-shadow:0 13px 32px rgba(16,47,65,.055)}
+.dash-space-intro{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.dash-space-kicker,.space-section-kicker{display:block;font-size:9px;font-weight:900;letter-spacing:.19em;color:var(--user-accent-strong,#06627e)}
+.dash-space-intro h3{font-size:18px;letter-spacing:-.03em;font-weight:850;color:#16354a;margin:5px 0}.dash-space-intro p{font-size:11px;color:#738797;margin:0}
+.dash-space-open{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:11px;background:var(--user-accent,#087fa3);color:#fff;font-size:11px;font-weight:800;box-shadow:0 6px 18px color-mix(in srgb,var(--user-accent,#087fa3) 20%,transparent);transition:transform .15s,filter .15s}
+.dash-space-open:hover{transform:translateY(-2px);filter:brightness(1.05)}.dash-space-open svg{width:15px;height:15px}
+.dash-space-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:17px}.dash-space-stat-grid>div{display:flex;align-items:center;gap:10px;min-width:0;border:1px solid #e2edf2;border-radius:12px;background:rgba(255,255,255,.8);padding:11px}
+.dash-space-stat-icon{display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:color-mix(in srgb,var(--user-accent,#0891b2) 10%,white);color:var(--user-accent-strong,#06627e);flex:0 0 auto}.dash-space-stat-icon svg{width:16px;height:16px}.dash-space-stat-grid b,.dash-space-stat-grid small{display:block}.dash-space-stat-grid b{font-size:20px;font-weight:900;color:#18384a}.dash-space-stat-grid small{font-size:9px;color:#728999;margin-top:1px}
+.space-hero{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(220px,.75fr);gap:24px;align-items:center;padding:clamp(22px,3.2vw,38px);border-radius:24px;color:#effbfb;background:radial-gradient(ellipse at 78% 44%,color-mix(in srgb,var(--user-accent,#0891b2) 27%,transparent),transparent 35%),linear-gradient(120deg,#0a1c28 0%,#102b39 57%,#113846 100%);box-shadow:0 22px 50px rgba(5,31,44,.14)}
+.space-hero-orb{position:absolute;right:15%;top:-125px;width:300px;height:300px;border:1px solid rgba(124,225,216,.13);border-radius:50%;box-shadow:0 0 0 32px rgba(124,225,216,.025),0 0 0 64px rgba(124,225,216,.02);z-index:-1}.space-hero-copy{max-width:690px}
+.space-hero-kicker{display:flex;align-items:center;gap:8px;color:#7ee1d4;font-size:9px;font-weight:900;letter-spacing:.18em}.space-hero-kicker svg{width:15px;height:15px}
+.space-hero-copy h3{font-size:clamp(26px,3.2vw,42px);line-height:1.04;letter-spacing:-.05em;font-weight:840;margin:15px 0 10px;color:#f1fbfa}.space-hero-copy p{max-width:620px;margin:0;color:#a6c0c7;font-size:12px;line-height:1.8}
+.space-hero-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}.space-hero-pills span{display:flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid rgba(160,213,213,.15);border-radius:999px;background:rgba(255,255,255,.045);font-size:9px;color:#c4dadd}.space-hero-pills svg{width:13px;height:13px;color:#78ddcf}
+.space-hero-graphic{position:relative;justify-self:center;width:220px;height:185px;display:grid;place-items:center}.space-hero-ring{position:absolute;border:1px solid rgba(104,222,210,.26);border-radius:50%;transform:rotate(-30deg)}.ring-one{width:212px;height:116px;animation:space-orbit 25s linear infinite}.ring-two{width:160px;height:160px;border-style:dashed;opacity:.6;animation:space-orbit-reverse 32s linear infinite}
+.space-hero-center{width:68px;height:68px;border-radius:23px;display:grid;place-items:center;border:1px solid rgba(132,235,221,.5);background:linear-gradient(145deg,#1b5a62,#133641);box-shadow:0 0 36px color-mix(in srgb,var(--user-accent,#0891b2) 23%,transparent),0 0 0 10px rgba(113,221,210,.05)}.space-hero-center svg{width:28px;height:28px;color:#9af0e5}
+.space-hero-sticky{position:absolute;display:grid;place-items:center;width:74px;height:49px;border-radius:8px;font-size:8px;letter-spacing:.13em;font-weight:950;color:#213b3d;box-shadow:0 8px 20px rgba(0,0,0,.15);transform:rotate(-10deg);animation:space-float 5s ease-in-out infinite}.sticky-one{left:0;top:19px;background:#f2e6a6}.sticky-two{right:-3px;bottom:12px;background:#a8ead7;transform:rotate(9deg);animation-delay:-2s}
+.space-metrics-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.space-metric{display:flex;align-items:center;gap:12px;min-width:0;padding:14px 16px;background:#fff;border:1px solid #e1ebf0;border-radius:16px;box-shadow:0 8px 22px rgba(16,47,65,.04)}
+.space-metric-icon{display:grid;place-items:center;flex:0 0 auto;width:40px;height:40px;border-radius:13px;background:#ecf7f7;color:#138e88;border:1px solid #d4efec}.space-metric-icon svg{width:19px;height:19px}.space-metric-copy small,.space-metric-copy strong{display:block}.space-metric-copy small{font-size:10px;color:#718895}.space-metric-copy strong{font-size:25px;line-height:1.1;font-weight:900;letter-spacing:-.04em;color:#18394a;margin-top:4px}
+.space-metric-violet .space-metric-icon{background:#f1edff;color:#7760cf;border-color:#e4dcff}.space-metric-amber .space-metric-icon{background:#fff5df;color:#b47c1b;border-color:#ffebc4}.space-metric-blue .space-metric-icon{background:#eaf2ff;color:#3671bb;border-color:#d9e7ff}
+.space-tabbar{display:flex;gap:8px;align-items:center;overflow:auto;border-bottom:1px solid #dce7ed;padding:0 4px}.space-tab{display:flex;align-items:center;gap:9px;white-space:nowrap;padding:12px 14px;border-bottom:2px solid transparent;color:#6c8392;font-size:11px;font-weight:800}.space-tab svg{width:16px;height:16px}.space-tab span{font-size:8px;letter-spacing:.1em;border:1px solid #dce7ed;border-radius:5px;padding:3px 5px}.space-tab.is-active{color:var(--user-accent-strong,#06627e);border-bottom-color:var(--user-accent,#087fa3)}.space-tab.is-active span{background:color-mix(in srgb,var(--user-accent,#0891b2) 10%,white);border-color:color-mix(in srgb,var(--user-accent,#0891b2) 25%,white)}
+.space-panel{min-width:0}.space-panel-heading{display:flex;justify-content:space-between;align-items:end;gap:15px;flex-wrap:wrap;margin:3px 0 16px}.space-panel-heading h3{font-size:23px;letter-spacing:-.04em;font-weight:900;color:#16364a;margin:5px 0}.space-panel-heading p{font-size:11px;line-height:1.7;color:#718796;margin:0}.space-count-chip{border:1px solid #dce9ee;background:#fff;border-radius:999px;padding:7px 10px;font-size:10px;color:#607a8a;font-weight:750}
+.space-notes-layout{display:grid;grid-template-columns:minmax(270px,.72fr) minmax(0,1.65fr);align-items:start;gap:17px}.space-compose-card{position:sticky;top:91px;display:flex;flex-direction:column;gap:10px;padding:20px;background:#fff;border:1px solid #dfe9ee;border-radius:20px;box-shadow:0 10px 30px rgba(17,49,68,.055)}
+.space-compose-top{display:flex;align-items:center;gap:10px;margin-bottom:5px}.space-compose-icon{width:38px;height:38px;display:grid;place-items:center;background:color-mix(in srgb,var(--user-accent,#0891b2) 11%,white);border:1px solid color-mix(in srgb,var(--user-accent,#0891b2) 20%,white);border-radius:12px;color:var(--user-accent-strong,#06627e);flex:0 0 auto}.space-compose-icon svg{width:18px;height:18px}.space-compose-label{font-size:9px;letter-spacing:.16em;font-weight:900;color:#79909e}
+.space-compose-card>label,.space-log-fields label{font-size:10px;font-weight:800;color:#3b5668}.space-compose-card .form-field,.space-log-fields .form-field{margin-top:-5px;font-size:11px;min-height:39px;padding:9px 11px}.space-compose-card textarea.form-field,.space-log-fields textarea.form-field{min-height:auto;resize:vertical}
+.space-form-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.space-form-row>div{display:flex;flex-direction:column;gap:9px;min-width:0}.space-color-select{display:flex;gap:8px;align-items:center;justify-content:space-between}.space-color-option{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:8px;color:#738796;cursor:pointer}.space-color-option input{position:absolute;opacity:0;width:1px;height:1px}.space-color-option span{width:25px;height:25px;border-radius:9px;display:block;border:2px solid rgba(30,50,60,.08);box-shadow:0 0 0 0 var(--user-accent);transition:box-shadow .16s}.note-color-amarillo span{background:#f3e6a1}.note-color-menta span{background:#ade8d5}.note-color-celeste span{background:#b8def7}.note-color-lila span{background:#d9c8f8}.note-color-rosa span{background:#f5bed2}.space-color-option input:checked+span{box-shadow:0 0 0 3px var(--user-accent,#0891b2)}
+.space-pin-check{display:flex;align-items:center;gap:9px;color:#667f8d;font-size:10px;cursor:pointer}.space-pin-check input{accent-color:var(--user-accent,#0891b2)}.space-pin-check span{display:none}
+.space-create-button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 13px;background:linear-gradient(110deg,var(--user-accent-strong,#06627e),var(--user-accent,#087fa3));color:#fff;border-radius:11px;font-size:11px;font-weight:850;box-shadow:0 8px 20px color-mix(in srgb,var(--user-accent,#0891b2) 20%,transparent);transition:transform .16s,filter .16s}.space-create-button:hover{transform:translateY(-1px);filter:brightness(1.06)}.space-create-button svg{width:15px;height:15px}
+.space-form-foot{display:flex;align-items:center;gap:6px;font-size:9px;color:#8296a3;margin:0}.space-form-foot svg{width:13px;height:13px}
+.space-note-board-wrap{min-width:0}.space-note-tools{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}.space-note-search{display:flex;align-items:center;gap:9px;min-width:0;border:1px solid #dae6ec;background:#fff;border-radius:11px;padding:0 11px}.space-note-search>svg{width:15px;height:15px;color:#8095a1;flex:0 0 auto}.space-note-search input{width:100%;min-width:0;border:0!important;outline:0!important;box-shadow:none!important;padding:11px 0!important;font-size:11px!important;background:transparent!important}.space-note-filters{display:flex;flex-wrap:wrap;gap:6px}.space-note-filters button{padding:7px 10px;border:1px solid #dbe6eb;border-radius:999px;color:#6c8290;background:#fff;font-size:9px;font-weight:800}.space-note-filters button.is-active{color:var(--user-accent-strong,#06627e);border-color:color-mix(in srgb,var(--user-accent,#0891b2) 35%,white);background:color-mix(in srgb,var(--user-accent,#0891b2) 9%,white)}
+.space-note-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}.space-note{position:relative;min-width:0;overflow:hidden;padding:16px 16px 13px;border:1px solid rgba(32,60,70,.12);border-radius:15px;box-shadow:0 9px 22px rgba(23,48,60,.06);transition:transform .16s,box-shadow .16s}.space-note:hover{transform:translateY(-2px);box-shadow:0 13px 30px rgba(23,48,60,.11)}.space-note:before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:rgba(43,65,75,.12)}.space-note.is-pinned:after{content:"";position:absolute;right:18px;top:-1px;width:2px;height:17px;background:var(--user-accent,#087fa3);box-shadow:0 0 0 3px rgba(255,255,255,.4);transform:rotate(15deg)}
+.space-note-amarillo{background:linear-gradient(145deg,#fff8d5,#fff1ab)}.space-note-menta{background:linear-gradient(145deg,#e3fff5,#c8f4e5)}.space-note-celeste{background:linear-gradient(145deg,#ecf8ff,#d7edff)}.space-note-lila{background:linear-gradient(145deg,#f5efff,#e7dcff)}.space-note-rosa{background:linear-gradient(145deg,#fff0f5,#f9dce7)}.space-note-neutro{background:linear-gradient(145deg,#fff,#f0f4f5)}.space-note.is-muted{opacity:.74}
+.space-note-top{display:flex;justify-content:space-between;align-items:start;gap:8px}.space-note-category{font-size:8px;letter-spacing:.1em;text-transform:uppercase;font-weight:900;color:#425d68;opacity:.8}.space-note-actions{display:flex;gap:3px;flex:0 0 auto}.space-note-action{width:26px;height:26px;display:grid;place-items:center;border-radius:8px;color:#465f6a;background:rgba(255,255,255,.55);transition:background .14s,color .14s}.space-note-action:hover{background:#fff;color:#173d4e}.space-note-action svg{width:13px;height:13px}.space-note-delete:hover{color:#b42332}
+.space-note h4{margin:8px 0 6px;color:#173849;font-size:14px;font-weight:900;letter-spacing:-.025em;overflow-wrap:anywhere}.space-note-content{font-size:11px;line-height:1.7;color:#405966;overflow-wrap:anywhere;white-space:normal;min-height:19px;margin:0}.space-note-placeholder{opacity:.6;font-style:italic}.space-note-foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:7px;margin-top:14px}.space-note-owner,.space-note-due{display:flex;align-items:center;gap:5px;color:#5c737f;font-size:8px;font-weight:700}.space-note-owner svg,.space-note-due svg{width:12px;height:12px}.space-note-due.is-late{color:#b42b3b}.space-note-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(38,68,78,.12)}.space-note-bottom>small{font-size:8px;color:#68808c}
+.space-status{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:rgba(60,81,90,.08);color:#526b78;font-size:8px;font-weight:850}.space-status-open{color:#106f63;background:rgba(24,161,135,.13)}.space-status-late{color:#a22b36;background:rgba(209,63,76,.13)}.space-status-done{color:#3f6c41;background:rgba(68,145,80,.14)}
+.space-empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;padding:43px 20px;border:1px dashed #cfdee5;border-radius:17px;background:linear-gradient(135deg,#fff,#f8fcfc)}.space-empty-state>span{width:48px;height:48px;display:grid;place-items:center;border-radius:15px;background:#e7f6f5;color:#158c85}.space-empty-state>span svg{width:23px;height:23px}.space-empty-state h4{margin:12px 0 5px;font-size:15px;font-weight:900;color:#1d4151}.space-empty-state p{max-width:370px;font-size:11px;line-height:1.8;color:#718692;margin:0}.space-empty-state button{margin-top:14px;padding:9px 12px;border-radius:10px;background:var(--user-accent,#087fa3);color:#fff;font-size:10px;font-weight:800}
+.space-loading{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:45px 12px;color:#748b98;font-size:11px}.space-loading p{margin:0}.space-loader-ring{width:27px;height:27px;border:2px solid #d4e8e9;border-top-color:var(--user-accent,#087fa3);border-radius:50%;animation:space-orbit .9s linear infinite}.space-error{display:flex;gap:13px;padding:18px;border:1px solid #f4cbd0;border-radius:14px;background:#fff5f6;color:#92323b;font-size:11px}.space-error>svg{width:22px;height:22px;flex:0 0 auto}.space-error p{margin:5px 0}.space-error small{color:#a8656b}
+.space-log-compose{padding:19px;border:1px solid #dfe9ee;border-radius:18px;background:linear-gradient(140deg,#fff,#f8fcfd);box-shadow:0 10px 30px rgba(17,49,68,.045)}.space-log-compose-heading{display:flex;align-items:center;gap:11px;margin-bottom:17px}.space-log-compose-heading b,.space-log-compose-heading small{display:block}.space-log-compose-heading b{font-size:13px;color:#18394b}.space-log-compose-heading small{font-size:10px;color:#78909d;margin-top:4px}.space-log-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.space-log-fields>div{display:flex;flex-direction:column;gap:9px;min-width:0}.space-log-fields .space-log-detail-field{grid-column:1/-1}.space-log-form-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;padding-top:13px;border-top:1px solid #e4edf1}.space-log-form-bottom>span{display:flex;align-items:center;gap:7px;font-size:9px;color:#6d8794}.space-log-form-bottom>span svg{width:14px;height:14px;color:#128b85}.space-log-form-bottom .space-create-button{width:auto}
+.space-log-history-head{display:flex;align-items:end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:22px 0 13px}.space-log-history-head h4{font-size:16px;font-weight:900;color:#19394a;margin:0}.space-log-history-head p{font-size:10px;color:#718795;margin:4px 0 0}.space-log-history-head .space-note-search{width:min(100%,330px)}
+.space-timeline{position:relative;padding:0 0 0 12px}.space-timeline:before{content:"";position:absolute;left:8px;top:15px;bottom:15px;width:1px;background:#d6e4eb}.space-timeline-entry{display:grid;grid-template-columns:62px minmax(0,1fr);gap:14px;position:relative;padding:12px 0 12px 23px}.space-timeline-dot{position:absolute;left:-9px;top:28px;width:11px;height:11px;border-radius:50%;background:var(--timeline-tone);box-shadow:0 0 0 4px #fff;border:2px solid #fff}.space-timeline-date b,.space-timeline-date small{display:block}.space-timeline-date b{font-size:10px;color:#324e5d}.space-timeline-date small{margin-top:4px;font-size:9px;color:#7b909d}.space-timeline-main{min-width:0;background:#fff;border:1px solid #e0eaf0;border-radius:14px;padding:14px 15px;box-shadow:0 7px 18px rgba(15,41,58,.035)}.space-timeline-head{display:flex;align-items:center;flex-wrap:wrap;gap:7px}.space-log-category,.space-log-module{display:inline-flex;padding:4px 7px;border-radius:6px;background:#eef5f7;color:#57717f;font-size:8px;font-weight:850}.space-log-module{background:#eef2fc;color:#586b9a}.space-timeline-main h4{font-size:12px;font-weight:900;color:#1d3c4b;margin:9px 0 5px;overflow-wrap:anywhere}.space-timeline-main p{font-size:10px;line-height:1.75;color:#627a88;margin:0;overflow-wrap:anywhere}.space-timeline-meta{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}.space-timeline-meta span{display:flex;align-items:center;gap:5px;font-size:8px;color:#7c919c}.space-timeline-meta svg{width:11px;height:11px}
+.map-route-tools{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px 16px;background:linear-gradient(120deg,#eef8fb,#f8fbff);border:1px solid #cde6ef;border-radius:15px}.map-route-explanation{display:flex;flex-direction:column;gap:5px}.map-route-step{font-size:8px;letter-spacing:.15em;color:#087f9d;font-weight:950}.map-route-explanation b{font-size:11px;color:#23485b}.map-route-explanation small{font-size:10px;color:#708995;line-height:1.6}.map-route-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0}.map-route-stats>div{padding:12px;border:1px solid #dce8ef;border-radius:12px;background:#fff}.map-route-stats small,.map-route-stats strong{display:block}.map-route-stats small{font-size:9px;color:#6f8592}.map-route-stats strong{font-size:17px;color:#164257;font-weight:900;margin-top:5px}.map-route-steps{margin-bottom:12px;max-height:190px;overflow:auto;border:1px solid #dce8ef;background:#fff;border-radius:12px;padding:13px}.map-route-steps b{display:block;font-size:10px;color:#244b60;margin-bottom:8px}.map-route-steps ol{padding-left:22px;margin:0;display:grid;gap:6px}.map-route-steps li{font-size:10px;color:#57717f;line-height:1.55}
+@keyframes space-orbit{to{transform:rotate(330deg)}}@keyframes space-orbit-reverse{to{transform:rotate(-360deg)}}@keyframes space-float{0%,100%{translate:0 0}50%{translate:0 -7px}}
+@media(max-width:980px){.colab-kpi-grid,.space-metrics-grid,.dash-space-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.space-notes-layout{grid-template-columns:1fr}.space-compose-card{position:static}.space-hero{grid-template-columns:minmax(0,1fr) 180px}.space-hero-graphic{transform:scale(.8)}}
+@media(max-width:640px){.colab-kpi-grid,.space-metrics-grid,.dash-space-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.colab-kpi{padding:11px;gap:9px}.colab-kpi>span{width:33px;height:33px}.colab-kpi strong{font-size:21px}.dash-space-card{padding:15px}.dash-space-stat-grid>div{padding:9px;gap:7px}.dash-space-stat-icon{width:28px;height:28px}.dash-space-stat-grid b{font-size:17px}.dash-space-stat-grid small{font-size:8px}.space-hero{grid-template-columns:1fr;padding:24px 20px}.space-hero-graphic{display:none}.space-hero-copy h3{font-size:31px}.space-form-row{grid-template-columns:1fr}.space-note-grid{grid-template-columns:1fr}.space-log-fields{grid-template-columns:1fr}.space-log-fields .space-log-detail-field{grid-column:auto}.space-log-form-bottom .space-create-button{width:100%}.space-timeline-entry{grid-template-columns:44px minmax(0,1fr);gap:9px;padding-left:18px}.space-timeline-date b{font-size:9px}.space-timeline-main{padding:11px}.map-route-tools{align-items:stretch}.map-route-tools button{width:100%}.map-route-stats{grid-template-columns:1fr 1fr}.map-route-stats>div:last-child{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){.space-hero-ring,.space-hero-sticky,.space-loader-ring{animation:none!important}.space-note,.dash-space-open{transition:none!important}}
+
 </style>
 </head>
 
@@ -771,109 +851,34 @@ body:has(.nova-v3-overlay){margin:0}
                 </button>
             </div>
 
-            <nav style="visibility:hidden" class="flex-1 space-y-1 overflow-y-auto p-3 text-sm">
-                <button id="btn-dashboard" class="menu-btn" onclick="cambiarModulo('dashboard')">
-                    <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
-                    1. Dashboard
-                </button>
-
-                <button id="btn-colaboradores" class="menu-btn" onclick="cambiarModulo('colaboradores')">
-                    <i data-lucide="users" class="h-4 w-4"></i>
-                    2. Colaboradores
-                </button>
-
-                <button id="btn-sucursales" class="menu-btn" onclick="cambiarModulo('sucursales')">
-                    <i data-lucide="building-2" class="h-4 w-4"></i>
-                    3. Sucursales
-                </button>
-
-                <button id="btn-asistencia" class="menu-btn" onclick="cambiarModulo('asistencia')">
-                    <i data-lucide="clock" class="h-4 w-4"></i>
-                    4. Asistencia y atrasos
-                </button>
-
-                <button id="btn-licencias" class="menu-btn" onclick="cambiarModulo('licencias')">
-                    <i data-lucide="file-heart" class="h-4 w-4"></i>
-                    5. Licencias y ausentismo
-                </button>
-
-                <button id="btn-vacaciones" class="menu-btn" onclick="cambiarModulo('vacaciones')">
-                    <i data-lucide="palmtree" class="h-4 w-4"></i>
-                    6. Vacaciones
-                </button>
-
-                <button id="btn-papeletas" class="menu-btn" onclick="cambiarModulo('papeletas')">
-                    <i data-lucide="file-text" class="h-4 w-4"></i>
-                    7. Papeletas
-                </button>
-
-                <button id="btn-correos" class="menu-btn" onclick="cambiarModulo('correos')">
-                    <i data-lucide="mail" class="h-4 w-4"></i>
-                    8. Borradores correo
-                </button>
-
-                <button id="btn-amonestaciones" class="menu-btn" onclick="cambiarModulo('amonestaciones')">
-                    <i data-lucide="calendar-check" class="h-4 w-4"></i>
-                    9. Coberturas
-                </button>
-
-                <button id="btn-reportes" class="menu-btn" onclick="cambiarModulo('reportes')">
-                    <i data-lucide="bar-chart-3" class="h-4 w-4"></i>
-                    10. Reportes
-                </button>
-
-                <button id="btn-usuarios" class="menu-btn" onclick="cambiarModulo('usuarios')">
-                    <i data-lucide="shield-check" class="h-4 w-4"></i>
-                    11. Usuarios y roles
-                </button>
-
-                <button id="btn-auditoria" class="menu-btn" onclick="cambiarModulo('auditoria')">
-                    <i data-lucide="history" class="h-4 w-4"></i>
-                    12. Auditoría
-                </button>
-
-                <button id="btn-configcorreos" class="menu-btn" onclick="cambiarModulo('configcorreos')">
-                    <i data-lucide="mail-check" class="h-4 w-4"></i>
-                    13. Correos sucursales
-                </button>
-
-     <button id="btn-mapas" class="menu-btn" onclick="cambiarModulo('mapas')">
-                    <i data-lucide="map-pinned" class="h-4 w-4"></i>
-                    14. Mapa y distancias
-                </button>
-
-                <button id="btn-tareas" class="menu-btn" onclick="cambiarModulo('tareas')">
-                    <i data-lucide="list-checks" class="h-4 w-4"></i>
-                    15. Tareas diarias
-                </button>
-
-                <div class="nova-nav-divider"><span>GESTIÓN Y CONTROL</span></div>
-                <button id="btn-operaciones" class="menu-btn" onclick="cambiarModulo('operaciones')">
-                    <i data-lucide="gauge" class="h-4 w-4"></i>
-                    16. Centro de operaciones
-                </button>
-                <button id="btn-calidad" class="menu-btn" onclick="cambiarModulo('calidad')">
-                    <i data-lucide="shield-check" class="h-4 w-4"></i>
-                    17. Calidad de datos
-                </button>
-                <button id="btn-notificaciones" class="menu-btn" onclick="cambiarModulo('notificaciones')">
-                    <i data-lucide="bell-ring" class="h-4 w-4"></i>
-                    18. Notificaciones
-                    <span id="nav-notif-count" class="nav-count hidden">0</span>
-                </button>
-                <button id="btn-integraciones" class="menu-btn" onclick="cambiarModulo('integraciones')">
-                    <i data-lucide="plug-zap" class="h-4 w-4"></i>
-                    19. Integraciones
-                </button>
-                            <div class="nova-nav-divider"><span>COMUNICACIÓN Y DOTACIÓN</span></div>
-                <button id="btn-chat" class="menu-btn" onclick="cambiarModulo('chat')">
-                    <i data-lucide="messages-square" class="h-4 w-4"></i>
-                    20. Chat interno
-                </button>
-                <button id="btn-traslados" class="menu-btn" onclick="cambiarModulo('traslados')">
-                    <i data-lucide="users-round" class="h-4 w-4"></i>
-                    21. Traslados de personal
-                </button>
+            <nav style="visibility:hidden" class="flex-1 space-y-1 overflow-y-auto p-3 text-sm" aria-label="Navegación principal de Recursos Humanos">
+  <div class="nova-nav-divider" data-nav-group><span>INICIO Y PRODUCTIVIDAD</span></div>
+  <button id="btn-dashboard" class="menu-btn" onclick="cambiarModulo('dashboard')"><i data-lucide="layout-dashboard" class="h-4 w-4"></i><span>Dashboard</span></button>
+  <button id="btn-espacio" class="menu-btn" onclick="cambiarModulo('espacio')"><i data-lucide="notebook-pen" class="h-4 w-4"></i><span>Mi espacio de trabajo</span><span class="nav-new-mark">NUEVO</span></button>
+  <button id="btn-tareas" class="menu-btn" onclick="cambiarModulo('tareas')"><i data-lucide="list-checks" class="h-4 w-4"></i><span>Tareas diarias</span></button>
+  <div class="nova-nav-divider" data-nav-group><span>PERSONAS Y ESTRUCTURA</span></div>
+  <button id="btn-colaboradores" class="menu-btn" onclick="cambiarModulo('colaboradores')"><i data-lucide="users" class="h-4 w-4"></i><span>Colaboradores</span></button>
+  <button id="btn-sucursales" class="menu-btn" onclick="cambiarModulo('sucursales')"><i data-lucide="building-2" class="h-4 w-4"></i><span>Sucursales</span></button>
+  <button id="btn-usuarios" class="menu-btn" onclick="cambiarModulo('usuarios')"><i data-lucide="shield-check" class="h-4 w-4"></i><span>Usuarios y roles</span></button>
+  <div class="nova-nav-divider" data-nav-group><span>ASISTENCIA Y BENEFICIOS</span></div>
+  <button id="btn-asistencia" class="menu-btn" onclick="cambiarModulo('asistencia')"><i data-lucide="clock" class="h-4 w-4"></i><span>Asistencia y atrasos</span></button>
+  <button id="btn-licencias" class="menu-btn" onclick="cambiarModulo('licencias')"><i data-lucide="file-heart" class="h-4 w-4"></i><span>Licencias y ausentismo</span></button>
+  <button id="btn-vacaciones" class="menu-btn" onclick="cambiarModulo('vacaciones')"><i data-lucide="palmtree" class="h-4 w-4"></i><span>Vacaciones</span></button>
+  <button id="btn-papeletas" class="menu-btn" onclick="cambiarModulo('papeletas')"><i data-lucide="file-text" class="h-4 w-4"></i><span>Papeletas y permisos</span></button>
+  <div class="nova-nav-divider" data-nav-group><span>COBERTURAS Y COMUNICACIÓN</span></div>
+  <button id="btn-amonestaciones" class="menu-btn" onclick="cambiarModulo('amonestaciones')"><i data-lucide="calendar-check" class="h-4 w-4"></i><span>Coberturas</span></button>
+  <button id="btn-traslados" class="menu-btn" onclick="cambiarModulo('traslados')"><i data-lucide="users-round" class="h-4 w-4"></i><span>Traslados de personal</span></button>
+  <button id="btn-correos" class="menu-btn" onclick="cambiarModulo('correos')"><i data-lucide="mail" class="h-4 w-4"></i><span>Borradores de correo</span></button>
+  <button id="btn-configcorreos" class="menu-btn" onclick="cambiarModulo('configcorreos')"><i data-lucide="mail-check" class="h-4 w-4"></i><span>Correos de sucursales</span></button>
+  <button id="btn-chat" class="menu-btn" onclick="cambiarModulo('chat')"><i data-lucide="messages-square" class="h-4 w-4"></i><span>Chat interno</span></button>
+  <div class="nova-nav-divider" data-nav-group><span>ANÁLISIS Y CONTROL</span></div>
+  <button id="btn-reportes" class="menu-btn" onclick="cambiarModulo('reportes')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Reportes</span></button>
+  <button id="btn-mapas" class="menu-btn" onclick="cambiarModulo('mapas')"><i data-lucide="map-pinned" class="h-4 w-4"></i><span>Mapa y distancias</span></button>
+  <button id="btn-operaciones" class="menu-btn" onclick="cambiarModulo('operaciones')"><i data-lucide="gauge" class="h-4 w-4"></i><span>Centro de operaciones</span></button>
+  <button id="btn-calidad" class="menu-btn" onclick="cambiarModulo('calidad')"><i data-lucide="shield-check" class="h-4 w-4"></i><span>Calidad de datos</span></button>
+  <button id="btn-notificaciones" class="menu-btn" onclick="cambiarModulo('notificaciones')"><i data-lucide="bell-ring" class="h-4 w-4"></i><span>Notificaciones</span><span id="nav-notif-count" class="nav-count hidden">0</span></button>
+  <button id="btn-integraciones" class="menu-btn" onclick="cambiarModulo('integraciones')"><i data-lucide="plug-zap" class="h-4 w-4"></i><span>Integraciones y monitoreo</span></button>
+  <button id="btn-auditoria" class="menu-btn" onclick="cambiarModulo('auditoria')"><i data-lucide="history" class="h-4 w-4"></i><span>Bitácora y auditoría</span></button>
 </nav>
             <div class="sidebar-credit" aria-label="Gestionado por el equipo de Asistencia" title="Gestionado por el equipo de Asistencia">
                 <span class="sidebar-credit-icon"><i data-lucide="shield-check" class="h-4 w-4"></i></span>
@@ -906,6 +911,7 @@ body:has(.nova-v3-overlay){margin:0}
                     <button type="button" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('tareas');setTimeout(()=>document.getElementById('tarea-titulo')?.focus(),250)">
                         <i data-lucide="plus" class="h-4 w-4"></i><span>Nueva tarea rápida</span>
                     </button>
+                    <button type="button" id="topbar-quick-note" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('espacio');setTimeout(()=>document.getElementById('rrhh-nota-titulo')?.focus(),250)"><i data-lucide="sticky-note" class="h-4 w-4"></i><span>Nueva nota rápida</span></button>
                     <button type="button" id="topbar-notification-button" class="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-100 bg-gradient-to-br from-white to-indigo-50 text-indigo-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" onclick="cambiarModulo('notificaciones');setTimeout(()=>cargarCentroNotificaciones(),150)" aria-label="Abrir notificaciones" title="Notificaciones">
                         <i data-lucide="bell-ring" class="h-5 w-5"></i><span id="topbar-notif-count" class="absolute -right-1 -top-1 hidden min-w-[18px] rounded-full bg-rose-600 px-1 text-center text-[10px] font-black leading-[18px] text-white">0</span>
                     </button>
@@ -938,6 +944,10 @@ body:has(.nova-v3-overlay){margin:0}
                         </div>
                         <span id="dashboard-welcome-role" class="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-2 text-xs font-bold text-white"><i data-lucide="shield-check" class="h-4 w-4"></i> Usuario autorizado</span>
                     </div>
+                </div>
+                <div id="dashboard-space-summary" class="dash-space-card" aria-live="polite">
+                    <div class="dash-space-intro"><div><span class="dash-space-kicker">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo('espacio')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div>
+                    <div class="dash-space-stat-grid"><div><span class="dash-space-stat-icon"><i data-lucide="sticky-note"></i></span><span><b>—</b><small>Notas activas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="pin"></i></span><span><b>—</b><small>Notas fijadas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-alert"></i></span><span><b>—</b><small>Fuera de plazo</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="history"></i></span><span><b>—</b><small>Gestiones recientes</small></span></div></div>
                 </div>
                 <div class="ui-card p-4 sm:p-5">
                     <div class="flex flex-wrap items-center justify-between gap-2">
@@ -1113,11 +1123,51 @@ body:has(.nova-v3-overlay){margin:0}
                 </div>
             </section>
 
+            <!-- MI ESPACIO DE TRABAJO -->
+            <section id="view-espacio" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="space-hero">
+                    <div class="space-hero-orb" aria-hidden="true"></div>
+                    <div class="space-hero-copy"><span class="space-hero-kicker"><i data-lucide="notebook-pen"></i> MI CENTRO DE SEGUIMIENTO</span><h3>Todo lo que no quieres olvidar.</h3><p>Notas adhesivas, fechas límite y una bitácora ordenada de las gestiones de RR. HH. Guardado en la nube con acceso protegido.</p><div class="space-hero-pills"><span><i data-lucide="cloud"></i> Guardado en Supabase</span><span><i data-lucide="shield-check"></i> Acceso protegido</span><span><i data-lucide="history"></i> Historial cronológico</span></div></div>
+                    <div class="space-hero-graphic" aria-hidden="true"><div class="space-hero-ring ring-one"></div><div class="space-hero-ring ring-two"></div><div class="space-hero-sticky sticky-one">RECORDAR</div><div class="space-hero-sticky sticky-two">SEGUIR</div><div class="space-hero-center"><i data-lucide="layers-3"></i></div></div>
+                </div>
+                <div id="space-metrics" class="space-metrics-grid"><div class="space-metric"><span class="space-metric-icon"><i data-lucide="sticky-note"></i></span><span class="space-metric-copy"><small>Notas activas</small><strong>—</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="pin"></i></span><span class="space-metric-copy"><small>Fijadas</small><strong>—</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="clock-alert"></i></span><span class="space-metric-copy"><small>Por revisar</small><strong>—</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="history"></i></span><span class="space-metric-copy"><small>Gestiones · 7 días</small><strong>—</strong></span></div></div>
+                <div class="space-tabbar" role="tablist" aria-label="Mi espacio de trabajo"><button type="button" data-space-tab="notas" class="space-tab is-active" aria-selected="true"><i data-lucide="sticky-note"></i> Notas adhesivas <span>01</span></button><button type="button" data-space-tab="bitacora" class="space-tab" aria-selected="false"><i data-lucide="history"></i> Bitácora de gestión <span>02</span></button></div>
+                <div id="rrhh-space-panel-notas" class="space-panel">
+                    <div class="space-panel-heading"><div><span class="space-section-kicker">CAPTURA RÁPIDA</span><h3>El tablero de tus ideas</h3><p>Fija recordatorios, ponles color y conviértelos en acciones.</p></div><span id="rrhh-notas-count" class="space-count-chip">Cargando notas…</span></div>
+                    <div class="space-notes-layout">
+                        <form class="space-compose-card" onsubmit="guardarNotaRRHH(event)">
+                            <div class="space-compose-top"><span class="space-compose-icon"><i data-lucide="pen-line"></i></span><span class="space-compose-label">NUEVA NOTA</span></div>
+                            <label for="rrhh-nota-titulo">Título de la nota</label><input id="rrhh-nota-titulo" class="form-field" maxlength="160" required placeholder="Ej. Confirmar cobertura del sábado">
+                            <label for="rrhh-nota-contenido">Detalle / recordatorio</label><textarea id="rrhh-nota-contenido" class="form-field" rows="4" maxlength="12000" placeholder="Anota el contexto, a quién contactar o qué falta resolver…"></textarea>
+                            <div class="space-form-row"><div><label for="rrhh-nota-categoria">Categoría</label><select id="rrhh-nota-categoria" class="form-field"><option>General</option><option>Seguimiento</option><option>Asistencia</option><option>Licencias</option><option>Cobertura</option><option>Sucursal</option><option>Reunión</option><option>Urgente</option></select></div><div><label for="rrhh-nota-vence">Fecha límite</label><input id="rrhh-nota-vence" type="datetime-local" class="form-field"></div></div>
+                            <label>Color del posit</label><div class="space-color-select"><label class="space-color-option note-color-amarillo"><input type="radio" name="rrhh-nota-color-radio" value="amarillo" checked onchange="document.getElementById('rrhh-nota-color').value=this.value"><span></span><small>Sol</small></label><label class="space-color-option note-color-menta"><input type="radio" name="rrhh-nota-color-radio" value="menta" onchange="document.getElementById('rrhh-nota-color').value=this.value"><span></span><small>Menta</small></label><label class="space-color-option note-color-celeste"><input type="radio" name="rrhh-nota-color-radio" value="celeste" onchange="document.getElementById('rrhh-nota-color').value=this.value"><span></span><small>Cielo</small></label><label class="space-color-option note-color-lila"><input type="radio" name="rrhh-nota-color-radio" value="lila" onchange="document.getElementById('rrhh-nota-color').value=this.value"><span></span><small>Lila</small></label><label class="space-color-option note-color-rosa"><input type="radio" name="rrhh-nota-color-radio" value="rosa" onchange="document.getElementById('rrhh-nota-color').value=this.value"><span></span><small>Rosa</small></label></div><input type="hidden" id="rrhh-nota-color" value="amarillo">
+                            <label for="rrhh-nota-visibilidad">Quién puede verla</label><select id="rrhh-nota-visibilidad" class="form-field"><option value="PERSONAL">Solo yo · privada</option><option value="COMPARTIDA">Equipo autorizado · compartida</option></select>
+                            <label class="space-pin-check"><input id="rrhh-nota-fijada" type="checkbox"><span><i data-lucide="pin"></i></span> Fijar al comienzo del tablero</label>
+                            <button type="submit" class="space-create-button"><i data-lucide="plus"></i> Guardar nota <i data-lucide="arrow-up-right"></i></button><p class="space-form-foot"><i data-lucide="cloud"></i> Se guarda en tu cuenta; no se almacena localmente como única copia.</p>
+                        </form>
+                        <div class="space-note-board-wrap">
+                            <div class="space-note-tools"><div class="space-note-search"><i data-lucide="search"></i><input id="rrhh-nota-buscar" type="search" placeholder="Buscar notas, categorías o palabras…"></div><div class="space-note-filters"><button type="button" data-note-filter="ACTIVAS" class="is-active">Activas</button><button type="button" data-note-filter="TODAS">Todas</button><button type="button" data-note-filter="COMPARTIDAS">Compartidas</button><button type="button" data-note-filter="RESUELTAS">Resueltas</button><button type="button" data-note-filter="ARCHIVADAS">Archivadas</button></div></div>
+                            <div id="rrhh-notas-lista" class="space-note-grid"><div class="space-loading"><span class="space-loader-ring"></span><p>Organizando tu espacio de trabajo…</p></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="rrhh-space-panel-bitacora" class="space-panel hidden">
+                    <div class="space-panel-heading"><div><span class="space-section-kicker">SEGUIMIENTO OPERATIVO</span><h3>Bitácora de gestión</h3><p>Registra incidencias, decisiones, reuniones y seguimientos. Estos registros son de solo lectura después de crearlos.</p></div><span id="rrhh-bitacora-count" class="space-count-chip">Cargando registros…</span></div>
+                    <form class="space-log-compose" onsubmit="guardarRegistroBitacoraRRHH(event)">
+                        <div class="space-log-compose-heading"><span class="space-compose-icon"><i data-lucide="notebook-tabs"></i></span><div><b>Registrar una gestión</b><small>Un registro claro facilita retomar el caso y rendir cuentas.</small></div></div>
+                        <div class="space-log-fields"><div><label for="rrhh-log-titulo">Asunto</label><input id="rrhh-log-titulo" class="form-field" maxlength="180" required placeholder="Ej. Se solicita confirmación de marcaciones"></div><div><label for="rrhh-log-categoria">Tipo de gestión</label><select id="rrhh-log-categoria" class="form-field"><option>Gestión</option><option>Incidencia</option><option>Seguimiento</option><option>Decisión</option><option>Reunión</option><option>Cobertura</option><option>Asistencia</option><option>Licencias</option><option>Otro</option></select></div><div><label for="rrhh-log-modulo">Módulo relacionado</label><select id="rrhh-log-modulo" class="form-field"><option value="general">Gestión general</option><option value="colaboradores">Colaboradores</option><option value="sucursales">Sucursales</option><option value="asistencia">Asistencia</option><option value="licencias">Licencias</option><option value="vacaciones">Vacaciones</option><option value="papeletas">Papeletas</option><option value="amonestaciones">Coberturas</option><option value="correos">Borradores de correo</option><option value="reportes">Reportes</option><option value="usuarios">Usuarios y roles</option><option value="tareas">Tareas diarias</option><option value="traslados">Traslados</option><option value="espacio">Mi espacio</option></select></div><div><label for="rrhh-log-sucursal">Sucursal relacionada (opcional)</label><input id="rrhh-log-sucursal" class="form-field" maxlength="180" placeholder="Nombre de sucursal"></div><div><label for="rrhh-log-fecha">Fecha y hora de la gestión</label><input id="rrhh-log-fecha" type="datetime-local" class="form-field"></div><div><label for="rrhh-log-visibilidad">Visibilidad</label><select id="rrhh-log-visibilidad" class="form-field"><option value="PERSONAL">Solo yo · privada</option><option value="COMPARTIDA">Equipo autorizado · compartida</option></select></div><div class="space-log-detail-field"><label for="rrhh-log-detalle">Detalle y resultado</label><textarea id="rrhh-log-detalle" class="form-field" rows="3" maxlength="16000" required placeholder="Qué pasó, qué se hizo, qué falta y cuál es el siguiente paso…"></textarea></div></div>
+                        <div class="space-log-form-bottom"><span><i data-lucide="shield-check"></i> Registro cronológico protegido</span><button type="submit" class="space-create-button"><i data-lucide="plus"></i> Guardar en bitácora <i data-lucide="arrow-up-right"></i></button></div>
+                    </form>
+                    <div class="space-log-history-head"><div><h4>Historial reciente</h4><p>Más recientes primero · hasta 350 registros visibles.</p></div><div class="space-note-search"><i data-lucide="search"></i><input id="rrhh-bitacora-buscar" type="search" placeholder="Buscar por asunto, sucursal o detalle…"></div></div>
+                    <div id="rrhh-bitacora-lista" class="space-log-list"><div class="space-loading"><span class="space-loader-ring"></span><p>Cargando bitácora…</p></div></div>
+                </div>
+            </section>
+
             <!-- COLABORADORES -->
             <section id="view-colaboradores" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
                     <div class="min-w-0 flex-1">
-                        <h3 class="font-bold text-slate-900">Nómina de colaboradores</h3>
+                        <span class="module-kicker">PERSONAS Y ESTRUCTURA</span><h3 class="font-bold text-slate-900">Directorio de colaboradores</h3><p class="mt-1 text-xs text-slate-500">Nómina maestra, sucursal, supervisión y estado de cada persona.</p>
                         <p data-update-stamp="colaboradores" class="mt-2 inline-flex max-w-full items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
                             <i data-lucide="clock-3" class="mr-1.5 h-3.5 w-3.5 shrink-0"></i>
                             <span>Consultando última carga…</span>
@@ -1147,6 +1197,8 @@ body:has(.nova-v3-overlay){margin:0}
                     </div>
                 </div>
 
+                <div id="colab-kpi-grid" class="colab-kpi-grid" aria-live="polite"><div class="colab-kpi"><span><i data-lucide="users"></i></span><div><small>Colaboradores en nómina</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="user-check"></i></span><div><small>Activos</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="user-round-x"></i></span><div><small>Inactivos</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="building-2"></i></span><div><small>Sucursales cubiertas</small><strong>—</strong></div></div></div>
+                <div class="module-section-caption"><span><i data-lucide="contact-round"></i></span><div><b>Directorio maestro</b><small>Busca por RUT, cargo o sucursal; abre la ficha para consultar el historial.</small></div></div>
                 <div class="ui-card grid grid-cols-1 gap-3 p-4 sm:grid-cols-[1.3fr_1fr_auto]">
                     <div><label for="col-filtro-busqueda" class="mb-1 block text-xs font-bold text-slate-600">Buscar colaborador</label><input id="col-filtro-busqueda" type="search" class="form-field" placeholder="Nombre, apellido, RUT o cargo" oninput="filtrarTablaColaboradores()"></div>
                     <div><label for="col-filtro-sucursal" class="mb-1 block text-xs font-bold text-slate-600">Filtrar por sucursal</label><select id="col-filtro-sucursal" class="form-field" onchange="filtrarTablaColaboradores()"><option value="">Todas las sucursales</option></select></div>
@@ -1176,7 +1228,7 @@ body:has(.nova-v3-overlay){margin:0}
                 </div>
                 <div class="ui-card overflow-hidden">
                     <div class="flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 bg-slate-50 p-4">
-                        <div><h4 class="font-extrabold text-slate-900">Historial del colaborador</h4><p class="mt-1 text-xs text-slate-500">Registra automáticamente los cambios de los datos maestros desde la activación del historial.</p></div>
+                        <div><h4 class="font-extrabold text-slate-900">Expediente e historial del colaborador</h4><p class="mt-1 text-xs text-slate-500">Registra automáticamente los cambios de los datos maestros desde la activación del historial.</p></div>
                         <div class="flex gap-2"><input id="hist-colaborador-rut" class="form-field" placeholder="Buscar por RUT" maxlength="14"><button type="button" class="corp-button-dark" onclick="cargarHistorialColaborador()">Consultar</button></div>
                     </div>
                     <p id="hist-colaborador-estado" class="px-4 pt-3 text-xs text-slate-500" aria-live="polite">Ingresa un RUT para consultar sus cambios.</p>
@@ -1744,7 +1796,8 @@ body:has(.nova-v3-overlay){margin:0}
             <section id="view-mapas" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro"><span class="module-kicker">Punto 14 · Traslados</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Mapa, rutas y distancias</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Selecciona las sucursales de origen y destino. Se priorizan las coordenadas guardadas; si faltan, se usa la dirección registrada. Google Maps calcula la ruta según el medio de transporte.</p><div class="mt-4 grid gap-3 sm:grid-cols-3"><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 1</span><b class="mt-1 block text-sm">Origen</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 2</span><b class="mt-1 block text-sm">Destino y transporte</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 3</span><b class="mt-1 block text-sm">Ver ruta y distancia</b></div></div></div>
                 <div class="ui-card grid grid-cols-1 gap-4 p-5 lg:grid-cols-4"><div><label class="text-xs font-bold text-slate-600" for="map14-buscar-origen">1. Buscar sucursal de origen</label><input id="map14-buscar-origen" type="search" class="form-field mt-1" placeholder="Escribe nombre o comuna…" autocomplete="off"><select id="map14-origen" class="form-field mt-2"><option value="">Selecciona el origen</option></select><p class="mt-1 text-[11px] text-slate-500">Escribe para filtrar las sucursales.</p></div><div><label class="text-xs font-bold text-slate-600" for="map14-buscar-destino">2. Buscar sucursal de destino</label><input id="map14-buscar-destino" type="search" class="form-field mt-1" placeholder="Escribe nombre o comuna…" autocomplete="off"><select id="map14-destino" class="form-field mt-2"><option value="">Selecciona el destino</option></select><p class="mt-1 text-[11px] text-slate-500">Elige una sucursal distinta del origen.</p></div><div><label class="text-xs font-bold text-slate-600">Medio de transporte</label><select id="map14-modo" class="form-field mt-1"><option value="d">🚗 Auto</option><option value="r">🚌 Transporte público</option><option value="w">🚶 Caminando</option></select></div><div class="flex flex-wrap items-end gap-2"><button onclick="mostrarRutaMapa14()" class="corp-button min-h-11 flex-1"><i data-lucide="route" class="mr-2 inline h-4 w-4"></i>Ver ruta</button><button onclick="buscarCoordenadasPorDireccion()" class="corp-button-dark min-h-11" title="Buscar coordenadas faltantes"><i data-lucide="map-pin" class="inline h-4 w-4"></i></button></div></div>
-                <div class="ui-card overflow-hidden p-3 sm:p-4"><div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ruta seleccionada</p><div id="mapa14-resumen" class="mt-1 text-sm font-bold text-slate-800">Selecciona origen, destino y medio de transporte.</div><p class="mt-1 text-xs text-slate-500">Estimaciones orientativas calculadas desde el GPS; el recorrido real y el tiempo pueden variar. Google Maps muestra la ruta para navegación.</p></div><a id="mapa14-externo" target="_blank" rel="noopener noreferrer" class="corp-button-dark hidden">Abrir Google Maps <i data-lucide="external-link" class="ml-1 inline h-4 w-4"></i></a></div><div class="map-canvas-shell"><div class="map-canvas-heading"><div><strong>Mapa de sucursales</strong><span id="mapa14-status">Mostrando todas las sucursales disponibles. Selecciona origen y destino para calcular una ruta.</span></div><span class="map-live-pill"><i data-lucide="map" class="inline h-3 w-3"></i> Mapa interactivo</span></div><div id="mapa14-frame" role="application" aria-label="Mapa interactivo de ruta entre sucursales" class="map-frame"></div><div class="map-canvas-footer"><span>Si Google Maps no permite incrustar la ruta en esta ventana, utiliza el botón de apertura directa.</span><a id="mapa14-fallback-link" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Abrir mapa en otra pestaña ↗</a></div></div></div>
+                <div class="map-route-tools"><div class="map-route-explanation"><span class="map-route-step">TRAZADO SELECTIVO</span><b>Solo se verán las sucursales del origen y destino mientras consultas la ruta.</b><small>Usa “Mostrar todas las farmacias” para limpiar la selección y recuperar todos los marcadores.</small></div><button id="mapa14-mostrar-todas" type="button" onclick="restaurarMapa14()" class="corp-button-dark"><i data-lucide="layers" class="mr-2 inline h-4 w-4"></i>Mostrar todas las farmacias</button></div>
+<div class="ui-card overflow-hidden p-3 sm:p-4"><div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ruta seleccionada</p><div id="mapa14-resumen" class="mt-1 text-sm font-bold text-slate-800">Selecciona origen, destino y medio de transporte.</div><p class="mt-1 text-xs text-slate-500">Estimaciones orientativas calculadas desde el GPS; el recorrido real y el tiempo pueden variar. Google Maps muestra la ruta para navegación.</p></div><a id="mapa14-externo" target="_blank" rel="noopener noreferrer" class="corp-button-dark hidden">Abrir Google Maps <i data-lucide="external-link" class="ml-1 inline h-4 w-4"></i></a></div><div class="map-canvas-shell"><div class="map-canvas-heading"><div><strong>Mapa de sucursales</strong><span id="mapa14-status">Mostrando todas las sucursales disponibles. Selecciona origen y destino para calcular una ruta.</span></div><span class="map-live-pill"><i data-lucide="map" class="inline h-3 w-3"></i> Mapa interactivo</span></div><div id="mapa14-frame" role="application" aria-label="Mapa interactivo de ruta entre sucursales" class="map-frame"></div><div id="mapa14-estadisticas" class="map-route-stats hidden" aria-live="polite"><div><small>Distancia vial</small><strong id="mapa14-distancia">—</strong></div><div><small>Tiempo estimado</small><strong id="mapa14-tiempo">—</strong></div><div><small>Farmacias visibles</small><strong id="mapa14-puntos">2</strong></div></div><div id="mapa14-pasos" class="map-route-steps hidden"></div><div class="map-canvas-footer"><span>Si Google Maps no permite incrustar la ruta en esta ventana, utiliza el botón de apertura directa.</span><a id="mapa14-fallback-link" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Abrir mapa en otra pestaña ↗</a></div></div></div>
             </section>
 
             <!-- TAREAS DIARIAS -->
@@ -2009,6 +2062,8 @@ body:has(.nova-v3-overlay){margin:0}
 <script src="/js/chat-transfers.js"></script>
 <script src="/js/employee-history.js"></script>
 <script src="/js/talana-bot.js"></script>
+<script src="/js/workspace.js"></script>
+<script src="/js/module-organization.js"></script>
 
     <!--
     SQL QUE YA DEBE EXISTIR EN SUPABASE:
