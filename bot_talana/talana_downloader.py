@@ -396,15 +396,36 @@ def cambiar_a_asistencia_y_turnos(page):
     candidatos[0][2].click(timeout=12000)
     page.wait_for_timeout(500)
     click_texto(page, "Asistencia y Turnos")
+    # Talana puede redirigir primero a /attendance/loading?next=... y
+    # no mostrar la etiqueta "Jornadas" aunque el calendario ya sea la vista activa.
     limite = time.monotonic() + 90
     while time.monotonic() < limite:
-        if texto_visible(page, "Jornadas"): return
+        url_actual = (page.url or "").lower()
+        ruta_jornadas = "/attendance/workdays/calendar" in url_actual
+        cargando = "/attendance/loading" in url_actual
+        if ruta_jornadas and not cargando:
+            page.wait_for_timeout(1500)
+            return
+        if texto_visible(page, "Jornadas") and not cargando:
+            return
         page.wait_for_timeout(500)
-    raise RuntimeError("No apareció la sección Jornadas en Asistencia y Turnos.")
+    raise RuntimeError(
+        "No se confirmó la vista Jornadas en Asistencia y Turnos. "
+        f"URL actual: {page.url}"
+    )
 
 
 def descargar_reporte_jornadas(page, eventos):
-    click_texto(page, "Jornadas")
+    # Si el calendario de jornadas ya está abierto, no volver a buscar/clicar
+    # una etiqueta de navegación que puede no existir en esta variante de Talana.
+    url_actual = (page.url or "").lower()
+    if "/attendance/workdays/calendar" not in url_actual:
+        click_texto(page, "Jornadas")
+    else:
+        limite_carga = time.monotonic() + 60
+        while time.monotonic() < limite_carga and "/attendance/loading" in (page.url or "").lower():
+            page.wait_for_timeout(500)
+        page.wait_for_timeout(1000)
     boton, limite = None, time.monotonic() + 60
     patron = re.compile(r"Descargar\s+reporte", re.I)
     while time.monotonic() < limite and boton is None:
