@@ -28,8 +28,8 @@ def escribir_salida(permitir: bool, motivo: str = "") -> None:
     output = os.getenv("GITHUB_OUTPUT")
     if output:
         with open(output, "a", encoding="utf-8") as file:
-            file.write(f"run_bot={'true' if permitir else 'false'}\\n")
-            file.write("skip_reason=" + motivo.replace("\\n", " ") + "\\n")
+            file.write(f"run_bot={'true' if permitir else 'false'}\n")
+            file.write("skip_reason=" + motivo.replace("\n", " ") + "\n")
 
 
 def omitir(motivo: str) -> None:
