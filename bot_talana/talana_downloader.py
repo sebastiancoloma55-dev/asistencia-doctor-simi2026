@@ -421,8 +421,8 @@ def cambiar_a_asistencia_y_turnos(page):
 
 
 def descargar_reporte_jornadas(page, eventos):
-    # Si el calendario de jornadas ya está abierto, no volver a buscar/clicar
-    # una etiqueta de navegación que puede no existir en esta variante de Talana.
+    # En distintas versiones de Talana el control puede ser botón, enlace,
+    # acción con aria-label o texto dentro de un componente de React.
     url_actual = (page.url or "").lower()
     if "/attendance/workdays/calendar" not in url_actual:
         click_texto(page, "Jornadas")
@@ -430,25 +430,81 @@ def descargar_reporte_jornadas(page, eventos):
         limite_carga = time.monotonic() + 60
         while time.monotonic() < limite_carga and "/attendance/loading" in (page.url or "").lower():
             page.wait_for_timeout(500)
-        page.wait_for_timeout(1000)
+        page.wait_for_timeout(1200)
+
+    patron = re.compile(r"(descargar|exportar).*(reporte|excel|jornada)?|(reporte|excel|jornada).*(descargar|exportar)", re.I)
+    selectores = (
+        'button:has-text("Descargar reporte")',
+        'a:has-text("Descargar reporte")',
+        '[role="button"]:has-text("Descargar reporte")',
+        '[data-cy*="download" i]',
+        '[data-testid*="download" i]',
+        '[aria-label*="descargar" i]',
+        '[title*="descargar" i]',
+        'button:has-text("Exportar")',
+        'a:has-text("Exportar")',
+        'button:has-text("Descargar")',
+        'a:has-text("Descargar")',
+    )
     boton, limite = None, time.monotonic() + 60
-    patron = re.compile(r"Descargar\s+reporte", re.I)
     while time.monotonic() < limite and boton is None:
         for frame in list(page.frames):
             try:
-                loc = frame.get_by_role("button", name=patron)
-                for i in range(min(loc.count(), 20)):
+                for getter in (
+                    lambda: frame.get_by_role("button", name=patron),
+                    lambda: frame.get_by_role("link", name=patron),
+                    lambda: frame.get_by_text(patron),
+                ):
+                    loc = getter()
+                    for i in range(min(loc.count(), 30)):
+                        el = loc.nth(i)
+                        if el.is_visible() and el.is_enabled():
+                            boton = el
+                            break
+                    if boton is not None:
+                        break
+                if boton is None:
+                    for selector in selectores:
+                        loc = frame.locator(selector)
+                        for i in range(min(loc.count(), 20)):
+                            el = loc.nth(i)
+                            if el.is_visible() and el.is_enabled():
+                                boton = el
+                                break
+                        if boton is not None:
+                            break
+            except Exception:
+                # Los frames pueden desmontarse mientras Talana navega.
+                continue
+            if boton is not None:
+                break
+        if boton is None:
+            page.wait_for_timeout(500)
+
+    if boton is None:
+        controles = []
+        for frame in list(page.frames):
+            try:
+                loc = frame.locator("button, a, [role='button']")
+                for i in range(min(loc.count(), 80)):
                     el = loc.nth(i)
-                    if el.is_visible() and el.is_enabled():
-                        boton = el; break
-            except Exception: pass
-            if boton is not None: break
-        if boton is None: page.wait_for_timeout(500)
-    if boton is None: raise RuntimeError("No se encontró «Descargar reporte» en Jornadas.")
+                    if el.is_visible():
+                        label = (el.inner_text(timeout=300) or "").strip().replace("\n", " ")
+                        aria = el.get_attribute("aria-label") or ""
+                        title = el.get_attribute("title") or ""
+                        candidate = " ".join(x for x in (label, aria, title) if x)
+                        if candidate:
+                            controles.append(candidate[:100])
+            except Exception:
+                continue
+        resumen = " | ".join(controles[:35])
+        raise RuntimeError(
+            "No se encontró el control de descarga en Jornadas. "
+            f"URL actual: {page.url}. Controles visibles: {resumen or 'ninguno detectado'}"
+        )
     n = len(eventos)
     boton.click(timeout=20000)
     return esperar_descarga_evento(page, eventos, n, "reporte_jornadas_asistencia")
-
 
 def ejecutar_descargas(rut, clave, headless=True):
     resultados, errores = [], []
