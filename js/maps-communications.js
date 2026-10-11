@@ -334,6 +334,13 @@
         }
         function restaurarMapa14() {
             if(mapa14Ruta&&mapa14Leaflet){mapa14Leaflet.removeLayer(mapa14Ruta);mapa14Ruta=null;}
+            ['origen','destino'].forEach(tipo=>{
+                const buscar=document.getElementById(tipo==='origen'?'map14-buscar-origen':'map14-buscar-destino');
+                const select=document.getElementById(tipo==='origen'?'map14-origen':'map14-destino');
+                if(buscar)buscar.value='';
+                renderOpcionesMapa14(tipo,'');
+                if(select)select.value='';
+            });
             const frame=document.getElementById('mapa14-frame');
             if(frame)frame.dataset.rutaCargada='0';
             pintarMarcadoresMapa14(mapa14Sucursales,true);
