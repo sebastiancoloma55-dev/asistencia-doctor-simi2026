@@ -243,13 +243,68 @@
             return null;
         }
         function puntoMapaSucursal(x) { const p=coordenadasSucursalMapa(x);return p?`${p.lat},${p.lon}`:direccionSucursal(x); }
+        let mapa14Leaflet = null;
+        let mapa14Marcadores = null;
+        let mapa14Ruta = null;
+        let mapa14Sucursales = [];
+
+        function inicializarMapa14(lista = mapa14Sucursales) {
+            const host = document.getElementById('mapa14-frame');
+            const status = document.getElementById('mapa14-status');
+            if (!host || !window.L) {
+                if (status) status.textContent = 'No se pudo cargar el mapa interactivo. Los enlaces a Google Maps siguen disponibles.';
+                return;
+            }
+            if (!mapa14Leaflet) {
+                mapa14Leaflet = L.map(host, { scrollWheelZoom: true }).setView([-33.45, -70.66], 5);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(mapa14Leaflet);
+                mapa14Marcadores = L.layerGroup().addTo(mapa14Leaflet);
+                setTimeout(() => mapa14Leaflet && mapa14Leaflet.invalidateSize(), 200);
+            }
+            mapa14Marcadores.clearLayers();
+            if (mapa14Ruta) { mapa14Leaflet.removeLayer(mapa14Ruta); mapa14Ruta = null; }
+            const conGps = lista.map(x => ({ sucursal: x, punto: coordenadasSucursalMapa(x) })).filter(x => x.punto);
+            conGps.forEach(({sucursal, punto}) => {
+                const marker = L.marker([punto.lat, punto.lon]).bindPopup(
+                    '<strong>' + escaparHTML(sucursal.nombre) + '</strong><br>' +
+                    escaparHTML([sucursal.direccion, sucursal.comuna].filter(Boolean).join(', ')) +
+                    '<br><small>' + escaparHTML(sucursal.supervisor || 'Supervisor no asignado') + '</small>'
+                );
+                marker.addTo(mapa14Marcadores);
+            });
+            if (conGps.length) {
+                const bounds = L.latLngBounds(conGps.map(x => [x.punto.lat, x.punto.lon]));
+                mapa14Leaflet.fitBounds(bounds, { padding: [24, 24], maxZoom: 11 });
+            } else {
+                mapa14Leaflet.setView([-33.45, -70.66], 5);
+            }
+            if (status) status.textContent = conGps.length + ' sucursal(es) con coordenadas en el mapa · ' + (lista.length - conGps.length) + ' sin GPS registrado. Puedes ver todas las ubicaciones disponibles aunque no hayas elegido origen o destino.';
+            setTimeout(() => mapa14Leaflet && mapa14Leaflet.invalidateSize(), 150);
+        }
+
+        function renderOpcionesMapa14(tipo, query = '') {
+            const select = document.getElementById(tipo === 'origen' ? 'map14-origen' : 'map14-destino');
+            if (!select) return;
+            const previous = select.value;
+            const q = String(query || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().trim();
+            const rows = mapa14Sucursales.filter(x => !q || [x.nombre,x.comuna,x.direccion,x.unidad].join(' ').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().includes(q));
+            select.innerHTML = '<option value="">Selecciona sucursal</option>' + rows.map(x => {
+                const p = coordenadasSucursalMapa(x);
+                return `<option value="${escaparHTML(puntoMapaSucursal(x))}" data-id="${escaparHTML(x.id||'')}" data-nombre="${escaparHTML(x.nombre)}" data-direccion="${escaparHTML(x.direccion||'')}" data-comuna="${escaparHTML(x.comuna||'')}" data-lat="${escaparHTML(p?.lat??'')}" data-lon="${escaparHTML(p?.lon??'')}">${escaparHTML(x.nombre)}${x.comuna ? ' · '+escaparHTML(x.comuna) : ''}${p ? ' · GPS' : ''}</option>`;
+            }).join('');
+            if ([...select.options].some(o => o.value === previous)) select.value = previous;
+        }
+
         async function prepararMapa14() {
-            const lista = await obtenerSucursalesConfig();
-            const opciones = '<option value="">Selecciona sucursal</option>' + lista.map(x => `<option value="${escaparHTML(puntoMapaSucursal(x))}" data-id="${escaparHTML(x.id||'')}" data-nombre="${escaparHTML(x.nombre)}" data-direccion="${escaparHTML(x.direccion||'')}" data-comuna="${escaparHTML(x.comuna||'')}" data-lat="${escaparHTML(coordenadasSucursalMapa(x)?.lat??'')}" data-lon="${escaparHTML(coordenadasSucursalMapa(x)?.lon??'')}">${escaparHTML(x.nombre)}${x.comuna ? ' · '+escaparHTML(x.comuna) : ''}${coordenadasSucursalMapa(x) ? ' · GPS' : ''}</option>`).join('');
-            document.getElementById('map14-origen').innerHTML = opciones;
-            document.getElementById('map14-destino').innerHTML = opciones;
-            const frame = document.getElementById('mapa14-frame');
-            if (frame && !frame.dataset.rutaCargada) frame.removeAttribute('src');
+            mapa14Sucursales = await obtenerSucursalesConfig();
+            renderOpcionesMapa14('origen', document.getElementById('map14-buscar-origen')?.value || '');
+            renderOpcionesMapa14('destino', document.getElementById('map14-buscar-destino')?.value || '');
+            document.getElementById('map14-buscar-origen')?.addEventListener('input', e => renderOpcionesMapa14('origen', e.target.value));
+            document.getElementById('map14-buscar-destino')?.addEventListener('input', e => renderOpcionesMapa14('destino', e.target.value));
+            inicializarMapa14(mapa14Sucursales);
             if (window.lucide) lucide.createIcons();
         }
         function mostrarRutaMapa14() {
@@ -270,6 +325,18 @@
             const fallback=document.getElementById('mapa14-fallback-link');if(fallback)fallback.href=externo;
             const modoTexto = modo === 'w' ? 'Caminando' : modo === 'r' ? 'Transporte público' : 'Auto';
             document.getElementById('mapa14-resumen').textContent = `${nombreOrigen} → ${nombreDestino} · ${modoTexto}`;
+            const p1 = { lat: Number(selOrigen.selectedOptions[0]?.dataset.lat), lon: Number(selOrigen.selectedOptions[0]?.dataset.lon) };
+            const p2 = { lat: Number(selDestino.selectedOptions[0]?.dataset.lat), lon: Number(selDestino.selectedOptions[0]?.dataset.lon) };
+            if (mapa14Leaflet && Number.isFinite(p1.lat) && Number.isFinite(p1.lon) && Number.isFinite(p2.lat) && Number.isFinite(p2.lon) && (p1.lat !== 0 || p1.lon !== 0) && (p2.lat !== 0 || p2.lon !== 0)) {
+                if (mapa14Ruta) mapa14Leaflet.removeLayer(mapa14Ruta);
+                mapa14Ruta = L.polyline([[p1.lat,p1.lon],[p2.lat,p2.lon]], { color: '#06b6d4', weight: 4, opacity: .9, dashArray: '8 7' }).addTo(mapa14Leaflet);
+                mapa14Leaflet.fitBounds(mapa14Ruta.getBounds(), { padding: [36,36], maxZoom: 12 });
+                const status = document.getElementById('mapa14-status');
+                if (status) status.textContent = 'Vista previa de ruta recta entre las coordenadas guardadas. Abre Google Maps para el recorrido vial real.';
+            } else {
+                const status = document.getElementById('mapa14-status');
+                if (status) status.textContent = 'Una o ambas sucursales no tienen GPS. La ruta vial está disponible en Google Maps.';
+            }
             if (window.lucide) lucide.createIcons();
         }
 
@@ -277,7 +344,75 @@
         function buscarCoberturaPersona(){const q=document.getElementById('cob-buscar').value.toLowerCase().trim(),p=document.getElementById('cob-resultados');if(q.length<2){p.classList.add('hidden');return;}const r=colaboradoresPapeleta.filter(x=>`${x.nombres} ${x.apellidos} ${x.rut} ${x.cargo}`.toLowerCase().includes(q)).slice(0,20);p.innerHTML=r.map(x=>`<button type="button" class="autocomplete-item" onclick="seleccionarCoberturaPersona('${x.id}')"><b>${escaparHTML(`${x.nombres||''} ${x.apellidos||''}`)}</b><br>${escaparHTML(x.rut)} · ${escaparHTML(x.cargo)} · ${escaparHTML(x.sucursal)}</button>`).join('');p.classList.remove('hidden');}
         function seleccionarCoberturaPersona(id){const x=colaboradoresPapeleta.find(a=>String(a.id)===String(id));if(!x)return;document.getElementById('cob-id').value=x.id;document.getElementById('cob-buscar').value=`${x.nombres} ${x.apellidos} · ${x.rut}`;document.getElementById('cob-nombre').value=`${x.nombres} ${x.apellidos}`.trim();document.getElementById('cob-rut').value=x.rut||'';document.getElementById('cob-origen').value=x.sucursal||'';document.getElementById('cob-tipo').value=x.cargo||'';document.getElementById('cob-resultados').classList.add('hidden');}
         function calcularDiasCobertura(){const a=parsearFechaExcel(document.getElementById('cob-inicio').value),b=parsearFechaExcel(document.getElementById('cob-fin').value);if(a&&b&&b>=a)document.getElementById('cob-dias').value=Math.floor((b-a)/86400000)+1;}
-        async function guardarCobertura(e){e.preventDefault();const registro={colaborador_id:Number(document.getElementById('cob-id').value),rut:document.getElementById('cob-rut').value,nombre:document.getElementById('cob-nombre').value,tipo_profesional:document.getElementById('cob-tipo').value,local_origen:document.getElementById('cob-origen').value,local_destino:document.getElementById('cob-destino').value,fecha_inicio:document.getElementById('cob-inicio').value,fecha_fin:document.getElementById('cob-fin').value,dias:Number(document.getElementById('cob-dias').value),motivo:document.getElementById('cob-motivo').value,observaciones:document.getElementById('cob-observaciones').value};if(!registro.colaborador_id)return mostrarToast('Selecciona la persona desde la lista.','warning');const {error}=await _supabase.from('coberturas').insert([registro]);if(error)return mostrarToast(error.message,'error');await registrarAuditoria('coberturas','CREA_COBERTURA',`${registro.nombre}: ${registro.local_origen} a ${registro.local_destino}`);e.target.reset();await cargarCoberturas();mostrarToast('Cobertura guardada.','success');}
+        async function guardarCobertura(e) {
+            e.preventDefault();
+            const registro = {
+                colaborador_id: String(document.getElementById('cob-id').value || ''),
+                rut: document.getElementById('cob-rut').value,
+                nombre: document.getElementById('cob-nombre').value,
+                tipo_profesional: document.getElementById('cob-tipo').value,
+                local_origen: document.getElementById('cob-origen').value,
+                local_destino: document.getElementById('cob-destino').value,
+                fecha_inicio: document.getElementById('cob-inicio').value,
+                fecha_fin: document.getElementById('cob-fin').value,
+                dias: Number(document.getElementById('cob-dias').value),
+                motivo: document.getElementById('cob-motivo').value,
+                observaciones: document.getElementById('cob-observaciones').value
+            };
+            if (!registro.colaborador_id || !registro.rut) return mostrarToast('Selecciona la persona desde la lista.','warning');
+            if (!registro.fecha_inicio || !registro.fecha_fin || registro.fecha_fin < registro.fecha_inicio) return mostrarToast('Revisa las fechas de la cobertura.','warning');
+            try {
+                const [personResult, branchResult] = await Promise.all([
+                    _supabase.from('colaboradores').select('id,rut,sucursal_id,sucursal,nombres,apellidos,cargo').eq('rut',registro.rut).maybeSingle(),
+                    _supabase.from('sucursales').select('id,nombre,activa')
+                ]);
+                if (personResult.error) throw personResult.error;
+                if (branchResult.error) throw branchResult.error;
+                const person = personResult.data;
+                const branches = branchResult.data || [];
+                const normBranch = value => String(value || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().toLowerCase();
+                const origin = branches.find(x => normBranch(x.nombre) === normBranch(registro.local_origen));
+                const destination = branches.find(x => normBranch(x.nombre) === normBranch(registro.local_destino));
+                if (!person) throw new Error('No se encontró al colaborador en el maestro por RUT.');
+                if (!origin || !destination) throw new Error('No se encontró la sucursal de origen o destino en el maestro. Revisa los nombres antes de guardar.');
+                if (origin.id === destination.id) throw new Error('El local de origen y destino deben ser diferentes.');
+                const {data:coverage,error:coverageError} = await _supabase.from('coberturas').insert([{...registro,colaborador_id:String(person.id)}]).select('id').single();
+                if (coverageError) throw coverageError;
+                const me = await _supabase.rpc('chat_usuario_actual_id');
+                if (me.error || !me.data) throw me.error || new Error('Tu usuario no tiene un perfil activo.');
+                const transferRow = {
+                    colaborador_id: person.id,
+                    rut: person.rut,
+                    colaborador_nombre: ((person.nombres || '') + ' ' + (person.apellidos || '')).trim(),
+                    cargo: person.cargo || registro.tipo_profesional,
+                    sucursal_origen_id: origin.id,
+                    sucursal_origen_nombre: origin.nombre,
+                    sucursal_destino_id: destination.id,
+                    sucursal_destino_nombre: destination.nombre,
+                    fecha_inicio: registro.fecha_inicio,
+                    fecha_termino: registro.fecha_fin,
+                    indefinido: false,
+                    motivo: 'Cobertura temporal: ' + registro.motivo,
+                    observaciones: registro.observaciones || null,
+                    solicitado_por: me.data,
+                    estado: 'SOLICITADO',
+                    tipo_movimiento: 'COBERTURA',
+                    cobertura_id: coverage.id
+                };
+                const {error:transferError} = await _supabase.from('traslados_personal').insert(transferRow);
+                if (transferError) {
+                    await _supabase.from('coberturas').delete().eq('id',coverage.id);
+                    throw new Error('No se pudo enviar la cobertura a revisión de Traslados. No se conservó la cobertura para evitar registros huérfanos. ' + transferError.message);
+                }
+                await registrarAuditoria('coberturas','CREA_COBERTURA',`${registro.nombre}: ${registro.local_origen} a ${registro.local_destino}`);
+                e.target.reset();
+                await cargarCoberturas();
+                mostrarToast('Cobertura guardada y enviada al módulo Traslados para aprobar o rechazar. La sucursal maestra no cambiará por aprobar una cobertura temporal.','success',10000);
+            } catch (error) {
+                console.error('Guardar cobertura:', error);
+                mostrarToast(error.message || 'No se pudo guardar la cobertura.','error',12000);
+            }
+        }
         function estadoCobertura(x){const h=new Date().toISOString().slice(0,10);return h<x.fecha_inicio?'PENDIENTE':h>x.fecha_fin?'REALIZADA':'EN CURSO';}
         async function cargarCoberturas(){const {data,error}=await _supabase.from('coberturas').select('*').order('fecha_inicio',{ascending:false});if(error)return mostrarToast(error.message,'error');datosCoberturasGlobal=data||[];document.getElementById('cob-pendientes').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='PENDIENTE').length;document.getElementById('cob-curso').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='EN CURSO').length;document.getElementById('cob-realizadas').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='REALIZADA').length;document.getElementById('tabla-coberturas').innerHTML=datosCoberturasGlobal.map(x=>`<tr><td><b>${escaparHTML(x.nombre)}</b><br>${escaparHTML(x.rut)} · ${escaparHTML(x.tipo_profesional)}</td><td>${escaparHTML(x.local_origen)}</td><td>${escaparHTML(x.local_destino)}</td><td>${x.fecha_inicio} a ${x.fecha_fin}</td><td>${escaparHTML(x.motivo)}</td><td><span class="rounded-full bg-slate-100 px-2 py-1 font-bold">${estadoCobertura(x)}</span></td></tr>`).join('');}
 
