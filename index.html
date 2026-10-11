@@ -531,6 +531,70 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
             }
         }
 
+
+/* NOVA LOGIN + TEMA GLOBAL v2 — mantiene el orden y las funciones existentes */
+:root{
+ --login-accent:var(--user-accent,#087fa3);
+ --login-accent-strong:var(--user-accent-strong,#06627e);
+ --login-glow:color-mix(in srgb,var(--user-accent,#087fa3) 45%,transparent);
+}
+.dashboard-welcome{
+ background:
+   radial-gradient(ellipse at 88% 12%,color-mix(in srgb,var(--user-accent,#087fa3) 65%,transparent),transparent 43%),
+   linear-gradient(118deg,var(--user-sidebar-start,#073a79) 0%,color-mix(in srgb,var(--user-sidebar-start,#073a79) 60%,var(--user-accent,#087fa3)) 52%,var(--user-accent,#087fa3) 100%)!important;
+ border:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 38%,white)!important;
+ box-shadow:0 18px 48px color-mix(in srgb,var(--user-accent,#087fa3) 20%,transparent)!important;
+ transition:background .35s ease,box-shadow .35s ease,border-color .35s ease;
+}
+.dashboard-welcome:after{color:color-mix(in srgb,var(--user-accent-contrast,#fff) 9%,transparent)!important}
+.login-overlay-modern{
+ isolation:isolate!important;
+ background:
+   radial-gradient(ellipse at 14% 18%,color-mix(in srgb,var(--user-accent,#087fa3) 42%,transparent),transparent 34%),
+   radial-gradient(ellipse at 86% 82%,rgba(227,24,55,.22),transparent 32%),
+   linear-gradient(135deg,#071321 0%,#0b1b30 48%,color-mix(in srgb,var(--user-sidebar-start,#073a79) 70%,#071321) 100%)!important;
+ transition:background .45s ease;
+}
+.login-overlay-modern:before{
+ content:"";position:absolute;inset:-30%;z-index:-1;pointer-events:none;
+ background:conic-gradient(from 0deg at 50% 50%,transparent 0deg,var(--login-glow) 65deg,transparent 125deg,rgba(227,24,55,.13) 190deg,transparent 255deg,var(--login-glow) 315deg,transparent 360deg);
+ filter:blur(72px);opacity:.58;animation:nova-login-orbit 28s linear infinite;
+}
+.login-overlay-modern:after{
+ content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.18;
+ background-image:radial-gradient(rgba(255,255,255,.55) .7px,transparent .7px);
+ background-size:23px 23px;mask-image:linear-gradient(110deg,#000,transparent 72%);
+}
+.login-grid-bg{opacity:.2!important;mask-image:radial-gradient(ellipse at center,#000,transparent 78%)}
+.login-glow-red{background:color-mix(in srgb,#e31837 58%,transparent)!important;opacity:.18!important}
+.login-glow-blue{background:var(--login-glow)!important;opacity:.3!important}
+.login-shell{
+ border-color:rgba(255,255,255,.18)!important;
+ background:rgba(255,255,255,.065)!important;
+ box-shadow:0 40px 120px rgba(0,0,0,.48),0 0 0 1px color-mix(in srgb,var(--user-accent,#087fa3) 12%,transparent)!important;
+}
+.login-hero{
+ background:
+  radial-gradient(ellipse at 10% 90%,color-mix(in srgb,var(--user-accent,#087fa3) 34%,transparent),transparent 48%),
+  linear-gradient(145deg,rgba(5,18,34,.48),color-mix(in srgb,var(--user-sidebar-start,#073a79) 58%,transparent))!important;
+}
+.login-brand-mark{background:linear-gradient(145deg,var(--user-accent,#087fa3),var(--user-accent-strong,#06627e))!important;box-shadow:0 10px 32px color-mix(in srgb,var(--user-accent,#087fa3) 38%,transparent)!important}
+.login-hero h2 span{color:var(--user-accent-bright,#6ee7f9)!important;text-shadow:0 0 34px color-mix(in srgb,var(--user-accent,#087fa3) 28%,transparent)}
+.login-eyebrow{border-color:color-mix(in srgb,var(--user-accent,#087fa3) 45%,transparent)!important}
+.login-proof-icon{color:var(--user-accent-bright,#6ee7f9)!important;border-color:color-mix(in srgb,var(--user-accent,#087fa3) 40%,transparent)!important}
+.login-track-line{background:linear-gradient(90deg,transparent,var(--user-accent,#087fa3),rgba(255,255,255,.45),#e31837,transparent)!important}
+#login-overlay button[type="submit"],#login-overlay .login-submit,#login-overlay #login-submit{
+ background:linear-gradient(105deg,var(--user-accent-strong,#06627e),var(--user-accent,#087fa3))!important;
+ box-shadow:0 12px 28px color-mix(in srgb,var(--user-accent,#087fa3) 32%,transparent)!important;
+ transition:filter .2s ease,transform .2s ease,box-shadow .2s ease!important;
+}
+#login-overlay button[type="submit"]:hover,#login-overlay .login-submit:hover,#login-overlay #login-submit:hover{filter:brightness(1.12);transform:translateY(-2px)}
+#login-overlay input:focus{border-color:var(--user-accent,#087fa3)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--user-accent,#087fa3) 16%,transparent)!important}
+body.theme-dark .login-shell{background:rgba(10,22,39,.78)!important}
+@keyframes nova-login-orbit{to{transform:rotate(360deg)}}
+@media(max-width:760px){.login-shell{grid-template-columns:minmax(0,1fr)!important;min-height:0!important}.login-hero{min-height:320px!important;padding:28px!important}.login-hero-copy{margin-top:28px!important;margin-bottom:70px!important}.login-simi-stage{transform:scale(.72);transform-origin:bottom left;bottom:0!important}}
+@media(prefers-reduced-motion:reduce){.login-overlay-modern:before{animation:none!important}.login-shell,.dashboard-welcome{transition:none!important}}
+
 </style>
 </head>
 
