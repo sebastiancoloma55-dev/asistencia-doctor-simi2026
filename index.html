@@ -701,6 +701,15 @@ body{overflow-x:hidden}
                         <span id="dashboard-welcome-role" class="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-2 text-xs font-bold text-white"><i data-lucide="shield-check" class="h-4 w-4"></i> Usuario autorizado</span>
                     </div>
                 </div>
+                <div class="ui-card p-4 sm:p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div><h3 class="font-extrabold text-slate-900">Actualización de datos</h3><p class="mt-1 text-xs text-slate-500">Últimas cargas registradas en los módulos a los que tienes acceso, en hora de Chile.</p></div>
+                        <button type="button" class="corp-button-dark text-xs" onclick="cargarActualizacionesFuentes()">Actualizar fechas</button>
+                    </div>
+                    <div id="dashboard-freshness-list" class="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2">
+                        <p class="text-sm text-slate-500">Consultando última carga…</p>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     <div class="ui-card flex items-start justify-between p-5">
                         <div>
