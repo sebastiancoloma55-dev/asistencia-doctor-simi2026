@@ -672,7 +672,9 @@
         // ============================================================
         // NAVEGACIÓN
         // ============================================================
+        let secuenciaCambioModulo = 0;
         async function cambiarModulo(modulo, cargar = true) {
+            const secuenciaActual = ++secuenciaCambioModulo;
             if (window.cargarActualizacionesFuentes) cargarActualizacionesFuentes().catch(error => console.warn('Trazabilidad de archivos:', error));
             if(perfilActualSistema&&!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para acceder a este apartado.','warning');const primero=modulos.find(nombre=>tienePermisoModulo(nombre));if(primero&&primero!==modulo)return cambiarModulo(primero,cargar);return;}
             modulos.forEach(nombre => {
@@ -688,6 +690,7 @@
                 const vista = document.getElementById(`view-${nombre}`);
 
                 if (vista) {
+                    vista.classList.remove('rrhh-view-enter');
                     vista.classList.add('hidden');
                 }
             });
@@ -704,13 +707,22 @@
 
             if (vista) {
                 vista.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    if (secuenciaActual === secuenciaCambioModulo && !vista.classList.contains('hidden')) {
+                        vista.classList.add('rrhh-view-enter');
+                    }
+                });
+                vista.addEventListener('animationend', () => vista.classList.remove('rrhh-view-enter'), { once: true });
                 if (window.actualizarContextoModulo) window.actualizarContextoModulo(modulo);
             } else {
-                document
-                    .getElementById('view-generic')
-                    .classList
-                    .remove('hidden');
-
+                const generic = document.getElementById('view-generic');
+                generic.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    if (secuenciaActual === secuenciaCambioModulo && !generic.classList.contains('hidden')) {
+                        generic.classList.add('rrhh-view-enter');
+                    }
+                });
+                generic.addEventListener('animationend', () => generic.classList.remove('rrhh-view-enter'), { once: true });
                 document.getElementById('generic-title').innerText =
                     `${titulos[modulo]} - Módulo en desarrollo`;
             }
@@ -770,7 +782,8 @@
                 if (modulo === 'usuarios') await cargarUsuariosRoles();
                 if (modulo === 'auditoria') await cargarAuditoria();
             } catch (error) {
-                mostrarToast(error.message, 'error', 15000);
+                if (secuenciaActual === secuenciaCambioModulo) mostrarToast(error.message, 'error', 15000);
+                else console.debug('Carga de módulo anterior omitida tras cambiar de vista:', modulo);
             }
         }
 
