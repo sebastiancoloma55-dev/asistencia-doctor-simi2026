@@ -345,7 +345,8 @@
       const {data,error}=await _supabase.rpc("resolver_traslado_personal",{p_id:id,p_estado:state});
       if(error)throw error;
       const updated=data?.maestro_actualizado;
-      setStatus("traslado-estado",state==="APROBADO"?(updated?"Solicitud aprobada y sucursal del colaborador actualizada.":"Solicitud aprobada. El cambio de sucursal se aplicará cuando comience el traslado."):"Solicitud rechazada.");
+      const coverage=data?.cobertura_temporal||data?.tipo_movimiento==="COBERTURA";
+      setStatus("traslado-estado",state==="APROBADO"?(coverage?"Cobertura temporal aprobada. La sucursal maestra del colaborador se mantiene sin cambios.":updated?"Solicitud aprobada y sucursal del colaborador actualizada.":"Solicitud aprobada. El cambio de sucursal se aplicará cuando comience el traslado."):"Solicitud rechazada.");
       await cargarTrasladosPersonal();
     }catch(error){console.error("Resolver traslado:",error);setStatus("traslado-estado",error.message||"No se pudo actualizar el estado. Comprueba el permiso traslados_aprobar.",true);}
   }
