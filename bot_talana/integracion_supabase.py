@@ -22,5 +22,20 @@ class TalanaBotCloud:
  def upload_file(self,run_id,report_type,path):
   p=Path(path); raw=p.read_bytes()
   return self.call("bot_upload",run_id=run_id,report_type=report_type,file_name=p.name,mime_type=mimetypes.guess_type(p.name)[0] or "application/octet-stream",size_bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest(),base64=base64.b64encode(raw).decode())
+
+ def import_report(self,run_id,report_type,path):
+  """Parsea el XLSX y lo importa por lotes a la tabla de destino del módulo."""
+  from importador_reportes import parse_report
+  p=Path(path)
+  rows,parse_errors,metadata=parse_report(p,report_type)
+  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True}
+  for offset in range(0,len(rows),100):
+   batch=rows[offset:offset+100]
+   result=self.call("bot_import",run_id=run_id,report_type=report_type,file_name=p.name,rows=batch,parse_errors=parse_errors if offset==0 else [])
+   for key in ("inserted","updated","skipped","failed"):
+    totals[key]+=int(result.get(key,0) or 0)
+   totals["tracking_registered"]=totals["tracking_registered"] and bool(result.get("tracking_registered",True))
+   totals["errors"].extend(result.get("errors") or [])
+  return totals
  def finish_run(self,run_id,status,downloaded=0,errors=None,details=None):
   return self.call("bot_finish",run_id=run_id,status=status,reports_downloaded=downloaded,error_summary="; ".join(map(str,errors or []))[:4000] or None,details=details or {})

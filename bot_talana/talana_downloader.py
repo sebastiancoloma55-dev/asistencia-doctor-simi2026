@@ -72,6 +72,14 @@ def click_texto(page, texto, timeout=15000):
         )),
     ]
     while time.monotonic() < deadline:
+        # Talana abre modales de generación de forma asíncrona; nunca intentes
+        # pulsar el siguiente reporte mientras el modal esté bloqueando la página.
+        try:
+            if modal_progreso_visible(page):
+                esperar_fin_modal_progreso(page, timeout_segundos=600)
+                page.wait_for_timeout(500)
+        except NameError:
+            pass
         cerrar_popups(page)
         for strategy_name, build_locator in strategies:
             for frame in list(page.frames):
@@ -287,7 +295,18 @@ def descargar_solicitudes_vacaciones(page, fecha_desde, eventos):
         page.wait_for_timeout(500)
     if not texto_visible(page, report):
         raise RuntimeError("No aparece «Detalle solicitudes de vacaciones históricas» dentro de VACACIONES.")
-    click_texto(page, report)
+    # Usa el identificador estable de Talana cuando está presente; el texto
+    # visible queda como alternativa para cambios menores de interfaz.
+    enlace = page.locator('a[data-cy="gdp-employees-report-detail-historical-vacation-requests"]')
+    try:
+        if enlace.count() and enlace.first.is_visible():
+            if modal_progreso_visible(page):
+                esperar_fin_modal_progreso(page, timeout_segundos=600)
+            enlace.first.click(timeout=15000)
+        else:
+            click_texto(page, report)
+    except Exception:
+        click_texto(page, report)
     page.wait_for_timeout(500)
     seleccionar_desde(page, fecha_desde)
     n = len(eventos)
@@ -324,8 +343,8 @@ def esperar_modal_progreso(page, timeout_segundos=600):
     raise RuntimeError("Talana mantuvo el proceso de Maestro empleado activo durante 10 minutos.")
 
 
-def descargar_maestro_empleado(page):
-    """Ejecuta Maestro Trabajadores; es un proceso del portal, no un archivo descargable."""
+def descargar_maestro_empleado(page, eventos):
+    """Genera y guarda el archivo descargable de Maestro Trabajadores."""
     click_texto(page, "Trabajadores")
     boton, limite = None, time.monotonic() + 60
     while time.monotonic() < limite and boton is None:
@@ -356,8 +375,13 @@ def descargar_maestro_empleado(page):
                 if objetivo is not None: break
         if objetivo is None: page.wait_for_timeout(300)
     if objetivo is None: raise RuntimeError("No apareció «Maestro Trabajadores» (#empleadosExport1).")
+    # Registrar el contador antes de iniciar la exportación para no confundir
+    # la animación de progreso con una descarga completada.
+    cantidad_inicial = len(eventos)
     objetivo.click(timeout=15000)
-    return esperar_modal_progreso(page)
+    return esperar_descarga_evento(
+        page, eventos, cantidad_inicial, "maestro_empleado", timeout_segundos=600
+    )
 
 
 def cambiar_a_asistencia_y_turnos(page):
@@ -377,15 +401,36 @@ def cambiar_a_asistencia_y_turnos(page):
     candidatos[0][2].click(timeout=12000)
     page.wait_for_timeout(500)
     click_texto(page, "Asistencia y Turnos")
+    # Talana puede redirigir primero a /attendance/loading?next=... y
+    # no mostrar la etiqueta "Jornadas" aunque el calendario ya sea la vista activa.
     limite = time.monotonic() + 90
     while time.monotonic() < limite:
-        if texto_visible(page, "Jornadas"): return
+        url_actual = (page.url or "").lower()
+        ruta_jornadas = "/attendance/workdays/calendar" in url_actual
+        cargando = "/attendance/loading" in url_actual
+        if ruta_jornadas and not cargando:
+            page.wait_for_timeout(1500)
+            return
+        if texto_visible(page, "Jornadas") and not cargando:
+            return
         page.wait_for_timeout(500)
-    raise RuntimeError("No apareció la sección Jornadas en Asistencia y Turnos.")
+    raise RuntimeError(
+        "No se confirmó la vista Jornadas en Asistencia y Turnos. "
+        f"URL actual: {page.url}"
+    )
 
 
 def descargar_reporte_jornadas(page, eventos):
-    click_texto(page, "Jornadas")
+    # Si el calendario de jornadas ya está abierto, no volver a buscar/clicar
+    # una etiqueta de navegación que puede no existir en esta variante de Talana.
+    url_actual = (page.url or "").lower()
+    if "/attendance/workdays/calendar" not in url_actual:
+        click_texto(page, "Jornadas")
+    else:
+        limite_carga = time.monotonic() + 60
+        while time.monotonic() < limite_carga and "/attendance/loading" in (page.url or "").lower():
+            page.wait_for_timeout(500)
+        page.wait_for_timeout(1000)
     boton, limite = None, time.monotonic() + 60
     patron = re.compile(r"Descargar\s+reporte", re.I)
     while time.monotonic() < limite and boton is None:
@@ -421,7 +466,7 @@ def ejecutar_descargas(rut, clave, headless=True):
             tareas = [
                 ("Detalle Ausentismos histórico", lambda: descargar_ausentismo_historico(page, eventos), True),
                 ("Detalle solicitudes de vacaciones históricas", lambda: descargar_solicitudes_vacaciones(page, primer_dia_mes_actual(), eventos), True),
-                ("Maestro empleado", lambda: descargar_maestro_empleado(page), False),
+                ("Maestro empleado", lambda: descargar_maestro_empleado(page, eventos), True),
                 ("Reporte de Jornadas — Asistencia y Turnos", lambda: (cambiar_a_asistencia_y_turnos(page), descargar_reporte_jornadas(page, eventos))[1], True),
             ]
             for titulo, accion, es_archivo in tareas:

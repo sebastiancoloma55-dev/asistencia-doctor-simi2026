@@ -42,3 +42,8 @@ La programación automática de GitHub requiere que el workflow esté en la rama
 ## Alternativa local de Windows
 
 Si prefieres ejecutar el agente residente en un PC, el agente Windows debe mantenerse abierto, consultar la configuración/cola y ejecutar el proceso Playwright existente. El equipo debe permanecer encendido y conectado. Supabase no puede abrir Chrome de tu PC por sí solo. Para automatización local desatendida, inicia el agente con el Programador de tareas de Windows y evita ejecuciones simultáneas.
+
+
+## Ejecución manual desde el panel
+
+Configura `GITHUB_ACTIONS_TOKEN` en Supabase Edge Functions Secrets con un token fine-grained limitado a este repositorio y permiso **Actions: Read and write**. Despliega la Edge Function actualizada para que el botón Ejecución manual dispare `workflow_dispatch` inmediatamente. No guardes este token en el frontend ni en el repositorio.
