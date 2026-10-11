@@ -678,7 +678,8 @@
                 const boton = document.getElementById(`btn-${nombre}`);
 
                 if (boton) {
-                    boton.className = `menu-btn ui-button flex w-full items-center gap-3 rounded-lg px-3 py-2.5 ${nombre === modulo ? 'active font-semibold text-white' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'}`;
+                    const ocultoPorPermiso = boton.classList.contains('hidden');
+                    boton.className = `menu-btn ui-button flex w-full items-center gap-3 rounded-lg px-3 py-2.5 ${nombre === modulo ? 'active font-semibold text-white' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'}${ocultoPorPermiso ? ' hidden' : ''}`;
                     if (nombre === modulo) boton.setAttribute('aria-current', 'page');
                     else boton.removeAttribute('aria-current');
                 }
