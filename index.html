@@ -791,10 +791,14 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
                     21. Traslados de personal
                 </button>
 </nav>
+            <div class="sidebar-credit" aria-label="Gestionado por el equipo de Asistencia" title="Gestionado por el equipo de Asistencia">
+                <span class="sidebar-credit-icon"><i data-lucide="shield-check" class="h-4 w-4"></i></span>
+                <span class="sidebar-credit-copy"><span>GESTIONADO POR</span><strong>Equipo de Asistencia</strong></span>
+            </div>
         </aside>
 
         <main class="flex min-w-0 flex-1 flex-col overflow-y-auto">
-            <div class="app-watermark" aria-hidden="true">Gestionado por el equipo de Asistencia</div>
+            
             <header
                 class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 sm:px-8"
             >
@@ -2133,6 +2137,157 @@ body.search-open{overflow:hidden}
 @keyframes searchPanelIn{from{opacity:0;transform:translateY(-8px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(prefers-reduced-motion:reduce){.global-search-panel{animation:none}}
 @media(max-width:700px){.global-search-overlay{padding:7vh 10px 15px}.global-search-panel{border-radius:16px}.topbar-search{padding:8px}}
+
+/* Identidad visual por módulo: misma navegación, acento propio para cada área */
+#view-dashboard{--module-accent:#0891b2}
+#view-colaboradores{--module-accent:#2563eb}
+#view-sucursales{--module-accent:#0d9488}
+#view-asistencia{--module-accent:#d97706}
+#view-licencias{--module-accent:#e11d48}
+#view-vacaciones{--module-accent:#16a34a}
+#view-papeletas{--module-accent:#7c3aed}
+#view-correos{--module-accent:#0284c7}
+#view-amonestaciones{--module-accent:#ea580c}
+#view-reportes{--module-accent:#4f46e5}
+#view-usuarios{--module-accent:#475569}
+#view-auditoria{--module-accent:#64748b}
+#view-configcorreos{--module-accent:#0f766e}
+#view-mapas{--module-accent:#059669}
+#view-tareas{--module-accent:#c026d3}
+#view-operaciones{--module-accent:#0369a1}
+#view-calidad{--module-accent:#6d28d9}
+#view-notificaciones{--module-accent:#db2777}
+#view-integraciones{--module-accent:#4f46e5}
+#view-chat{--module-accent:#0f9f91}
+#view-traslados{--module-accent:#b45309}
+#view-generic{--module-accent:#64748b}
+
+[id^="view-"] .module-intro{
+  position:relative;isolation:isolate;overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--module-accent,#087fa3) 22%,#e2e8f0);
+  border-left:4px solid var(--module-accent,#087fa3);
+  background:linear-gradient(112deg,color-mix(in srgb,var(--module-accent,#087fa3) 8%,#fff) 0%,#fff 68%);
+  box-shadow:0 8px 22px rgba(15,41,64,.045);
+}
+[id^="view-"] .module-intro:after{
+  content:"";position:absolute;z-index:-1;right:-48px;top:-72px;width:190px;height:190px;
+  border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--module-accent,#087fa3) 17%,transparent),transparent 72%);
+}
+[id^="view-"] .module-kicker{
+  color:var(--module-accent,#087fa3);
+  background:color-mix(in srgb,var(--module-accent,#087fa3) 10%,#fff);
+  border:1px solid color-mix(in srgb,var(--module-accent,#087fa3) 22%,#fff);
+}
+[id^="view-"]>.ui-card:first-child{
+  border-top:3px solid color-mix(in srgb,var(--module-accent,#087fa3) 80%,#fff)!important;
+}
+[id^="view-"]>.ui-card:first-child .section-title,
+[id^="view-"]>.ui-card:first-child>h3{
+  text-decoration-color:color-mix(in srgb,var(--module-accent,#087fa3) 30%,transparent);
+  text-underline-offset:5px;
+}
+[id^="view-"] .module-intro h3{position:relative;z-index:1;letter-spacing:-.025em}
+[id^="view-"] .module-intro p{position:relative;z-index:1}
+#view-dashboard .dashboard-welcome{border-bottom:4px solid #18b7c6}
+#view-asistencia .badge-alerta,#view-licencias .badge-alerta{border-color:color-mix(in srgb,var(--module-accent) 28%,white)}
+#view-tareas .module-intro,#view-operaciones .module-intro,#view-calidad .module-intro,
+#view-notificaciones .module-intro,#view-integraciones .module-intro,#view-chat .module-intro,
+#view-traslados .module-intro{border-radius:18px;padding:24px}
+@media(max-width:640px){
+  [id^="view-"] .module-intro{border-left-width:3px}
+  #view-tareas .module-intro,#view-operaciones .module-intro,#view-calidad .module-intro,
+  #view-notificaciones .module-intro,#view-integraciones .module-intro,#view-chat .module-intro,
+  #view-traslados .module-intro{padding:18px}
+}
+
+/* Menú lateral premium: misma anchura y orden, estados claros y color propio por módulo */
+#sidebar{
+  background:linear-gradient(180deg,#123f79 0%,#0a4c91 58%,#073766 100%)!important;
+  border-right:1px solid rgba(191,219,254,.2);
+}
+#sidebar>div:first-child{
+  flex-shrink:0;background:linear-gradient(120deg,rgba(255,255,255,.045),transparent);
+  border-bottom-color:rgba(219,234,254,.18)!important;
+}
+#sidebar .menu-btn{
+  box-sizing:border-box;min-height:42px;border:1px solid transparent!important;
+  border-radius:12px!important;margin-block:2px;padding:8px 10px!important;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease,box-shadow .18s ease;
+  font-weight:750;line-height:1.25;
+}
+#sidebar .menu-btn>svg{
+  flex:0 0 24px;width:24px!important;height:24px!important;padding:4px;
+  border-radius:8px;color:var(--nav-accent,#bfdbfe)!important;
+  background:color-mix(in srgb,var(--nav-accent,#bfdbfe) 13%,#0c427d);
+  border:1px solid color-mix(in srgb,var(--nav-accent,#bfdbfe) 19%,transparent);
+  transition:background .18s ease,color .18s ease;
+}
+#sidebar .menu-btn:hover:not(.active){
+  background:rgba(255,255,255,.085)!important;border-color:rgba(219,234,254,.15)!important;
+  transform:translateX(2px);
+}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{
+  background:linear-gradient(110deg,var(--nav-accent,#069fb4),color-mix(in srgb,var(--nav-accent,#069fb4) 74%,#07529c))!important;
+  border-color:color-mix(in srgb,var(--nav-accent,#069fb4) 68%,white)!important;
+  box-shadow:0 7px 18px color-mix(in srgb,var(--nav-accent,#069fb4) 23%,transparent),inset 0 1px rgba(255,255,255,.18);
+  color:#fff!important;
+}
+#sidebar .menu-btn.active>svg,#sidebar .menu-btn[aria-current="page"]>svg{
+  background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.26);color:#fff!important;
+}
+#sidebar #btn-dashboard{--nav-accent:#06b6d4}
+#sidebar #btn-colaboradores{--nav-accent:#60a5fa}
+#sidebar #btn-sucursales{--nav-accent:#2dd4bf}
+#sidebar #btn-asistencia{--nav-accent:#fbbf24}
+#sidebar #btn-licencias{--nav-accent:#fb7185}
+#sidebar #btn-vacaciones{--nav-accent:#4ade80}
+#sidebar #btn-papeletas{--nav-accent:#c4b5fd}
+#sidebar #btn-correos{--nav-accent:#38bdf8}
+#sidebar #btn-amonestaciones{--nav-accent:#fb923c}
+#sidebar #btn-reportes{--nav-accent:#a5b4fc}
+#sidebar #btn-usuarios{--nav-accent:#cbd5e1}
+#sidebar #btn-auditoria{--nav-accent:#94a3b8}
+#sidebar #btn-configcorreos{--nav-accent:#5eead4}
+#sidebar #btn-mapas{--nav-accent:#6ee7b7}
+#sidebar #btn-tareas{--nav-accent:#f0abfc}
+#sidebar #btn-operaciones{--nav-accent:#7dd3fc}
+#sidebar #btn-calidad{--nav-accent:#c4b5fd}
+#sidebar #btn-notificaciones{--nav-accent:#f9a8d4}
+#sidebar #btn-integraciones{--nav-accent:#a5b4fc}
+#sidebar #btn-chat{--nav-accent:#5eead4}
+#sidebar #btn-traslados{--nav-accent:#fdba74}
+#sidebar .nova-nav-divider{
+  color:#bfdbfe;border-top-color:rgba(219,234,254,.2);margin-top:12px;
+}
+#sidebar nav{scrollbar-width:thin;scrollbar-color:rgba(191,219,254,.4) transparent;overscroll-behavior:contain}
+#sidebar nav::-webkit-scrollbar{width:6px}
+#sidebar nav::-webkit-scrollbar-thumb{background:rgba(191,219,254,.4);border-radius:99px}
+body.sidebar-compact #sidebar .menu-btn>svg{width:22px!important;height:22px!important;flex-basis:22px;padding:3px}
+@media(prefers-reduced-motion:reduce){#sidebar .menu-btn,#sidebar .menu-btn>svg{transition:none!important}}
+@media(max-width:900px){#sidebar .menu-btn:hover:not(.active){transform:none}}
+
+/* Firma institucional fija en el pie del menú: visible y sin tapar datos de los módulos */
+.sidebar-credit{
+  display:flex;align-items:center;gap:10px;flex:0 0 auto;min-width:0;
+  margin:8px 12px 12px;padding:11px 10px;border:1px solid rgba(191,219,254,.23);
+  border-radius:13px;background:linear-gradient(115deg,rgba(255,255,255,.1),rgba(255,255,255,.045));
+  box-shadow:inset 0 1px rgba(255,255,255,.08);
+}
+.sidebar-credit-icon{
+  display:grid;place-items:center;flex:0 0 31px;width:31px;height:31px;border-radius:10px;
+  color:#dff9ff;background:linear-gradient(135deg,#0ea5b7,#0872ba);
+  border:1px solid rgba(255,255,255,.25);
+}
+.sidebar-credit-copy{display:flex;flex-direction:column;gap:3px;min-width:0;color:#dbeafe;line-height:1.2}
+.sidebar-credit-copy>span{font-size:8px;font-weight:900;letter-spacing:.13em;color:#a9d5ed}
+.sidebar-credit-copy>strong{font-size:11px;letter-spacing:.01em;color:#fff;font-weight:850;white-space:normal}
+body.sidebar-compact .sidebar-credit{justify-content:center;margin:8px 7px 10px;padding:8px 4px}
+body.sidebar-compact .sidebar-credit-copy{display:none}
+@media(max-width:900px){
+  .sidebar-credit{margin-bottom:10px}
+}
+
 </style>
 <script>
 (function(){
