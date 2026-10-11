@@ -31,6 +31,10 @@ jobs:
           python-version: "3.12"
       - name: Comprobar sintaxis Python
         run: python -m compileall -q bot_talana
+      - name: Instalar dependencias de validación
+        run: pip install -r bot_talana/requirements.txt
+      - name: Probar importador de reportes Talana
+        run: python -m unittest discover -s bot_talana -p 'test_*.py' -v
       - name: Preparar Node para validación TypeScript
         uses: actions/setup-node@v4
         with:
