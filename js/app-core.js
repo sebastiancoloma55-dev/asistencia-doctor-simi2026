@@ -290,7 +290,7 @@
                 const origen = registro.origen === 'bot' ? 'Bot Talana' : registro.origen === 'manual' ? 'Carga manual' : 'Sistema';
                 const archivo = registro.archivo ? ' · ' + registro.archivo : '';
                 el.textContent = registro.actualizado_en
-                    ? 'Última actualización: ' + fecha + ' · ' + origen + archivo
+                    ? (registro.detalles?.baseline ? 'Seguimiento iniciado: ' + fecha + ' · carga histórica sin fecha original' : 'Última actualización: ' + fecha + ' · ' + origen + archivo)
                     : 'Sin cargas registradas';
                 el.title = registro.usuario_email ? 'Registrado por ' + registro.usuario_email : '';
                 el.dataset.updateState = registro.actualizado_en ? 'ok' : 'empty';
@@ -303,7 +303,7 @@
             if (!sessionData?.session) return;
             const { data, error } = await _supabase
                 .from('actualizaciones_fuentes')
-                .select('modulo,actualizado_en,archivo,origen,usuario_email,registros')
+                .select('modulo,actualizado_en,archivo,origen,usuario_email,registros,detalles')
                 .order('actualizado_en', { ascending: false });
             if (error) {
                 console.warn('No se pudo consultar la trazabilidad de archivos:', error.message);
@@ -332,7 +332,7 @@
                 const { data, error } = await _supabase
                     .from('actualizaciones_fuentes')
                     .upsert(payload, { onConflict: 'modulo' })
-                    .select('modulo,actualizado_en,archivo,origen,usuario_email,registros')
+                    .select('modulo,actualizado_en,archivo,origen,usuario_email,registros,detalles')
                     .single();
                 if (error) throw error;
                 pintarActualizacionFuente(data);
