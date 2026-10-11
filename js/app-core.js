@@ -262,6 +262,90 @@
             return filas;
         }
 
+        // Trazabilidad de cargas: misma etiqueta para archivos manuales y bot en nube.
+        const MODULOS_ACTUALIZACION = {
+            colaboradores: 'Colaboradores',
+            sucursales: 'Sucursales',
+            config_sucursales: 'Configuración de sucursales',
+            config_correos: 'Correos por sucursal',
+            asistencia: 'Asistencia',
+            licencias: 'Licencias médicas',
+            vacaciones: 'Vacaciones',
+            talana_bot: 'Reportes del bot Talana'
+        };
+
+        function formatoFechaActualizacion(valor) {
+            if (!valor) return 'Sin cargas registradas';
+            const fecha = new Date(valor);
+            if (Number.isNaN(fecha.getTime())) return 'Fecha no disponible';
+            return fecha.toLocaleString('es-CL', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Santiago' });
+        }
+
+        function pintarActualizacionFuente(registro) {
+            if (!registro?.modulo) return;
+            document.querySelectorAll('[data-update-stamp="' + registro.modulo + '"]').forEach(el => {
+                const fecha = formatoFechaActualizacion(registro.actualizado_en);
+                const origen = registro.origen === 'bot' ? 'Bot Talana' : registro.origen === 'manual' ? 'Carga manual' : 'Sistema';
+                const archivo = registro.archivo ? ' · ' + registro.archivo : '';
+                el.textContent = registro.actualizado_en
+                    ? 'Última actualización: ' + fecha + ' · ' + origen + archivo
+                    : 'Sin cargas registradas';
+                el.title = registro.usuario_email ? 'Registrado por ' + registro.usuario_email : '';
+                el.dataset.updateState = registro.actualizado_en ? 'ok' : 'empty';
+            });
+        }
+
+        async function cargarActualizacionesFuentes() {
+            if (!_supabase?.auth) return;
+            const { data: sessionData } = await _supabase.auth.getSession();
+            if (!sessionData?.session) return;
+            const { data, error } = await _supabase
+                .from('actualizaciones_fuentes')
+                .select('modulo,actualizado_en,archivo,origen,usuario_email,registros')
+                .order('actualizado_en', { ascending: false });
+            if (error) {
+                console.warn('No se pudo consultar la trazabilidad de archivos:', error.message);
+                return;
+            }
+            Object.keys(MODULOS_ACTUALIZACION).forEach(modulo => {
+                if (!data?.some(x => x.modulo === modulo)) {
+                    pintarActualizacionFuente({ modulo, actualizado_en: null });
+                }
+            });
+            (data || []).forEach(pintarActualizacionFuente);
+        }
+
+        async function registrarActualizacionFuente(modulo, archivo, registros = null, origen = 'manual', detalles = {}) {
+            try {
+                const { data: sessionData } = await _supabase.auth.getSession();
+                const payload = {
+                    modulo,
+                    actualizado_en: new Date().toISOString(),
+                    archivo: String(archivo || '').slice(0, 240) || null,
+                    origen: ['manual', 'bot', 'sistema'].includes(origen) ? origen : 'manual',
+                    usuario_email: sessionData?.session?.user?.email || null,
+                    registros: Number.isFinite(Number(registros)) && registros !== null ? Number(registros) : null,
+                    detalles: detalles && typeof detalles === 'object' ? detalles : {}
+                };
+                const { data, error } = await _supabase
+                    .from('actualizaciones_fuentes')
+                    .upsert(payload, { onConflict: 'modulo' })
+                    .select('modulo,actualizado_en,archivo,origen,usuario_email,registros')
+                    .single();
+                if (error) throw error;
+                pintarActualizacionFuente(data);
+                return true;
+            } catch (error) {
+                console.error('La carga terminó, pero no se pudo registrar su fecha:', error);
+                const labels = document.querySelectorAll('[data-update-stamp="' + modulo + '"]');
+                labels.forEach(el => { el.textContent = 'Datos guardados; no se pudo registrar la fecha de actualización'; });
+                if (window.mostrarToast) mostrarToast('Los datos se guardaron, pero falló el registro de trazabilidad. ' + (error.message || ''), 'warning', 12000);
+                return false;
+            }
+        }
+        window.cargarActualizacionesFuentes = cargarActualizacionesFuentes;
+        window.registrarActualizacionFuente = registrarActualizacionFuente;
+
         // Esta función resuelve el error 21000.
         // Conserva la última aparición de cada clave dentro del Excel completo.
         function deduplicarRegistros(registros, generarClave) {
