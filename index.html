@@ -2477,6 +2477,24 @@ body.theme-dark [id^="view-"] .module-logo-mark{color:var(--user-accent-bright,#
 }
 @media(prefers-reduced-motion:reduce){[id^="view-"] .ui-card,[id^="view-"] table tbody tr{transition:none!important}}
 
+
+/* El modo oscuro se refleja también en la pantalla de acceso. */
+body.theme-dark #login-overlay .login-form-panel{background:var(--nova-panel,#142238)!important}
+body.theme-dark #login-overlay .login-title,
+body.theme-dark #login-overlay .login-field label{color:var(--nova-ink,#e5eefb)!important}
+body.theme-dark #login-overlay .login-description,
+body.theme-dark #login-overlay .login-form-meta,
+body.theme-dark #login-overlay .login-footer,
+body.theme-dark #login-overlay .login-footer p{color:var(--nova-muted,#a6b6cd)!important}
+body.theme-dark #login-overlay .login-input{
+  color:var(--nova-ink,#e5eefb)!important;background:var(--nova-bg,#0b1424)!important;border-color:var(--nova-line,#293b55)!important
+}
+body.theme-dark #login-overlay .login-input::placeholder{color:#8092ad!important}
+body.theme-dark #login-overlay .login-input:focus{background:var(--nova-panel,#142238)!important}
+body.theme-dark #login-overlay .login-eye{color:var(--nova-muted,#a6b6cd)!important}
+body.theme-dark #login-overlay .login-eye:hover{background:var(--nova-line,#293b55)!important;color:var(--nova-ink,#e5eefb)!important}
+body.theme-dark #login-overlay .login-error{background:#3a1822!important;color:#fecdd3!important;border-color:#7f1d35!important}
+
 </style>
 <script>
 (function(){
@@ -2702,6 +2720,63 @@ body.theme-dark [id^="view-"] .module-logo-mark{color:var(--user-accent-bright,#
  document.addEventListener('DOMContentLoaded',()=>setTimeout(makeQuickLinks,500));
  const obs=new MutationObserver(()=>{const bar=document.getElementById('quick-module-bar');if(bar&&bar.dataset.ready==='1'){bar.querySelectorAll('[data-module]').forEach(chip=>{const b=document.getElementById('btn-'+chip.dataset.module);chip.hidden=!b||b.classList.contains('permission-hidden-2026');});}});
  document.addEventListener('DOMContentLoaded',()=>{const nav=document.querySelector('#sidebar nav');if(nav)obs.observe(nav,{attributes:true,subtree:true,attributeFilter:['class']});setTimeout(makeQuickLinks,1300);});
+})();
+</script>
+
+
+<script>
+(function(){
+  const moduleIcons={
+    dashboard:"layout-dashboard",
+    colaboradores:"users-round",
+    sucursales:"building-2",
+    asistencia:"clock",
+    licencias:"file-heart",
+    vacaciones:"palmtree",
+    papeletas:"file-text",
+    correos:"mail",
+    amonestaciones:"calendar-check",
+    reportes:"bar-chart-3",
+    usuarios:"shield-check",
+    auditoria:"history",
+    configcorreos:"mail-check",
+    mapas:"map-pinned",
+    tareas:"list-checks",
+    operaciones:"gauge",
+    calidad:"shield-check",
+    notificaciones:"bell-ring",
+    integraciones:"plug-zap",
+    chat:"messages-square",
+    traslados:"users-round"
+  };
+  function enhanceModuleHeaders(){
+    Object.entries(moduleIcons).forEach(([moduleId,iconName])=>{
+      const section=document.getElementById("view-"+moduleId);
+      if(!section)return;
+      const header=section.querySelector(".module-intro")||
+        section.querySelector(".dashboard-welcome")||
+        section.firstElementChild;
+      if(!header||header.querySelector(".module-logo-mark"))return;
+      const heading=header.querySelector("h3, h2");
+      if(!heading||!heading.parentElement)return;
+      const row=document.createElement("div");
+      row.className="module-title-row module-heading-row";
+      row.dataset.moduleHeading=moduleId;
+      const mark=document.createElement("span");
+      mark.className="module-logo-mark";
+      mark.setAttribute("aria-hidden","true");
+      mark.innerHTML='<i data-lucide="'+iconName+'" class="h-5 w-5"></i>';
+      const parent=heading.parentElement;
+      parent.insertBefore(row,heading);
+      row.append(mark,heading);
+    });
+    if(window.lucide&&typeof window.lucide.createIcons==="function")window.lucide.createIcons();
+  }
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",enhanceModuleHeaders,{once:true});
+  }else{
+    enhanceModuleHeaders();
+  }
 })();
 </script>
 
