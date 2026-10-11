@@ -736,7 +736,13 @@
 
             try {
                 if (modulo === 'espacio' && window.cargarEspacioTrabajo) await window.cargarEspacioTrabajo();
-                if (modulo === 'dashboard' && window.cargarResumenEspacioDashboard) await window.cargarResumenEspacioDashboard();
+                if (modulo === 'dashboard') {
+                    if (window.cargarResumenEspacioDashboard) {
+                        Promise.resolve(window.cargarResumenEspacioDashboard())
+                            .catch(error => console.warn('Resumen de Mi espacio:', error));
+                    }
+                    if (window.cargarResumenOperativoRRHH) window.cargarResumenOperativoRRHH();
+                }
                 if (modulo === 'chat' && window.cargarChatInterno) await window.cargarChatInterno();
                 if (modulo === 'traslados' && window.iniciarModuloTraslados) await window.iniciarModuloTraslados();
                 if (modulo === 'reportes') await prepararFiltrosReportesRRHH();
