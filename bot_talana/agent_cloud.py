@@ -79,36 +79,52 @@ def main():
     results = []
     errors = []
     uploaded = 0
+    completed_actions = 0
+    downloaded_files = 0
     try:
-        LOG.info("Comienza descarga Talana (modo=%s, run=%s).", trigger, run_id)
+        LOG.info("Comienza flujo de cuatro tareas Talana (modo=%s, run=%s).", trigger, run_id)
         results, errors = ejecutar_descargas(user, password, headless=True)
         for title, path in results:
+            if str(path).startswith("__TALANA_ACTION_OK__:"):
+                completed_actions += 1
+                LOG.info("Acción Talana completada (sin archivo descargable): %s — %s",
+                         title, str(path).split(":", 1)[1])
+                continue
             file_path = Path(path)
             if not file_path.is_file():
-                errors.append(f"No existe el archivo descargado: {file_path}")
+                errors.append(f"No existe el archivo descargado para {title}: {file_path}")
                 continue
             normalized = title.lower()
             report_type = (
                 "ausentismos_historico" if "ausentismo" in normalized
                 else "solicitudes_vacaciones_historicas" if "vacaciones" in normalized
+                else "reporte_jornadas_asistencia" if "jornadas" in normalized
                 else "reporte_talana"
             )
             cloud.upload_file(run_id, report_type, file_path)
             uploaded += 1
+            downloaded_files += 1
+            completed_actions += 1
             LOG.info("Reporte guardado en Supabase Storage: %s", file_path.name)
 
-        if results and uploaded == len(results) and not errors:
+        if completed_actions == 4 and uploaded == 3 and not errors:
             status = "success"
-        elif uploaded or results:
+        elif completed_actions or uploaded or results:
             status = "partial"
         else:
             status = "failed"
         cloud.finish_run(
-            run_id, status, downloaded=len(results), errors=errors,
-            details={"uploaded": uploaded, "download_directory": str(DOWNLOAD_DIR)},
+            run_id, status, downloaded=downloaded_files, errors=errors,
+            details={
+                "uploaded": uploaded,
+                "completed_actions": completed_actions,
+                "expected_actions": 4,
+                "expected_download_files": 3,
+                "download_directory": str(DOWNLOAD_DIR),
+            },
         )
-        LOG.info("Finaliza: estado=%s descargados=%s cargados=%s errores=%s",
-                 status, len(results), uploaded, len(errors))
+        LOG.info("Finaliza: estado=%s archivos_descargados=%s cargados=%s acciones_ok=%s/4 errores=%s",
+                 status, downloaded_files, uploaded, completed_actions, len(errors))
         if status == "failed":
             raise SystemExit(1)
     except SystemExit:
