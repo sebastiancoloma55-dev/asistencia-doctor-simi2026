@@ -28,7 +28,7 @@ class TalanaBotCloud:
   from importador_reportes import parse_report
   p=Path(path)
   rows,parse_errors,metadata=parse_report(p,report_type)
-  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"skipped":0,"failed":len(parse_errors),"errors":list(parse_errors[:100]),"metadata":metadata,"tracking_registered":True}
+  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True}
   for offset in range(0,len(rows),100):
    batch=rows[offset:offset+100]
    result=self.call("bot_import",run_id=run_id,report_type=report_type,file_name=p.name,rows=batch,parse_errors=parse_errors if offset==0 else [])
