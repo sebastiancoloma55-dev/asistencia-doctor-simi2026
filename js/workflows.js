@@ -231,7 +231,7 @@
             if(esAdministradorConAccesoGlobal())return true;
             if(modulo==='operaciones')return ['tareas','correos','asistencia','licencias','coberturas','reportes'].some(p=>modulosPermitidosActuales.includes(p));
             if(modulo==='calidad'||modulo==='integraciones')return false;
-            if(modulo==='notificaciones')return modulosPermitidosActuales.includes('tareas');
+            if(modulo==='notificaciones')return ['tareas','traslados','coberturas'].some(p=>modulosPermitidosActuales.includes(p));
             return modulosPermitidosActuales.includes(modulo);
         }
         function puedeAsignarTareasActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_asignar_tareas;}
@@ -258,6 +258,7 @@
         }
         function aplicarPermisosVisuales(){
             modulos.forEach(nombre=>{const b=document.getElementById('btn-'+nombre);if(b)b.classList.toggle('hidden',!tienePermisoModulo(nombre));});
+            const topNotif=document.getElementById('topbar-notification-button');if(topNotif)topNotif.classList.toggle('hidden',!tienePermisoModulo('notificaciones'));
             const form=document.getElementById('form-tarea');if(form)form.classList.toggle('hidden',!tienePermisoModulo('tareas')||!puedeAsignarTareasActual());
             const aviso=document.getElementById('tarea-permiso-aviso');if(aviso)aviso.classList.toggle('hidden',!tienePermisoModulo('tareas')||puedeAsignarTareasActual());
             const avisoCorreo=document.getElementById('correo-permiso-aviso');if(avisoCorreo)avisoCorreo.classList.toggle('hidden',!tienePermisoModulo('correos')||puedePrepararCorreosActual());
