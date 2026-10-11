@@ -35,8 +35,8 @@ if(a==="bot_import"){
   registros_asistencia:["rut","nombre","sucursal","fecha","entrada","salida","atraso","estado","turno","tipo_ausentismo","salida_temprana","sin_marca","marca_incompleta","tiene_atraso","sin_turno_marcas"]
  }[table];
  const norm=(v:unknown)=>{let s=String(v??"").trim().toLowerCase();const d=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);if(d)s=d[3]+"-"+d[2].padStart(2,"0")+"-"+d[1].padStart(2,"0");return s.replace(/\s+/g," ");}; const normRut=(v:unknown)=>String(v??"").toUpperCase().replace(/[.\s]/g,"");
- const keyOf=(r:any)=>reportType==="ausentismos_historico"?["rut","fecha_inicio","fecha_fin","tipo_ausencia","motivo_ausencia"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):reportType==="solicitudes_vacaciones_historicas"?["rut","fecha_solicitud","fecha_inicio","fecha_fin","tipo_vacaciones"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):reportType==="reporte_jornadas_asistencia"?["rut","fecha","entrada","salida","turno"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):normRut(r.rut);
- const clean=(r:any)=>Object.fromEntries(allowed.filter((k:string)=>r[k]!==undefined&&(table!=="colaboradores"||(r[k]!==null&&r[k]!==""))).map((k:string)=>[k,r[k]]));
+ const keyOf=(r:any)=>reportType==="ausentismos_historico"?["rut","fecha_inicio","fecha_fin","tipo_ausencia","motivo_ausencia"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):reportType==="solicitudes_vacaciones_historicas"?["rut","fecha_solicitud","fecha_inicio","fecha_fin"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):reportType==="reporte_jornadas_asistencia"?["rut","fecha","turno"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):normRut(r.rut);
+ const clean=(r:any)=>Object.fromEntries(allowed.filter((k:string)=>r[k]!==undefined&&r[k]!==null&&r[k]!=="").map((k:string)=>[k,r[k]]));
  const errors:string[]=[...parseErrors.map((x:any)=>String(x).slice(0,250))], valid:any[]=[];
  let inserted=0,updated=0,skipped=0,failed=parseErrors.length;
  for(let i=0;i<rows.length;i++){const row=clean(rows[i]);if(!row.rut){errors.push("lote fila "+(i+1)+": falta RUT");failed++;continue;}
@@ -67,8 +67,22 @@ if(a==="bot_import"){
   let existingRows:any[]=[];
   if(ruts.length){const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia,motivo_ausencia":table==="vacaciones_historico"?"id,rut,fecha_solicitud,fecha_inicio,fecha_fin,tipo_vacaciones":"id,rut,fecha,entrada,salida,turno";
    const {data,error}=await admin.from(table).select(selectCols).in("rut",ruts).limit(20000);if(error)return json({error:error.message},500);existingRows=data||[];}
-  const seen=new Set(existingRows.map(keyOf)), pending:any[]=[];
-  for(const row of valid){const k=keyOf(row);if(seen.has(k)){skipped++;continue;}seen.add(k);pending.push(row);}
+  const existingByKey=new Map(existingRows.map((r:any)=>[keyOf(r),r])), seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
+  for(const row of valid){
+   const k=keyOf(row);
+   if(seenIncoming.has(k)){skipped++;continue;}
+   seenIncoming.add(k);
+   const old=existingByKey.get(k);
+   if(old){
+    if(table==="vacaciones_historico"||table==="registros_asistencia")pendingUpdates.push({id:old.id,row});
+    else skipped++;
+   }else pending.push(row);
+  }
+  for(const item of pendingUpdates){
+   const {error}=await admin.from(table).update(item.row).eq("id",item.id);
+   if(error){failed++;errors.push(table+" RUT "+item.row.rut+": "+error.message.slice(0,180));}
+   else updated++;
+  }
   if(pending.length){const {data,error}=await admin.from(table).insert(pending).select("id");if(error){
     for(const row of pending){const {error:oneError}=await admin.from(table).insert(row);if(oneError){failed++;errors.push(table+" RUT "+row.rut+": "+oneError.message.slice(0,180));}else inserted++;}
    }else inserted=(data||[]).length;}
