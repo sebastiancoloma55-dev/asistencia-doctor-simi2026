@@ -56,7 +56,7 @@ if(a==="bot_import"){
   for(const row of unique.values()){
    const old=existingMap.get(normRut(row.rut));
    if(!row.estado&&!old){errors.push("Colaborador "+row.rut+": no se importó porque el Excel no incluye estado para un nuevo registro.");failed++;continue;}
-   toUpsert.push({...row,estado:row.estado||old?.estado||"activo"});
+   toUpsert.push({...row,rut:old?.rut||row.rut,estado:row.estado||old?.estado||"activo"});
   }
   if(toUpsert.length){const {data,error}=await admin.from(table).upsert(toUpsert,{onConflict:"rut"}).select("rut");if(error){return json({error:"No se pudieron actualizar colaboradores: "+error.message,inserted,updated,skipped,failed:failed+toUpsert.length,errors:errors.slice(0,100)},500);}
    for(const r of data||[]){if(existingMap.has(normRut(r.rut)))updated++;else inserted++;}
