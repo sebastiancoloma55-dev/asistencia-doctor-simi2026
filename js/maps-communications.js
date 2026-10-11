@@ -533,14 +533,85 @@
             }
         }
         async function prepararFiltrosReportesRRHH(){try{const list=await obtenerSucursalesConfig(),sel=document.getElementById('rep-sucursal');sel.innerHTML='<option value="">Todas las sucursales</option>'+list.map(x=>'<option value="'+escaparHTML(x.nombre)+'">'+escaparHTML(x.nombre)+'</option>').join('');const today=new Date(),iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10),from=new Date(today);from.setDate(from.getDate()-29);document.getElementById('rep-desde').value ||= iso(from);document.getElementById('rep-hasta').value ||= iso(today);}catch(e){document.getElementById('rep-estado').textContent='Error cargando filtros: '+e.message;}}
-        async function generarPaqueteReportesRRHH(){const state=document.getElementById('rep-estado'),types=[...document.querySelectorAll('.rep-tipo:checked')].map(x=>x.value),from=document.getElementById('rep-desde').value,to=document.getElementById('rep-hasta').value,branch=document.getElementById('rep-sucursal').value,format=document.getElementById('rep-formato').value;if(!types.length)return mostrarToast('Selecciona al menos un informe.','warning');if(from&&to&&from>to)return mostrarToast('La fecha Desde no puede ser posterior a Hasta.','warning');
-        try{state.textContent='Preparando datos…';if((types.includes('ASISTENCIA')||types.includes('RESUMEN'))&&!asistenciaCargada)await cargarAsistenciaDesdeNube();if((types.includes('LICENCIAS')||types.includes('RESUMEN'))&&!licenciasCargadas)await cargarLicenciasDesdeNube();if((types.includes('VACACIONES')||types.includes('RESUMEN'))&&!vacacionesCargadas)await cargarVacacionesDesdeNube();
-        const inPeriod=(r,k)=>{const raw=r[k],normalized=typeof fechaISODesdeExcel==='function'?fechaISODesdeExcel(raw):String(raw||'').slice(0,10),d=normalized||String(raw||'').slice(0,10);return(!from||d>=from)&&(!to||d<=to)},inBranch=r=>!branch||String(r.sucursal||'').trim().toLocaleLowerCase('es-CL')===branch.toLocaleLowerCase('es-CL'),data={};
-        if(types.includes('ASISTENCIA'))data['Asistencia']=datosAsistenciaGlobal.filter(r=>inPeriod(r,'fecha')&&inBranch(r));if(types.includes('LICENCIAS'))data['Licencias']=datosLicenciasGlobal.filter(r=>inPeriod(r,'fecha_inicio')&&inBranch(r));if(types.includes('VACACIONES'))data['Vacaciones']=datosVacacionesGlobal.filter(r=>inPeriod(r,'fecha_inicio')&&inBranch(r));
-        const summary=[{Indicador:'Registros de asistencia',Valor:data.Asistencia?.length||0},{Indicador:'Licencias',Valor:data.Licencias?.length||0},{Indicador:'Vacaciones',Valor:data.Vacaciones?.length||0},{Indicador:'Atrasos',Valor:(data.Asistencia||[]).filter(r=>r.tiene_atraso).length},{Indicador:'Sin marcas',Valor:(data.Asistencia||[]).filter(r=>r.sin_marca).length},{Indicador:'Periodo',Valor:(from||'Inicio')+' a '+(to||'Hoy')},{Indicador:'Sucursal',Valor:branch||'Todas'},{Indicador:'Generado',Valor:new Date().toLocaleString('es-CL')}];if(types.includes('RESUMEN'))data['Resumen ejecutivo']=summary;
-        const wb=XLSX.utils.book_new();Object.entries(data).forEach(([name,rows])=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows.length?rows:[{Mensaje:'Sin registros para los filtros seleccionados'}]),name.slice(0,31)));const stamp=new Date().toISOString().slice(0,10),xlsxName='Reporte_RRHH_'+stamp+'.xlsx',bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'}),kpi=document.getElementById('rep-kpis');kpi.classList.remove('hidden');kpi.innerHTML=Object.entries(data).map(([n,rows])=>'<div class="rounded-xl border bg-slate-50 p-4"><span class="text-xs text-slate-500">'+escaparHTML(n)+'</span><b class="mt-1 block text-2xl">'+rows.length+'</b><span class="text-xs text-slate-500">filas</span></div>').join('');
-        const textSummary=Object.entries(data).map(([n,rows])=>n+': '+rows.length+' filas').join('\n')+'\nPeriodo: '+(from||'Inicio')+' a '+(to||'Hoy')+'\nSucursal: '+(branch||'Todas')+'\nGenerado: '+new Date().toLocaleString('es-CL');const pdf=()=>{const {jsPDF}=window.jspdf,doc=new jsPDF();doc.setFontSize(17);doc.text('Reporte ejecutivo · Recursos Humanos',15,18);doc.setFontSize(10);let y=30;doc.splitTextToSize(textSummary,180).forEach(line=>{if(y>280){doc.addPage();y=18;}doc.text(line,15,y);y+=6;});return doc;};
-        if(format==='xlsx')XLSX.writeFile(wb,xlsxName);else if(format==='pdf')pdf().save('Resumen_RRHH_'+stamp+'.pdf');else{if(!window.JSZip)throw new Error('No se pudo cargar el generador ZIP.');const zip=new JSZip();if(format!=='csv')zip.file(xlsxName,bytes);Object.entries(data).forEach(([n,rows])=>zip.file(n.replace(/[^a-z0-9_-]/gi,'_')+'.csv',XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(rows.length?rows:[{Mensaje:'Sin registros'}]))));if(format!=='csv')zip.file('Resumen_ejecutivo.pdf',pdf().output('arraybuffer'));const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=(format==='csv'?'Reportes_RRHH_CSV_':'Paquete_Reportes_RRHH_')+stamp+'.zip';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
-        state.textContent='Listo · '+Object.keys(data).length+' informe(s) preparados.';mostrarToast('Reportes generados correctamente.','success',8000);}catch(e){state.textContent='No se pudieron generar los reportes.';mostrarToast('Error al generar reportes: '+(e.message||e),'error',12000);}}
+        async function generarPaqueteReportesRRHH(){
+        const state=document.getElementById('rep-estado');
+        const types=[...document.querySelectorAll('.rep-tipo:checked')].map(x=>x.value);
+        const from=document.getElementById('rep-desde').value,to=document.getElementById('rep-hasta').value;
+        const branch=document.getElementById('rep-sucursal').value,format=document.getElementById('rep-formato').value;
+        if(!types.length)return mostrarToast('Selecciona al menos un informe.','warning');
+        if(from&&to&&from>to)return mostrarToast('La fecha Desde no puede ser posterior a Hasta.','warning');
+        try{
+            state.textContent='Preparando información de los módulos seleccionados…';
+            if((types.includes('ASISTENCIA')||types.includes('RESUMEN'))&&!asistenciaCargada)await cargarAsistenciaDesdeNube();
+            if((types.includes('LICENCIAS')||types.includes('RESUMEN'))&&!licenciasCargadas)await cargarLicenciasDesdeNube();
+            if((types.includes('VACACIONES')||types.includes('RESUMEN'))&&!vacacionesCargadas)await cargarVacacionesDesdeNube();
+            const normalizeDate=(r,keys)=>{for(const key of keys){if(r?.[key]){const raw=r[key];return typeof fechaISODesdeExcel==='function'?(fechaISODesdeExcel(raw)||String(raw).slice(0,10)):String(raw).slice(0,10);}}return '';};
+            const inPeriod=(r,keys)=>{const d=normalizeDate(r,keys);return(!from||!d||d>=from)&&(!to||!d||d<=to);};
+            const normalize=s=>String(s||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().toLowerCase();
+            const branchOf=r=>r.sucursal||r.local_destino||r.sucursal_destino_nombre||r.sucursal_origen_nombre||r.sucursal_nombre||'';
+            const inBranch=r=>!branch||normalize(branchOf(r))===normalize(branch);
+            const data={},unavailable=[];
+            if(types.includes('ASISTENCIA'))data['Asistencia']=datosAsistenciaGlobal.filter(r=>inPeriod(r,['fecha'])&&inBranch(r));
+            if(types.includes('LICENCIAS'))data['Licencias']=datosLicenciasGlobal.filter(r=>inPeriod(r,['fecha_inicio','fecha','created_at'])&&inBranch(r));
+            if(types.includes('VACACIONES'))data['Vacaciones']=datosVacacionesGlobal.filter(r=>inPeriod(r,['fecha_inicio','fecha','created_at'])&&inBranch(r));
+            const extraSpecs=[
+                ['COLABORADORES','Colaboradores','colaboradores',['created_at','fecha_ingreso']],
+                ['SUCURSALES','Sucursales','sucursales',['created_at']],
+                ['COBERTURAS','Coberturas','coberturas',['fecha_inicio','created_at']],
+                ['TAREAS','Tareas','tareas',['created_at','fecha_limite']],
+                ['TRASLADOS','Traslados','traslados_personal',['fecha_inicio','created_at']],
+                ['PAPELETAS','Papeletas','papeletas_permiso',['created_at','fecha_inicio']]
+            ];
+            const extras=extraSpecs.filter(s=>types.includes(s[0]));
+            let branchNames=new Map();
+            if(extras.length){
+                const {data:branches,error:branchError}=await _supabase.from('sucursales').select('id,nombre').limit(3000);
+                if(!branchError)branchNames=new Map((branches||[]).map(b=>[String(b.id),b.nombre]));
+            }
+            for(const [type,label,table,dateKeys] of extras){
+                state.textContent='Consultando '+label+'…';
+                const {data:rows,error}=await _supabase.from(table).select('*').limit(5000);
+                if(error){unavailable.push(label+': '+error.message);data[label]=[{Estado:'No disponible por permisos o conexión',Detalle:error.message}];continue;}
+                const enriched=(rows||[]).map(r=>({...r,sucursal:r.sucursal||r.local_destino||r.sucursal_destino_nombre||r.sucursal_origen_nombre||branchNames.get(String(r.sucursal_id||''))||''}));
+                data[label]=enriched.filter(r=>inPeriod(r,dateKeys)&&inBranch(r));
+            }
+            const summary=[
+                {Indicador:'Período',Valor:(from||'Sin inicio')+' a '+(to||'Sin término')},
+                {Indicador:'Sucursal',Valor:branch||'Todas'},
+                {Indicador:'Asistencia',Valor:data.Asistencia?.length??'No seleccionado'},
+                {Indicador:'Licencias',Valor:data.Licencias?.length??'No seleccionado'},
+                {Indicador:'Vacaciones',Valor:data.Vacaciones?.length??'No seleccionado'},
+                {Indicador:'Colaboradores',Valor:data.Colaboradores?.length??'No seleccionado'},
+                {Indicador:'Sucursales',Valor:data.Sucursales?.length??'No seleccionado'},
+                {Indicador:'Coberturas',Valor:data.Coberturas?.length??'No seleccionado'},
+                {Indicador:'Tareas',Valor:data.Tareas?.length??'No seleccionado'},
+                {Indicador:'Traslados',Valor:data.Traslados?.length??'No seleccionado'},
+                {Indicador:'Papeletas',Valor:data.Papeletas?.length??'No seleccionado'},
+                {Indicador:'Atrasos detectados',Valor:(data.Asistencia||[]).filter(r=>r.tiene_atraso).length},
+                {Indicador:'Sin marcas',Valor:(data.Asistencia||[]).filter(r=>r.sin_marca).length},
+                {Indicador:'Generado (hora Chile)',Valor:new Date().toLocaleString('es-CL',{timeZone:'America/Santiago'})}
+            ];
+            if(types.includes('RESUMEN'))data['Resumen ejecutivo']=summary;
+            const wb=XLSX.utils.book_new();
+            Object.entries(data).forEach(([name,rows])=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows.length?rows:[{Mensaje:'Sin registros para los filtros seleccionados'}]),name.slice(0,31)));
+            const stamp=new Date().toLocaleDateString('sv-SE',{timeZone:'America/Santiago'}),xlsxName='Reporte_RRHH_'+stamp+'.xlsx';
+            const bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'}),kpi=document.getElementById('rep-kpis');
+            kpi.classList.remove('hidden');
+            kpi.innerHTML=Object.entries(data).map(([n,rows])=>'<div class="rounded-xl border bg-slate-50 p-4"><span class="text-xs text-slate-500">'+escaparHTML(n)+'</span><b class="mt-1 block text-2xl">'+rows.length+'</b><span class="text-xs text-slate-500">filas</span></div>').join('');
+            const textSummary=summary.map(x=>x.Indicador+': '+x.Valor).join('\\n')+(unavailable.length?'\\nFuentes no disponibles: '+unavailable.join(' | '):'');
+            const pdf=()=>{const {jsPDF}=window.jspdf,doc=new jsPDF();doc.setFontSize(17);doc.text('Reporte ejecutivo · Recursos Humanos',15,18);doc.setFontSize(10);let y=30;doc.splitTextToSize(textSummary,180).forEach(line=>{if(y>280){doc.addPage();y=18;}doc.text(line,15,y);y+=6;});return doc;};
+            if(format==='xlsx')XLSX.writeFile(wb,xlsxName);
+            else if(format==='pdf')pdf().save('Resumen_RRHH_'+stamp+'.pdf');
+            else{
+                if(!window.JSZip)throw new Error('No se pudo cargar el generador ZIP.');
+                const zip=new JSZip();if(format!=='csv')zip.file(xlsxName,bytes);
+                Object.entries(data).forEach(([n,rows])=>zip.file(n.replace(/[^a-z0-9_-]/gi,'_')+'.csv',XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(rows.length?rows:[{Mensaje:'Sin registros'}]))));
+                if(format!=='csv')zip.file('Resumen_ejecutivo.pdf',pdf().output('arraybuffer'));
+                const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=(format==='csv'?'Reportes_RRHH_CSV_':'Paquete_Reportes_RRHH_')+stamp+'.zip';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+            }
+            state.textContent='Listo · '+Object.keys(data).length+' informe(s) preparados.'+(unavailable.length?' · '+unavailable.length+' fuente(s) no disponibles':'');
+            mostrarToast('Reportes generados. '+(unavailable.length?unavailable.length+' fuente(s) no se pudieron consultar.':'Todos los módulos seleccionados fueron consultados.'),'success',8000);
+        }catch(e){state.textContent='No se pudieron generar los reportes.';mostrarToast('Error al generar reportes: '+(e.message||e),'error',12000);}
+    }
         function descargarRespuestaIA(){if(!ultimaRespuestaIA)return mostrarToast('Primero genera un análisis.','warning');const {jsPDF}=window.jspdf,doc=new jsPDF(),y0=20;doc.setTextColor(0,82,155);doc.setFontSize(15);doc.text('Reporte de Recursos Humanos',20,y0);doc.setTextColor(0);doc.setFontSize(9);let y=32;doc.splitTextToSize(ultimaRespuestaIA,170).forEach(line=>{if(y>280){doc.addPage();y=20;}doc.text(line,20,y);y+=4.5;});doc.save('Reporte_Gemini_RRHH.pdf');}
 
