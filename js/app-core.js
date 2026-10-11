@@ -556,14 +556,60 @@
 
         function togglePasswordVisibility(){const i=document.getElementById('login-pass'),e=document.getElementById('password-eye-icon');if(!i)return;const v=i.type==='text';i.type=v?'password':'text';if(e)e.setAttribute('data-lucide',v?'eye':'eye-off');lucide.createIcons();}
         async function recuperarContrasena(){const email=document.getElementById('login-email')?.value.trim(),box=document.getElementById('login-error');box.classList.remove('hidden');if(!email){box.textContent='Ingresa tu correo corporativo.';return}const{error}=await _supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});box.textContent=error?error.message:'Revisa tu correo para continuar con la recuperación.';}
+        const LOGIN_REMEMBER_EMAIL_KEY = 'doctor-simi-rrhh-login-email';
+
+        function syncRememberedLoginEmail() {
+            const emailInput = document.getElementById('login-email');
+            const remember = document.getElementById('login-remember');
+            if (!emailInput || !remember) return;
+            try {
+                if (remember.checked && emailInput.value.trim()) {
+                    localStorage.setItem(LOGIN_REMEMBER_EMAIL_KEY, emailInput.value.trim());
+                } else {
+                    localStorage.removeItem(LOGIN_REMEMBER_EMAIL_KEY);
+                }
+            } catch (_) { /* El almacenamiento puede estar deshabilitado por el navegador. */ }
+        }
+
+        function initRememberedLoginEmail() {
+            const emailInput = document.getElementById('login-email');
+            const remember = document.getElementById('login-remember');
+            if (!emailInput || !remember) return;
+            try {
+                const savedEmail = localStorage.getItem(LOGIN_REMEMBER_EMAIL_KEY);
+                if (savedEmail && !emailInput.value) {
+                    emailInput.value = savedEmail;
+                    remember.checked = true;
+                }
+                remember.addEventListener('change', syncRememberedLoginEmail);
+                emailInput.addEventListener('change', syncRememberedLoginEmail);
+            } catch (_) { /* No bloquear el acceso si el almacenamiento está restringido. */ }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initRememberedLoginEmail, { once: true });
+        } else {
+            initRememberedLoginEmail();
+        }
+
         async function iniciarSesion(event) {
             event.preventDefault();
 
             const boton = document.getElementById('btn-login');
             const errorBox = document.getElementById('login-error');
+            const label = boton?.querySelector('.nova-v3-submit-label');
+            const icon = boton?.querySelector('.nova-v3-submit-icon');
 
-            boton.disabled = true;
-            boton.textContent = 'Autenticando...';
+            syncRememberedLoginEmail();
+            if (boton) {
+                boton.disabled = true;
+                boton.setAttribute('aria-busy', 'true');
+                boton.classList.add('is-loading');
+                if (label) label.textContent = 'Verificando acceso…';
+                else boton.textContent = 'Verificando acceso…';
+                if (icon) icon.innerHTML = '<i data-lucide="loader-circle"></i>';
+                if (window.lucide?.createIcons) window.lucide.createIcons();
+            }
             errorBox.classList.add('hidden');
 
             try {
@@ -572,25 +618,31 @@
                     password: document.getElementById('login-pass').value
                 });
 
-                if (error) {
-                    throw error;
-                }
+                if (error) throw error;
 
                 await cargarPerfilPermisosActual(data.user);
                 actualizarBienvenidaUsuario(data.user);
-                document.getElementById('user-email-display').innerText=data.user.email;
+                document.getElementById('user-email-display').innerText = data.user.email;
                 document.getElementById('login-overlay').classList.add('hidden');
-                await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
+                await cambiarModulo(tienePermisoModulo('dashboard') ? 'dashboard' : modulosPermitidosActuales[0], false);
                 await inicializarDashboard();
                 await actualizarContadorNotificacionesTopbar();
             } catch (error) {
-                try{await _supabase.auth.signOut();}catch(_){}
-                perfilActualSistema=null;modulosPermitidosActuales=[];
+                try { await _supabase.auth.signOut(); } catch (_) {}
+                perfilActualSistema = null;
+                modulosPermitidosActuales = [];
                 errorBox.textContent = error.message || 'Credenciales incorrectas.';
                 errorBox.classList.remove('hidden');
             } finally {
-                boton.disabled = false;
-                boton.textContent = 'Ingresar al sistema';
+                if (boton) {
+                    boton.disabled = false;
+                    boton.removeAttribute('aria-busy');
+                    boton.classList.remove('is-loading');
+                    if (label) label.textContent = 'Acceder al portal';
+                    else boton.textContent = 'Acceder al portal';
+                    if (icon) icon.innerHTML = '<i data-lucide="arrow-up-right"></i>';
+                    if (window.lucide?.createIcons) window.lucide.createIcons();
+                }
             }
         }
 
