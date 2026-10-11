@@ -467,7 +467,7 @@
             const csvCell=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
             const lines=[['ID','Tarea','Responsable','Estado','Prioridad','Vencimiento','Creada','Actualizada','Sucursal'].map(csvCell).join(',')];
             rows.forEach(t=>lines.push([t.id,t.titulo,t.responsable?.nombre||t.responsable?.email,t.estado_calculado,t.prioridad,t.fecha_limite,t.created_at,t.updated_at,t.sucursal?.nombre||''].map(csvCell).join(',')));
-            const blob=new Blob(['\\ufeff'+lines.join('\\r\\n')],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='KPI_Tareas_RRHH_'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+            const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='KPI_Tareas_RRHH_'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
         }
 
         function renderizarTareas(){
