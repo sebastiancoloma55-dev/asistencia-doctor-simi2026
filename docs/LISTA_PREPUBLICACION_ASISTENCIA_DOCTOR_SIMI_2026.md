@@ -55,6 +55,13 @@ Antes del despliegue, confirmar que la Edge Function `talana-bot-control` incluy
 
 No se puede comprobar por lectura del repositorio que todos esos secretos estén configurados ni que las credenciales actuales de Talana permitan iniciar sesión.
 
+### Estado verificado del bot al 11 de octubre de 2026
+
+- La configuración de Supabase está habilitada, en modo automático/manual y con frecuencia de 60 minutos. La lista de reportes se actualizó a los cuatro tipos: ausentismos históricos, vacaciones históricas, maestro de empleado y jornadas/asistencia.
+- Las comprobaciones de permisos a nivel de PostgreSQL confirman que service_role tiene SELECT/INSERT/UPDATE sobre vacaciones históricas y permisos de escritura en las tablas importadas, con uso de secuencias.
+- La última ejecución registrada sigue siendo parcial y es anterior a la aplicación de los permisos del importador. Los fallos registrados incluían permiso denegado para vacaciones/maestro y que el flujo de Talana no identificó el control de descarga de Jornadas.
+- Por lo tanto, los permisos de base de datos están corregidos, pero **la importación completa de los cuatro archivos aún no está certificada**. La siguiente ejecución manual debe confirmar el funcionamiento después de esos cambios sin asumir éxito por la sola validación estática.
+
 ### Prueba funcional obligatoria
 
 - [ ] Ejecutar manualmente el bot desde el panel de RR. HH. en una ventana autorizada.
@@ -66,7 +73,7 @@ No se puede comprobar por lectura del repositorio que todos esos secretos estén
 
 ## 4. Vercel y publicación web
 
-En la revisión actual, Vercel devolvió **“Deployment rate limited — retry in 24 hours”** y la autorización conectada no permite administrar el equipo simi23. Como alternativa, Cloudflare Pages sí generó una vista previa exitosa del commit 774abe4: https://fefaef8d.asistencia-doctor-simi-preview.pages.dev. La última tanda de mejoras dispara nuevas validaciones y una nueva vista previa; comprobar el último SHA que quede en verde antes de fusionar.
+En la revisión actual, Vercel devolvió **“Deployment rate limited — retry in 24 hours”** y la autorización conectada no permite administrar el equipo simi23. Como alternativa, Cloudflare Pages generó una vista previa exitosa del último commit validado 8e55170: https://41928d1f.asistencia-doctor-simi-preview.pages.dev. Vercel debe revisarse por separado antes de fusionar o decidir el proveedor final.
 
 - [ ] Esperar a que se libere el límite de compilación de Vercel.
 - [ ] Generar y abrir una vista previa de la rama/PR.
