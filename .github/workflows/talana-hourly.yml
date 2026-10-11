@@ -1,10 +1,10 @@
 name: Bot Talana - horario Chile
 
 on:
-  # UTC: cubre 08:00-17:00 de Santiago tanto en horario de verano como de invierno.
+  # UTC: cubre la ventana posible en UTC; el guardia filtra 08:00-17:59 de Santiago en verano e invierno.
   # El guardia Python valida hora local, fines de semana y feriados.
   schedule:
-    - cron: "0 11-21 * * 1-5"
+    - cron: "0 11-22 * * 1-5"
   workflow_dispatch:
 
 permissions:
