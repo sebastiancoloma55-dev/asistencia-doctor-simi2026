@@ -8,7 +8,15 @@ var state={notes:[],logs:[],userId:null,notesError:null,logsError:null,filter:"A
 var $=function(id){return document.getElementById(id);};
 var esc=function(v){if(typeof window.escaparHTML==="function")return window.escaparHTML(String(v==null?"":v));return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
 var toast=function(m,t){if(typeof window.mostrarToast==="function")window.mostrarToast(m,t||"info",6000);else console.log(m);};
-var client=function(){return window._supabase||window.supabaseClient||null;};
+var client=function(){
+ if(window._supabase&&window._supabase.auth)return window._supabase;
+ if(window.supabaseClient&&window.supabaseClient.auth)return window.supabaseClient;
+ // app-core.js crea _supabase como binding global de un script clásico;
+ // los bindings const/let no siempre aparecen como window._supabase.
+ try{if(typeof _supabase!=="undefined"&&_supabase&&_supabase.auth)return _supabase;}catch(e){}
+ try{if(typeof supabase!=="undefined"&&supabase&&supabase.auth)return supabase;}catch(e){}
+ return null;
+};
 function userSession(){var c=client();if(!c||!c.auth)throw new Error("No se encuentra autenticación. Inicia sesión nuevamente.");return c.auth.getSession().then(function(r){if(r.error)throw r.error;if(!r.data.session||!r.data.session.user)throw new Error("La sesión expiró. Vuelve a entrar.");return {client:c,user:r.data.session.user};});}
 function fmtDate(v){if(!v)return "Sin fecha límite";var d=new Date(v);if(isNaN(d.getTime()))return "Sin fecha límite";return new Intl.DateTimeFormat("es-CL",{dateStyle:"medium",timeZone:"America/Santiago"}).format(d);}
 function fmtClock(v){if(!v)return "";var d=new Date(v);if(isNaN(d.getTime()))return "";return new Intl.DateTimeFormat("es-CL",{hour:"2-digit",minute:"2-digit",timeZone:"America/Santiago"}).format(d);}
