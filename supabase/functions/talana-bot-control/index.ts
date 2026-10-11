@@ -74,14 +74,24 @@ if(a==="bot_import"){
    seenIncoming.add(k);
    const old=existingByKey.get(k);
    if(old){
-    if(table==="vacaciones_historico"||table==="registros_asistencia")pendingUpdates.push({id:old.id,row});
-    else skipped++;
+    // Un registro ya existente nunca se vuelve a insertar: se actualiza por su ID.
+    // Aplica a ausentismos, vacaciones y jornadas para mantener una sola fila por clave.
+    pendingUpdates.push({id:old.id,row});
    }else pending.push(row);
   }
-  for(const item of pendingUpdates){
-   const {error}=await admin.from(table).update(item.row).eq("id",item.id);
-   if(error){failed++;errors.push(table+" RUT "+item.row.rut+": "+error.message.slice(0,180));}
-   else updated++;
+  // Actualizar en lotes para evitar miles de peticiones individuales cuando el
+  // reporte histórico contiene muchos registros ya importados.
+  for(let offset=0;offset<pendingUpdates.length;offset+=100){
+   const batch=pendingUpdates.slice(offset,offset+100).map((item:any)=>({...item.row,id:item.id}));
+   const {data,error}=await admin.from(table).upsert(batch,{onConflict:"id"}).select("id");
+   if(error){
+    // Fallback por fila para identificar el registro que realmente falla.
+    for(const item of pendingUpdates.slice(offset,offset+100)){
+     const {error:oneError}=await admin.from(table).update(item.row).eq("id",item.id);
+     if(oneError){failed++;errors.push(table+" RUT "+item.row.rut+": "+oneError.message.slice(0,180));}
+     else updated++;
+    }
+   }else updated+=(data||[]).length;
   }
   if(pending.length){const {data,error}=await admin.from(table).insert(pending).select("id");if(error){
     for(const row of pending){const {error:oneError}=await admin.from(table).insert(row);if(oneError){failed++;errors.push(table+" RUT "+row.rut+": "+oneError.message.slice(0,180));}else inserted++;}
