@@ -36,8 +36,8 @@ class ReportParserTests(unittest.TestCase):
 
     def test_employee_report_maps_status_and_names(self):
         path = self.make_xlsx(
-            ["RUT", "Nombres", "Apellidos", "Cargo", "Sucursal", "Estado"],
-            [["9.876.543-K", "Ana María", "Pérez Soto", "QF", "Centro", "Activo"]],
+            ["RUT", "Nombre completo", "Cargo", "Sucursal", "Estado"],
+            [["9.876.543-K", "Ana María Pérez Soto", "QF", "Centro", "Activo"]],
         )
         rows, errors, _ = parse_report(path, "maestro_empleado")
         self.assertEqual(rows[0]["nombres"], "Ana María")
