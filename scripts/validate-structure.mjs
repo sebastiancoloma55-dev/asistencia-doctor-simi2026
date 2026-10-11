@@ -62,7 +62,7 @@ for (const endpoint of ['api/gemini.js', 'api/geocodificar.js']) {
   const source = readFileSync(path.join(root, endpoint), 'utf8');
   if (!source.includes('req.method')) fail(`Falta validar el método HTTP en ${endpoint}.`);
 }
-const requiredModules = ['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
+const requiredModules = ['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
 for (const moduleName of requiredModules) {
   if (!buttons.has(moduleName)) fail(`El módulo ${moduleName} no tiene botón de navegación.`);
   if (!views.has(moduleName)) fail(`El módulo ${moduleName} no tiene vista registrada.`);
@@ -86,6 +86,17 @@ const appCore = readFileSync(path.join(root, 'js/app-core.js'), 'utf8');
 for (const marker of ['syncRememberedLoginEmail', 'Verificando acceso', 'signInWithPassword']) {
   if (!appCore.includes(marker)) fail(`Falta la integración de autenticación esperada: ${marker}.`);
 }
+
+
+const workspaceCode = readFileSync(path.join(root, 'js/workspace.js'), 'utf8');
+if (!workspaceCode.includes('rrhh_notas') || !workspaceCode.includes('rrhh_bitacora')) fail('Mi espacio debe guardar notas y bitácora en Supabase.');
+if (!workspaceCode.includes('guardarNotaRRHH') || !workspaceCode.includes('guardarRegistroBitacoraRRHH')) fail('Mi espacio no expone los formularios de guardado.');
+const organizationCode = readFileSync(path.join(root, 'js/module-organization.js'), 'utf8');
+if (!organizationCode.includes('actualizarContextoModulo') || !organizationCode.includes('organizarNavegacionPermisos')) fail('La organización de módulos debe incluir contexto y agrupación por permisos.');
+const mapCode = readFileSync(path.join(root, 'js/maps-communications.js'), 'utf8');
+if (!mapCode.includes('router.project-osrm.org/route/v1/driving/') || !mapCode.includes('function restaurarMapa14')) fail('El mapa debe calcular rutas viales y permitir restaurar todas las farmacias.');
+if (!html.includes('id="mapa14-mostrar-todas"') || !html.includes('id="mapa14-estadisticas"')) fail('Faltan los controles de limpiar filtro y resumen de distancia del mapa.');
+if (!html.includes('id="col-filtro-estado"') || !html.includes('id="colab-kpi-grid"')) fail('El directorio de colaboradores necesita KPI y filtro de estado.');
 
 if (process.exitCode) process.exit(process.exitCode);
 console.log(`Validación correcta: ${localScripts.length} scripts locales, ${jsFiles.length} archivos JS, ${buttons.size} módulos navegables y APIs protegidas.`);
