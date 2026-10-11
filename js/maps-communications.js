@@ -546,10 +546,10 @@
             if((types.includes('LICENCIAS')||types.includes('RESUMEN'))&&!licenciasCargadas)await cargarLicenciasDesdeNube();
             if((types.includes('VACACIONES')||types.includes('RESUMEN'))&&!vacacionesCargadas)await cargarVacacionesDesdeNube();
             const normalizeDate=(r,keys)=>{for(const key of keys){if(r?.[key]){const raw=r[key];return typeof fechaISODesdeExcel==='function'?(fechaISODesdeExcel(raw)||String(raw).slice(0,10)):String(raw).slice(0,10);}}return '';};
-            const inPeriod=(r,keys)=>{const d=normalizeDate(r,keys);return(!from||!d||d>=from)&&(!to||!d||d<=to);};
+            const inPeriod=(r,keys)=>{const d=normalizeDate(r,keys);return(!from||(!!d&&d>=from))&&(!to||(!!d&&d<=to));};
             const normalize=s=>String(s||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().toLowerCase();
-            const branchOf=r=>r.sucursal||r.local_destino||r.sucursal_destino_nombre||r.sucursal_origen_nombre||r.sucursal_nombre||'';
-            const inBranch=r=>!branch||normalize(branchOf(r))===normalize(branch);
+            const branchNamesOf=r=>[r.sucursal,r.local_origen,r.local_destino,r.sucursal_destino_nombre,r.sucursal_origen_nombre,r.sucursal_nombre,r.nombre].filter(Boolean).map(normalize);
+            const inBranch=r=>!branch||branchNamesOf(r).includes(normalize(branch));
             const data={},unavailable=[];
             if(types.includes('ASISTENCIA'))data['Asistencia']=datosAsistenciaGlobal.filter(r=>inPeriod(r,['fecha'])&&inBranch(r));
             if(types.includes('LICENCIAS'))data['Licencias']=datosLicenciasGlobal.filter(r=>inPeriod(r,['fecha_inicio','fecha','created_at'])&&inBranch(r));
