@@ -729,7 +729,7 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
                 </button>
 
                 <button id="btn-amonestaciones" class="menu-btn" onclick="cambiarModulo('amonestaciones')">
-                    <i data-lucide="folder-alert" class="h-4 w-4"></i>
+                    <i data-lucide="calendar-check" class="h-4 w-4"></i>
                     9. Coberturas
                 </button>
 
@@ -749,7 +749,7 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
                 </button>
 
                 <button id="btn-configcorreos" class="menu-btn" onclick="cambiarModulo('configcorreos')">
-                    <i data-lucide="mail-cog" class="h-4 w-4"></i>
+                    <i data-lucide="mail-check" class="h-4 w-4"></i>
                     13. Correos sucursales
                 </button>
 
@@ -1565,7 +1565,7 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
 
             <!-- COBERTURAS -->
             <section id="view-amonestaciones" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="ui-card p-5"><h3 class="section-title">Coberturas QF / AF</h3><p class="mt-1 text-xs text-slate-500">El tipo se obtiene automáticamente desde el cargo del colaborador.</p></div>
+                <div class="ui-card p-5 module-title-card module-title-coberturas"><div class="module-title-row"><span class="module-logo-mark" aria-hidden="true"><i data-lucide="calendar-check" class="h-5 w-5"></i></span><div class="min-w-0"><span class="module-overline">MÓDULO 09 · DOTACIÓN</span><h3 class="section-title">Coberturas QF / AF</h3><p class="mt-1 text-xs text-slate-500">El tipo se obtiene automáticamente desde el cargo del colaborador.</p></div></div></div>
                 <div class="ui-card overflow-hidden border border-amber-200">
                     <div class="flex flex-wrap items-start justify-between gap-3 bg-gradient-to-r from-amber-50 via-orange-50 to-rose-50 p-5">
                         <div class="flex items-start gap-3"><span class="grid h-11 w-11 place-items-center rounded-2xl bg-amber-100 text-amber-800"><i data-lucide="user-round-search" class="h-5 w-5"></i></span><div><h4 class="font-extrabold text-slate-900">Alerta de necesidad de personal</h4><p class="mt-1 max-w-3xl text-xs leading-5 text-slate-600">Solicita una persona para una sucursal por fechas, cantidad de días, cargo y turno. El encargado de Traslados podrá revisar y aceptar o rechazar la solicitud.</p></div></div>
@@ -1650,7 +1650,7 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
             <!-- CONFIGURACIÓN DE CORREOS -->
             <section id="view-configcorreos" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro">
-                    <div class="flex flex-wrap items-start justify-between gap-3"><div><span class="module-kicker">Punto 13 · Configuración</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Destinatarios y firma por sucursal</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Cada sucursal tiene su ficha. Busca una sucursal, revisa el correo principal y las copias, ajusta los horarios y guarda los cambios visibles.</p></div><div class="flex flex-wrap gap-2"><button onclick="descargarPlantillaCorreosSucursales()" class="corp-button-dark text-xs">Descargar Excel</button><label class="corp-button cursor-pointer text-xs">Importar Excel<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarCorreosSucursales(event)"></label><span data-update-stamp="config_correos" class="self-center text-[11px] text-slate-500">Consultando última carga…</span></div></div>
+                    <div class="flex flex-wrap items-start justify-between gap-3"><div class="module-title-with-logo"><span class="module-logo-mark" aria-hidden="true"><i data-lucide="mail-check" class="h-5 w-5"></i></span><div class="min-w-0"><span class="module-kicker">Punto 13 · Configuración de correos</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Destinatarios y firma por sucursal</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Cada sucursal tiene su ficha. Busca una sucursal, revisa el correo principal y las copias, ajusta los horarios y guarda los cambios visibles.</p></div></div><div class="flex flex-wrap gap-2"><button onclick="descargarPlantillaCorreosSucursales()" class="corp-button-dark text-xs">Descargar Excel</button><label class="corp-button cursor-pointer text-xs">Importar Excel<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarCorreosSucursales(event)"></label><span data-update-stamp="config_correos" class="self-center text-[11px] text-slate-500">Consultando última carga…</span></div></div>
                 </div>
                 <div class="ui-card p-4"><div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]"><div><label class="text-xs font-bold text-slate-600">Buscar</label><input id="config-correo-buscar" oninput="renderizarConfigCorreos()" class="form-field mt-1" placeholder="Escribe el nombre de sucursal o supervisor"></div><button onclick="guardarConfigCorreosVisibles()" class="corp-button self-end"><i data-lucide="save" class="mr-2 inline h-4 w-4"></i>Guardar cambios visibles</button></div><div id="config-correo-resumen" class="mt-3 text-xs text-slate-500">Preparando configuración…</div></div>
                 <div id="tabla-config-correos" class="grid grid-cols-1 gap-4 xl:grid-cols-2"></div>
@@ -2139,28 +2139,28 @@ body.search-open{overflow:hidden}
 @media(max-width:700px){.global-search-overlay{padding:7vh 10px 15px}.global-search-panel{border-radius:16px}.topbar-search{padding:8px}}
 
 /* Identidad visual por módulo: misma navegación, acento propio para cada área */
-#view-dashboard{--module-accent:#0891b2}
-#view-colaboradores{--module-accent:#2563eb}
-#view-sucursales{--module-accent:#0d9488}
-#view-asistencia{--module-accent:#d97706}
-#view-licencias{--module-accent:#e11d48}
-#view-vacaciones{--module-accent:#16a34a}
-#view-papeletas{--module-accent:#7c3aed}
-#view-correos{--module-accent:#0284c7}
-#view-amonestaciones{--module-accent:#ea580c}
-#view-reportes{--module-accent:#4f46e5}
-#view-usuarios{--module-accent:#475569}
-#view-auditoria{--module-accent:#64748b}
-#view-configcorreos{--module-accent:#0f766e}
-#view-mapas{--module-accent:#059669}
-#view-tareas{--module-accent:#c026d3}
-#view-operaciones{--module-accent:#0369a1}
-#view-calidad{--module-accent:#6d28d9}
-#view-notificaciones{--module-accent:#db2777}
-#view-integraciones{--module-accent:#4f46e5}
-#view-chat{--module-accent:#0f9f91}
-#view-traslados{--module-accent:#b45309}
-#view-generic{--module-accent:#64748b}
+#view-dashboard{--module-accent:var(--user-accent,#087fa3)}
+#view-colaboradores{--module-accent:var(--user-accent,#087fa3)}
+#view-sucursales{--module-accent:var(--user-accent,#087fa3)}
+#view-asistencia{--module-accent:var(--user-accent,#087fa3)}
+#view-licencias{--module-accent:var(--user-accent,#087fa3)}
+#view-vacaciones{--module-accent:var(--user-accent,#087fa3)}
+#view-papeletas{--module-accent:var(--user-accent,#087fa3)}
+#view-correos{--module-accent:var(--user-accent,#087fa3)}
+#view-amonestaciones{--module-accent:var(--user-accent,#087fa3)}
+#view-reportes{--module-accent:var(--user-accent,#087fa3)}
+#view-usuarios{--module-accent:var(--user-accent,#087fa3)}
+#view-auditoria{--module-accent:var(--user-accent,#087fa3)}
+#view-configcorreos{--module-accent:var(--user-accent,#087fa3)}
+#view-mapas{--module-accent:var(--user-accent,#087fa3)}
+#view-tareas{--module-accent:var(--user-accent,#087fa3)}
+#view-operaciones{--module-accent:var(--user-accent,#087fa3)}
+#view-calidad{--module-accent:var(--user-accent,#087fa3)}
+#view-notificaciones{--module-accent:var(--user-accent,#087fa3)}
+#view-integraciones{--module-accent:var(--user-accent,#087fa3)}
+#view-chat{--module-accent:var(--user-accent,#087fa3)}
+#view-traslados{--module-accent:var(--user-accent,#087fa3)}
+#view-generic{--module-accent:var(--user-accent,#087fa3)}
 
 [id^="view-"] .module-intro{
   position:relative;isolation:isolate;overflow:hidden;
@@ -2309,6 +2309,174 @@ body.theme-dark [id^="view-"] .module-kicker{
 body.theme-dark [id^="view-"] .module-intro:after{
   opacity:.55;
 }
+
+/* SISTEMA VISUAL NOVA RR. HH. · identidad unificada y adaptable a las preferencias del usuario */
+#sidebar{
+  background:linear-gradient(180deg,var(--user-sidebar-start,#073a79),var(--user-sidebar-end,#063b7a))!important;
+  color:var(--user-sidebar-foreground,#fff)!important;
+  border-right:1px solid color-mix(in srgb,var(--user-sidebar-foreground,#fff) 15%,transparent)!important;
+}
+#sidebar>div:first-child h1,#sidebar>div:first-child p,
+#sidebar .sidebar-credit-copy,#sidebar .sidebar-credit-copy>span,
+#sidebar .sidebar-credit-copy>strong{color:var(--user-sidebar-foreground,#fff)!important}
+#sidebar .menu-btn{
+  color:var(--user-sidebar-foreground,#fff)!important;
+  border-color:transparent!important;
+}
+#sidebar .menu-btn>svg{
+  color:var(--user-sidebar-foreground,#fff)!important;
+  background:color-mix(in srgb,var(--user-sidebar-foreground,#fff) 10%,transparent)!important;
+  border:1px solid color-mix(in srgb,var(--user-sidebar-foreground,#fff) 18%,transparent)!important;
+}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{
+  color:var(--user-accent-contrast,#fff)!important;
+  background:linear-gradient(110deg,var(--user-accent,#087fa3),var(--user-accent-strong,#06627e))!important;
+  border-color:color-mix(in srgb,var(--user-accent,#087fa3) 60%,white)!important;
+  box-shadow:0 8px 22px color-mix(in srgb,var(--user-accent,#087fa3) 24%,transparent),inset 0 1px rgba(255,255,255,.18)!important;
+}
+#sidebar .menu-btn.active>svg,#sidebar .menu-btn[aria-current="page"]>svg{
+  color:var(--user-accent-contrast,#fff)!important;
+  background:color-mix(in srgb,var(--user-accent-contrast,#fff) 12%,transparent)!important;
+  border-color:color-mix(in srgb,var(--user-accent-contrast,#fff) 20%,transparent)!important;
+}
+/* Logos propios de 9 · Coberturas y 13 · Correos sucursales; monocromáticos. */
+#sidebar #btn-amonestaciones>svg,#sidebar #btn-configcorreos>svg{
+  color:var(--user-sidebar-foreground,#fff)!important;
+  background:color-mix(in srgb,var(--user-sidebar-foreground,#fff) 10%,transparent)!important;
+  border-color:color-mix(in srgb,var(--user-sidebar-foreground,#fff) 20%,transparent)!important;
+  box-shadow:none!important;
+}
+#sidebar #btn-amonestaciones.active>svg,#sidebar #btn-configcorreos.active>svg,
+#sidebar #btn-amonestaciones[aria-current="page"]>svg,#sidebar #btn-configcorreos[aria-current="page"]>svg{
+  color:var(--user-accent-contrast,#fff)!important;
+}
+#sidebar .menu-btn:hover:not(.active){
+  background:color-mix(in srgb,var(--user-sidebar-foreground,#fff) 10%,transparent)!important;
+  border-color:color-mix(in srgb,var(--user-sidebar-foreground,#fff) 16%,transparent)!important;
+}
+#sidebar .sidebar-credit-icon{color:var(--user-accent-contrast,#fff)!important;background:var(--user-accent,#087fa3)!important;border-color:color-mix(in srgb,var(--user-sidebar-foreground,#fff) 25%,transparent)!important}
+
+/* El color elegido ahora controla también el login, no solo el menú interno. */
+#login-overlay.login-overlay-modern{
+  background:
+    radial-gradient(circle at 18% 15%,color-mix(in srgb,var(--user-accent,#087fa3) 34%,transparent),transparent 31%),
+    radial-gradient(circle at 78% 82%,color-mix(in srgb,var(--user-sidebar-start,#073a79) 45%,transparent),transparent 37%),
+    linear-gradient(135deg,color-mix(in srgb,var(--user-sidebar-start,#073a79) 85%,#061827),#061827 55%,color-mix(in srgb,var(--user-sidebar-end,#063b7a) 75%,#071725))!important;
+}
+.login-hero{
+  background:linear-gradient(145deg,color-mix(in srgb,var(--user-sidebar-start,#073a79) 76%,#081727),color-mix(in srgb,var(--user-sidebar-end,#063b7a) 78%,#071725))!important;
+}
+.login-glow-red{background:var(--user-accent,#087fa3)!important}
+.login-glow-blue{background:var(--user-sidebar-start,#073a79)!important}
+.login-hero h2 span,.login-proof-icon{color:var(--user-accent-bright,#65c7e0)!important}
+.login-kicker,.login-link{color:var(--user-accent-strong,#06627e)!important}
+.login-input:focus{border-color:var(--user-accent,#087fa3)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--user-accent,#087fa3) 14%,transparent)!important}
+.login-remember input{accent-color:var(--user-accent,#087fa3)!important}
+.login-submit{
+  color:var(--user-accent-contrast,#fff)!important;
+  background:linear-gradient(110deg,var(--user-accent,#087fa3),var(--user-accent-strong,#06627e))!important;
+  box-shadow:0 11px 24px color-mix(in srgb,var(--user-accent,#087fa3) 27%,transparent)!important;
+}
+.login-submit:hover{box-shadow:0 15px 30px color-mix(in srgb,var(--user-accent,#087fa3) 34%,transparent)!important}
+.login-brand-mark{background:var(--user-accent,#087fa3)!important;box-shadow:0 10px 28px color-mix(in srgb,var(--user-accent,#087fa3) 30%,transparent)!important}
+
+/* Modernización consistente de los 21 módulos sin reordenar controles ni cambiar sus funciones. */
+[id^="view-"]{--module-accent:var(--user-accent,#087fa3);min-width:0}
+[id^="view-"] .module-intro{
+  border:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 21%,var(--user-line,#dce7f5))!important;
+  border-left:4px solid var(--user-accent,#087fa3)!important;
+  border-radius:18px!important;
+  background:linear-gradient(115deg,color-mix(in srgb,var(--user-accent,#087fa3) 7%,var(--nova-panel,#fff)),var(--nova-panel,#fff) 72%)!important;
+  box-shadow:0 8px 22px rgba(15,41,64,.045)!important;
+}
+[id^="view-"] .module-kicker{
+  color:var(--user-accent-strong,#06627e)!important;
+  background:color-mix(in srgb,var(--user-accent,#087fa3) 10%,white)!important;
+  border:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 18%,white)!important;
+}
+[id^="view-"]>.ui-card:first-child:not(.module-intro){
+  position:relative;border-top:3px solid var(--user-accent,#087fa3)!important;
+  border-radius:16px!important;box-shadow:0 8px 22px rgba(15,41,64,.045)!important;
+}
+[id^="view-"] .ui-card{
+  min-width:0;border-radius:15px;
+  border-color:var(--user-line,#dce7f5);
+  box-shadow:0 2px 8px rgba(15,41,64,.035);
+  transition:box-shadow .18s ease,border-color .18s ease,transform .18s ease;
+}
+[id^="view-"] h3.section-title,[id^="view-"]>.ui-card:first-child h3{
+  letter-spacing:-.025em;text-wrap:pretty;
+}
+[id^="view-"] table{border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:12px}
+[id^="view-"] table thead th{
+  background:color-mix(in srgb,var(--user-accent,#087fa3) 8%,#f8fafc);
+  color:var(--nova-ink,#15233e);font-weight:800;
+  border-bottom:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 20%,var(--user-line,#dce7f5));
+}
+[id^="view-"] table tbody tr{transition:background-color .14s ease}
+[id^="view-"] table tbody tr:hover{background:color-mix(in srgb,var(--user-accent,#087fa3) 5%,transparent)}
+[id^="view-"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+[id^="view-"] select,[id^="view-"] textarea{
+  border-radius:11px;transition:border-color .16s ease,box-shadow .16s ease;
+}
+[id^="view-"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+[id^="view-"] select:focus,[id^="view-"] textarea:focus{
+  border-color:var(--user-accent,#087fa3)!important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--user-accent,#087fa3) 12%,transparent)!important;
+  outline:none;
+}
+[id^="view-"] button:focus-visible,[id^="view-"] a:focus-visible,#sidebar button:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--user-accent,#087fa3) 48%,transparent)!important;outline-offset:2px;
+}
+.module-title-row,.module-title-with-logo{display:flex;align-items:flex-start;gap:14px;min-width:0}
+.module-logo-mark{
+  display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;
+  border-radius:15px;color:var(--user-accent-strong,#06627e);
+  background:color-mix(in srgb,var(--user-accent,#087fa3) 10%,var(--nova-panel,#fff));
+  border:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 23%,var(--user-line,#dce7f5));
+}
+.module-overline{display:block;margin-bottom:5px;font-size:10px;font-weight:900;letter-spacing:.15em;color:var(--user-accent-strong,#06627e)}
+.module-title-coberturas .section-title{margin-top:0}
+#view-configcorreos .module-title-with-logo{gap:14px}
+#view-configcorreos .module-logo-mark{margin-top:1px}
+#view-dashboard .dashboard-welcome{
+  border:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 28%,var(--user-line,#dce7f5))!important;
+  box-shadow:0 14px 32px color-mix(in srgb,var(--user-accent,#087fa3) 8%,transparent)!important;
+}
+
+/* Contraste al activar modo oscuro */
+body.theme-dark [id^="view-"] .ui-card{
+  color:var(--nova-ink,#e5eefb);border-color:var(--nova-line,#293b55)!important;
+  box-shadow:0 8px 26px rgba(0,0,0,.12);
+}
+body.theme-dark [id^="view-"]>.ui-card:first-child:not(.module-intro),
+body.theme-dark [id^="view-"] .module-intro{
+  background:linear-gradient(115deg,color-mix(in srgb,var(--user-accent,#087fa3) 15%,var(--nova-panel,#142238)),var(--nova-panel,#142238) 76%)!important;
+}
+body.theme-dark [id^="view-"] .module-intro h3,
+body.theme-dark [id^="view-"] .module-intro .text-slate-900,
+body.theme-dark [id^="view-"] .module-intro .text-slate-600,
+body.theme-dark [id^="view-"] .module-intro .text-slate-500,
+body.theme-dark [id^="view-"]>.ui-card:first-child h3{color:var(--nova-ink,#e5eefb)!important}
+body.theme-dark [id^="view-"] .module-kicker{
+  color:var(--user-accent-bright,#9bdff0)!important;
+  background:color-mix(in srgb,var(--user-accent,#087fa3) 18%,var(--nova-panel,#142238))!important;
+  border-color:color-mix(in srgb,var(--user-accent,#087fa3) 35%,var(--nova-line,#293b55))!important;
+}
+body.theme-dark [id^="view-"] table thead th{background:color-mix(in srgb,var(--user-accent,#087fa3) 18%,var(--nova-panel,#142238));color:var(--nova-ink,#e5eefb)}
+body.theme-dark [id^="view-"] table tbody tr:hover{background:color-mix(in srgb,var(--user-accent,#087fa3) 12%,var(--nova-panel,#142238))}
+body.theme-dark [id^="view-"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+body.theme-dark [id^="view-"] select,body.theme-dark [id^="view-"] textarea{
+  color:var(--nova-ink,#e5eefb);background:var(--nova-bg,#0b1424);border-color:var(--nova-line,#293b55);
+}
+body.theme-dark [id^="view-"] .module-logo-mark{color:var(--user-accent-bright,#9bdff0);background:color-mix(in srgb,var(--user-accent,#087fa3) 20%,var(--nova-panel,#142238));border-color:var(--nova-line,#293b55)}
+@media(max-width:640px){
+  .module-title-row,.module-title-with-logo{gap:10px}
+  .module-logo-mark{flex-basis:42px;width:42px;height:42px;border-radius:13px}
+  [id^="view-"] .module-intro{padding:16px!important}
+}
+@media(prefers-reduced-motion:reduce){[id^="view-"] .ui-card,[id^="view-"] table tbody tr{transition:none!important}}
+
 </style>
 <script>
 (function(){
@@ -2510,7 +2678,9 @@ body.theme-dark [id^="view-"] .module-intro:after{
  function validColor(v){return /^#[0-9a-f]{6}$/i.test(String(v||''));}
  function colorRgb(hex){const n=parseInt(hex.slice(1),16);return [(n>>16)&255,(n>>8)&255,n&255];}
  function mix(hex,ratio){const rgb=colorRgb(hex);return '#'+rgb.map(v=>Math.round(v+(255-v)*ratio).toString(16).padStart(2,'0')).join('');}
- function apply(){const root=document.documentElement;root.style.setProperty('--user-accent',prefs.accent);root.style.setProperty('--user-accent-strong',mix(prefs.accent,.0));root.style.setProperty('--user-accent-soft',mix(prefs.accent,.88));root.style.setProperty('--user-sidebar-start',prefs.sidebar);root.style.setProperty('--user-sidebar-end',mix(prefs.sidebar,.12));document.body.classList.toggle('theme-dark',prefs.mode==='dark'||(prefs.mode==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches));document.body.classList.toggle('sidebar-compact',prefs.nav==='compact');document.body.classList.toggle('ui-density-compact',prefs.density==='compact');document.getElementById('theme-custom-color')?.setAttribute('value',prefs.accent);const color=document.getElementById('theme-color-value');if(color)color.textContent=prefs.accent.toUpperCase();const mode=document.getElementById('theme-mode');if(mode)mode.value=prefs.mode;const side=document.getElementById('theme-sidebar-color');if(side)side.value=prefs.sidebar;const nav=document.getElementById('theme-nav-style');if(nav)nav.value=prefs.nav;const density=document.getElementById('theme-density');if(density)density.value=prefs.density;document.querySelectorAll('.theme-swatch').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===prefs.accent)));}
+ function shade(hex,ratio){const rgb=colorRgb(hex);return '#'+rgb.map(v=>Math.round(v*(1-ratio)).toString(16).padStart(2,'0')).join('');}
+ function luminance(hex){const rgb=colorRgb(hex).map(v=>{v/=255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4);});return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2];}
+ function apply(){const root=document.documentElement;root.style.setProperty('--user-accent',prefs.accent);root.style.setProperty('--user-accent-strong',shade(prefs.accent,.2));root.style.setProperty('--user-accent-bright',mix(prefs.accent,.42));root.style.setProperty('--user-accent-contrast',luminance(prefs.accent)>.43?'#102038':'#ffffff');root.style.setProperty('--user-accent-soft',mix(prefs.accent,.9));root.style.setProperty('--user-sidebar-start',prefs.sidebar);root.style.setProperty('--user-sidebar-end',shade(prefs.sidebar,.18));root.style.setProperty('--user-sidebar-foreground',luminance(prefs.sidebar)>.48?'#102038':'#ffffff');root.style.setProperty('--user-sidebar-muted',luminance(prefs.sidebar)>.48?'#41536a':'rgba(255,255,255,.76)');document.body.classList.toggle('theme-dark',prefs.mode==='dark'||(prefs.mode==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches));document.body.classList.toggle('sidebar-compact',prefs.nav==='compact');document.body.classList.toggle('ui-density-compact',prefs.density==='compact');document.getElementById('theme-custom-color')?.setAttribute('value',prefs.accent);const color=document.getElementById('theme-color-value');if(color)color.textContent=prefs.accent.toUpperCase();const mode=document.getElementById('theme-mode');if(mode)mode.value=prefs.mode;const side=document.getElementById('theme-sidebar-color');if(side)side.value=prefs.sidebar;const nav=document.getElementById('theme-nav-style');if(nav)nav.value=prefs.nav;const density=document.getElementById('theme-density');if(density)density.value=prefs.density;document.querySelectorAll('.theme-swatch').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===prefs.accent)));}
  function getClient(){try{if(typeof _supabase!=='undefined'&&_supabase)return _supabase;}catch(e){}return window._supabase||window.supabaseClient||null;}
  function loadLocal(){try{const p=JSON.parse(localStorage.getItem(KEY)||'{}');prefs={...defaults,...p};if(!validColor(prefs.accent))prefs.accent=defaults.accent;if(!validColor(prefs.sidebar))prefs.sidebar=defaults.sidebar;}catch(e){prefs={...defaults};}apply();}
  async function loadCloud(){try{const client=getClient();if(!client||!client.auth)return;const s=await client.auth.getSession();const user=s?.data?.session?.user;if(!user)return;const r=await client.from('user_ui_preferences').select('preferences').eq('user_id',user.id).maybeSingle();if(!r.error&&r.data?.preferences&&typeof r.data.preferences==='object'){prefs={...defaults,...r.data.preferences};if(!validColor(prefs.accent))prefs.accent=defaults.accent;if(!validColor(prefs.sidebar))prefs.sidebar=defaults.sidebar;localStorage.setItem(KEY,JSON.stringify(prefs));apply();}}catch(e){/* Preferencias locales siguen disponibles si nube no está configurada. */}}
