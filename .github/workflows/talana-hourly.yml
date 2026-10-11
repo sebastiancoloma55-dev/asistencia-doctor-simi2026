@@ -53,8 +53,8 @@ jobs:
         if: steps.schedule.outputs.run_bot == 'true'
         continue-on-error: true
         env:
-          TALANA_BOT_URL: \${{ secrets.TALANA_BOT_URL }}
-          TALANA_BOT_SECRET: \${{ secrets.TALANA_BOT_SECRET }}
+          TALANA_BOT_URL: ${{ secrets.TALANA_BOT_URL }}
+          TALANA_BOT_SECRET: ${{ secrets.TALANA_BOT_SECRET }}
         run: python bot_talana/agent_cloud.py --maintenance
 
       - name: Consultar si el panel permite ejecutar
