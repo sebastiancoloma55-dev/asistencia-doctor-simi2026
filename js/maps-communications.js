@@ -3,9 +3,50 @@
         // ============================================================
         async function obtenerSucursalesConfig() { const {data,error}=await _supabase.from('sucursales').select('*').order('nombre'); if(error)throw error; return data||[]; }
         function direccionSucursal(x){return [x.direccion,x.comuna,'Chile'].filter(Boolean).join(', ');}
+        function calcularDiasDotacion(){
+            const inicio=document.getElementById('dot-inicio')?.value,fin=document.getElementById('dot-fin')?.value,host=document.getElementById('dot-dias');
+            if(!host)return;
+            if(inicio&&fin&&fin>=inicio){const a=new Date(inicio+'T12:00:00Z'),b=new Date(fin+'T12:00:00Z');host.value=Math.floor((b-a)/86400000)+1;}
+            else host.value='';
+        }
+        function actualizarHorarioDotacion(){
+            const turno=document.getElementById('dot-turno')?.value,ini=document.getElementById('dot-hora-inicio'),fin=document.getElementById('dot-hora-fin');
+            if(!ini||!fin)return;
+            if(turno==='AM'){ini.value='08:00';fin.value='14:00';}
+            else if(turno==='PM'){ini.value='13:00';fin.value='19:00';}
+            else if(turno==='COMPLETO'){ini.value='08:00';fin.value='18:00';}
+            else {ini.value='';fin.value='';}
+        }
+        async function cargarSucursalesDotacion(){
+            const select=document.getElementById('dot-sucursal');if(!select)return;
+            const {data,error}=await _supabase.from('sucursales').select('id,nombre,activa').eq('activa',true).order('nombre').limit(1000);
+            if(error){select.innerHTML='<option value="">No se pudieron cargar sucursales</option>';const status=document.getElementById('dot-estado');if(status)status.textContent='No se pudo cargar el listado de sucursales: '+error.message;return;}
+            select.innerHTML='<option value="">Selecciona una sucursal</option>'+(data||[]).map(x=>'<option value="'+escaparHTML(x.id)+'">'+escaparHTML(x.nombre)+'</option>').join('');
+        }
+        async function crearSolicitudDotacion(event){
+            event.preventDefault();
+            const status=document.getElementById('dot-estado'),form=document.getElementById('form-alerta-dotacion');
+            const sucursalId=document.getElementById('dot-sucursal')?.value,opcion=document.getElementById('dot-sucursal')?.selectedOptions?.[0];
+            const inicio=document.getElementById('dot-inicio')?.value,fin=document.getElementById('dot-fin')?.value;
+            const turno=document.getElementById('dot-turno')?.value,horaini=document.getElementById('dot-hora-inicio')?.value||null,horafin=document.getElementById('dot-hora-fin')?.value||null;
+            if(!sucursalId||!inicio||!fin||fin<inicio)return mostrarToast('Selecciona una sucursal y revisa las fechas de la solicitud.','warning');
+            if(horaini&&horafin&&horafin<=horaini)return mostrarToast('La hora de término debe ser posterior a la hora de inicio.','warning');
+            try{
+                if(status)status.textContent='Guardando alerta de cobertura…';
+                const me=await _supabase.rpc('chat_usuario_actual_id');if(me.error||!me.data)throw me.error||new Error('Tu usuario no tiene un perfil activo.');
+                const payload={sucursal_id:sucursalId,sucursal_nombre:opcion?.textContent||'',fecha_inicio:inicio,fecha_fin:fin,cantidad:Number(document.getElementById('dot-cantidad')?.value||1),cargo_requerido:document.getElementById('dot-cargo')?.value||'AF',turno,hora_inicio:horaini,hora_fin:horafin,motivo:document.getElementById('dot-motivo')?.value?.trim(),observaciones:document.getElementById('dot-observaciones')?.value?.trim()||null,solicitada_por:me.data,estado:'PENDIENTE'};
+                const {data,error}=await _supabase.from('solicitudes_dotacion').insert(payload).select('id').single();if(error)throw error;
+                await registrarAuditoria('coberturas','CREA_ALERTA_DOTACION',payload.sucursal_nombre+' · '+payload.cargo_requerido+' · '+payload.turno+' · '+payload.fecha_inicio+' a '+payload.fecha_fin);
+                if(status)status.textContent='Alerta enviada · '+new Date().toLocaleString('es-CL',{timeZone:'America/Santiago'})+'. Solicitud '+data.id.slice(0,8)+'.';
+                form?.reset();document.getElementById('dot-dias').value='';actualizarHorarioDotacion();
+                mostrarToast('Alerta de necesidad de personal enviada a la cola de revisión de Traslados.','success',8000);
+                if(typeof cargarSolicitudesDotacion==='function')await cargarSolicitudesDotacion();
+            }catch(error){console.error('Crear alerta dotación:',error);if(status)status.textContent='No se pudo enviar: '+(error.message||'Error desconocido');mostrarToast('No se pudo guardar la alerta: '+(error.message||''),'error',10000);}
+        }
         async function prepararMapaYConfiguracionSucursales(){
             const lista=await obtenerSucursalesConfig(), opts='<option value="">Seleccione sucursal</option>'+lista.map(x=>`<option value="${escaparHTML(direccionSucursal(x))}">${escaparHTML(x.nombre)}</option>`).join('');
             document.getElementById('map-origen').innerHTML=opts;document.getElementById('map-destino').innerHTML=opts;
+            await cargarSucursalesDotacion();
             document.getElementById('tabla-config-sucursales').innerHTML=lista.map(x=>`<tr><td class="p-3 font-bold">${escaparHTML(x.nombre)}</td><td class="p-3">${escaparHTML(direccionSucursal(x))}</td><td class="p-3">${escaparHTML(x.horario_apertura||'')}</td><td class="p-3">${escaparHTML(x.horario_cierre||'')}</td><td class="p-3">${escaparHTML(x.correo_sucursal||'')}</td><td class="p-3">${escaparHTML(x.correo_copia||'')}</td></tr>`).join('');
         }
         function mostrarRutaSucursales(){const o=document.getElementById('map-origen').value,d=document.getElementById('map-destino').value,m=document.getElementById('map-modo').value;if(!o||!d){mostrarToast('Selecciona origen y destino.','warning');return;}document.getElementById('mapa-sucursales').src=`https://www.google.com/maps?output=embed&saddr=${encodeURIComponent(o)}&daddr=${encodeURIComponent(d)}&dirflg=${m}`;}
