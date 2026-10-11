@@ -126,7 +126,9 @@ for (const marker of ['function renderSolicitudesDotacion', 'function filtrarSol
 }
 const migrationDir = path.join(root, 'supabase/migrations');
 const migrationNames = readdirSync(migrationDir);
-if (migrationNames.includes('20261011120000_talana_importer_privileges_and_key_contract.sql')) fail('La migración Talana antigua está duplicada con una versión distinta a la registrada en Supabase.');
+for (const redundantMigration of ['20261011120000_talana_importer_privileges_and_key_contract.sql', '20261011080000_talana_importer_service_role_grants.sql']) {
+  if (migrationNames.includes(redundantMigration)) fail('La migración Talana redundante sigue en el proyecto: ' + redundantMigration);
+}
 if (!migrationNames.includes('20261011073437_talana_importer_privileges_and_key_contract_20261011.sql')) fail('Falta alinear la migración del importador con la versión aplicada en Supabase.');
 
 if (process.exitCode) process.exit(process.exitCode);
