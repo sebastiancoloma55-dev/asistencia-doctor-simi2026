@@ -32,9 +32,9 @@ Los cambios nuevos se trabajan en `feature/talana-bot-integration` y en migracio
 - [x] Solicitudes de traslados, aprobación/rechazo e historial de estado.
 - [x] Notificaciones para eventos de chat y traslados.
 - [ ] Bandeja unificada de aprobaciones: tareas por validar, vacaciones, permisos, coberturas, correcciones y traslados.
-- [ ] Historial de colaborador para cambios de sucursal, cargo, supervisor, estado y documentos, con usuario y fecha.
+- [x] Historial automático de cambios del maestro de colaborador (RUT, nombres, cargo, sucursal, estado y fecha de ingreso), con usuario y fecha; consulta por RUT.
 - [ ] Conciliación de asistencia contra turno programado y bandeja de excepciones.
-- [ ] Calendario de turnos, ausencias, coberturas, feriados y traslados por sucursal.
+- [x] Calendario de solicitudes y traslados aprobados para los próximos 90 días, más resumen de dotación activa y movimientos por sucursal.\n- [ ] Ampliar el calendario para incluir turnos, ausencias, coberturas, feriados y vencimientos.
 - [ ] Mejoras de búsqueda, filtros combinables, paginación, errores recuperables, accesibilidad y navegación móvil.
 - [ ] Completar auditoría de cambios críticos con actor, hora, objeto y resultado.
 
@@ -44,7 +44,7 @@ Los cambios nuevos se trabajan en `feature/talana-bot-integration` y en migracio
 - [ ] Portal de solicitudes para que el colaborador solicite vacaciones, permisos y correcciones y consulte el estado.
 - [ ] Reportes programados con destinatarios autorizados, formato, período y registro de ejecución.
 - [ ] Definir fórmulas oficiales de KPI, fecha de corte y señal de datos incompletos.
-- [ ] Ampliar el proyecto de traslados con calendario mensual, filtros por supervisor/sucursal, control de solapamientos y exportación.
+- [x] Vista de calendario y resumen de dotación actual/movimientos entrantes y salientes por sucursal.\n- [ ] Ampliar el proyecto de traslados con calendario mensual, filtros por supervisor/sucursal, control de solapamientos y exportación.
 
 ### P3 — Analítica y conocimiento
 - [ ] Indicadores históricos comparables por sucursal, período y tipo de incidencia.
