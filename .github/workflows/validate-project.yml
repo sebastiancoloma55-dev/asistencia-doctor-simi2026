@@ -35,3 +35,5 @@ jobs:
           node-version: "20"
       - name: Revisar archivos JS y scripts inline de index.html
         run: node scripts/validate-js.mjs
+      - name: Probar claves naturales del importador Talana
+        run: node --test scripts/test-talana-import-keys.mjs
