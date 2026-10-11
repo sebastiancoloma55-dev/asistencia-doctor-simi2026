@@ -32,7 +32,7 @@
             }
             const { data, error } = await _supabase
                 .from("actualizaciones_fuentes")
-                .select("modulo,actualizado_en,archivo,origen")
+                .select("modulo,actualizado_en,archivo,origen,detalles")
                 .order("actualizado_en", { ascending: false })
                 .limit(6);
             if (error) throw error;
@@ -45,13 +45,15 @@
                 const card = textNode("div", "rounded-lg border border-slate-100 bg-slate-50 p-3", "");
                 const heading = textNode("div", "flex flex-wrap items-start justify-between gap-2", "");
                 heading.append(textNode("b", "text-sm text-slate-800", names[item.modulo] || item.modulo));
-                const source = item.origen === "bot" ? "Bot Talana" : item.origen === "manual" ? "Carga manual" : "Sistema";
+                const baseline = Boolean(item.detalles?.baseline);
+                const source = baseline ? "Referencia inicial" : item.origen === "bot" ? "Bot Talana" : item.origen === "manual" ? "Carga manual" : "Sistema";
                 heading.append(textNode("span", "rounded-full bg-white px-2 py-1 text-[10px] font-bold text-slate-600", source));
                 card.append(heading);
                 const timestamp = item.actualizado_en
                     ? new Date(item.actualizado_en).toLocaleString("es-CL", { timeZone: "America/Santiago", dateStyle: "medium", timeStyle: "short" })
                     : "Fecha no disponible";
-                card.append(textNode("p", "mt-1 text-xs text-slate-600", timestamp + " · hora de Chile"));
+                card.append(textNode("p", "mt-1 text-xs text-slate-600", (baseline ? "Seguimiento iniciado: " : "Última actualización: ") + timestamp + " · hora de Chile"));
+                if (baseline) card.append(textNode("p", "mt-1 text-[11px] text-amber-700", "La fecha histórica original no estaba disponible; se inicia la trazabilidad desde este momento."));
                 if (item.archivo) card.append(textNode("p", "mt-1 break-all text-xs text-slate-500", item.archivo));
                 target.append(card);
             }
