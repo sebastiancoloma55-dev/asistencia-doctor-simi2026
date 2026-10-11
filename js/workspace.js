@@ -71,8 +71,8 @@ async function cargarEspacioTrabajo(){
 }
 async function cargarResumenEspacioDashboard(){
  var dash=$("dashboard-space-summary");if(!dash)return;
- var permitted=Array.isArray(window.modulosPermitidosActuales)?window.modulosPermitidosActuales:[];
- if(!(window.esAdminPrincipalActual&&window.esAdminPrincipalActual())&&!permitted.includes("espacio")&&!permitted.includes("tareas")){dash.classList.add("hidden");return;}
+ var canAccess=!!(window.esAdminPrincipalActual&&window.esAdminPrincipalActual())||!!(window.tienePermisoModulo&&(window.tienePermisoModulo("espacio")||window.tienePermisoModulo("tareas")));
+ if(!canAccess){dash.classList.add("hidden");return;}
  dash.classList.remove("hidden");
  try{var s=await userSession(),res=await Promise.all([s.client.from("rrhh_notas").select("id,fijada,estado,vence_en,visibilidad"),s.client.from("rrhh_bitacora").select("id,ocurrio_en")]);if(res[0].error)throw res[0].error;if(res[1].error)throw res[1].error;state.notes=res[0].data||[];state.logs=res[1].data||[];metrics();}
  catch(e){dash.innerHTML='<div class="dash-space-intro"><div><span class="dash-space-kicker">MI ESPACIO DE TRABAJO</span><h3>Notas y bitácora</h3><p>Guarda recordatorios y registra las gestiones de tu día.</p></div><button type="button" onclick="cambiarModulo(\'espacio\')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div>';icons();}
