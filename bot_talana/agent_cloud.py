@@ -131,7 +131,7 @@ def main():
                 errors.append(f"Importación {title}: {import_exc}")
                 LOG.exception("No se pudo importar el reporte %s a la plataforma.", title)
 
-        if completed_actions == 4 and uploaded == 3 and imported_reports == 3 and not errors:
+        if completed_actions == 4 and uploaded == 4 and imported_reports == 4 and not errors:
             status = "success"
         elif completed_actions or uploaded or results:
             status = "partial"
@@ -143,9 +143,9 @@ def main():
                 "uploaded": uploaded,
                 "completed_actions": completed_actions,
                 "expected_actions": 4,
-                "expected_download_files": 3,
+                "expected_download_files": 4,
                 "imported_reports": imported_reports,
-                "expected_imported_reports": 3,
+                "expected_imported_reports": 4,
                 "imported_rows": imported_rows,
                 "download_directory": str(DOWNLOAD_DIR),
             },
