@@ -98,42 +98,42 @@
         return;
       }
       const now = new Date().toISOString();
-      const tasksOpen = await metric("Tareas abiertas","list-checks","tareas",()=>c.from("tareas").select("id",{count:"exact",head:true}).in("estado",["PENDIENTE","EN_PROCESO","COMPLETADA_POR_VALIDAR","DEVUELTA"]),n=>n===0?"No hay tareas pendientes.":"Pendientes, en proceso o por validar.");
-      const tasksLate = await metric("Tareas vencidas","clock-alert","tareas",()=>c.from("tareas").select("id",{count:"exact",head:true}).lt("fecha_limite",now).not("estado","in",'("APROBADA","CANCELADA")'),n=>n===0?"Sin vencimientos atrasados.":"Requieren seguimiento prioritario.");
-      const coverage = await metric("Dotación por revisar","users-round","traslados",()=>c.from("solicitudes_dotacion").select("id",{count:"exact",head:true}).eq("estado","PENDIENTE"),n=>n===0?"No hay solicitudes pendientes.":"Solicitudes de sucursales pendientes de revisión.");
-      let notifications;
-      if (!hasPermission("notificaciones")) {
-        notifications = {label:"Avisos sin leer",icon:"bell-ring",module:null,value:"—",detail:"Notificaciones no habilitadas para tu perfil.",unavailable:true};
-      } else {
-        try {
-          const profile = await c.from("usuarios_roles").select("id").eq("email",String(user.email||"").trim().toLowerCase()).maybeSingle();
-          if (profile.error) throw profile.error;
-          if (!profile.data) throw new Error("No se encontró el perfil activo del usuario.");
-          const nr = await c.from("notificaciones").select("id",{count:"exact",head:true}).eq("usuario_rol_id",profile.data.id).eq("leida",false);
-          if (nr.error) throw nr.error;
-          const n = Number(nr.count || 0);
-          notifications = {label:"Avisos sin leer",icon:"bell-ring",module:"notificaciones",value:n.toLocaleString("es-CL"),detail:n===0?"Bandeja al día.":"Notificaciones pendientes de lectura.",alert:n>0};
-        } catch (error) {
-          notifications = {label:"Avisos sin leer",icon:"bell-ring",module:"notificaciones",value:"No disponible",detail:String(error && error.message || "No se pudo consultar la bandeja."),unavailable:true};
-        }
-      }
-      let bot;
-      if (adminProfile(user.email)) {
-        try {
-          const response = await c.functions.invoke("talana-bot-control",{body:{action:"admin_get"}});
-          if (response.error) throw response.error;
-          if (response.data && response.data.error) throw new Error(response.data.error);
-          const runs = response.data && Array.isArray(response.data.runs) ? response.data.runs : [];
-          const latest = runs[0];
-          bot = latest
-            ? {label:"Bot Talana",icon:"workflow",module:"integraciones",value:statusText(latest.status),detail:fmtDate(latest.started_at)+" · descargados "+Number(latest.reports_downloaded||0)+", cargados "+Number(latest.reports_uploaded||0),alert:["failed","partial"].includes(latest.status),unavailable:false}
-            : {label:"Bot Talana",icon:"workflow",module:"integraciones",value:"Sin ejecuciones",detail:"No hay ejecuciones registradas en el historial.",unavailable:false};
-        } catch (error) {
-          bot = {label:"Bot Talana",icon:"workflow",module:"integraciones",value:"No disponible",detail:String(error && error.message || "No se pudo consultar el estado del bot."),unavailable:true};
-        }
-      } else {
-        bot = {label:"Bot Talana",icon:"workflow",module:null,value:"Restringido",detail:"Solo la administración principal puede consultar la ejecución del bot.",unavailable:true};
-      }
+      const [tasksOpen,tasksLate,coverage] = await Promise.all([
+        metric("Tareas abiertas","list-checks","tareas",()=>c.from("tareas").select("id",{count:"exact",head:true}).in("estado",["PENDIENTE","EN_PROCESO","COMPLETADA_POR_VALIDAR","DEVUELTA"]),n=>n===0?"No hay tareas pendientes.":"Pendientes, en proceso o por validar."),
+        metric("Tareas vencidas","clock-alert","tareas",()=>c.from("tareas").select("id",{count:"exact",head:true}).lt("fecha_limite",now).not("estado","in",'("APROBADA","CANCELADA")'),n=>n===0?"Sin vencimientos atrasados.":"Requieren seguimiento prioritario."),
+        metric("Dotación por revisar","users-round","traslados",()=>c.from("solicitudes_dotacion").select("id",{count:"exact",head:true}).eq("estado","PENDIENTE"),n=>n===0?"No hay solicitudes pendientes.":"Solicitudes de sucursales pendientes de revisión.")
+      ]);
+      const [notifications,bot] = await Promise.all([
+        (async function(){
+          if (!hasPermission("notificaciones")) return {label:"Avisos sin leer",icon:"bell-ring",module:null,value:"—",detail:"Notificaciones no habilitadas para tu perfil.",unavailable:true};
+          try {
+            const profile = await c.from("usuarios_roles").select("id").eq("email",String(user.email||"").trim().toLowerCase()).maybeSingle();
+            if (profile.error) throw profile.error;
+            if (!profile.data) throw new Error("No se encontró el perfil activo del usuario.");
+            const nr = await c.from("notificaciones").select("id",{count:"exact",head:true}).eq("usuario_rol_id",profile.data.id).eq("leida",false);
+            if (nr.error) throw nr.error;
+            const n = Number(nr.count || 0);
+            return {label:"Avisos sin leer",icon:"bell-ring",module:"notificaciones",value:n.toLocaleString("es-CL"),detail:n===0?"Bandeja al día.":"Notificaciones pendientes de lectura.",alert:n>0};
+          } catch (error) {
+            return {label:"Avisos sin leer",icon:"bell-ring",module:"notificaciones",value:"No disponible",detail:String(error && error.message || "No se pudo consultar la bandeja."),unavailable:true};
+          }
+        })(),
+        (async function(){
+          if (!adminProfile(user.email)) return {label:"Bot Talana",icon:"workflow",module:null,value:"Restringido",detail:"Solo la administración principal puede consultar la ejecución del bot.",unavailable:true};
+          try {
+            const response = await c.functions.invoke("talana-bot-control",{body:{action:"admin_get"}});
+            if (response.error) throw response.error;
+            if (response.data && response.data.error) throw new Error(response.data.error);
+            const runs = response.data && Array.isArray(response.data.runs) ? response.data.runs : [];
+            const latest = runs[0];
+            return latest
+              ? {label:"Bot Talana",icon:"workflow",module:"integraciones",value:statusText(latest.status),detail:fmtDate(latest.started_at)+" · descargados "+Number(latest.reports_downloaded||0)+", cargados "+Number(latest.reports_uploaded||0),alert:["failed","partial"].includes(String(latest.status||"").toLowerCase()),unavailable:false}
+              : {label:"Bot Talana",icon:"workflow",module:"integraciones",value:"Sin ejecuciones",detail:"No hay ejecuciones registradas en el historial.",unavailable:false};
+          } catch (error) {
+            return {label:"Bot Talana",icon:"workflow",module:"integraciones",value:"No disponible",detail:String(error && error.message || "No se pudo consultar el estado del bot."),unavailable:true};
+          }
+        })()
+      ]);
       render([tasksOpen,tasksLate,coverage,notifications,bot]);
     } catch (error) {
       render([{label:"Estado operativo",icon:"cloud-off",module:null,value:"Error",detail:String(error && error.message || "No se pudo consultar Supabase."),unavailable:true}],"No se pudo actualizar el resumen.");
