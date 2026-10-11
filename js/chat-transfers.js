@@ -103,10 +103,11 @@
       const {data:conv,error:convError}=await _supabase.from("chat_conversaciones").select("id,titulo,tipo,updated_at").eq("id",id).single();
       if(convError)throw convError;
       if($("chat-conversacion-titulo"))$("chat-conversacion-titulo").innerHTML='<h4 class="font-extrabold">'+esc(conv.titulo)+'</h4><p class="mt-1 text-xs text-slate-500">'+(conv.tipo==="GRUPO"?"Conversación grupal":"Conversación privada")+' · actualizado '+esc(dateTime(conv.updated_at))+'</p>';
-      const {data,error}=await _supabase.from("chat_mensajes").select("id,conversacion_id,remitente_id,contenido,created_at").eq("conversacion_id",id).is("eliminado_at",null).order("created_at",{ascending:true}).limit(300);
+      const {data,error}=await _supabase.from("chat_mensajes").select("id,conversacion_id,remitente_id,contenido,created_at,adjunto_path,adjunto_nombre,adjunto_mime,adjunto_bytes").eq("conversacion_id",id).is("eliminado_at",null).order("created_at",{ascending:true}).limit(300);
       if(error)throw error;
       renderMessages(data||[]);
       if($("chat-mensaje-input"))$("chat-mensaje-input").disabled=false;
+      if($("chat-archivo"))$("chat-archivo").disabled=false;
       if($("chat-enviar"))$("chat-enviar").disabled=false;
       await _supabase.rpc("chat_marcar_leido",{p_conversacion:id});
       chatChannel=_supabase.channel("chat-"+id).on("postgres_changes",{event:"INSERT",schema:"public",table:"chat_mensajes",filter:"conversacion_id=eq."+id},payload=>{
@@ -124,6 +125,7 @@
       console.warn("Abrir conversación:",error);
       if(host)host.innerHTML='<p class="text-sm text-rose-700">No tienes acceso a esta conversación o no se pudo cargar.</p>';
       if($("chat-mensaje-input"))$("chat-mensaje-input").disabled=true;
+      if($("chat-archivo"))$("chat-archivo").disabled=true;
       if($("chat-enviar"))$("chat-enviar").disabled=true;
     }
   }
@@ -142,22 +144,41 @@
     const bubble=document.createElement("div");bubble.className="max-w-[88%] rounded-2xl px-4 py-3 "+(Number(msg.remitente_id)===Number(currentRoleId)?"bg-blue-700 text-white":"border border-slate-200 bg-slate-50 text-slate-800");
     const name=document.createElement("div");name.className="mb-1 text-[10px] font-bold opacity-75";name.textContent=(sender?.nombre||sender?.email||"Usuario")+" · "+dateTime(msg.created_at);
     const body=document.createElement("p");body.className="whitespace-pre-wrap break-words text-sm";body.textContent=msg.contenido||"Mensaje eliminado";
-    bubble.append(name,body);row.append(bubble);host.append(row);host.scrollTop=host.scrollHeight;
+    bubble.append(name,body);
+    if(msg.adjunto_path){
+      const fileBtn=document.createElement("button");fileBtn.type="button";fileBtn.className="mt-2 block max-w-full break-all text-left text-xs font-bold underline";fileBtn.textContent="📎 "+(msg.adjunto_nombre||"Descargar archivo");fileBtn.dataset.chatDownload=msg.adjunto_path;fileBtn.dataset.chatFilename=msg.adjunto_nombre||"archivo";
+      bubble.append(fileBtn);
+    }
+    row.append(bubble);host.append(row);host.scrollTop=host.scrollHeight;
   }
 
   async function enviarMensajeChat(event) {
     event?.preventDefault();
-    const input=$("chat-mensaje-input"),content=input?.value.trim();
-    if(!activeConversation||!content||chatBusy)return;
-    chatBusy=true;
+    const input=$("chat-mensaje-input"),content=input?.value.trim(),file=$("chat-archivo")?.files?.[0];
+    if(!activeConversation||(!content&&!file)||chatBusy)return;
+    if(file&&file.size>10*1024*1024){setStatus("chat-estado","El archivo supera el límite de 10 MB.",true);return;}
+    chatBusy=true;let uploadedPath=null;
     try{
-      const me=await currentUserId();
-      const {data,error}=await _supabase.from("chat_mensajes").insert({conversacion_id:activeConversation,remitente_id:me,contenido:content}).select("id,conversacion_id,remitente_id,contenido,created_at").single();
+      const me=await currentUserId();let attachment={};
+      if(file){
+        const allowed=["application/pdf","image/jpeg","image/png","image/webp","text/plain","application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","application/vnd.ms-excel","text/csv"];
+        if(file.type&&!allowed.includes(file.type))throw new Error("Tipo de archivo no permitido. Usa PDF, Word, Excel, CSV, TXT, JPG, PNG o WEBP.");
+        const safeName=file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]+/g,"_").slice(-100)||"archivo";
+        uploadedPath=activeConversation+"/"+Date.now()+"-"+safeName;
+        const {error:uploadError}=await _supabase.storage.from("chat-adjuntos").upload(uploadedPath,file,{upsert:false,contentType:file.type||"application/octet-stream"});
+        if(uploadError)throw uploadError;
+        attachment={adjunto_path:uploadedPath,adjunto_nombre:file.name,adjunto_mime:file.type||null,adjunto_bytes:file.size};
+      }
+      const messageContent=content||(file?"Archivo adjunto: "+file.name:"");
+      const {data,error}=await _supabase.from("chat_mensajes").insert({conversacion_id:activeConversation,remitente_id:me,contenido:messageContent,...attachment}).select("id,conversacion_id,remitente_id,contenido,created_at,adjunto_path,adjunto_nombre,adjunto_mime,adjunto_bytes").single();
       if(error)throw error;
-      input.value="";appendMessage(data);
+      input.value="";if($("chat-archivo"))$("chat-archivo").value="";
+      appendMessage(data);
       if($("chat-estado"))$("chat-estado").textContent="Mensaje enviado · "+dateTime(data.created_at);
-    }catch(error){console.error("Enviar mensaje:",error);setStatus("chat-estado",error.message||"No se pudo enviar el mensaje.",true);}
-    finally{chatBusy=false;input?.focus();}
+    }catch(error){
+      if(uploadedPath){try{await _supabase.storage.from("chat-adjuntos").remove([uploadedPath]);}catch(_){}}
+      console.error("Enviar mensaje:",error);setStatus("chat-estado",error.message||"No se pudo enviar el mensaje.",true);
+    }finally{chatBusy=false;input?.focus();}
   }
 
   function fillSelect(select,items,placeholder,selectedValue) {
@@ -258,9 +279,17 @@
     }catch(error){console.error("Resolver traslado:",error);setStatus("traslado-estado",error.message||"No se pudo actualizar el estado. Comprueba el permiso traslados_aprobar.",true);}
   }
 
-  document.addEventListener("click",event=>{
-    const btn=event.target.closest("[data-transfer-action]");
-    if(btn){resolverTraslado(btn.dataset.id,btn.dataset.transferAction);}
+  document.addEventListener("click",async event=>{
+    const transferBtn=event.target.closest("[data-transfer-action]");
+    if(transferBtn){resolverTraslado(transferBtn.dataset.id,transferBtn.dataset.transferAction);return;}
+    const fileBtn=event.target.closest("[data-chat-download]");
+    if(fileBtn){
+      try{
+        const {data,error}=await _supabase.storage.from("chat-adjuntos").createSignedUrl(fileBtn.dataset.chatDownload,60);
+        if(error)throw error;
+        if(data?.signedUrl)window.open(data.signedUrl,"_blank","noopener,noreferrer");
+      }catch(error){console.warn("Descarga de adjunto:",error);setStatus("chat-estado","No se pudo generar el enlace privado de descarga.",true);}
+    }
   });
 
   window.cargarChatInterno=cargarChatInterno;
