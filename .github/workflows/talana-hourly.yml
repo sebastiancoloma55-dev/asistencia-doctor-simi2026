@@ -31,10 +31,12 @@ jobs:
           python-version: "3.12"
       - name: Comprobar sintaxis Python
         run: python -m compileall -q bot_talana
-      - name: Preparar Deno
-        uses: denoland/setup-deno@v2
+      - name: Preparar Node para validación TypeScript
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Verificar sintaxis de la función de Supabase
-        run: deno check --no-lock supabase/functions/talana-bot-control/index.ts
+        run: npx --yes esbuild@0.25.0 supabase/functions/talana-bot-control/index.ts --loader:.ts=ts --format=esm --outfile=/tmp/talana-bot-control.js
 
   run-talana:
     if: github.event_name != 'pull_request'
