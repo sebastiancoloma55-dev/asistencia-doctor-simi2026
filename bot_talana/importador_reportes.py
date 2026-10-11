@@ -85,6 +85,18 @@ def _boolean(value):
     return None
 
 
+def _number(value):
+    if value is None or value == "":
+        return None
+    if isinstance(value, (int, float)):
+        return value
+    match = re.search(r"-?\\d+(?:[.,]\\d+)?", str(value).replace(" ", ""))
+    if not match:
+        return None
+    number = float(match.group(0).replace(",", "."))
+    return int(number) if number.is_integer() else number
+
+
 def _header_map(header):
     by_norm = {_norm(v): i for i, v in enumerate(header) if v is not None}
     result = {}
@@ -140,24 +152,37 @@ def parse_report(path, report_type):
                 continue
             item["rut"] = re.sub(r"\s+", "", str(item["rut"])).upper()
             if report_type == "maestro_empleado":
+                if "nombre" in mapping:
+                    item["nombre"] = _clean(values[mapping["nombre"]])
                 if not item.get("nombres") or not item.get("apellidos"):
                     full_name = item.get("nombre")
                     if full_name:
                         parts = str(full_name).split()
-                        if len(parts) >= 2:
+                        if len(parts) == 2:
+                            item["nombres"], item["apellidos"] = parts[0], parts[1]
+                        elif len(parts) > 2:
                             # Solo se usa como fallback si Talana entrega nombre completo en una columna.
-                            item["nombres"], item["apellidos"] = " ".join(parts[:-2]) or parts[0], " ".join(parts[-2:])
+                            item["nombres"], item["apellidos"] = " ".join(parts[:-2]), " ".join(parts[-2:])
                 if not item.get("nombres") or not item.get("apellidos"):
                     row_errors.append(f"fila {line_number}: faltan nombres o apellidos")
                     continue
                 if item.get("estado"):
                     status = _norm(item["estado"])
-                    item["estado"] = "inactivo" if any(x in status for x in ("inactivo", "cesado", "finiquitado", "desvinculado")) else "activo"
+                    if any(x in status for x in ("inactivo", "cesado", "finiquitado", "desvinculado", "terminado", "retirado")):
+                        item["estado"] = "inactivo"
+                    elif any(x in status for x in ("activo", "vigente", "contratado", "active")):
+                        item["estado"] = "activo"
+                    else:
+                        row_errors.append(f"fila {line_number}: estado no reconocido ({item['estado']})")
+                        continue
             elif report_type == "solicitudes_vacaciones_historicas":
+                item["dias"] = _number(item.get("dias"))
                 if not item.get("fecha_inicio") or not item.get("fecha_fin"):
                     row_errors.append(f"fila {line_number}: faltan fecha_inicio o fecha_fin")
                     continue
                 item["tipo_vacaciones"] = item.get("tipo_vacaciones") or "vacaciones"
+            elif report_type == "ausentismos_historico":
+                item["dias_ausencia"] = _number(item.get("dias_ausencia"))
             elif report_type == "reporte_jornadas_asistencia":
                 if not item.get("fecha"):
                     row_errors.append(f"fila {line_number}: falta fecha")
