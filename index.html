@@ -704,7 +704,7 @@ body{overflow-x:hidden}
                 <div class="ui-card p-4 sm:p-5">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <div><h3 class="font-extrabold text-slate-900">Actualización de datos</h3><p class="mt-1 text-xs text-slate-500">Últimas cargas registradas en los módulos a los que tienes acceso, en hora de Chile.</p></div>
-                        <button type="button" class="corp-button-dark text-xs" onclick="cargarActualizacionesFuentes()">Actualizar fechas</button>
+                        <button type="button" class="corp-button-dark text-xs" onclick="cargarResumenActualizaciones()">Actualizar fechas</button>
                     </div>
                     <div id="dashboard-freshness-list" class="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2">
                         <p class="text-sm text-slate-500">Consultando última carga…</p>
@@ -1637,6 +1637,7 @@ body{overflow-x:hidden}
 
     <script src="/js/app-config.js"></script>
 <script src="/js/app-core.js"></script>
+<script src="/js/freshness-dashboard.js"></script>
 <script src="/js/attendance-leave.js"></script>
 <script src="/js/workflows.js"></script>
 <script src="/js/maps-communications.js"></script>
