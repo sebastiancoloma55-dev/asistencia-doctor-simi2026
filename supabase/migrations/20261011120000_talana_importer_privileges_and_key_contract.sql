@@ -13,3 +13,10 @@ TO service_role;
 -- licencias_medicas:    (rut, fecha_inicio, fecha_fin, tipo_ausencia)
 -- vacaciones_historico: (rut, fecha_inicio, fecha_fin, tipo_vacaciones)
 -- registros_asistencia: (rut, fecha)
+
+-- Explicit sequence permissions for inserts into identity-backed history tables.
+GRANT USAGE, SELECT ON SEQUENCE
+  public.licencias_medicas_id_seq,
+  public.vacaciones_historico_id_seq,
+  public.registros_asistencia_id_seq
+TO service_role;
