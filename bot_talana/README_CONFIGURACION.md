@@ -29,5 +29,16 @@ except Exception as exc:
 ```
 El cliente carga los archivos originales, no convierte automáticamente sus filas en registros de la base de datos.
 
-## Automatización
-La web permite configurar la frecuencia y encolar una ejecución manual. El agente local debe mantenerse abierto, consultar configuración/cola y ejecutar el proceso Playwright existente. El PC debe estar encendido y conectado. Supabase no puede abrir Chrome del PC por sí solo. Para automatización desatendida, inicia el agente con el Programador de tareas de Windows y evita ejecuciones simultáneas.
+## Automatización en la nube (GitHub Actions)
+
+El workflow `.github/workflows/talana-hourly.yml` programa comprobaciones horarias de lunes a viernes. El guardia `holiday_schedule_guard.py` permite solo las 08:00–17:59 en hora de Santiago, excluye fines de semana y feriados nacionales de Chile y falla de forma segura si no puede consultar el calendario.
+
+En GitHub → Settings → Secrets and variables → Actions configura los secretos `TALANA_BOT_URL`, `TALANA_BOT_SECRET`, `TALANA_USER` y `TALANA_PASSWORD`. `TALANA_BOT_SECRET` debe ser idéntico al secreto de Supabase. No guardes valores reales en el repositorio.
+
+El ejecutor en nube consulta primero la configuración del panel: si el bot está pausado, no descarga; respeta el modo automático/manual y puede reclamar una solicitud manual en cola. Ejecuta `python bot_talana/agent_cloud.py --check` para verificar elegibilidad y `python bot_talana/agent_cloud.py --once` para una sola corrida.
+
+La programación automática de GitHub requiere que el workflow esté en la rama por defecto. Antes de fusionar, verifica la compilación y realiza una prueba controlada de inicio de sesión, descarga y subida a Storage. La cuota gratuita de Actions puede limitar ejecuciones; no se configura facturación mediante esta integración.
+
+## Alternativa local de Windows
+
+Si prefieres ejecutar el agente residente en un PC, el agente Windows debe mantenerse abierto, consultar la configuración/cola y ejecutar el proceso Playwright existente. El equipo debe permanecer encendido y conectado. Supabase no puede abrir Chrome de tu PC por sí solo. Para automatización local desatendida, inicia el agente con el Programador de tareas de Windows y evita ejecuciones simultáneas.
