@@ -12,16 +12,24 @@ Este proyecto solo debe considerarse listo cuando estén aprobados los checks de
 - [ ] Se confirma que la distribución y el orden de los módulos se mantienen y que la firma «Gestionado por el equipo de Asistencia» queda visible en el pie del menú sin tapar datos.
 - [ ] Revisar el diseño en claro/oscuro, y en escritorio/tablet/móvil.
 - [ ] Revisar con una cuenta administradora y una cuenta con permisos limitados, sin conceder permisos adicionales.
+- [ ] Revisar el resumen operativo nuevo del Dashboard: tareas abiertas/vencidas, dotación pendiente, avisos y salud del bot. Los fallos de consulta deben aparecer como “No disponible”, no como cero.
+- [ ] Probar los filtros de cobertura/dotación por texto, estado y rango de fechas; confirmar que se actualizan los conteos y que limpiar filtros restaura la lista.
+- [ ] Confirmar que el panel Talana muestra estado de última ejecución, archivos relacionados, duración y detalle del último error sin exponer secretos.
+- [ ] Cambiar repetidamente de módulos; la navegación debe seguir respondiendo sin mensajes tardíos de error de un módulo anterior.
+- [ ] Verificar la animación breve de entrada en el cambio de módulo y comprobar que con “reducir movimiento” del sistema no se anima.
+- [ ] Probar el Dashboard, la cobertura y el panel Talana en escritorio, tablet y móvil, incluidos anchos de 320–420 px.
 
-## 2. Supabase: cambio pendiente de aplicar
+## 2. Supabase: migración aplicada y versionada
 
-La migración añadida en esta rama es:
+La función talana-bot-control está activa en la versión **14**. Las tablas de notas/bitácora también están creadas con RLS.
 
-`supabase/migrations/20261011120000_talana_importer_privileges_and_key_contract.sql`
+La concesión de permisos service_role del importador se aplicó directamente al proyecto y Supabase la registra con la versión **20261011073437**. El repositorio ahora usa el mismo identificador en:
 
-Incluye permisos de servidor limitados para `service_role` en las tablas necesarias para la importación y permisos de uso de secuencias identity. **La migración está versionada en esta rama, pero no se ha aplicado a la base de datos activa.** Antes de aplicarla, comparar con la migración registrada y seguir el proceso de cambios de base de datos aprobado para evitar ejecutar migraciones pendientes ajenas a este PR.
+supabase/migrations/20261011073437_talana_importer_privileges_and_key_contract_20261011.sql
 
-No se añade acceso `anon` a estas tablas.
+La migración concede SELECT, INSERT y UPDATE solamente a service_role en las tablas necesarias para la importación y uso de secuencias de identidad. No agrega acceso a anon. Se eliminó el nombre alternativo con marca horaria distinta para no duplicar la misma operación durante una publicación futura.
+
+Antes de fusionar, confirma que el repositorio contiene esta única versión de la migración y no ejecutes manualmente de nuevo el mismo bloque de permisos.
 
 ## 3. Talana y la Edge Function
 
@@ -58,7 +66,7 @@ No se puede comprobar por lectura del repositorio que todos esos secretos estén
 
 ## 4. Vercel y publicación web
 
-En la revisión actual, Vercel devolvió el estado **“Deployment rate limited — retry in 24 hours”**. Es un bloqueo de cuota de compilación, no una demostración de que el código esté roto. Hasta que Vercel permita una vista previa, la interfaz no se ha podido verificar visualmente en la versión construida de este PR.
+En la revisión actual, Vercel devolvió **“Deployment rate limited — retry in 24 hours”** y la autorización conectada no permite administrar el equipo simi23. Como alternativa, Cloudflare Pages sí generó una vista previa exitosa del commit 774abe4: https://fefaef8d.asistencia-doctor-simi-preview.pages.dev. La última tanda de mejoras dispara nuevas validaciones y una nueva vista previa; comprobar el último SHA que quede en verde antes de fusionar.
 
 - [ ] Esperar a que se libere el límite de compilación de Vercel.
 - [ ] Generar y abrir una vista previa de la rama/PR.
