@@ -18,9 +18,9 @@
     if(status)status.textContent="Consultando historial…";
     if(host)host.innerHTML='<tr><td colspan="4" class="p-5 text-center text-slate-500">Cargando…</td></tr>';
     try{
-      const {data,error}=await _supabase.from("historial_colaborador").select("id,rut,accion,antes,despues,actor_email,created_at").ilike("rut","%"+raw.replace(/[^0-9kK.-]/g,"")+"%").order("created_at",{ascending:false}).limit(100);
+      const {data,error}=await _supabase.rpc("historial_colaborador_buscar",{p_rut:raw});
       if(error)throw error;
-      const rows=(data||[]).filter(x=>norm(x.rut)===rut);
+      const rows=data||[];
       if(host)host.replaceChildren();
       if(!rows.length){if(host)host.innerHTML='<tr><td colspan="4" class="p-5 text-center text-slate-500">No hay cambios registrados para este RUT desde la activación del historial.</td></tr>';if(status)status.textContent="Consulta terminada · 0 registros.";return;}
       rows.forEach(row=>{
