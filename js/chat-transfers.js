@@ -210,7 +210,7 @@
       $("traslado-indefinido")?.addEventListener("change",()=>{
         const term=$("traslado-termino");if(term){term.disabled=$("traslado-indefinido").checked;if(term.disabled)term.value="";}
       });
-      await cargarTrasladosPersonal();
+      await Promise.all([cargarTrasladosPersonal(),cargarSolicitudesDotacion()]);
     }catch(error){
       console.error("Módulo de traslados:",error);
       setStatus("traslado-estado",error.message||"No se pudieron cargar los datos de traslados. Comprueba tus permisos.",true);
@@ -340,6 +340,45 @@
     });
   }
 
+  async function cargarSolicitudesDotacion(){
+    const host=$("dotacion-alertas-lista");if(!host)return;
+    host.innerHTML='<tr><td colspan="7" class="p-5 text-center text-slate-500">Consultando solicitudes de dotación…</td></tr>';
+    try{
+      const {data,error}=await _supabase.from("solicitudes_dotacion").select("id,sucursal_nombre,fecha_inicio,fecha_fin,cantidad,cargo_requerido,turno,hora_inicio,hora_fin,motivo,observaciones,estado,created_at,solicitada_por").order("created_at",{ascending:false}).limit(500);
+      if(error)throw error;
+      const rows=data||[];host.replaceChildren();
+      if(!rows.length){host.innerHTML='<tr><td colspan="7" class="p-6 text-center text-slate-500">No hay alertas de necesidad de personal todavía.</td></tr>';return;}
+      rows.forEach(r=>{
+        const tr=document.createElement("tr");
+        const period=dateOnly(r.fecha_inicio)+" – "+dateOnly(r.fecha_fin);
+        const shift=({AM:"AM · Apertura",PM:"PM · Cierre",COMPLETO:"Turno completo",FLEXIBLE:"Flexible"})[r.turno]||r.turno;
+        const hours=r.hora_inicio&&r.hora_fin?" · "+r.hora_inicio.slice(0,5)+"–"+r.hora_fin.slice(0,5):"";
+        const stateClass=r.estado==="APROBADA"||r.estado==="CUBIERTA"?"bg-emerald-50 text-emerald-700":r.estado==="RECHAZADA"||r.estado==="CANCELADA"?"bg-rose-50 text-rose-700":"bg-amber-50 text-amber-800";
+        const cells=[r.sucursal_nombre+" · "+({QF:"QF",AF:"AF",OTRO:"Otro cargo"})[r.cargo_requerido],period,shift+hours,String(r.cantidad||1),r.motivo||"—",r.estado];
+        cells.forEach((v,i)=>{const td=document.createElement("td");td.className="p-3 align-top";if(i===5)td.innerHTML='<span class="rounded-full px-2 py-1 font-bold '+stateClass+'">'+esc(v)+'</span>';else td.textContent=v;tr.append(td);});
+        const td=document.createElement("td");td.className="p-3 align-top";
+        if(canApproveTransfers&&r.estado==="PENDIENTE"){
+          td.innerHTML='<div class="flex flex-wrap gap-2"><button type="button" data-dotacion-action="APROBADA" data-id="'+esc(r.id)+'" class="rounded-lg bg-emerald-600 px-2 py-1.5 font-bold text-white">Aceptar</button><button type="button" data-dotacion-action="RECHAZADA" data-id="'+esc(r.id)+'" class="rounded-lg bg-rose-600 px-2 py-1.5 font-bold text-white">Rechazar</button></div>';
+        }else td.textContent=r.created_at?("Registrada "+dateTime(r.created_at)):"—";
+        tr.append(td);host.append(tr);
+      });
+    }catch(error){
+      console.error("Solicitudes de dotación:",error);
+      host.innerHTML='<tr><td colspan="7" class="p-5 text-center text-rose-700">No se pudieron cargar las alertas: '+esc(error.message||"Error desconocido")+'</td></tr>';
+    }
+  }
+
+  async function resolverSolicitudDotacion(id,state){
+    if(!canApproveTransfers||!["APROBADA","RECHAZADA"].includes(state))return;
+    try{
+      const {error}=await _supabase.from("solicitudes_dotacion").update({estado:state,revisada_por:currentRoleId,revisada_en:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id).eq("estado","PENDIENTE");
+      if(error)throw error;
+      setStatus("traslado-estado",state==="APROBADA"?"Necesidad de personal aprobada. Coordina la asignación con el equipo responsable.":"Solicitud de dotación rechazada.");
+      await cargarSolicitudesDotacion();
+      mostrarToast(state==="APROBADA"?"Alerta aprobada.":"Alerta rechazada.", "success");
+    }catch(error){console.error("Resolver solicitud de dotación:",error);setStatus("traslado-estado",error.message||"No se pudo actualizar la alerta.",true);}
+  }
+
   async function resolverTraslado(id,state) {
     if(!canApproveTransfers||!["APROBADO","RECHAZADO"].includes(state))return;
     try{
@@ -353,6 +392,8 @@
   }
 
   document.addEventListener("click",async event=>{
+    const dotacionBtn=event.target.closest("[data-dotacion-action]");
+    if(dotacionBtn){resolverSolicitudDotacion(dotacionBtn.dataset.id,dotacionBtn.dataset.dotacionAction);return;}
     const transferBtn=event.target.closest("[data-transfer-action]");
     if(transferBtn){resolverTraslado(transferBtn.dataset.id,transferBtn.dataset.transferAction);return;}
     const fileBtn=event.target.closest("[data-chat-download]");
@@ -385,4 +426,5 @@
   window.iniciarModuloTraslados=iniciarModuloTraslados;
   window.crearSolicitudTraslado=crearSolicitudTraslado;
   window.cargarTrasladosPersonal=cargarTrasladosPersonal;
+  window.cargarSolicitudesDotacion=cargarSolicitudesDotacion;
 })();
