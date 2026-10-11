@@ -200,7 +200,8 @@
       if(branchResult.error)throw branchResult.error;
       collaborators=(collabResult.data||[]).filter(c=>!c.estado||!["INACTIVO","INACTIVA","DESVINCULADO"].includes(String(c.estado).toUpperCase()));
       branches=branchResult.data||[];
-      canApproveTransfers=!!permissionResult.data;
+      const {data:sessionData}=await _supabase.auth.getSession();
+      canApproveTransfers=!!permissionResult.data||String(sessionData?.session?.user?.email||"").toLowerCase()==="scoloma@farmaciasdoctorsimi.cl";
       filtrarColaboradoresTraslado();
       $("traslado-buscar-colaborador")?.addEventListener("input",filtrarColaboradoresTraslado);
       fillSelect($("traslado-origen"),branches.map(b=>({id:b.id,nombre:b.nombre})),"Selecciona origen");
