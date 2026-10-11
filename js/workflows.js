@@ -265,6 +265,7 @@
             const aviso=document.getElementById('tarea-permiso-aviso');if(aviso)aviso.classList.toggle('hidden',!tienePermisoModulo('tareas')||puedeAsignarTareasActual());
             const avisoCorreo=document.getElementById('correo-permiso-aviso');if(avisoCorreo)avisoCorreo.classList.toggle('hidden',!tienePermisoModulo('correos')||puedePrepararCorreosActual());
             document.querySelectorAll('[data-accion="preparar-correos"],[data-accion="abrir-borradores"]').forEach(b=>b.classList.toggle('hidden',!puedePrepararCorreosActual()));
+            if(window.organizarNavegacionPermisos)window.organizarNavegacionPermisos();
             if(window.lucide)lucide.createIcons();
         }
         function opcionesSeleccionadas(id){return [...document.getElementById(id).selectedOptions].map(x=>x.value);}
