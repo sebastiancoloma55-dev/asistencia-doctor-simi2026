@@ -125,7 +125,9 @@ def main():
         )
         LOG.info("Finaliza: estado=%s archivos_descargados=%s cargados=%s acciones_ok=%s/4 errores=%s",
                  status, downloaded_files, uploaded, completed_actions, len(errors))
-        if status == "failed":
+        # Una ejecución parcial también debe fallar en GitHub Actions: el estado verde
+        # no puede ocultar reportes ausentes o archivos que no llegaron a Supabase.
+        if status != "success":
             raise SystemExit(1)
     except SystemExit:
         raise
