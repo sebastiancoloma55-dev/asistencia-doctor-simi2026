@@ -81,6 +81,8 @@ def main():
     uploaded = 0
     completed_actions = 0
     downloaded_files = 0
+    imported_reports = 0
+    imported_rows = 0
     try:
         LOG.info("Comienza flujo de cuatro tareas Talana (modo=%s, run=%s).", trigger, run_id)
         results, errors = ejecutar_descargas(user, password, headless=True)
@@ -98,6 +100,7 @@ def main():
             report_type = (
                 "ausentismos_historico" if "ausentismo" in normalized
                 else "solicitudes_vacaciones_historicas" if "vacaciones" in normalized
+                else "maestro_empleado" if "maestro" in normalized
                 else "reporte_jornadas_asistencia" if "jornadas" in normalized
                 else "reporte_talana"
             )
@@ -106,8 +109,29 @@ def main():
             downloaded_files += 1
             completed_actions += 1
             LOG.info("Reporte guardado en Supabase Storage: %s", file_path.name)
+            try:
+                imported = cloud.import_report(run_id, report_type, file_path)
+                imported_rows += int(imported.get("inserted", 0)) + int(imported.get("updated", 0))
+                LOG.info(
+                    "Importación %s: destino=%s filas=%s insertadas=%s actualizadas=%s duplicadas=%s fallidas=%s",
+                    title, report_type, imported.get("rows_found", 0),
+                    imported.get("inserted", 0), imported.get("updated", 0),
+                    imported.get("skipped", 0), imported.get("failed", 0),
+                )
+                if int(imported.get("failed", 0)) > 0:
+                    errors.append(
+                        f"Importación {title}: {imported.get('failed')} fila(s) con errores. "
+                        + "; ".join(map(str, imported.get("errors", [])[:8]))
+                    )
+                else:
+                    imported_reports += 1
+                if not imported.get("tracking_registered", True):
+                    errors.append(f"Importación {title}: no se pudo registrar la actualización del módulo.")
+            except Exception as import_exc:
+                errors.append(f"Importación {title}: {import_exc}")
+                LOG.exception("No se pudo importar el reporte %s a la plataforma.", title)
 
-        if completed_actions == 4 and uploaded == 3 and not errors:
+        if completed_actions == 4 and uploaded == 3 and imported_reports == 3 and not errors:
             status = "success"
         elif completed_actions or uploaded or results:
             status = "partial"
@@ -120,11 +144,14 @@ def main():
                 "completed_actions": completed_actions,
                 "expected_actions": 4,
                 "expected_download_files": 3,
+                "imported_reports": imported_reports,
+                "expected_imported_reports": 3,
+                "imported_rows": imported_rows,
                 "download_directory": str(DOWNLOAD_DIR),
             },
         )
-        LOG.info("Finaliza: estado=%s archivos_descargados=%s cargados=%s acciones_ok=%s/4 errores=%s",
-                 status, downloaded_files, uploaded, completed_actions, len(errors))
+        LOG.info("Finaliza: estado=%s archivos_descargados=%s archivos_nube=%s reportes_importados=%s filas_importadas=%s acciones_ok=%s/4 errores=%s",
+                 status, downloaded_files, uploaded, imported_reports, imported_rows, completed_actions, len(errors))
         # Una ejecución parcial también debe fallar en GitHub Actions: el estado verde
         # no puede ocultar reportes ausentes o archivos que no llegaron a Supabase.
         if status != "success":
