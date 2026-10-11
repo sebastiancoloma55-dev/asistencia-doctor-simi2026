@@ -792,6 +792,14 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 .usr-role-pill.is-owner{background:linear-gradient(110deg,#e2f8f2,#effcf7);border-color:#9bdccd;color:#075e58}
 .usr-role-pill.is-owner svg{width:12px;height:12px;flex:0 0 auto}
 
+
+.colab-pagination{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:-10px 0 4px;padding:15px 17px;border:1px solid #e0eaf0;border-radius:15px;background:linear-gradient(110deg,#fff,#f6fafc);box-shadow:0 7px 20px rgba(16,47,65,.035)}
+.colab-pagination-info b,.colab-pagination-info span{display:block}.colab-pagination-info b{font-size:11px;font-weight:900;color:#193d50}.colab-pagination-info span{margin-top:4px;font-size:9px;line-height:1.5;color:#728795}
+.colab-pagination-controls{display:flex;align-items:center;gap:10px}.colab-pagination-controls>span{white-space:nowrap;color:#627d8a;font-size:10px}.colab-pagination-controls>span b{color:#183e51;font-weight:900}
+.colab-pagination-controls button,.colab-load-error button{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #d4e4eb;border-radius:9px;padding:8px 11px;background:#fff;color:#30596d;font-size:10px;font-weight:850;transition:background .14s,border-color .14s}.colab-pagination-controls button:hover,.colab-load-error button:hover{background:#eaf7f8;border-color:#a6d4dc}.colab-pagination-controls button:disabled{opacity:.35;cursor:not-allowed}.colab-pagination-controls svg{width:14px;height:14px}.colab-pagination-loading,.colab-pagination-error{font-size:10px;color:#6e8592}.colab-pagination-error{color:#a4313c}
+.colab-load-error{display:flex;align-items:center;flex-direction:column;gap:8px;max-width:550px;margin:auto;padding:20px;border:1px solid #f0d2ac;border-radius:14px;background:#fff9ef;color:#87581c}.colab-load-error>svg{width:25px;height:25px}.colab-load-error b{font-size:12px;font-weight:900}.colab-load-error p{max-width:480px;margin:0;font-size:10px;line-height:1.7;overflow-wrap:anywhere}.colab-load-error small{max-width:480px;font-size:9px;line-height:1.6;color:#927950}.colab-load-error button{margin-top:4px;border-color:#ebd4b1;color:#87581c}
+@media(max-width:640px){.colab-pagination{align-items:stretch;padding:12px}.colab-pagination-controls{justify-content:space-between;gap:5px}.colab-pagination-controls button{padding:8px}.colab-pagination-info span{max-width:100%}}
+
 </style>
 </head>
 
@@ -1281,6 +1289,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                         </tbody>
                     </table>
                 </div>
+                <div id="colab-paginacion" class="colab-pagination" aria-live="polite"><span class="colab-pagination-loading">La nómina se cargará desde Supabase en bloques de 1.000 registros.</span></div>
                 <div class="ui-card overflow-hidden">
                     <div class="flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 bg-slate-50 p-4">
                         <div><h4 class="font-extrabold text-slate-900">Expediente e historial del colaborador</h4><p class="mt-1 text-xs text-slate-500">Registra automáticamente los cambios de los datos maestros desde la activación del historial.</p></div>
