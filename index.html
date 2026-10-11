@@ -2722,11 +2722,13 @@ body.theme-dark #login-overlay .login-error{background:#3a1822!important;color:#
   window.actualizarContadoresSelectores2026=updateSelectorCounts;
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
   var allowed=new Set(['dashboard']);
-  var moduleNames=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
-  var allModulePermissions=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
+  var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
+  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
   function permissionName(m){return m;}
   function hasModulePermission(m){
     if(allowed.has(m))return true;
+    // Mi espacio comparte el permiso de Tareas para perfiles ya configurados.
+    if(m==='espacio')return allowed.has('tareas');
     // Compatibilidad con perfiles antiguos que guardaban "coberturas" para el módulo de amonestaciones.
     if(m==='amonestaciones')return allowed.has('coberturas');
     if(m==='coberturas')return allowed.has('amonestaciones');
