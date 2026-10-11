@@ -98,5 +98,36 @@ if (!mapCode.includes('router.project-osrm.org/route/v1/driving/') || !mapCode.i
 if (!html.includes('id="mapa14-mostrar-todas"') || !html.includes('id="mapa14-estadisticas"')) fail('Faltan los controles de limpiar filtro y resumen de distancia del mapa.');
 if (!html.includes('id="col-filtro-estado"') || !html.includes('id="colab-kpi-grid"')) fail('El directorio de colaboradores necesita KPI y filtro de estado.');
 
+
+const operationalSummary = readFileSync(path.join(root, 'js/operational-summary.js'), 'utf8');
+for (const marker of ['dashboard-ops-cards', 'cargarResumenOperativoRRHH', 'talana-bot-control', 'solicitudes_dotacion', 'Promise.all']) {
+  if (!operationalSummary.includes(marker)) fail("El resumen operativo no contiene la integración esperada: " + marker + ".");
+}
+for (const marker of [
+  'id="dashboard-ops-cards"',
+  'id="talana-bot-health"',
+  'id="dotacion-filtro-buscar"',
+  'id="dotacion-filtro-estado"',
+  'id="dotacion-filtro-desde"',
+  'id="dotacion-filtro-hasta"',
+  'src="/js/operational-summary.js"',
+  'rrhhModuleEnter',
+  'prefers-reduced-motion'
+]) {
+  if (!html.includes(marker)) fail("Falta el componente operativo/responsive requerido: " + marker + ".");
+}
+const botCode = readFileSync(path.join(root, 'js/talana-bot.js'), 'utf8');
+for (const marker of ['renderHealth', 'error_summary', 'reports_downloaded', 'reports_uploaded', 'admin_manual_run']) {
+  if (!botCode.includes(marker)) fail("El panel del bot Talana no contiene diagnóstico esperado: " + marker + ".");
+}
+const coverageCode = readFileSync(path.join(root, 'js/chat-transfers.js'), 'utf8');
+for (const marker of ['function renderSolicitudesDotacion', 'function filtrarSolicitudesDotacion', 'function limpiarFiltrosSolicitudesDotacion', 'solicitudesDotacionCache']) {
+  if (!coverageCode.includes(marker)) fail("La vista de dotación no contiene filtro esperado: " + marker + ".");
+}
+const migrationDir = path.join(root, 'supabase/migrations');
+const migrationNames = readdirSync(migrationDir);
+if (migrationNames.includes('20261011120000_talana_importer_privileges_and_key_contract.sql')) fail('La migración Talana antigua está duplicada con una versión distinta a la registrada en Supabase.');
+if (!migrationNames.includes('20261011073437_talana_importer_privileges_and_key_contract_20261011.sql')) fail('Falta alinear la migración del importador con la versión aplicada en Supabase.');
+
 if (process.exitCode) process.exit(process.exitCode);
 console.log(`Validación correcta: ${localScripts.length} scripts locales, ${jsFiles.length} archivos JS, ${buttons.size} módulos navegables y APIs protegidas.`);
