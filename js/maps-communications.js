@@ -413,8 +413,28 @@
                 mostrarToast(error.message || 'No se pudo guardar la cobertura.','error',12000);
             }
         }
-        function estadoCobertura(x){const h=new Date().toISOString().slice(0,10);return h<x.fecha_inicio?'PENDIENTE':h>x.fecha_fin?'REALIZADA':'EN CURSO';}
-        async function cargarCoberturas(){const {data,error}=await _supabase.from('coberturas').select('*').order('fecha_inicio',{ascending:false});if(error)return mostrarToast(error.message,'error');datosCoberturasGlobal=data||[];document.getElementById('cob-pendientes').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='PENDIENTE').length;document.getElementById('cob-curso').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='EN CURSO').length;document.getElementById('cob-realizadas').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='REALIZADA').length;document.getElementById('tabla-coberturas').innerHTML=datosCoberturasGlobal.map(x=>`<tr><td><b>${escaparHTML(x.nombre)}</b><br>${escaparHTML(x.rut)} · ${escaparHTML(x.tipo_profesional)}</td><td>${escaparHTML(x.local_origen)}</td><td>${escaparHTML(x.local_destino)}</td><td>${x.fecha_inicio} a ${x.fecha_fin}</td><td>${escaparHTML(x.motivo)}</td><td><span class="rounded-full bg-slate-100 px-2 py-1 font-bold">${estadoCobertura(x)}</span></td></tr>`).join('');}
+        function estadoCobertura(x){
+            const approval=x.estado_solicitud||'APROBADA';
+            if(approval==='RECHAZADA')return 'RECHAZADA';
+            if(approval!=='APROBADA')return 'PENDIENTE DE APROBACIÓN';
+            const h=new Date().toLocaleDateString('sv-SE',{timeZone:'America/Santiago'});
+            if(h<x.fecha_inicio)return 'APROBADA · PROGRAMADA';
+            if(h>x.fecha_fin)return 'REALIZADA';
+            return 'EN CURSO';
+        }
+        async function cargarCoberturas(){
+            const {data,error}=await _supabase.from('coberturas').select('*').order('fecha_inicio',{ascending:false});
+            if(error)return mostrarToast(error.message,'error');
+            datosCoberturasGlobal=data||[];
+            document.getElementById('cob-pendientes').innerText=datosCoberturasGlobal.filter(x=>(x.estado_solicitud||'APROBADA')==='PENDIENTE').length;
+            document.getElementById('cob-curso').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='EN CURSO').length;
+            document.getElementById('cob-realizadas').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='REALIZADA').length;
+            document.getElementById('tabla-coberturas').innerHTML=datosCoberturasGlobal.map(x=>{
+                const state=estadoCobertura(x);
+                const cls=state==='RECHAZADA'?'bg-rose-100 text-rose-800':state==='PENDIENTE DE APROBACIÓN'?'bg-amber-100 text-amber-800':state==='APROBADA · PROGRAMADA'?'bg-blue-100 text-blue-800':state==='EN CURSO'?'bg-cyan-100 text-cyan-800':'bg-emerald-100 text-emerald-800';
+                return `<tr><td><b>${escaparHTML(x.nombre)}</b><br>${escaparHTML(x.rut)} · ${escaparHTML(x.tipo_profesional)}</td><td>${escaparHTML(x.local_origen)}</td><td>${escaparHTML(x.local_destino)}</td><td>${x.fecha_inicio} a ${x.fecha_fin}</td><td>${escaparHTML(x.motivo)}</td><td><span class="rounded-full px-2 py-1 text-[11px] font-extrabold ${cls}">${escaparHTML(state)}</span></td></tr>`;
+            }).join('');
+        }
 
         function obtenerAnioFilaIA(fila) {
             const clavesFecha = Object.keys(fila).filter(k => /fecha|inicio|fin|desde|hasta/i.test(k));
