@@ -999,6 +999,14 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     <div class="dash-space-intro"><div><span class="dash-space-kicker">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo('espacio')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div>
                     <div class="dash-space-stat-grid"><div><span class="dash-space-stat-icon"><i data-lucide="sticky-note"></i></span><span><b>0</b><small>Notas activas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="pin"></i></span><span><b>0</b><small>Notas fijadas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-alert"></i></span><span><b>0</b><small>Fuera de plazo</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="history"></i></span><span><b>0</b><small>Gestiones recientes</small></span></div></div>
                 </div>
+                <div id="dashboard-ops-summary" class="ui-card dashboard-ops-summary p-4 sm:p-5" aria-live="polite">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div><span class="dash-space-kicker">SEGUIMIENTO EN TIEMPO REAL</span><h3 class="mt-1 font-extrabold text-slate-900">Resumen operativo</h3><p class="mt-1 text-xs text-slate-500">Tareas abiertas, vencimientos, solicitudes de dotación, avisos y salud del bot. Los errores de lectura se muestran como no disponibles, nunca como cero.</p></div>
+                        <button type="button" class="corp-button-dark text-xs" onclick="cargarResumenOperativoRRHH()"><i data-lucide="refresh-cw" class="mr-1 inline h-4 w-4"></i>Actualizar resumen</button>
+                    </div>
+                    <div id="dashboard-ops-cards" class="dashboard-ops-grid mt-4"><div class="ops-summary-loading"><span class="space-loader-ring"></span><span>Consultando estado operativo…</span></div></div>
+                    <p id="dashboard-ops-updated" class="mt-3 text-right text-[10px] text-slate-400">Pendiente de actualización</p>
+                </div>
                 <div class="ui-card p-4 sm:p-5">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <div><h3 class="font-extrabold text-slate-900">Actualización de datos</h3><p class="mt-1 text-xs text-slate-500">Últimas cargas registradas en los módulos a los que tienes acceso, en hora de Chile.</p></div>
@@ -1976,6 +1984,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 </div>
                 <div id="talana-bot-panel" class="ui-card hidden overflow-hidden">
                     <div class="border-b border-slate-100 p-5"><h4 class="text-lg font-black">Bot de reportes Talana</h4><p class="mt-1 text-sm text-slate-500">Ejecución en nube con GitHub Actions. Los reportes se guardan en Supabase Storage privado; no requiere dejar tu PC encendido.</p><p id="talana-bot-status" class="mt-3 text-sm text-slate-600">Consultando estado…</p><p data-update-stamp="talana_bot" class="mt-2 text-xs text-slate-500">Consultando última carga…</p></div>
+                    <div id="talana-bot-health" class="grid grid-cols-1 gap-3 border-b border-slate-100 p-5 sm:grid-cols-2 xl:grid-cols-4"><div class="ops-summary-loading"><span class="space-loader-ring"></span><span>Calculando salud del bot…</span></div></div>
                     <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-3">
                       <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-3"><input id="talana-bot-enabled" type="checkbox" class="h-4 w-4"><span><strong class="block text-sm">Automatización habilitada</strong><span class="text-xs text-slate-500">Solo se ejecuta en el horario laboral configurado.</span></span></label>
                       <label class="text-sm font-semibold">Frecuencia<select id="talana-bot-interval" class="mt-2 w-full rounded-lg border border-slate-300 p-2"><option value="60">Cada hora (08:00–17:00)</option></select><span class="mt-1 block text-xs font-normal text-slate-500">Lunes a viernes, excepto feriados de Chile. Se ejecuta una vez por hora para respetar el plan gratuito.</span></label>
@@ -2043,6 +2052,14 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 </div>
                 <div class="ui-card overflow-hidden border border-indigo-100">
                     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 via-sky-50 to-cyan-50 p-4"><div><h4 class="font-extrabold text-slate-900"><i data-lucide="bell-ring" class="mr-2 inline h-4 w-4 text-indigo-700"></i>Alertas de necesidad de personal</h4><p class="mt-1 text-xs text-slate-600">Revisa las sucursales que solicitan apoyo por fecha, días, cargo y turno.</p></div><button type="button" class="corp-button-dark text-xs" onclick="cargarSolicitudesDotacion()">Actualizar alertas</button></div>
+                    <div class="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_minmax(145px,.7fr)_minmax(130px,.55fr)_minmax(130px,.55fr)_auto]">
+                        <input id="dotacion-filtro-buscar" type="search" class="form-field" placeholder="Buscar sucursal, cargo, turno o motivo…" aria-label="Buscar solicitudes de dotación" oninput="filtrarSolicitudesDotacion()">
+                        <select id="dotacion-filtro-estado" class="form-field" aria-label="Filtrar solicitudes por estado" onchange="filtrarSolicitudesDotacion()"><option value="TODOS">Todos los estados</option><option value="PENDIENTE">Pendientes</option><option value="APROBADA">Aprobadas</option><option value="CUBIERTA">Cubiertas</option><option value="RECHAZADA">Rechazadas</option><option value="CANCELADA">Canceladas</option></select>
+                        <input id="dotacion-filtro-desde" type="date" class="form-field" aria-label="Fecha de inicio desde" title="Inicio desde" onchange="filtrarSolicitudesDotacion()">
+                        <input id="dotacion-filtro-hasta" type="date" class="form-field" aria-label="Fecha de inicio hasta" title="Inicio hasta" onchange="filtrarSolicitudesDotacion()">
+                        <button type="button" class="corp-button-dark text-xs" onclick="limpiarFiltrosSolicitudesDotacion()">Limpiar</button>
+                    </div>
+                    <p id="dotacion-filter-summary" class="mb-2 text-xs text-slate-500" aria-live="polite">Consultando conteos…</p>
                     <div class="table-scroll"><table class="w-full min-w-[1050px] text-left"><thead class="bg-white text-[11px] uppercase text-slate-500"><tr><th class="p-3">Sucursal / cargo</th><th class="p-3">Período</th><th class="p-3">Turno</th><th class="p-3">Cantidad</th><th class="p-3">Motivo</th><th class="p-3">Estado</th><th class="p-3">Acciones</th></tr></thead><tbody id="dotacion-alertas-lista" class="divide-y divide-slate-100 text-xs"><tr><td colspan="7" class="p-6 text-center text-slate-500">Cargando alertas…</td></tr></tbody></table></div>
                 </div>
                 <div class="ui-card overflow-hidden">
@@ -2131,6 +2148,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 <script src="/js/talana-bot.js"></script>
 <script src="/js/workspace.js"></script>
 <script src="/js/module-organization.js"></script>
+<script src="/js/operational-summary.js"></script>
 
     <!--
     SQL QUE YA DEBE EXISTIR EN SUPABASE:
@@ -2782,6 +2800,34 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
  #view-espacio .space-hero-copy h3{font-size:26px}
  #quick-module-bar .quick-module-chip{padding:6px 8px;font-size:9px}
 }
+
+
+/* Centro operativo, cobertura y bot: datos accionables y adaptable al ancho disponible */
+.dashboard-ops-summary{min-width:0;overflow:hidden}
+.dashboard-ops-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;min-width:0}
+.ops-summary-tile{display:flex;align-items:flex-start;gap:10px;min-width:0;width:100%;padding:12px;border:1px solid #dfe9ef;border-radius:14px;background:linear-gradient(145deg,#fff,#f8fbfd);color:#14394b;text-align:left;transition:border-color .16s,transform .16s,box-shadow .16s}
+.ops-summary-tile:hover:not(:disabled){transform:translateY(-1px);border-color:#8ccbd5;box-shadow:0 8px 22px rgba(16,47,65,.07)}
+.ops-summary-tile:focus-visible{outline:3px solid #89cfdb;outline-offset:2px}
+.ops-summary-tile:disabled{cursor:default}
+.ops-summary-tile.is-alert{border-color:#f1d6b0;background:linear-gradient(145deg,#fffdf7,#fff8ec)}
+.ops-summary-tile.is-unavailable{border-style:dashed;background:#f8fafc}
+.ops-summary-icon{display:grid;place-items:center;flex:0 0 33px;width:33px;height:33px;border:1px solid #d3eceb;border-radius:10px;background:#eaf7f6;color:#138a87}
+.ops-summary-icon svg{width:16px;height:16px}
+.ops-summary-copy{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.ops-summary-copy small{font-size:9px;line-height:1.35;color:#647d8a;font-weight:800}
+.ops-summary-copy strong{font-size:clamp(15px,1.45vw,22px);line-height:1.15;letter-spacing:-.035em;color:#14394b;font-weight:950;overflow-wrap:anywhere}
+.ops-summary-copy>span{font-size:9px;line-height:1.45;color:#718693;overflow-wrap:anywhere}
+.ops-summary-arrow{display:grid;place-items:center;flex:0 0 16px;color:#8ba1ac}
+.ops-summary-arrow svg{width:13px;height:13px}
+.ops-summary-loading{grid-column:1/-1;display:flex;align-items:center;gap:10px;min-height:54px;padding:12px;color:#718693;font-size:11px}
+#talana-bot-health .ops-summary-tile{min-height:90px}
+#talana-bot-status[data-state="error"]{color:#b42332!important}
+#talana-bot-status[data-state="ok"]{color:#176d5c!important}
+#dotacion-filtro-buscar,#dotacion-filtro-estado,#dotacion-filtro-desde,#dotacion-filtro-hasta{min-width:0;width:100%}
+#dotacion-filter-summary{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+@media(max-width:1280px){.dashboard-ops-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.ops-summary-copy>span{font-size:8px}}
+@media(max-width:760px){.dashboard-ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ops-summary-tile{padding:10px;gap:8px}.ops-summary-copy strong{font-size:18px}#dashboard-ops-summary{padding:14px}}
+@media(max-width:420px){.dashboard-ops-grid{grid-template-columns:minmax(0,1fr)}.ops-summary-tile{align-items:center}.ops-summary-copy strong{font-size:20px}}
 
 </style>
 <script>
