@@ -24,9 +24,9 @@ create index if not exists solicitudes_dotacion_estado_fecha_idx on public.solic
 create index if not exists solicitudes_dotacion_sucursal_fecha_idx on public.solicitudes_dotacion (sucursal_id, fecha_inicio);
 alter table public.solicitudes_dotacion enable row level security;
 drop policy if exists solicitudes_dotacion_select_2026 on public.solicitudes_dotacion;
-create policy solicitudes_dotacion_select_2026 on public.solicitudes_dotacion for select to authenticated using (public.usuario_es_admin_principal_2026() or public.usuario_tiene_alguno_permiso(array['traslados','coberturas']::text[]));
+create policy solicitudes_dotacion_select_2026 on public.solicitudes_dotacion for select to authenticated using (public.usuario_es_admin_principal_2026() or public.usuario_tiene_alguno_permiso(array['traslados','amonestaciones']::text[]));
 drop policy if exists solicitudes_dotacion_insert_2026 on public.solicitudes_dotacion;
-create policy solicitudes_dotacion_insert_2026 on public.solicitudes_dotacion for insert to authenticated with check ((public.usuario_es_admin_principal_2026() or public.usuario_tiene_alguno_permiso(array['traslados','coberturas']::text[])) and solicitada_por = public.chat_usuario_actual_id() and estado = 'PENDIENTE');
+create policy solicitudes_dotacion_insert_2026 on public.solicitudes_dotacion for insert to authenticated with check ((public.usuario_es_admin_principal_2026() or public.usuario_tiene_alguno_permiso(array['traslados','amonestaciones']::text[])) and solicitada_por = public.chat_usuario_actual_id() and estado = 'PENDIENTE');
 drop policy if exists solicitudes_dotacion_update_2026 on public.solicitudes_dotacion;
-create policy solicitudes_dotacion_update_2026 on public.solicitudes_dotacion for update to authenticated using (public.usuario_es_admin_principal_2026() or public.usuario_tiene_alguno_permiso(array['traslados','coberturas']::text[])) with check (public.usuario_es_admin_principal_2026() or public.usuario_tiene_alguno_permiso(array['traslados','coberturas']::text[]));
+create policy solicitudes_dotacion_update_2026 on public.solicitudes_dotacion for update to authenticated using (public.usuario_es_admin_principal_2026() or public.usuario_tiene_alguno_permiso(array['traslados','amonestaciones']::text[])) with check (public.usuario_es_admin_principal_2026() or public.usuario_tiene_alguno_permiso(array['traslados','amonestaciones']::text[]));
 grant select, insert, update on public.solicitudes_dotacion to authenticated;
