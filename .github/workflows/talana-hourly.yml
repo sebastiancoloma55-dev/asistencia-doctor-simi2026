@@ -71,7 +71,7 @@ jobs:
           python -m playwright install --with-deps chromium
 
       - name: Ejecutar descarga de Talana
-        if: steps.schedule.outputs.run_bot == 'true' && hashFiles('bot_talana/agent_cloud.py') && hashFiles('bot_talana/talana_downloader.py')
+        if: steps.schedule.outputs.run_bot == 'true' && steps.bot_check.outputs.run_bot == 'true' && hashFiles('bot_talana/agent_cloud.py') && hashFiles('bot_talana/talana_downloader.py')
         env:
           TALANA_BOT_URL: ${{ secrets.TALANA_BOT_URL }}
           TALANA_BOT_SECRET: ${{ secrets.TALANA_BOT_SECRET }}
