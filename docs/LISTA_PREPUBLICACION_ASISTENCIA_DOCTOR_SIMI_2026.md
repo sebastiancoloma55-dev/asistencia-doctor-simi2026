@@ -73,7 +73,7 @@ No se puede comprobar por lectura del repositorio que todos esos secretos estén
 
 ## 4. Vercel y publicación web
 
-En la revisión actual, Vercel devolvió **“Deployment rate limited — retry in 24 hours”** y la autorización conectada no permite administrar el equipo simi23. Como alternativa, Cloudflare Pages generó una vista previa exitosa del último commit validado 8e55170: https://41928d1f.asistencia-doctor-simi-preview.pages.dev. Vercel debe revisarse por separado antes de fusionar o decidir el proveedor final.
+En la revisión actual, Vercel devolvió **“Deployment rate limited — retry in 24 hours”** y la autorización conectada no permite administrar el equipo simi23. Como alternativa, Cloudflare Pages publica una vista previa de rama en https://fix-ui-layout-polish-2.asistencia-doctor-simi-preview.pages.dev. Usa esta URL para revisar el último build de la rama cuando el workflow indique que terminó correctamente. Vercel debe revisarse por separado antes de fusionar o decidir el proveedor final.
 
 - [ ] Esperar a que se libere el límite de compilación de Vercel.
 - [ ] Generar y abrir una vista previa de la rama/PR.
