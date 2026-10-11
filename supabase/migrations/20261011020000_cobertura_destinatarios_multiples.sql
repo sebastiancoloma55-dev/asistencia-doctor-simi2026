@@ -96,12 +96,13 @@ begin
     || ' (' || p_cargo_requerido || ', turno ' || p_turno || ') desde '
     || p_fecha_inicio::text || ' hasta ' || p_fecha_fin::text
     || '. Cantidad: ' || p_cantidad::text
+    || '. Solicitud: ' || v_solicitud_id::text
     || '. Pendiente de buscar y confirmar al colaborador; no es un traslado creado.';
 
   insert into public.notificaciones
     (usuario_rol_id, tipo, titulo, mensaje, entidad_tipo, entidad_id, leida)
   select unnest(v_destinatarios), 'COBERTURA', 'Nueva necesidad de cobertura',
-         v_mensaje, 'solicitudes_dotacion', v_solicitud_id, false;
+         v_mensaje, 'solicitudes_dotacion', null, false;
 
   return v_solicitud_id;
 end;
