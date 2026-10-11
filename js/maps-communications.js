@@ -555,12 +555,23 @@
             if(types.includes('LICENCIAS'))data['Licencias']=datosLicenciasGlobal.filter(r=>inPeriod(r,['fecha_inicio','fecha','created_at'])&&inBranch(r));
             if(types.includes('VACACIONES'))data['Vacaciones']=datosVacacionesGlobal.filter(r=>inPeriod(r,['fecha_inicio','fecha','created_at'])&&inBranch(r));
             const extraSpecs=[
-                ['COLABORADORES','Colaboradores','colaboradores',['created_at','fecha_ingreso']],
-                ['SUCURSALES','Sucursales','sucursales',['created_at']],
-                ['COBERTURAS','Coberturas','coberturas',['fecha_inicio','created_at']],
-                ['TAREAS','Tareas','tareas',['created_at','fecha_limite']],
-                ['TRASLADOS','Traslados','traslados_personal',['fecha_inicio','created_at']],
-                ['PAPELETAS','Papeletas','papeletas_permiso',['created_at','fecha_inicio']]
+                ['COLABORADORES','Colaboradores','colaboradores',['created_at','fecha_ingreso'],'*'],
+                ['SUCURSALES','Sucursales','sucursales',['created_at'],'*'],
+                ['COBERTURAS','Coberturas','coberturas',['fecha_inicio','created_at'],'*'],
+                ['TAREAS','Tareas','tareas',['created_at','fecha_limite'],'*'],
+                ['TRASLADOS','Traslados','traslados_personal',['fecha_inicio','created_at'],'*'],
+                ['PAPELETAS','Papeletas','papeletas_permiso',['created_at','fecha_inicio'],'*'],
+                ['ACTUALIZACIONES','Trazabilidad de archivos','actualizaciones_fuentes',['actualizado_en'],'modulo,actualizado_en,archivo,origen,usuario_email,registros'],
+                ['AUDITORIA','Auditoría','auditoria_eventos',['created_at'],'id,usuario_email,modulo,accion,detalle,created_at'],
+                ['DOCUMENTOS','Documentos laborales','documentos_laborales',['fecha','created_at'],'id,colaborador_id,tipo,titulo,fecha,created_at'],
+                ['IMPORTACIONES','Importaciones','importaciones',['created_at','finalizada_at'],'id,modulo,nombre_archivo,modo,estado,filas_totales,filas_nuevas,filas_actualizadas,filas_rechazadas,filas_error,usuario_email,created_at,finalizada_at'],
+                ['BOT_TALANA','Ejecuciones del bot Talana','talana_bot_runs',['started_at','finished_at'],'id,trigger_type,status,started_at,finished_at,reports_downloaded,reports_uploaded,error_summary,requested_by'],
+                ['ARCHIVOS_BOT','Archivos del bot Talana','talana_bot_files',['uploaded_at'],'id,run_id,report_type,file_name,mime_type,size_bytes,uploaded_at'],
+                ['SOLICITUDES','Solicitudes de colaboradores','solicitudes',['fecha_inicio','created_at'],'id,colaborador_id,tipo,fecha_inicio,fecha_termino,estado,created_at'],
+                ['HISTORIAL','Historial de colaboradores','historial_colaborador',['created_at'],'id,rut,accion,actor_email,created_at'],
+                ['GESTIONES_CORREO','Gestiones de correo','gestiones_correo',['fecha_preparacion','created_at'],'id,sucursal_id,supervisor,colaborador_rut,responsable_rol_id,asunto,fecha_desde,fecha_hasta,plazo_respuesta,estado,fecha_preparacion,fecha_envio_registrada,creado_por_email,created_at'],
+                ['CHAT','Chat interno (metadatos)','chat_conversaciones',['created_at','updated_at'],'id,tipo,created_at,updated_at'],
+                ['NOTIFICACIONES','Notificaciones','notificaciones',['created_at'],'id,usuario_rol_id,tipo,titulo,leida,created_at']
             ];
             const extras=extraSpecs.filter(s=>types.includes(s[0]));
             let branchNames=new Map();
@@ -568,9 +579,9 @@
                 const {data:branches,error:branchError}=await _supabase.from('sucursales').select('id,nombre').limit(3000);
                 if(!branchError)branchNames=new Map((branches||[]).map(b=>[String(b.id),b.nombre]));
             }
-            for(const [type,label,table,dateKeys] of extras){
+            for(const [type,label,table,dateKeys,columns] of extras){
                 state.textContent='Consultando '+label+'…';
-                const {data:rows,error}=await _supabase.from(table).select('*').limit(5000);
+                const {data:rows,error}=await _supabase.from(table).select(columns).limit(5000);
                 if(error){unavailable.push(label+': '+error.message);data[label]=[{Estado:'No disponible por permisos o conexión',Detalle:error.message}];continue;}
                 const enriched=(rows||[]).map(r=>({...r,sucursal:r.sucursal||r.local_destino||r.sucursal_destino_nombre||r.sucursal_origen_nombre||branchNames.get(String(r.sucursal_id||''))||''}));
                 data[label]=enriched.filter(r=>inPeriod(r,dateKeys)&&inBranch(r));
