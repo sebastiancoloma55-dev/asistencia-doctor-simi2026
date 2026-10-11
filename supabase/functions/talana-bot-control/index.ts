@@ -36,7 +36,7 @@ if(a==="bot_import"){
  }[table];
  const norm=(v:unknown)=>{let s=String(v??"").trim().toLowerCase();const d=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);if(d)s=d[3]+"-"+d[2].padStart(2,"0")+"-"+d[1].padStart(2,"0");return s.replace(/\s+/g," ");}; const normRut=(v:unknown)=>String(v??"").toUpperCase().replace(/[.\s]/g,"");
  const keyOf=(r:any)=>reportType==="ausentismos_historico"?["rut","fecha_inicio","fecha_fin","tipo_ausencia","motivo_ausencia"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):reportType==="solicitudes_vacaciones_historicas"?["rut","fecha_solicitud","fecha_inicio","fecha_fin","tipo_vacaciones"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):reportType==="reporte_jornadas_asistencia"?["rut","fecha","entrada","salida","turno"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):normRut(r.rut);
- const clean=(r:any)=>Object.fromEntries(allowed.filter((k:string)=>r[k]!==undefined).map((k:string)=>[k,r[k]]));
+ const clean=(r:any)=>Object.fromEntries(allowed.filter((k:string)=>r[k]!==undefined&&(table!=="colaboradores"||(r[k]!==null&&r[k]!==""))).map((k:string)=>[k,r[k]]));
  const errors:string[]=[...parseErrors.map((x:any)=>String(x).slice(0,250))], valid:any[]=[];
  let inserted=0,updated=0,skipped=0,failed=parseErrors.length;
  for(let i=0;i<rows.length;i++){const row=clean(rows[i]);if(!row.rut){errors.push("lote fila "+(i+1)+": falta RUT");failed++;continue;}
@@ -47,19 +47,19 @@ if(a==="bot_import"){
   valid.push(row);
  }
  if(table==="colaboradores"){
-  const unique=new Map<string,any>();for(const row of valid)unique.set(norm(row.rut),row);
+  const unique=new Map<string,any>();for(const row of valid)unique.set(normRut(row.rut),row);
   const rutList=[...unique.values()].map((r:any)=>String(r.rut));
   const {data:existing,error:lookupError}=await admin.from(table).select("rut,estado").in("rut",rutList);
   if(lookupError)return json({error:lookupError.message},500);
-  const existingMap=new Map((existing||[]).map((r:any)=>[norm(r.rut),r]));
+  const existingMap=new Map((existing||[]).map((r:any)=>[normRut(r.rut),r]));
   const toUpsert:any[]=[];
   for(const row of unique.values()){
-   const old=existingMap.get(norm(row.rut));
+   const old=existingMap.get(normRut(row.rut));
    if(!row.estado&&!old){errors.push("Colaborador "+row.rut+": no se importó porque el Excel no incluye estado para un nuevo registro.");failed++;continue;}
    toUpsert.push({...row,estado:row.estado||old?.estado||"activo"});
   }
   if(toUpsert.length){const {data,error}=await admin.from(table).upsert(toUpsert,{onConflict:"rut"}).select("rut");if(error){return json({error:"No se pudieron actualizar colaboradores: "+error.message,inserted,updated,skipped,failed:failed+toUpsert.length,errors:errors.slice(0,100)},500);}
-   for(const r of data||[]){if(existingMap.has(norm(r.rut)))updated++;else inserted++;}
+   for(const r of data||[]){if(existingMap.has(normRut(r.rut)))updated++;else inserted++;}
   }
   skipped+=valid.length-toUpsert.length;
  }else{
