@@ -132,15 +132,130 @@ def iniciar_sesion_talana(page, rut, clave):
     raise RuntimeError("No se detectó el panel de Talana después del inicio de sesión. Revise credenciales, MFA o cambios en la pantalla de acceso.")
 
 
-def descargar_ausentismo_historico(page):
-    click_texto(page, "Reportes")
-    click_texto(page, "AUSENTISMOS")
-    page.wait_for_timeout(700)
-    report = "Detalle Ausentismos histórico"
-    with page.expect_download(timeout=45000) as info:
-        click_texto(page, report)
-    return guardar_descarga(info.value, "detalle_ausentismos_historico")
+def texto_visible(page, texto):
+    for frame in list(page.frames):
+        try:
+            loc = frame.get_by_text(texto, exact=True)
+            for i in range(min(loc.count(), 50)):
+                if loc.nth(i).is_visible():
+                    return True
+        except Exception:
+            pass
+    return False
 
+
+def registrar_descargas(context, page):
+    eventos, registradas = [], set()
+    def conectar(pagina):
+        if id(pagina) in registradas:
+            return
+        registradas.add(id(pagina))
+        pagina.on("download", lambda descarga, pag=pagina: eventos.append((pag, descarga)))
+    conectar(page)
+    context.on("page", conectar)
+    return eventos
+
+
+def modal_progreso_visible(page):
+    """Detecta el modal de generación de reportes que puede bloquear los siguientes clics."""
+    for frame in list(page.frames):
+        try:
+            progreso = frame.locator("#liquidacionesProgressModal")
+            for i in range(min(progreso.count(), 5)):
+                if progreso.nth(i).is_visible():
+                    return True
+        except Exception:
+            pass
+        for selector in ("[role='dialog']", ".modal.show", ".modal.in"):
+            try:
+                loc = frame.locator(selector)
+                for i in range(min(loc.count(), 10)):
+                    el = loc.nth(i)
+                    if not el.is_visible():
+                        continue
+                    txt = (el.inner_text(timeout=500) or "").lower()
+                    if el.locator(".percent").count() or any(
+                        word in txt for word in ("generando", "procesando", "importando", "descargando", "cargando")
+                    ):
+                        return True
+            except Exception:
+                pass
+    return False
+
+
+def esperar_fin_modal_progreso(page, timeout_segundos=600):
+    """No permite que el modal de generación interfiera con la siguiente tarea."""
+    inicio = time.monotonic()
+    oculto_desde = None
+    while time.monotonic() - inicio < timeout_segundos:
+        if modal_progreso_visible(page):
+            oculto_desde = None
+        else:
+            if oculto_desde is None:
+                oculto_desde = time.monotonic()
+            elif time.monotonic() - oculto_desde >= 3:
+                return
+        page.wait_for_timeout(500)
+    raise RuntimeError("El modal de generación de Talana no terminó dentro del tiempo permitido.")
+
+
+def esperar_descarga_evento(page, eventos, cantidad_inicial, nombre_base, timeout_segundos=600):
+    inicio = time.monotonic()
+    progreso_visto = False
+    oculto_desde = None
+    captura = DOWNLOAD_DIR / f"{nombre_seguro(nombre_base)}_pendiente.png"
+    while time.monotonic() - inicio < timeout_segundos:
+        if len(eventos) > cantidad_inicial:
+            _, descarga = eventos[cantidad_inicial]
+            archivo = guardar_descarga(descarga, nombre_base)
+            # Talana puede emitir el archivo mientras su modal sigue activo.
+            # Esperar a que se cierre evita que bloquee la tarea siguiente.
+            esperar_fin_modal_progreso(page, timeout_segundos=min(600, max(30, timeout_segundos - (time.monotonic() - inicio))))
+            return archivo
+
+        visible = modal_progreso_visible(page)
+        if visible:
+            progreso_visto = True
+            oculto_desde = None
+        elif progreso_visto:
+            if oculto_desde is None:
+                oculto_desde = time.monotonic()
+            elif time.monotonic() - oculto_desde >= 3:
+                # Dar margen a Playwright para recibir el evento de descarga tras cerrar el modal.
+                limite_gracia = time.monotonic() + 10
+                while time.monotonic() < limite_gracia:
+                    if len(eventos) > cantidad_inicial:
+                        _, descarga = eventos[cantidad_inicial]
+                        return guardar_descarga(descarga, nombre_base)
+                    page.wait_for_timeout(250)
+                break
+        # No abortar a los 45 s: algunos reportes de Talana tardan más en generar el archivo.
+        page.wait_for_timeout(500)
+
+    try:
+        page.screenshot(path=str(captura), full_page=True)
+    except Exception:
+        pass
+    if modal_progreso_visible(page):
+        raise RuntimeError(
+            f"Talana mantuvo activo el modal de generación de «{nombre_base}» y no entregó el archivo. "
+            f"Captura: {captura}"
+        )
+    raise RuntimeError(f"Talana no entregó la descarga «{nombre_base}» tras esperar {int(time.monotonic() - inicio)} s. Captura: {captura}")
+
+def descargar_ausentismo_historico(page, eventos):
+    report = "Detalle Ausentismos histórico"
+    if not texto_visible(page, report):
+        if "/es/remuneraciones/reportes" not in (page.url or "").lower():
+            click_texto(page, "Reportes")
+        if not texto_visible(page, report):
+            click_texto(page, "AUSENTISMOS")
+        page.wait_for_timeout(700)
+    if not texto_visible(page, report):
+        raise RuntimeError("No aparece «Detalle Ausentismos histórico» en la lista de reportes.")
+    n = len(eventos)
+    click_texto(page, report)
+    return esperar_descarga_evento(page, eventos, n, "detalle_ausentismos_historico")
 
 def seleccionar_desde(page, fecha):
     dialog = page.get_by_role("dialog")
@@ -165,13 +280,129 @@ def seleccionar_desde(page, fecha):
         field.fill(fecha)
 
 
-def descargar_solicitudes_vacaciones(page, fecha_desde):
-    click_texto(page, "Detalle solicitudes de vacaciones históricas")
+def descargar_solicitudes_vacaciones(page, fecha_desde, eventos):
+    report = "Detalle solicitudes de vacaciones históricas"
+    if not texto_visible(page, report):
+        click_texto(page, "VACACIONES")
+        page.wait_for_timeout(500)
+    if not texto_visible(page, report):
+        raise RuntimeError("No aparece «Detalle solicitudes de vacaciones históricas» dentro de VACACIONES.")
+    click_texto(page, report)
     page.wait_for_timeout(500)
     seleccionar_desde(page, fecha_desde)
-    with page.expect_download(timeout=45000) as info:
-        page.get_by_role("button", name=re.compile(r"excel", re.I)).click(timeout=15000)
-    return guardar_descarga(info.value, "detalle_solicitudes_vacaciones_historicas")
+    n = len(eventos)
+    page.get_by_role("button", name=re.compile(r"excel", re.I)).first.click(timeout=15000)
+    return esperar_descarga_evento(page, eventos, n, "detalle_solicitudes_vacaciones_historicas")
+
+def esperar_modal_progreso(page, timeout_segundos=600):
+    inicio, visto, oculto_desde = time.monotonic(), False, None
+    while time.monotonic() - inicio < timeout_segundos:
+        visible = False
+        for frame in list(page.frames):
+            for selector in ("#liquidacionesProgressModal", "[role='dialog']", ".modal.show", ".modal.in"):
+                try:
+                    loc = frame.locator(selector)
+                    for i in range(min(loc.count(), 10)):
+                        el = loc.nth(i)
+                        if el.is_visible():
+                            txt = (el.inner_text(timeout=500) or "").lower()
+                            if any(w in txt for w in ("generando", "procesando", "importando", "%", "cargando")):
+                                visible = True
+                                break
+                    if visible: break
+                except Exception: pass
+            if visible: break
+        if visible:
+            visto, oculto_desde = True, None
+        elif visto:
+            if oculto_desde is None: oculto_desde = time.monotonic()
+            elif time.monotonic() - oculto_desde >= 3:
+                return "Importación/procesamiento completado en Talana."
+        elif time.monotonic() - inicio > 45:
+            raise RuntimeError("No se detectó el modal de progreso tras iniciar Maestro empleado.")
+        page.wait_for_timeout(500)
+    raise RuntimeError("Talana mantuvo el proceso de Maestro empleado activo durante 10 minutos.")
+
+
+def descargar_maestro_empleado(page):
+    """Ejecuta Maestro Trabajadores; es un proceso del portal, no un archivo descargable."""
+    click_texto(page, "Trabajadores")
+    boton, limite = None, time.monotonic() + 60
+    while time.monotonic() < limite and boton is None:
+        for frame in list(page.frames):
+            for selector in ("#btnOpenListDownload", '[data-cy="gdp-employees-open-dropdown-download-report"]'):
+                try:
+                    loc = frame.locator(selector)
+                    for i in range(min(loc.count(), 5)):
+                        el = loc.nth(i)
+                        if el.is_visible() and el.is_enabled():
+                            boton = el; break
+                except Exception: pass
+                if boton is not None: break
+        if boton is None: page.wait_for_timeout(400)
+    if boton is None: raise RuntimeError("No apareció el botón Descargar (#btnOpenListDownload) en Trabajadores.")
+    boton.click(timeout=15000)
+    objetivo, limite = None, time.monotonic() + 25
+    while time.monotonic() < limite and objetivo is None:
+        for frame in list(page.frames):
+            for selector in ("#empleadosExport1", '[data-cy="gdp-employees-report-workerMaster"]#empleadosExport1'):
+                try:
+                    loc = frame.locator(selector)
+                    for i in range(min(loc.count(), 5)):
+                        el = loc.nth(i)
+                        if el.is_visible() and el.is_enabled():
+                            objetivo = el; break
+                except Exception: pass
+                if objetivo is not None: break
+        if objetivo is None: page.wait_for_timeout(300)
+    if objetivo is None: raise RuntimeError("No apareció «Maestro Trabajadores» (#empleadosExport1).")
+    objetivo.click(timeout=15000)
+    return esperar_modal_progreso(page)
+
+
+def cambiar_a_asistencia_y_turnos(page):
+    candidatos = []
+    for frame in list(page.frames):
+        try:
+            loc = frame.get_by_text("Remuneraciones", exact=True)
+            for i in range(min(loc.count(), 60)):
+                el = loc.nth(i)
+                if not el.is_visible(): continue
+                rect = el.evaluate("e => {const r=e.getBoundingClientRect();return {x:r.x,y:r.y,vw:innerWidth};}")
+                if rect and rect["y"] < 150 and rect["x"] > rect["vw"] * 0.55:
+                    candidatos.append((rect["y"], -rect["x"], el))
+        except Exception: pass
+    if not candidatos: raise RuntimeError("No se encontró el selector superior del módulo Remuneraciones.")
+    candidatos.sort(key=lambda x: (x[0], x[1]))
+    candidatos[0][2].click(timeout=12000)
+    page.wait_for_timeout(500)
+    click_texto(page, "Asistencia y Turnos")
+    limite = time.monotonic() + 90
+    while time.monotonic() < limite:
+        if texto_visible(page, "Jornadas"): return
+        page.wait_for_timeout(500)
+    raise RuntimeError("No apareció la sección Jornadas en Asistencia y Turnos.")
+
+
+def descargar_reporte_jornadas(page, eventos):
+    click_texto(page, "Jornadas")
+    boton, limite = None, time.monotonic() + 60
+    patron = re.compile(r"Descargar\s+reporte", re.I)
+    while time.monotonic() < limite and boton is None:
+        for frame in list(page.frames):
+            try:
+                loc = frame.get_by_role("button", name=patron)
+                for i in range(min(loc.count(), 20)):
+                    el = loc.nth(i)
+                    if el.is_visible() and el.is_enabled():
+                        boton = el; break
+            except Exception: pass
+            if boton is not None: break
+        if boton is None: page.wait_for_timeout(500)
+    if boton is None: raise RuntimeError("No se encontró «Descargar reporte» en Jornadas.")
+    n = len(eventos)
+    boton.click(timeout=20000)
+    return esperar_descarga_evento(page, eventos, n, "reporte_jornadas_asistencia")
 
 
 def ejecutar_descargas(rut, clave, headless=True):
@@ -179,29 +410,37 @@ def ejecutar_descargas(rut, clave, headless=True):
     if not rut or not clave:
         raise RuntimeError("Faltan TALANA_USER o TALANA_PASSWORD en las variables de entorno.")
     with sync_playwright() as p:
-        # Usar Chromium administrado por Playwright, compatible con GitHub Actions Linux.
         browser = p.chromium.launch(headless=headless)
         context = browser.new_context(accept_downloads=True)
         page = context.new_page()
         page.set_default_timeout(15000)
+        eventos = registrar_descargas(context, page)
         try:
-            print("Abriendo Talana e iniciando sesión...")
+            print("Iniciando sesión en Talana...")
             iniciar_sesion_talana(page, rut, clave)
-            try:
-                path = descargar_ausentismo_historico(page)
-                resultados.append(("Detalle Ausentismos histórico", str(path)))
-                print(f"Descarga completada: {path.name}")
-            except Exception as exc:
-                errores.append(("Detalle Ausentismos histórico", str(exc)))
-                print(f"ERROR reporte ausentismos: {exc}")
-            try:
-                path = descargar_solicitudes_vacaciones(page, primer_dia_mes_actual())
-                resultados.append(("Detalle solicitudes de vacaciones históricas", str(path)))
-                print(f"Descarga completada: {path.name}")
-            except Exception as exc:
-                errores.append(("Detalle solicitudes de vacaciones históricas", str(exc)))
-                print(f"ERROR reporte vacaciones: {exc}")
+            tareas = [
+                ("Detalle Ausentismos histórico", lambda: descargar_ausentismo_historico(page, eventos), True),
+                ("Detalle solicitudes de vacaciones históricas", lambda: descargar_solicitudes_vacaciones(page, primer_dia_mes_actual(), eventos), True),
+                ("Maestro empleado", lambda: descargar_maestro_empleado(page), False),
+                ("Reporte de Jornadas — Asistencia y Turnos", lambda: (cambiar_a_asistencia_y_turnos(page), descargar_reporte_jornadas(page, eventos))[1], True),
+            ]
+            for titulo, accion, es_archivo in tareas:
+                try:
+                    print(f"INICIO: {titulo}")
+                    valor = accion()
+                    if es_archivo:
+                        resultados.append((titulo, str(valor)))
+                        print(f"OK: {titulo}: {Path(valor).name}")
+                    else:
+                        resultados.append((titulo, "__TALANA_ACTION_OK__:" + str(valor)))
+                        print(f"OK: {titulo}: {valor}")
+                except Exception as exc:
+                    errores.append(f"{titulo}: {exc}")
+                    print(f"ERROR {titulo}: {exc}")
+                    try: page.screenshot(path=str(DOWNLOAD_DIR / (nombre_seguro(titulo) + "_error.png")), full_page=True)
+                    except Exception: pass
             return resultados, errores
         finally:
             context.close()
             browser.close()
+
