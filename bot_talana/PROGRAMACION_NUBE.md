@@ -29,6 +29,12 @@ No escribas valores de claves en el código, commits, archivos `.env` del reposi
 
 El secreto de la función no es la contraseña de Talana: son valores diferentes. La URL de la función no es confidencial, pero debe guardarse como secreto en GitHub para simplificar la configuración.
 
+## Ejecución manual inmediata
+
+El botón **Ejecutar ahora** crea una ejecución en `talana_bot_runs` y debe disparar `workflow_dispatch` inmediatamente. Para habilitarlo, crea un token fine-grained de GitHub limitado al repositorio `sebastiancoloma55-dev/asistencia-doctor-simi2026` con permiso **Actions: Read and write** y guárdalo como secreto `GITHUB_ACTIONS_TOKEN` en Supabase → Edge Functions → Secrets. No lo guardes en el frontend ni en Git. Después de integrar y desplegar la actualización de `talana-bot-control`, el botón informará si GitHub rechazó el despacho en vez de dejar una solicitud silenciosamente en cola.
+
+El workflow debe estar en `main`; la ejecución manual usa `ref: main`. La actualización del código de la Edge Function y la creación del secreto son pasos separados del merge del pull request.
+
 ## Antes de activar la automatización
 
 La programación por sí sola no demuestra que el bot funcione. En la rama de integración deben estar incluidos el ejecutor de una sola corrida y el descargador completo `talana_downloader.py`; luego hay que probar el inicio de sesión, la descarga y la carga de archivos a Supabase Storage.
