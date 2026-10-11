@@ -80,12 +80,16 @@
       return {label,icon,module,value:"No disponible",detail:String(error && error.message || "Revisa sesión o permisos de datos."),unavailable:true};
     }
   }
+  let resumenOcupado = false, resumenPendiente = false;
   async function cargarResumenOperativoRRHH(){
     const host = $("dashboard-ops-cards");
     if (!host) return;
+    if (resumenOcupado) { resumenPendiente = true; return; }
+    resumenOcupado = true;
     const c = client();
     if (!c) {
       render([{label:"Estado operativo",icon:"cloud-off",module:null,value:"Sin conexión",detail:"No se encuentra el cliente de Supabase.",unavailable:true}],"No se pudo iniciar la consulta.");
+      resumenOcupado = false;
       return;
     }
     host.innerHTML = '<div class="ops-summary-loading"><span class="space-loader-ring"></span><span>Consultando tareas, alertas y bot…</span></div>';
@@ -137,6 +141,12 @@
       render([tasksOpen,tasksLate,coverage,notifications,bot]);
     } catch (error) {
       render([{label:"Estado operativo",icon:"cloud-off",module:null,value:"Error",detail:String(error && error.message || "No se pudo consultar Supabase."),unavailable:true}],"No se pudo actualizar el resumen.");
+    } finally {
+      resumenOcupado = false;
+      if (resumenPendiente) {
+        resumenPendiente = false;
+        window.setTimeout(cargarResumenOperativoRRHH, 60);
+      }
     }
   }
   window.cargarResumenOperativoRRHH = cargarResumenOperativoRRHH;
