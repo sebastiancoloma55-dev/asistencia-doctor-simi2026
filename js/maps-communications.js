@@ -3,14 +3,53 @@
         // ============================================================
         async function obtenerSucursalesConfig() { const {data,error}=await _supabase.from('sucursales').select('*').order('nombre'); if(error)throw error; return data||[]; }
         function direccionSucursal(x){return [x.direccion,x.comuna,'Chile'].filter(Boolean).join(', ');}
+        function calcularDiasDotacion(){
+            const inicio=document.getElementById('dot-inicio')?.value,fin=document.getElementById('dot-fin')?.value,host=document.getElementById('dot-dias');
+            if(!host)return;
+            if(inicio&&fin&&fin>=inicio){const a=new Date(inicio+'T12:00:00Z'),b=new Date(fin+'T12:00:00Z');host.value=Math.floor((b-a)/86400000)+1;}
+            else host.value='';
+        }
+        function actualizarHorarioDotacion(){
+            const ini=document.getElementById('dot-hora-inicio'),fin=document.getElementById('dot-hora-fin');
+            if(!ini||!fin)return;
+            // Los horarios varían por sucursal; no se inventan horas por defecto.
+            ini.value='';fin.value='';
+        }
+        async function cargarSucursalesDotacion(){
+            const select=document.getElementById('dot-sucursal');if(!select)return;
+            const {data,error}=await _supabase.from('sucursales').select('id,nombre,activa').eq('activa',true).order('nombre').limit(1000);
+            if(error){select.innerHTML='<option value="">No se pudieron cargar sucursales</option>';const status=document.getElementById('dot-estado');if(status)status.textContent='No se pudo cargar el listado de sucursales: '+error.message;return;}
+            select.innerHTML='<option value="">Selecciona una sucursal</option>'+(data||[]).map(x=>'<option value="'+escaparHTML(x.id)+'">'+escaparHTML(x.nombre)+'</option>').join('');
+        }
+        async function crearSolicitudDotacion(event){
+            event.preventDefault();
+            const status=document.getElementById('dot-estado'),form=document.getElementById('form-alerta-dotacion');
+            const sucursalId=document.getElementById('dot-sucursal')?.value,opcion=document.getElementById('dot-sucursal')?.selectedOptions?.[0];
+            const inicio=document.getElementById('dot-inicio')?.value,fin=document.getElementById('dot-fin')?.value;
+            const turno=document.getElementById('dot-turno')?.value,horaini=document.getElementById('dot-hora-inicio')?.value||null,horafin=document.getElementById('dot-hora-fin')?.value||null;
+            if(!sucursalId||!inicio||!fin||fin<inicio)return mostrarToast('Selecciona una sucursal y revisa las fechas de la solicitud.','warning');
+            if(horaini&&horafin&&horafin<=horaini)return mostrarToast('La hora de término debe ser posterior a la hora de inicio.','warning');
+            try{
+                if(status)status.textContent='Guardando alerta de cobertura…';
+                const me=await _supabase.rpc('chat_usuario_actual_id');if(me.error||!me.data)throw me.error||new Error('Tu usuario no tiene un perfil activo.');
+                const payload={sucursal_id:sucursalId,sucursal_nombre:opcion?.textContent||'',fecha_inicio:inicio,fecha_fin:fin,cantidad:Number(document.getElementById('dot-cantidad')?.value||1),cargo_requerido:document.getElementById('dot-cargo')?.value||'AF',turno,hora_inicio:horaini,hora_fin:horafin,motivo:document.getElementById('dot-motivo')?.value?.trim(),observaciones:document.getElementById('dot-observaciones')?.value?.trim()||null,solicitada_por:me.data,estado:'PENDIENTE'};
+                const {data,error}=await _supabase.from('solicitudes_dotacion').insert(payload).select('id').single();if(error)throw error;
+                await registrarAuditoria('coberturas','CREA_ALERTA_DOTACION',payload.sucursal_nombre+' · '+payload.cargo_requerido+' · '+payload.turno+' · '+payload.fecha_inicio+' a '+payload.fecha_fin);
+                if(status)status.textContent='Alerta enviada · '+new Date().toLocaleString('es-CL',{timeZone:'America/Santiago'})+'. Solicitud '+data.id.slice(0,8)+'.';
+                form?.reset();document.getElementById('dot-dias').value='';actualizarHorarioDotacion();
+                mostrarToast('Alerta de necesidad de personal enviada a la cola de revisión de Traslados.','success',8000);
+                if(typeof cargarSolicitudesDotacion==='function')await cargarSolicitudesDotacion();
+            }catch(error){console.error('Crear alerta dotación:',error);if(status)status.textContent='No se pudo enviar: '+(error.message||'Error desconocido');mostrarToast('No se pudo guardar la alerta: '+(error.message||''),'error',10000);}
+        }
         async function prepararMapaYConfiguracionSucursales(){
             const lista=await obtenerSucursalesConfig(), opts='<option value="">Seleccione sucursal</option>'+lista.map(x=>`<option value="${escaparHTML(direccionSucursal(x))}">${escaparHTML(x.nombre)}</option>`).join('');
             document.getElementById('map-origen').innerHTML=opts;document.getElementById('map-destino').innerHTML=opts;
+            await cargarSucursalesDotacion();
             document.getElementById('tabla-config-sucursales').innerHTML=lista.map(x=>`<tr><td class="p-3 font-bold">${escaparHTML(x.nombre)}</td><td class="p-3">${escaparHTML(direccionSucursal(x))}</td><td class="p-3">${escaparHTML(x.horario_apertura||'')}</td><td class="p-3">${escaparHTML(x.horario_cierre||'')}</td><td class="p-3">${escaparHTML(x.correo_sucursal||'')}</td><td class="p-3">${escaparHTML(x.correo_copia||'')}</td></tr>`).join('');
         }
         function mostrarRutaSucursales(){const o=document.getElementById('map-origen').value,d=document.getElementById('map-destino').value,m=document.getElementById('map-modo').value;if(!o||!d){mostrarToast('Selecciona origen y destino.','warning');return;}document.getElementById('mapa-sucursales').src=`https://www.google.com/maps?output=embed&saddr=${encodeURIComponent(o)}&daddr=${encodeURIComponent(d)}&dirflg=${m}`;}
         function descargarPlantillaSucursales(){const datos=[{nombre:'Nombre exacto de la sucursal',direccion:'Dirección',comuna:'Comuna',horario_apertura:'09:00',horario_cierre:'19:00',correo_sucursal:'sucursal@empresa.cl',correo_copia:'supervisor@empresa.cl'}],wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(datos);XLSX.utils.book_append_sheet(wb,ws,'Configuracion');XLSX.writeFile(wb,'Plantilla_configuracion_sucursales.xlsx');}
-        async function importarConfiguracionSucursales(event){try{const filas=await leerExcel(event.target.files[0]);for(const f of filas){const nombre=texto(obtenerCampo(f,['nombre','Nombre Sucursal','Sucursal']));if(!nombre)continue;const cambios={direccion:texto(obtenerCampo(f,['direccion','Dirección'])),comuna:texto(obtenerCampo(f,['comuna','Comuna'])),horario_apertura:texto(obtenerCampo(f,['horario_apertura','Horario Apertura'])),horario_cierre:texto(obtenerCampo(f,['horario_cierre','Horario Cierre'])),correo_sucursal:texto(obtenerCampo(f,['correo_sucursal','Correo Sucursal'])),correo_copia:texto(obtenerCampo(f,['correo_copia','Correo Copia','CC']))};const {error}=await _supabase.from('sucursales').update(cambios).eq('nombre',nombre);if(error)throw error;}await prepararMapaYConfiguracionSucursales();mostrarToast('Configuración de sucursales actualizada.','success');}catch(e){mostrarToast(e.message,'error');}finally{event.target.value='';}}
+        async function importarConfiguracionSucursales(event){try{const filas=await leerExcel(event.target.files[0]);for(const f of filas){const nombre=texto(obtenerCampo(f,['nombre','Nombre Sucursal','Sucursal']));if(!nombre)continue;const cambios={direccion:texto(obtenerCampo(f,['direccion','Dirección'])),comuna:texto(obtenerCampo(f,['comuna','Comuna'])),horario_apertura:texto(obtenerCampo(f,['horario_apertura','Horario Apertura'])),horario_cierre:texto(obtenerCampo(f,['horario_cierre','Horario Cierre'])),correo_sucursal:texto(obtenerCampo(f,['correo_sucursal','Correo Sucursal'])),correo_copia:texto(obtenerCampo(f,['correo_copia','Correo Copia','CC']))};const {error}=await _supabase.from('sucursales').update(cambios).eq('nombre',nombre);if(error)throw error;}await prepararMapaYConfiguracionSucursales();await registrarActualizacionFuente('config_sucursales',event.target.files?.[0]?.name||'Plantilla de configuración',filas.length,'manual');mostrarToast('Configuración de sucursales actualizada.','success');}catch(e){mostrarToast(e.message,'error');}finally{event.target.value='';}}
 
         function minutosAtraso(valor) {
             const partes = texto(valor).split(':').map(Number);
@@ -211,6 +250,7 @@
                     if (error) throw error;
                 }
                 await prepararConfiguracionCorreos();
+                await registrarActualizacionFuente('config_correos', event.target.files?.[0]?.name || 'Plantilla de correos', filas.length, 'manual');
                 mostrarToast('Plantilla de correos cargada.', 'success');
             } catch (e) { mostrarToast(e.message, 'error'); }
             finally { event.target.value = ''; }
@@ -242,13 +282,68 @@
             return null;
         }
         function puntoMapaSucursal(x) { const p=coordenadasSucursalMapa(x);return p?`${p.lat},${p.lon}`:direccionSucursal(x); }
+        let mapa14Leaflet = null;
+        let mapa14Marcadores = null;
+        let mapa14Ruta = null;
+        let mapa14Sucursales = [];
+
+        function inicializarMapa14(lista = mapa14Sucursales) {
+            const host = document.getElementById('mapa14-frame');
+            const status = document.getElementById('mapa14-status');
+            if (!host || !window.L) {
+                if (status) status.textContent = 'No se pudo cargar el mapa interactivo. Los enlaces a Google Maps siguen disponibles.';
+                return;
+            }
+            if (!mapa14Leaflet) {
+                mapa14Leaflet = L.map(host, { scrollWheelZoom: true }).setView([-33.45, -70.66], 5);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(mapa14Leaflet);
+                mapa14Marcadores = L.layerGroup().addTo(mapa14Leaflet);
+                setTimeout(() => mapa14Leaflet && mapa14Leaflet.invalidateSize(), 200);
+            }
+            mapa14Marcadores.clearLayers();
+            if (mapa14Ruta) { mapa14Leaflet.removeLayer(mapa14Ruta); mapa14Ruta = null; }
+            const conGps = lista.map(x => ({ sucursal: x, punto: coordenadasSucursalMapa(x) })).filter(x => x.punto);
+            conGps.forEach(({sucursal, punto}) => {
+                const marker = L.marker([punto.lat, punto.lon]).bindPopup(
+                    '<strong>' + escaparHTML(sucursal.nombre) + '</strong><br>' +
+                    escaparHTML([sucursal.direccion, sucursal.comuna].filter(Boolean).join(', ')) +
+                    '<br><small>' + escaparHTML(sucursal.supervisor || 'Supervisor no asignado') + '</small>'
+                );
+                marker.addTo(mapa14Marcadores);
+            });
+            if (conGps.length) {
+                const bounds = L.latLngBounds(conGps.map(x => [x.punto.lat, x.punto.lon]));
+                mapa14Leaflet.fitBounds(bounds, { padding: [24, 24], maxZoom: 11 });
+            } else {
+                mapa14Leaflet.setView([-33.45, -70.66], 5);
+            }
+            if (status) status.textContent = conGps.length + ' sucursal(es) con coordenadas en el mapa · ' + (lista.length - conGps.length) + ' sin GPS registrado. Puedes ver todas las ubicaciones disponibles aunque no hayas elegido origen o destino.';
+            setTimeout(() => mapa14Leaflet && mapa14Leaflet.invalidateSize(), 150);
+        }
+
+        function renderOpcionesMapa14(tipo, query = '') {
+            const select = document.getElementById(tipo === 'origen' ? 'map14-origen' : 'map14-destino');
+            if (!select) return;
+            const previous = select.value;
+            const q = String(query || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().trim();
+            const rows = mapa14Sucursales.filter(x => !q || [x.nombre,x.comuna,x.direccion,x.unidad].join(' ').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().includes(q));
+            select.innerHTML = '<option value="">Selecciona sucursal</option>' + rows.map(x => {
+                const p = coordenadasSucursalMapa(x);
+                return `<option value="${escaparHTML(puntoMapaSucursal(x))}" data-id="${escaparHTML(x.id||'')}" data-nombre="${escaparHTML(x.nombre)}" data-direccion="${escaparHTML(x.direccion||'')}" data-comuna="${escaparHTML(x.comuna||'')}" data-lat="${escaparHTML(p?.lat??'')}" data-lon="${escaparHTML(p?.lon??'')}">${escaparHTML(x.nombre)}${x.comuna ? ' · '+escaparHTML(x.comuna) : ''}${p ? ' · GPS' : ''}</option>`;
+            }).join('');
+            if ([...select.options].some(o => o.value === previous)) select.value = previous;
+        }
+
         async function prepararMapa14() {
-            const lista = await obtenerSucursalesConfig();
-            const opciones = '<option value="">Selecciona sucursal</option>' + lista.map(x => `<option value="${escaparHTML(puntoMapaSucursal(x))}" data-id="${escaparHTML(x.id||'')}" data-nombre="${escaparHTML(x.nombre)}" data-direccion="${escaparHTML(x.direccion||'')}" data-comuna="${escaparHTML(x.comuna||'')}" data-lat="${escaparHTML(coordenadasSucursalMapa(x)?.lat??'')}" data-lon="${escaparHTML(coordenadasSucursalMapa(x)?.lon??'')}">${escaparHTML(x.nombre)}${x.comuna ? ' · '+escaparHTML(x.comuna) : ''}${coordenadasSucursalMapa(x) ? ' · GPS' : ''}</option>`).join('');
-            document.getElementById('map14-origen').innerHTML = opciones;
-            document.getElementById('map14-destino').innerHTML = opciones;
-            const frame = document.getElementById('mapa14-frame');
-            if (frame && !frame.dataset.rutaCargada) frame.removeAttribute('src');
+            mapa14Sucursales = await obtenerSucursalesConfig();
+            renderOpcionesMapa14('origen', document.getElementById('map14-buscar-origen')?.value || '');
+            renderOpcionesMapa14('destino', document.getElementById('map14-buscar-destino')?.value || '');
+            if(document.getElementById('map14-buscar-origen'))document.getElementById('map14-buscar-origen').oninput=e=>renderOpcionesMapa14('origen',e.target.value);
+            if(document.getElementById('map14-buscar-destino'))document.getElementById('map14-buscar-destino').oninput=e=>renderOpcionesMapa14('destino',e.target.value);
+            inicializarMapa14(mapa14Sucursales);
             if (window.lucide) lucide.createIcons();
         }
         function mostrarRutaMapa14() {
@@ -269,6 +364,18 @@
             const fallback=document.getElementById('mapa14-fallback-link');if(fallback)fallback.href=externo;
             const modoTexto = modo === 'w' ? 'Caminando' : modo === 'r' ? 'Transporte público' : 'Auto';
             document.getElementById('mapa14-resumen').textContent = `${nombreOrigen} → ${nombreDestino} · ${modoTexto}`;
+            const p1 = { lat: Number(selOrigen.selectedOptions[0]?.dataset.lat), lon: Number(selOrigen.selectedOptions[0]?.dataset.lon) };
+            const p2 = { lat: Number(selDestino.selectedOptions[0]?.dataset.lat), lon: Number(selDestino.selectedOptions[0]?.dataset.lon) };
+            if (mapa14Leaflet && Number.isFinite(p1.lat) && Number.isFinite(p1.lon) && Number.isFinite(p2.lat) && Number.isFinite(p2.lon) && (p1.lat !== 0 || p1.lon !== 0) && (p2.lat !== 0 || p2.lon !== 0)) {
+                if (mapa14Ruta) mapa14Leaflet.removeLayer(mapa14Ruta);
+                mapa14Ruta = L.polyline([[p1.lat,p1.lon],[p2.lat,p2.lon]], { color: '#06b6d4', weight: 4, opacity: .9, dashArray: '8 7' }).addTo(mapa14Leaflet);
+                mapa14Leaflet.fitBounds(mapa14Ruta.getBounds(), { padding: [36,36], maxZoom: 12 });
+                const status = document.getElementById('mapa14-status');
+                if (status) status.textContent = 'Vista previa de ruta recta entre las coordenadas guardadas. Abre Google Maps para el recorrido vial real.';
+            } else {
+                const status = document.getElementById('mapa14-status');
+                if (status) status.textContent = 'Una o ambas sucursales no tienen GPS. La ruta vial está disponible en Google Maps.';
+            }
             if (window.lucide) lucide.createIcons();
         }
 
@@ -276,9 +383,98 @@
         function buscarCoberturaPersona(){const q=document.getElementById('cob-buscar').value.toLowerCase().trim(),p=document.getElementById('cob-resultados');if(q.length<2){p.classList.add('hidden');return;}const r=colaboradoresPapeleta.filter(x=>`${x.nombres} ${x.apellidos} ${x.rut} ${x.cargo}`.toLowerCase().includes(q)).slice(0,20);p.innerHTML=r.map(x=>`<button type="button" class="autocomplete-item" onclick="seleccionarCoberturaPersona('${x.id}')"><b>${escaparHTML(`${x.nombres||''} ${x.apellidos||''}`)}</b><br>${escaparHTML(x.rut)} · ${escaparHTML(x.cargo)} · ${escaparHTML(x.sucursal)}</button>`).join('');p.classList.remove('hidden');}
         function seleccionarCoberturaPersona(id){const x=colaboradoresPapeleta.find(a=>String(a.id)===String(id));if(!x)return;document.getElementById('cob-id').value=x.id;document.getElementById('cob-buscar').value=`${x.nombres} ${x.apellidos} · ${x.rut}`;document.getElementById('cob-nombre').value=`${x.nombres} ${x.apellidos}`.trim();document.getElementById('cob-rut').value=x.rut||'';document.getElementById('cob-origen').value=x.sucursal||'';document.getElementById('cob-tipo').value=x.cargo||'';document.getElementById('cob-resultados').classList.add('hidden');}
         function calcularDiasCobertura(){const a=parsearFechaExcel(document.getElementById('cob-inicio').value),b=parsearFechaExcel(document.getElementById('cob-fin').value);if(a&&b&&b>=a)document.getElementById('cob-dias').value=Math.floor((b-a)/86400000)+1;}
-        async function guardarCobertura(e){e.preventDefault();const registro={colaborador_id:Number(document.getElementById('cob-id').value),rut:document.getElementById('cob-rut').value,nombre:document.getElementById('cob-nombre').value,tipo_profesional:document.getElementById('cob-tipo').value,local_origen:document.getElementById('cob-origen').value,local_destino:document.getElementById('cob-destino').value,fecha_inicio:document.getElementById('cob-inicio').value,fecha_fin:document.getElementById('cob-fin').value,dias:Number(document.getElementById('cob-dias').value),motivo:document.getElementById('cob-motivo').value,observaciones:document.getElementById('cob-observaciones').value};if(!registro.colaborador_id)return mostrarToast('Selecciona la persona desde la lista.','warning');const {error}=await _supabase.from('coberturas').insert([registro]);if(error)return mostrarToast(error.message,'error');await registrarAuditoria('coberturas','CREA_COBERTURA',`${registro.nombre}: ${registro.local_origen} a ${registro.local_destino}`);e.target.reset();await cargarCoberturas();mostrarToast('Cobertura guardada.','success');}
-        function estadoCobertura(x){const h=new Date().toISOString().slice(0,10);return h<x.fecha_inicio?'PENDIENTE':h>x.fecha_fin?'REALIZADA':'EN CURSO';}
-        async function cargarCoberturas(){const {data,error}=await _supabase.from('coberturas').select('*').order('fecha_inicio',{ascending:false});if(error)return mostrarToast(error.message,'error');datosCoberturasGlobal=data||[];document.getElementById('cob-pendientes').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='PENDIENTE').length;document.getElementById('cob-curso').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='EN CURSO').length;document.getElementById('cob-realizadas').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='REALIZADA').length;document.getElementById('tabla-coberturas').innerHTML=datosCoberturasGlobal.map(x=>`<tr><td><b>${escaparHTML(x.nombre)}</b><br>${escaparHTML(x.rut)} · ${escaparHTML(x.tipo_profesional)}</td><td>${escaparHTML(x.local_origen)}</td><td>${escaparHTML(x.local_destino)}</td><td>${x.fecha_inicio} a ${x.fecha_fin}</td><td>${escaparHTML(x.motivo)}</td><td><span class="rounded-full bg-slate-100 px-2 py-1 font-bold">${estadoCobertura(x)}</span></td></tr>`).join('');}
+        async function guardarCobertura(e) {
+            e.preventDefault();
+            const registro = {
+                colaborador_id: String(document.getElementById('cob-id').value || ''),
+                rut: document.getElementById('cob-rut').value,
+                nombre: document.getElementById('cob-nombre').value,
+                tipo_profesional: document.getElementById('cob-tipo').value,
+                local_origen: document.getElementById('cob-origen').value,
+                local_destino: document.getElementById('cob-destino').value,
+                fecha_inicio: document.getElementById('cob-inicio').value,
+                fecha_fin: document.getElementById('cob-fin').value,
+                dias: Number(document.getElementById('cob-dias').value),
+                motivo: document.getElementById('cob-motivo').value,
+                observaciones: document.getElementById('cob-observaciones').value
+            };
+            if (!registro.colaborador_id || !registro.rut) return mostrarToast('Selecciona la persona desde la lista.','warning');
+            if (!registro.fecha_inicio || !registro.fecha_fin || registro.fecha_fin < registro.fecha_inicio) return mostrarToast('Revisa las fechas de la cobertura.','warning');
+            try {
+                const [personResult, branchResult] = await Promise.all([
+                    _supabase.from('colaboradores').select('id,rut,sucursal_id,sucursal,nombres,apellidos,cargo').eq('rut',registro.rut).maybeSingle(),
+                    _supabase.from('sucursales').select('id,nombre,activa')
+                ]);
+                if (personResult.error) throw personResult.error;
+                if (branchResult.error) throw branchResult.error;
+                const person = personResult.data;
+                const branches = branchResult.data || [];
+                const normBranch = value => String(value || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().toLowerCase();
+                const origin = branches.find(x => normBranch(x.nombre) === normBranch(registro.local_origen));
+                const destination = branches.find(x => normBranch(x.nombre) === normBranch(registro.local_destino));
+                if (!person) throw new Error('No se encontró al colaborador en el maestro por RUT.');
+                if (!origin || !destination) throw new Error('No se encontró la sucursal de origen o destino en el maestro. Revisa los nombres antes de guardar.');
+                if (origin.id === destination.id) throw new Error('El local de origen y destino deben ser diferentes.');
+                const {data:coverage,error:coverageError} = await _supabase.from('coberturas').insert([{...registro,colaborador_id:String(person.id)}]).select('id').single();
+                if (coverageError) throw coverageError;
+                const me = await _supabase.rpc('chat_usuario_actual_id');
+                if (me.error || !me.data) throw me.error || new Error('Tu usuario no tiene un perfil activo.');
+                const transferRow = {
+                    colaborador_id: person.id,
+                    rut: person.rut,
+                    colaborador_nombre: ((person.nombres || '') + ' ' + (person.apellidos || '')).trim(),
+                    cargo: person.cargo || registro.tipo_profesional,
+                    sucursal_origen_id: origin.id,
+                    sucursal_origen_nombre: origin.nombre,
+                    sucursal_destino_id: destination.id,
+                    sucursal_destino_nombre: destination.nombre,
+                    fecha_inicio: registro.fecha_inicio,
+                    fecha_termino: registro.fecha_fin,
+                    indefinido: false,
+                    motivo: 'Cobertura temporal: ' + registro.motivo,
+                    observaciones: registro.observaciones || null,
+                    solicitado_por: me.data,
+                    estado: 'SOLICITADO',
+                    tipo_movimiento: 'COBERTURA',
+                    cobertura_id: coverage.id
+                };
+                const {error:transferError} = await _supabase.from('traslados_personal').insert(transferRow);
+                if (transferError) {
+                    await _supabase.from('coberturas').delete().eq('id',coverage.id);
+                    throw new Error('No se pudo enviar la cobertura a revisión de Traslados. No se conservó la cobertura para evitar registros huérfanos. ' + transferError.message);
+                }
+                await registrarAuditoria('coberturas','CREA_COBERTURA',`${registro.nombre}: ${registro.local_origen} a ${registro.local_destino}`);
+                e.target.reset();
+                await cargarCoberturas();
+                mostrarToast('Cobertura guardada y enviada al módulo Traslados para aprobar o rechazar. La sucursal maestra no cambiará por aprobar una cobertura temporal.','success',10000);
+            } catch (error) {
+                console.error('Guardar cobertura:', error);
+                mostrarToast(error.message || 'No se pudo guardar la cobertura.','error',12000);
+            }
+        }
+        function estadoCobertura(x){
+            const approval=x.estado_solicitud||'APROBADA';
+            if(approval==='RECHAZADA')return 'RECHAZADA';
+            if(approval!=='APROBADA')return 'PENDIENTE DE APROBACIÓN';
+            const h=new Date().toLocaleDateString('sv-SE',{timeZone:'America/Santiago'});
+            if(h<x.fecha_inicio)return 'APROBADA · PROGRAMADA';
+            if(h>x.fecha_fin)return 'REALIZADA';
+            return 'EN CURSO';
+        }
+        async function cargarCoberturas(){
+            await cargarSucursalesDotacion();
+            const {data,error}=await _supabase.from('coberturas').select('*').order('fecha_inicio',{ascending:false});
+            if(error)return mostrarToast(error.message,'error');
+            datosCoberturasGlobal=data||[];
+            document.getElementById('cob-pendientes').innerText=datosCoberturasGlobal.filter(x=>(x.estado_solicitud||'APROBADA')==='PENDIENTE').length;
+            document.getElementById('cob-curso').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='EN CURSO').length;
+            document.getElementById('cob-realizadas').innerText=datosCoberturasGlobal.filter(x=>estadoCobertura(x)==='REALIZADA').length;
+            document.getElementById('tabla-coberturas').innerHTML=datosCoberturasGlobal.map(x=>{
+                const state=estadoCobertura(x);
+                const cls=state==='RECHAZADA'?'bg-rose-100 text-rose-800':state==='PENDIENTE DE APROBACIÓN'?'bg-amber-100 text-amber-800':state==='APROBADA · PROGRAMADA'?'bg-blue-100 text-blue-800':state==='EN CURSO'?'bg-cyan-100 text-cyan-800':'bg-emerald-100 text-emerald-800';
+                return `<tr><td><b>${escaparHTML(x.nombre)}</b><br>${escaparHTML(x.rut)} · ${escaparHTML(x.tipo_profesional)}</td><td>${escaparHTML(x.local_origen)}</td><td>${escaparHTML(x.local_destino)}</td><td>${x.fecha_inicio} a ${x.fecha_fin}</td><td>${escaparHTML(x.motivo)}</td><td><span class="rounded-full px-2 py-1 text-[11px] font-extrabold ${cls}">${escaparHTML(state)}</span></td></tr>`;
+            }).join('');
+        }
 
         function obtenerAnioFilaIA(fila) {
             const clavesFecha = Object.keys(fila).filter(k => /fecha|inicio|fin|desde|hasta/i.test(k));
@@ -397,14 +593,96 @@
             }
         }
         async function prepararFiltrosReportesRRHH(){try{const list=await obtenerSucursalesConfig(),sel=document.getElementById('rep-sucursal');sel.innerHTML='<option value="">Todas las sucursales</option>'+list.map(x=>'<option value="'+escaparHTML(x.nombre)+'">'+escaparHTML(x.nombre)+'</option>').join('');const today=new Date(),iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10),from=new Date(today);from.setDate(from.getDate()-29);document.getElementById('rep-desde').value ||= iso(from);document.getElementById('rep-hasta').value ||= iso(today);}catch(e){document.getElementById('rep-estado').textContent='Error cargando filtros: '+e.message;}}
-        async function generarPaqueteReportesRRHH(){const state=document.getElementById('rep-estado'),types=[...document.querySelectorAll('.rep-tipo:checked')].map(x=>x.value),from=document.getElementById('rep-desde').value,to=document.getElementById('rep-hasta').value,branch=document.getElementById('rep-sucursal').value,format=document.getElementById('rep-formato').value;if(!types.length)return mostrarToast('Selecciona al menos un informe.','warning');if(from&&to&&from>to)return mostrarToast('La fecha Desde no puede ser posterior a Hasta.','warning');
-        try{state.textContent='Preparando datos…';if((types.includes('ASISTENCIA')||types.includes('RESUMEN'))&&!asistenciaCargada)await cargarAsistenciaDesdeNube();if((types.includes('LICENCIAS')||types.includes('RESUMEN'))&&!licenciasCargadas)await cargarLicenciasDesdeNube();if((types.includes('VACACIONES')||types.includes('RESUMEN'))&&!vacacionesCargadas)await cargarVacacionesDesdeNube();
-        const inPeriod=(r,k)=>{const raw=r[k],normalized=typeof fechaISODesdeExcel==='function'?fechaISODesdeExcel(raw):String(raw||'').slice(0,10),d=normalized||String(raw||'').slice(0,10);return(!from||d>=from)&&(!to||d<=to)},inBranch=r=>!branch||String(r.sucursal||'').trim().toLocaleLowerCase('es-CL')===branch.toLocaleLowerCase('es-CL'),data={};
-        if(types.includes('ASISTENCIA'))data['Asistencia']=datosAsistenciaGlobal.filter(r=>inPeriod(r,'fecha')&&inBranch(r));if(types.includes('LICENCIAS'))data['Licencias']=datosLicenciasGlobal.filter(r=>inPeriod(r,'fecha_inicio')&&inBranch(r));if(types.includes('VACACIONES'))data['Vacaciones']=datosVacacionesGlobal.filter(r=>inPeriod(r,'fecha_inicio')&&inBranch(r));
-        const summary=[{Indicador:'Registros de asistencia',Valor:data.Asistencia?.length||0},{Indicador:'Licencias',Valor:data.Licencias?.length||0},{Indicador:'Vacaciones',Valor:data.Vacaciones?.length||0},{Indicador:'Atrasos',Valor:(data.Asistencia||[]).filter(r=>r.tiene_atraso).length},{Indicador:'Sin marcas',Valor:(data.Asistencia||[]).filter(r=>r.sin_marca).length},{Indicador:'Periodo',Valor:(from||'Inicio')+' a '+(to||'Hoy')},{Indicador:'Sucursal',Valor:branch||'Todas'},{Indicador:'Generado',Valor:new Date().toLocaleString('es-CL')}];if(types.includes('RESUMEN'))data['Resumen ejecutivo']=summary;
-        const wb=XLSX.utils.book_new();Object.entries(data).forEach(([name,rows])=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows.length?rows:[{Mensaje:'Sin registros para los filtros seleccionados'}]),name.slice(0,31)));const stamp=new Date().toISOString().slice(0,10),xlsxName='Reporte_RRHH_'+stamp+'.xlsx',bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'}),kpi=document.getElementById('rep-kpis');kpi.classList.remove('hidden');kpi.innerHTML=Object.entries(data).map(([n,rows])=>'<div class="rounded-xl border bg-slate-50 p-4"><span class="text-xs text-slate-500">'+escaparHTML(n)+'</span><b class="mt-1 block text-2xl">'+rows.length+'</b><span class="text-xs text-slate-500">filas</span></div>').join('');
-        const textSummary=Object.entries(data).map(([n,rows])=>n+': '+rows.length+' filas').join('\n')+'\nPeriodo: '+(from||'Inicio')+' a '+(to||'Hoy')+'\nSucursal: '+(branch||'Todas')+'\nGenerado: '+new Date().toLocaleString('es-CL');const pdf=()=>{const {jsPDF}=window.jspdf,doc=new jsPDF();doc.setFontSize(17);doc.text('Reporte ejecutivo · Recursos Humanos',15,18);doc.setFontSize(10);let y=30;doc.splitTextToSize(textSummary,180).forEach(line=>{if(y>280){doc.addPage();y=18;}doc.text(line,15,y);y+=6;});return doc;};
-        if(format==='xlsx')XLSX.writeFile(wb,xlsxName);else if(format==='pdf')pdf().save('Resumen_RRHH_'+stamp+'.pdf');else{if(!window.JSZip)throw new Error('No se pudo cargar el generador ZIP.');const zip=new JSZip();if(format!=='csv')zip.file(xlsxName,bytes);Object.entries(data).forEach(([n,rows])=>zip.file(n.replace(/[^a-z0-9_-]/gi,'_')+'.csv',XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(rows.length?rows:[{Mensaje:'Sin registros'}]))));if(format!=='csv')zip.file('Resumen_ejecutivo.pdf',pdf().output('arraybuffer'));const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=(format==='csv'?'Reportes_RRHH_CSV_':'Paquete_Reportes_RRHH_')+stamp+'.zip';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
-        state.textContent='Listo · '+Object.keys(data).length+' informe(s) preparados.';mostrarToast('Reportes generados correctamente.','success',8000);}catch(e){state.textContent='No se pudieron generar los reportes.';mostrarToast('Error al generar reportes: '+(e.message||e),'error',12000);}}
+        async function generarPaqueteReportesRRHH(){
+        const state=document.getElementById('rep-estado');
+        const types=[...document.querySelectorAll('.rep-tipo:checked')].map(x=>x.value);
+        const from=document.getElementById('rep-desde').value,to=document.getElementById('rep-hasta').value;
+        const branch=document.getElementById('rep-sucursal').value,format=document.getElementById('rep-formato').value;
+        if(!types.length)return mostrarToast('Selecciona al menos un informe.','warning');
+        if(from&&to&&from>to)return mostrarToast('La fecha Desde no puede ser posterior a Hasta.','warning');
+        try{
+            state.textContent='Preparando información de los módulos seleccionados…';
+            if((types.includes('ASISTENCIA')||types.includes('RESUMEN'))&&!asistenciaCargada)await cargarAsistenciaDesdeNube();
+            if((types.includes('LICENCIAS')||types.includes('RESUMEN'))&&!licenciasCargadas)await cargarLicenciasDesdeNube();
+            if((types.includes('VACACIONES')||types.includes('RESUMEN'))&&!vacacionesCargadas)await cargarVacacionesDesdeNube();
+            const normalizeDate=(r,keys)=>{for(const key of keys){if(r?.[key]){const raw=r[key];return typeof fechaISODesdeExcel==='function'?(fechaISODesdeExcel(raw)||String(raw).slice(0,10)):String(raw).slice(0,10);}}return '';};
+            const inPeriod=(r,keys)=>{const d=normalizeDate(r,keys);return(!from||(!!d&&d>=from))&&(!to||(!!d&&d<=to));};
+            const normalize=s=>String(s||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().toLowerCase();
+            const branchNamesOf=r=>[r.sucursal,r.local_origen,r.local_destino,r.sucursal_destino_nombre,r.sucursal_origen_nombre,r.sucursal_nombre,r.nombre].filter(Boolean).map(normalize);
+            const inBranch=r=>!branch||branchNamesOf(r).includes(normalize(branch));
+            const data={},unavailable=[];
+            if(types.includes('ASISTENCIA'))data['Asistencia']=datosAsistenciaGlobal.filter(r=>inPeriod(r,['fecha'])&&inBranch(r));
+            if(types.includes('LICENCIAS'))data['Licencias']=datosLicenciasGlobal.filter(r=>inPeriod(r,['fecha_inicio','fecha','created_at'])&&inBranch(r));
+            if(types.includes('VACACIONES'))data['Vacaciones']=datosVacacionesGlobal.filter(r=>inPeriod(r,['fecha_inicio','fecha','created_at'])&&inBranch(r));
+            const extraSpecs=[
+                ['COLABORADORES','Colaboradores','colaboradores',['created_at','fecha_ingreso'],'*'],
+                ['SUCURSALES','Sucursales','sucursales',['created_at'],'*'],
+                ['COBERTURAS','Coberturas','coberturas',['fecha_inicio','created_at'],'*'],
+                ['TAREAS','Tareas','tareas',['created_at','fecha_limite'],'*'],
+                ['TRASLADOS','Traslados','traslados_personal',['fecha_inicio','created_at'],'*'],
+                ['PAPELETAS','Papeletas','papeletas_permiso',['created_at','fecha_inicio'],'*'],
+                ['ACTUALIZACIONES','Trazabilidad de archivos','actualizaciones_fuentes',['actualizado_en'],'modulo,actualizado_en,archivo,origen,usuario_email,registros'],
+                ['AUDITORIA','Auditoría','auditoria_eventos',['created_at'],'id,usuario_email,modulo,accion,detalle,created_at'],
+                ['DOCUMENTOS','Documentos laborales','documentos_laborales',['fecha','created_at'],'id,colaborador_id,tipo,titulo,fecha,created_at'],
+                ['IMPORTACIONES','Importaciones','importaciones',['created_at','finalizada_at'],'id,modulo,nombre_archivo,modo,estado,filas_totales,filas_nuevas,filas_actualizadas,filas_rechazadas,filas_error,usuario_email,created_at,finalizada_at'],
+                ['BOT_TALANA','Ejecuciones del bot Talana','talana_bot_runs',['started_at','finished_at'],'id,trigger_type,status,started_at,finished_at,reports_downloaded,reports_uploaded,error_summary,requested_by'],
+                ['ARCHIVOS_BOT','Archivos del bot Talana','talana_bot_files',['uploaded_at'],'id,run_id,report_type,file_name,mime_type,size_bytes,uploaded_at'],
+                ['SOLICITUDES','Solicitudes de colaboradores','solicitudes',['fecha_inicio','created_at'],'id,colaborador_id,tipo,fecha_inicio,fecha_termino,estado,created_at'],
+                ['HISTORIAL','Historial de colaboradores','historial_colaborador',['created_at'],'id,rut,accion,actor_email,created_at'],
+                ['GESTIONES_CORREO','Gestiones de correo','gestiones_correo',['fecha_preparacion','created_at'],'id,sucursal_id,supervisor,colaborador_rut,responsable_rol_id,asunto,fecha_desde,fecha_hasta,plazo_respuesta,estado,fecha_preparacion,fecha_envio_registrada,creado_por_email,created_at'],
+                ['CHAT','Chat interno (metadatos)','chat_conversaciones',['created_at','updated_at'],'id,tipo,created_at,updated_at'],
+                ['NOTIFICACIONES','Notificaciones','notificaciones',['created_at'],'id,usuario_rol_id,tipo,titulo,leida,created_at']
+            ];
+            const extras=extraSpecs.filter(s=>types.includes(s[0]));
+            let branchNames=new Map();
+            if(extras.length){
+                const {data:branches,error:branchError}=await _supabase.from('sucursales').select('id,nombre').limit(3000);
+                if(!branchError)branchNames=new Map((branches||[]).map(b=>[String(b.id),b.nombre]));
+            }
+            for(const [type,label,table,dateKeys,columns] of extras){
+                state.textContent='Consultando '+label+'…';
+                const {data:rows,error}=await _supabase.from(table).select(columns).limit(5000);
+                if(error){unavailable.push(label+': '+error.message);data[label]=[{Estado:'No disponible por permisos o conexión',Detalle:error.message}];continue;}
+                const enriched=(rows||[]).map(r=>({...r,sucursal:r.sucursal||r.local_destino||r.sucursal_destino_nombre||r.sucursal_origen_nombre||branchNames.get(String(r.sucursal_id||''))||''}));
+                data[label]=enriched.filter(r=>inPeriod(r,dateKeys)&&inBranch(r));
+            }
+            const summary=[
+                {Indicador:'Período',Valor:(from||'Sin inicio')+' a '+(to||'Sin término')},
+                {Indicador:'Sucursal',Valor:branch||'Todas'},
+                {Indicador:'Asistencia',Valor:data.Asistencia?.length??'No seleccionado'},
+                {Indicador:'Licencias',Valor:data.Licencias?.length??'No seleccionado'},
+                {Indicador:'Vacaciones',Valor:data.Vacaciones?.length??'No seleccionado'},
+                {Indicador:'Colaboradores',Valor:data.Colaboradores?.length??'No seleccionado'},
+                {Indicador:'Sucursales',Valor:data.Sucursales?.length??'No seleccionado'},
+                {Indicador:'Coberturas',Valor:data.Coberturas?.length??'No seleccionado'},
+                {Indicador:'Tareas',Valor:data.Tareas?.length??'No seleccionado'},
+                {Indicador:'Traslados',Valor:data.Traslados?.length??'No seleccionado'},
+                {Indicador:'Papeletas',Valor:data.Papeletas?.length??'No seleccionado'},
+                {Indicador:'Atrasos detectados',Valor:(data.Asistencia||[]).filter(r=>r.tiene_atraso).length},
+                {Indicador:'Sin marcas',Valor:(data.Asistencia||[]).filter(r=>r.sin_marca).length},
+                {Indicador:'Generado (hora Chile)',Valor:new Date().toLocaleString('es-CL',{timeZone:'America/Santiago'})}
+            ];
+            if(types.includes('RESUMEN'))data['Resumen ejecutivo']=summary;
+            const wb=XLSX.utils.book_new();
+            Object.entries(data).forEach(([name,rows])=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows.length?rows:[{Mensaje:'Sin registros para los filtros seleccionados'}]),name.slice(0,31)));
+            const stamp=new Date().toLocaleDateString('sv-SE',{timeZone:'America/Santiago'}),xlsxName='Reporte_RRHH_'+stamp+'.xlsx';
+            const bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'}),kpi=document.getElementById('rep-kpis');
+            kpi.classList.remove('hidden');
+            kpi.innerHTML=Object.entries(data).map(([n,rows])=>'<div class="rounded-xl border bg-slate-50 p-4"><span class="text-xs text-slate-500">'+escaparHTML(n)+'</span><b class="mt-1 block text-2xl">'+rows.length+'</b><span class="text-xs text-slate-500">filas</span></div>').join('');
+            const textSummary=summary.map(x=>x.Indicador+': '+x.Valor).join('\\n')+(unavailable.length?'\\nFuentes no disponibles: '+unavailable.join(' | '):'');
+            const pdf=()=>{const {jsPDF}=window.jspdf,doc=new jsPDF();doc.setFontSize(17);doc.text('Reporte ejecutivo · Recursos Humanos',15,18);doc.setFontSize(10);let y=30;doc.splitTextToSize(textSummary,180).forEach(line=>{if(y>280){doc.addPage();y=18;}doc.text(line,15,y);y+=6;});return doc;};
+            if(format==='xlsx')XLSX.writeFile(wb,xlsxName);
+            else if(format==='pdf')pdf().save('Resumen_RRHH_'+stamp+'.pdf');
+            else{
+                if(!window.JSZip)throw new Error('No se pudo cargar el generador ZIP.');
+                const zip=new JSZip();if(format!=='csv')zip.file(xlsxName,bytes);
+                Object.entries(data).forEach(([n,rows])=>zip.file(n.replace(/[^a-z0-9_-]/gi,'_')+'.csv',XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(rows.length?rows:[{Mensaje:'Sin registros'}]))));
+                if(format!=='csv')zip.file('Resumen_ejecutivo.pdf',pdf().output('arraybuffer'));
+                const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=(format==='csv'?'Reportes_RRHH_CSV_':'Paquete_Reportes_RRHH_')+stamp+'.zip';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+            }
+            state.textContent='Listo · '+Object.keys(data).length+' informe(s) preparados.'+(unavailable.length?' · '+unavailable.length+' fuente(s) no disponibles':'');
+            mostrarToast('Reportes generados. '+(unavailable.length?unavailable.length+' fuente(s) no se pudieron consultar.':'Todos los módulos seleccionados fueron consultados.'),'success',8000);
+        }catch(e){state.textContent='No se pudieron generar los reportes.';mostrarToast('Error al generar reportes: '+(e.message||e),'error',12000);}
+    }
         function descargarRespuestaIA(){if(!ultimaRespuestaIA)return mostrarToast('Primero genera un análisis.','warning');const {jsPDF}=window.jspdf,doc=new jsPDF(),y0=20;doc.setTextColor(0,82,155);doc.setFontSize(15);doc.text('Reporte de Recursos Humanos',20,y0);doc.setTextColor(0);doc.setFontSize(9);let y=32;doc.splitTextToSize(ultimaRespuestaIA,170).forEach(line=>{if(y>280){doc.addPage();y=20;}doc.text(line,20,y);y+=4.5;});doc.save('Reporte_Gemini_RRHH.pdf');}
 

@@ -262,6 +262,92 @@
             return filas;
         }
 
+        // Trazabilidad de cargas: misma etiqueta para archivos manuales y bot en nube.
+        const MODULOS_ACTUALIZACION = {
+            colaboradores: 'Colaboradores',
+            sucursales: 'Sucursales',
+            config_sucursales: 'Configuración de sucursales',
+            config_correos: 'Correos por sucursal',
+            asistencia: 'Asistencia',
+            licencias: 'Licencias médicas',
+            vacaciones: 'Vacaciones',
+            talana_bot: 'Reportes del bot Talana',
+            talana_ausentismos: 'Reporte Talana de ausentismos',
+            talana_vacaciones: 'Reporte Talana de vacaciones'
+        };
+
+        function formatoFechaActualizacion(valor) {
+            if (!valor) return 'Sin cargas registradas';
+            const fecha = new Date(valor);
+            if (Number.isNaN(fecha.getTime())) return 'Fecha no disponible';
+            return fecha.toLocaleString('es-CL', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Santiago' });
+        }
+
+        function pintarActualizacionFuente(registro) {
+            if (!registro?.modulo) return;
+            document.querySelectorAll('[data-update-stamp="' + registro.modulo + '"]').forEach(el => {
+                const fecha = formatoFechaActualizacion(registro.actualizado_en);
+                const origen = registro.origen === 'bot' ? 'Bot Talana' : registro.origen === 'manual' ? 'Carga manual' : 'Sistema';
+                const archivo = registro.archivo ? ' · ' + registro.archivo : '';
+                el.textContent = registro.actualizado_en
+                    ? (registro.detalles?.baseline ? 'Seguimiento iniciado: ' + fecha + ' · carga histórica sin fecha original' : 'Última actualización: ' + fecha + ' · ' + origen + archivo)
+                    : 'Sin cargas registradas';
+                el.title = registro.usuario_email ? 'Registrado por ' + registro.usuario_email : '';
+                el.dataset.updateState = registro.actualizado_en ? 'ok' : 'empty';
+            });
+        }
+
+        async function cargarActualizacionesFuentes() {
+            if (!_supabase?.auth) return;
+            const { data: sessionData } = await _supabase.auth.getSession();
+            if (!sessionData?.session) return;
+            const { data, error } = await _supabase
+                .from('actualizaciones_fuentes')
+                .select('modulo,actualizado_en,archivo,origen,usuario_email,registros,detalles')
+                .order('actualizado_en', { ascending: false });
+            if (error) {
+                console.warn('No se pudo consultar la trazabilidad de archivos:', error.message);
+                return;
+            }
+            Object.keys(MODULOS_ACTUALIZACION).forEach(modulo => {
+                if (!data?.some(x => x.modulo === modulo)) {
+                    pintarActualizacionFuente({ modulo, actualizado_en: null });
+                }
+            });
+            (data || []).forEach(pintarActualizacionFuente);
+        }
+
+        async function registrarActualizacionFuente(modulo, archivo, registros = null, origen = 'manual', detalles = {}) {
+            try {
+                const { data: sessionData } = await _supabase.auth.getSession();
+                const payload = {
+                    modulo,
+                    actualizado_en: new Date().toISOString(),
+                    archivo: String(archivo || '').slice(0, 240) || null,
+                    origen: ['manual', 'bot', 'sistema'].includes(origen) ? origen : 'manual',
+                    usuario_email: sessionData?.session?.user?.email || null,
+                    registros: Number.isFinite(Number(registros)) && registros !== null ? Number(registros) : null,
+                    detalles: detalles && typeof detalles === 'object' ? detalles : {}
+                };
+                const { data, error } = await _supabase
+                    .from('actualizaciones_fuentes')
+                    .upsert(payload, { onConflict: 'modulo' })
+                    .select('modulo,actualizado_en,archivo,origen,usuario_email,registros,detalles')
+                    .single();
+                if (error) throw error;
+                pintarActualizacionFuente(data);
+                return true;
+            } catch (error) {
+                console.error('La carga terminó, pero no se pudo registrar su fecha:', error);
+                const labels = document.querySelectorAll('[data-update-stamp="' + modulo + '"]');
+                labels.forEach(el => { el.textContent = 'Datos guardados; no se pudo registrar la fecha de actualización'; });
+                if (window.mostrarToast) mostrarToast('Los datos se guardaron, pero falló el registro de trazabilidad. ' + (error.message || ''), 'warning', 12000);
+                return false;
+            }
+        }
+        window.cargarActualizacionesFuentes = cargarActualizacionesFuentes;
+        window.registrarActualizacionFuente = registrarActualizacionFuente;
+
         // Esta función resuelve el error 21000.
         // Conserva la última aparición de cada clave dentro del Excel completo.
         function deduplicarRegistros(registros, generarClave) {
@@ -455,6 +541,7 @@
                         document.getElementById('login-overlay').classList.add('hidden');
                         await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
                         await inicializarDashboard();
+                        await actualizarContadorNotificacionesTopbar();
                     }catch(perfilError){
                         await _supabase.auth.signOut();
                         perfilActualSistema=null;modulosPermitidosActuales=[];
@@ -495,6 +582,7 @@
                 document.getElementById('login-overlay').classList.add('hidden');
                 await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
                 await inicializarDashboard();
+                await actualizarContadorNotificacionesTopbar();
             } catch (error) {
                 try{await _supabase.auth.signOut();}catch(_){}
                 perfilActualSistema=null;modulosPermitidosActuales=[];
@@ -531,6 +619,7 @@
         // NAVEGACIÓN
         // ============================================================
         async function cambiarModulo(modulo, cargar = true) {
+            if (window.cargarActualizacionesFuentes) cargarActualizacionesFuentes().catch(error => console.warn('Trazabilidad de archivos:', error));
             if(perfilActualSistema&&!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para acceder a este apartado.','warning');const primero=modulos.find(nombre=>tienePermisoModulo(nombre));if(primero&&primero!==modulo)return cambiarModulo(primero,cargar);return;}
             modulos.forEach(nombre => {
                 const boton = document.getElementById(`btn-${nombre}`);
@@ -576,6 +665,8 @@
             }
 
             try {
+                if (modulo === 'chat' && window.cargarChatInterno) await window.cargarChatInterno();
+                if (modulo === 'traslados' && window.iniciarModuloTraslados) await window.iniciarModuloTraslados();
                 if (modulo === 'reportes') await prepararFiltrosReportesRRHH();
                 if (modulo === 'colaboradores') {
                     await cargarTablaColaboradores();
@@ -692,6 +783,16 @@
         // NOTIFICACIONES · Bandeja personal con actualización segura
         // ============================================================
         let notificacionesCentroGlobal=[];
+        async function actualizarContadorNotificacionesTopbar(){
+            const badge=document.getElementById('topbar-notif-count'),nav=document.getElementById('nav-notif-count');
+            if(!badge&&!nav)return;
+            try{
+                const {count,error}=await _supabase.from('notificaciones').select('id',{count:'exact',head:true}).eq('leida',false);
+                if(error)throw error;
+                const n=Number(count||0);
+                [badge,nav].filter(Boolean).forEach(node=>{node.textContent=n>99?'99+':String(n);node.classList.toggle('hidden',n===0);});
+            }catch(error){console.warn('Contador de notificaciones:',error.message);}
+        }
         async function cargarCentroNotificaciones(){
             const lista=document.getElementById('notif-lista');if(!lista)return;
             lista.innerHTML='<p class="text-sm text-slate-500">Consultando tu bandeja...</p>';
@@ -707,6 +808,7 @@
             const card=(t,v,d,ic)=>'<div class="ui-card p-5"><div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">'+opsEsc(t)+'</span><i data-lucide="'+ic+'" class="h-5 w-5 text-blue-600"></i></div><strong class="mt-3 block text-3xl font-black">'+opsEsc(v)+'</strong><p class="mt-1 text-xs text-slate-500">'+opsEsc(d)+'</p></div>';
             k.innerHTML=card('Total cargadas',notificacionesCentroGlobal.length,'Máximo 250 más recientes','bell')+card('Sin leer',unread,'Requieren atención','bell-dot')+card('Leídas',notificacionesCentroGlobal.length-unread,'Avisos revisados','check-check');
             const navBadge=document.getElementById('nav-notif-count');if(navBadge){navBadge.textContent=unread>99?'99+':String(unread);navBadge.classList.toggle('hidden',unread===0);}
+            const topBadge=document.getElementById('topbar-notif-count');if(topBadge){topBadge.textContent=unread>99?'99+':String(unread);topBadge.classList.toggle('hidden',unread===0);}
             lista.innerHTML=rows.length?rows.map(x=>'<article class="notif-item flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-start '+(!x.leida?'unread':'')+'"><span class="notif-symbol"><i data-lucide="'+(/error|urg|venc/i.test((x.tipo||'')+' '+(x.titulo||''))?'alert-triangle':'bell')+'" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm">'+opsEsc(x.titulo||'Notificación')+'</strong>'+(!x.leida?'<span class="notif-pill">Nueva</span>':'')+'</div><p class="mt-1 whitespace-pre-wrap text-sm text-slate-600">'+opsEsc(x.mensaje||'Sin detalle adicional')+'</p><p class="mt-2 text-xs text-slate-400">'+opsEsc(x.tipo||'Aviso')+' · '+opsEsc(x.created_at?new Date(x.created_at).toLocaleString('es-CL'):'Fecha no disponible')+'</p></div>'+(!x.leida?'<button type="button" class="notif-mark" onclick="marcarNotificacionLeida('+Number(x.id)+')"><i data-lucide="check" class="h-4 w-4"></i> Marcar leída</button>':'<span class="self-center text-xs text-slate-400">Leída</span>')+'</article>').join(''):'<div class="rounded-xl border border-dashed border-slate-300 p-8 text-center"><i data-lucide="bell-off" class="mx-auto h-8 w-8 text-slate-400"></i><p class="mt-3 font-bold text-slate-700">No hay notificaciones en esta vista</p><p class="mt-1 text-sm text-slate-500">Cuando se registren avisos para tu perfil, aparecerán aquí.</p></div>';
             if(window.lucide)lucide.createIcons();
         }
@@ -754,6 +856,7 @@
             lista.innerHTML=items.map(x=>'<div class="integ-row flex flex-col gap-3 sm:flex-row sm:items-start"><span class="integ-status '+x.kind+'">'+opsEsc(x.status)+'</span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm">'+opsEsc(x.name)+'</strong><span class="text-xs text-slate-400">'+opsEsc(x.type)+'</span></div><p class="mt-1 text-sm text-slate-600">'+opsEsc(x.detail)+'</p></div></div>').join('');
             const stamp=document.getElementById('integ-actualizado');if(stamp)stamp.textContent='Comprobado '+new Date().toLocaleString('es-CL');
             if(window.lucide)lucide.createIcons();
+            if(window.cargarPanelBotTalana) await window.cargarPanelBotTalana();
         }
 
         // ============================================================
@@ -952,6 +1055,7 @@
                     const el = document.getElementById(id);
                     if (el) el.textContent = Number(valor ?? 0).toLocaleString('es-CL');
                 });
+                renderDashboardGerencialCharts();
                 if (periodoLabel) periodoLabel.textContent = 'Período de asistencia: ' + rango.etiqueta + (sucursal ? ' · ' + sucursal : ' · Todas las sucursales');
             } catch (error) {
                 if (errorBox) {
@@ -962,6 +1066,21 @@
                 if (loading) loading.classList.add('hidden');
                 if (window.lucide) lucide.createIcons();
             }
+        }
+
+        function renderDashboardGerencialCharts(){
+            const read=id=>{const el=document.getElementById(id);return Math.max(0,Number(String(el?.textContent||'0').replace(/[^0-9-]/g,''))||0);};
+            const total=read('ind-total'),atrasos=read('ind-atrasos'),incompletas=read('ind-incompletas'),sinMarca=read('ind-sin-marca'),faltas=read('ind-faltas'),inexistentes=read('ind-inexistentes'),anomalias=read('ind-anomalias'),licVig=read('ind-licencias-vigentes'),licProx=read('ind-licencias-proximas');
+            const bars=document.getElementById('dashboard-chart-incidencias'),gauge=document.getElementById('dashboard-chart-atrasos'),load=document.getElementById('dashboard-chart-carga');
+            if(!bars||!gauge||!load)return;
+            const items=[{label:'Atrasos',value:atrasos,color:'#f59e0b'},{label:'Marcas incompletas',value:incompletas,color:'#f97316'},{label:'Sin marca',value:sinMarca,color:'#e11d48'},{label:'Faltas injustificadas',value:faltas,color:'#be123c'},{label:'Anomalías / revisión',value:anomalias,color:'#7c3aed'}];
+            const max=Math.max(1,...items.map(x=>x.value));
+            bars.innerHTML=items.map(x=>'<div><div class="mb-1 flex items-center justify-between gap-3"><span class="text-xs font-semibold text-slate-600">'+escaparHTML(x.label)+'</span><b class="text-xs text-slate-800">'+x.value.toLocaleString('es-CL')+'</b></div><div class="dash-bar-track"><div class="dash-bar-fill" style="width:'+Math.max(x.value?2:0,Math.min(100,x.value/max*100))+'%;background:'+x.color+'"></div></div></div>').join('');
+            const rate=total?Math.min(100,atrasos/total*100):0,angle=rate/100*360;
+            gauge.innerHTML='<div class="dash-gauge" style="--angle:'+angle+'deg"><div><strong class="block text-2xl font-black text-slate-900">'+rate.toLocaleString('es-CL',{maximumFractionDigits:1})+'%</strong><span class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Atrasos</span></div></div><p class="mt-4 text-center text-xs text-slate-500">'+atrasos.toLocaleString('es-CL')+' de '+total.toLocaleString('es-CL')+' registros de asistencia.</p><div class="mt-3 rounded-lg bg-amber-50 p-3 text-[11px] leading-5 text-amber-900">Indicador descriptivo del período. No equivale a una tasa de personas únicas.</div>';
+            const loadItems=[{label:'Licencias vigentes',value:licVig,color:'#0891b2'},{label:'Licencias próximas a terminar',value:licProx,color:'#6366f1'},{label:'Registros inexistentes',value:inexistentes,color:'#64748b'},{label:'Incidencias / revisión',value:anomalias,color:'#8b5cf6'}];
+            const maxLoad=Math.max(1,...loadItems.map(x=>x.value));
+            load.innerHTML=loadItems.map(x=>'<div class="mb-4"><div class="mb-1 flex items-center justify-between gap-2"><span class="text-xs font-semibold text-slate-600">'+escaparHTML(x.label)+'</span><b class="text-xs">'+x.value.toLocaleString('es-CL')+'</b></div><div class="dash-bar-track"><div class="dash-bar-fill" style="width:'+Math.max(x.value?2:0,Math.min(100,x.value/maxLoad*100))+'%;background:'+x.color+'"></div></div></div>').join('')+'<p class="mt-2 border-t border-slate-100 pt-3 text-[10px] text-slate-400">Conteos independientes; una persona o jornada puede aparecer en más de una categoría.</p>';
         }
 
         async function inicializarDashboard() {

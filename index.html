@@ -396,6 +396,32 @@ body{overflow-x:hidden}
         .dashboard-welcome>*{position:relative;z-index:1}
         .app-watermark{position:fixed;z-index:5;right:22px;bottom:12px;pointer-events:none;user-select:none;color:#0b4778;opacity:.16;font-size:10px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;transform:rotate(-2deg);text-shadow:0 1px 0 rgba(255,255,255,.65)}
         @media(max-width:640px){.app-watermark{right:8px;bottom:5px;font-size:8px;letter-spacing:.06em}.dashboard-welcome{padding:20px}}
+
+        /* Doctor Simi · paneles de control con color funcional y contraste accesible */
+        #view-asistencia .ui-card:has(#stat-sin-marcas),#view-asistencia .ui-card:has(#stat-incompletas),#view-asistencia .ui-card:has(#stat-atrasos),#view-asistencia .ui-card:has(#stat-tempranas),#view-asistencia .ui-card:has(#stat-sin-turno-marcas){border:1px solid #d7e6f5;box-shadow:0 10px 24px rgba(14,45,91,.06);transition:transform .18s ease,box-shadow .18s ease}
+        #view-asistencia .ui-card:has(#stat-sin-marcas):hover,#view-asistencia .ui-card:has(#stat-incompletas):hover,#view-asistencia .ui-card:has(#stat-atrasos):hover,#view-asistencia .ui-card:has(#stat-tempranas):hover,#view-asistencia .ui-card:has(#stat-sin-turno-marcas):hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(14,45,91,.12)}
+        #view-asistencia .ui-card:has(#stat-sin-marcas){background:linear-gradient(135deg,#fff,#fff1f2)}#view-asistencia .ui-card:has(#stat-incompletas){background:linear-gradient(135deg,#fff,#fff7ed)}#view-asistencia .ui-card:has(#stat-atrasos){background:linear-gradient(135deg,#fff,#fef3c7)}#view-asistencia .ui-card:has(#stat-tempranas){background:linear-gradient(135deg,#fff,#eff6ff)}#view-asistencia .ui-card:has(#stat-sin-turno-marcas){background:linear-gradient(135deg,#fff,#f5f3ff)}
+        #view-vacaciones .ui-card:has(#vac-stat-vigentes),#view-vacaciones .ui-card:has(#vac-stat-proximas),#view-vacaciones .ui-card:has(#vac-stat-caducadas),#view-vacaciones .ui-card:has(#vac-stat-alertas){cursor:pointer;border-radius:18px;transition:transform .18s ease,box-shadow .18s ease}
+        #view-vacaciones .ui-card:has(#vac-stat-vigentes):hover,#view-vacaciones .ui-card:has(#vac-stat-proximas):hover,#view-vacaciones .ui-card:has(#vac-stat-caducadas):hover,#view-vacaciones .ui-card:has(#vac-stat-alertas):hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(15,23,42,.1)}
+        #btn-amonestaciones>i,#btn-configcorreos>i{width:28px;height:28px;flex-shrink:0;padding:6px;border-radius:9px;background:linear-gradient(135deg,#fb923c,#e11d48);color:#fff;box-shadow:0 4px 12px rgba(225,29,72,.22)}
+        #btn-configcorreos>i{background:linear-gradient(135deg,#06b6d4,#2563eb);box-shadow:0 4px 12px rgba(37,99,235,.22)}
+        #topbar-notification-button:focus-visible{outline:3px solid #a5b4fc;outline-offset:2px}
+        #dashboard-gerencial-graficos .dash-bar-track{height:10px;overflow:hidden;border-radius:999px;background:#e2e8f0}
+        #dashboard-gerencial-graficos .dash-bar-fill{height:100%;border-radius:999px;transition:width .45s ease}
+        #dashboard-gerencial-graficos .dash-gauge{width:132px;height:132px;border-radius:50%;display:grid;place-items:center;margin:0 auto;background:conic-gradient(#f59e0b 0deg,#f59e0b var(--angle,0deg),#e2e8f0 var(--angle,0deg),#e2e8f0 360deg);position:relative}
+        #dashboard-gerencial-graficos .dash-gauge:before{content:"";position:absolute;inset:11px;border-radius:50%;background:white}
+        #dashboard-gerencial-graficos .dash-gauge>div{position:relative;z-index:1;text-align:center}
+        @media(prefers-reduced-motion:reduce){#dashboard-gerencial-graficos .dash-bar-fill{transition:none!important}}
+        #view-traslados .module-intro{position:relative;overflow:hidden;border:1px solid #233c85;border-radius:22px;padding:26px;color:#fff;background:radial-gradient(circle at 88% 0%,rgba(34,211,238,.3),transparent 30%),linear-gradient(120deg,#07142e,#172554 55%,#075985);box-shadow:0 16px 38px rgba(15,23,42,.16)}
+        #view-traslados .module-intro h3{color:#fff;font-size:clamp(1.35rem,2vw,2rem);letter-spacing:-.035em}#view-traslados .module-intro p{color:#dbeafe}
+        #view-traslados .ui-card{border-radius:18px;box-shadow:0 10px 26px rgba(15,23,42,.05)}#view-traslados .ui-card h4{letter-spacing:-.01em}
+        #view-operaciones .module-intro{border:1px solid #c7d2fe;border-radius:22px;padding:24px;background:radial-gradient(circle at 90% 5%,rgba(6,182,212,.2),transparent 30%),linear-gradient(120deg,#f8fafc,#eef2ff 52%,#ecfeff)}
+        #view-operaciones #ops-kpis>div{border-radius:18px;border-top:3px solid #0891b2;background:linear-gradient(135deg,#fff,#f0f9ff)}
+        #view-tareas #tarea-kpi-resumen>div{border-radius:14px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.1);padding:12px}
+        #mapa14-frame.map-frame{min-height:420px;height:clamp(420px,58vw,650px);border-radius:14px}
+        [data-update-stamp][data-update-state="ok"]{color:#047857!important;border-color:#a7f3d0!important;background:#ecfdf5!important}[data-update-stamp][data-update-state="empty"]{color:#92400e!important;border-color:#fde68a!important;background:#fffbeb!important}
+        @media(prefers-reduced-motion:reduce){#view-asistencia .ui-card,#view-vacaciones .ui-card{transition:none!important}}
+
 </style>
 </head>
 
@@ -646,7 +672,16 @@ body{overflow-x:hidden}
                     <i data-lucide="plug-zap" class="h-4 w-4"></i>
                     19. Integraciones
                 </button>
-            </nav>
+                            <div class="nova-nav-divider"><span>COMUNICACIÓN Y DOTACIÓN</span></div>
+                <button id="btn-chat" class="menu-btn" onclick="cambiarModulo('chat')">
+                    <i data-lucide="messages-square" class="h-4 w-4"></i>
+                    20. Chat interno
+                </button>
+                <button id="btn-traslados" class="menu-btn" onclick="cambiarModulo('traslados')">
+                    <i data-lucide="users-round" class="h-4 w-4"></i>
+                    21. Traslados de personal
+                </button>
+</nav>
         </aside>
 
         <main class="flex min-w-0 flex-1 flex-col overflow-y-auto">
@@ -674,6 +709,9 @@ body{overflow-x:hidden}
                     <button type="button" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('tareas');setTimeout(()=>document.getElementById('tarea-titulo')?.focus(),250)">
                         <i data-lucide="plus" class="h-4 w-4"></i><span>Nueva tarea rápida</span>
                     </button>
+                    <button type="button" id="topbar-notification-button" class="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-100 bg-gradient-to-br from-white to-indigo-50 text-indigo-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" onclick="cambiarModulo('notificaciones');setTimeout(()=>cargarCentroNotificaciones(),150)" aria-label="Abrir notificaciones" title="Notificaciones">
+                        <i data-lucide="bell-ring" class="h-5 w-5"></i><span id="topbar-notif-count" class="absolute -right-1 -top-1 hidden min-w-[18px] rounded-full bg-rose-600 px-1 text-center text-[10px] font-black leading-[18px] text-white">0</span>
+                    </button>
                     <button type="button" class="topbar-search hidden md:inline-flex" onclick="abrirBuscadorGlobal()" aria-label="Buscar módulos, Ctrl K" title="Buscar módulos (Ctrl+K)">
                         <i data-lucide="search" class="h-4 w-4"></i><span>Buscar módulo...</span><kbd>Ctrl K</kbd>
                     </button>
@@ -699,6 +737,15 @@ body{overflow-x:hidden}
                             <p id="dashboard-welcome-subtitle" class="mt-2 max-w-2xl text-sm text-blue-50">Tu centro de control para asistencia, ausentismo y operaciones.</p>
                         </div>
                         <span id="dashboard-welcome-role" class="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-2 text-xs font-bold text-white"><i data-lucide="shield-check" class="h-4 w-4"></i> Usuario autorizado</span>
+                    </div>
+                </div>
+                <div class="ui-card p-4 sm:p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div><h3 class="font-extrabold text-slate-900">Actualización de datos</h3><p class="mt-1 text-xs text-slate-500">Últimas cargas registradas en los módulos a los que tienes acceso, en hora de Chile.</p></div>
+                        <button type="button" class="corp-button-dark text-xs" onclick="cargarResumenActualizaciones()">Actualizar fechas</button>
+                    </div>
+                    <div id="dashboard-freshness-list" class="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2">
+                        <p class="text-sm text-slate-500">Consultando última carga…</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -857,18 +904,27 @@ body{overflow-x:hidden}
                         <div class="rounded-xl border border-cyan-200 bg-cyan-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-cyan-800">Licencias vigentes hoy</p><p id="ind-licencias-vigentes" class="mt-2 text-3xl font-black text-cyan-800">--</p><p class="mt-1 text-xs text-slate-500">Licencias cuya fecha cubre hoy</p></div>
                         <div class="rounded-xl border border-blue-200 bg-blue-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-blue-800">Licencias que terminan pronto</p><p id="ind-licencias-proximas" class="mt-2 text-3xl font-black text-blue-800">--</p><p class="mt-1 text-xs text-slate-500">Terminan dentro de los próximos 7 días</p></div>
                     </div>
+                    <div class="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3" id="dashboard-gerencial-graficos">
+                        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div class="border-b bg-gradient-to-r from-sky-50 to-indigo-50 p-4"><div class="flex items-center gap-2"><i data-lucide="chart-bar-increasing" class="h-5 w-5 text-sky-700"></i><h4 class="font-extrabold text-slate-900">Ranking de incidencias</h4></div><p class="mt-1 text-[11px] text-slate-500">Comparación por tipo, período seleccionado</p></div><div id="dashboard-chart-incidencias" class="space-y-4 p-4"><p class="text-xs text-slate-400">Calcula los indicadores para generar el gráfico.</p></div></article>
+                        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div class="border-b bg-gradient-to-r from-violet-50 to-fuchsia-50 p-4"><div class="flex items-center gap-2"><i data-lucide="gauge" class="h-5 w-5 text-violet-700"></i><h4 class="font-extrabold text-slate-900">Índice de atrasos</h4></div><p class="mt-1 text-[11px] text-slate-500">Atrasos respecto de los registros de asistencia</p></div><div id="dashboard-chart-atrasos" class="p-5"><p class="text-xs text-slate-400">Calcula los indicadores para generar el indicador.</p></div></article>
+                        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div class="border-b bg-gradient-to-r from-emerald-50 to-cyan-50 p-4"><div class="flex items-center gap-2"><i data-lucide="chart-no-axes-combined" class="h-5 w-5 text-emerald-700"></i><h4 class="font-extrabold text-slate-900">Carga operativa</h4></div><p class="mt-1 text-[11px] text-slate-500">Incidencias que requieren seguimiento</p></div><div id="dashboard-chart-carga" class="p-4"><p class="text-xs text-slate-400">Calcula los indicadores para generar el gráfico.</p></div></article>
+                    </div>
                     <p class="mt-4 text-xs leading-5 text-slate-500">Nota: estos valores cuentan registros, no personas únicas. Los registros sin marca no equivalen automáticamente a faltas injustificadas; esa categoría se calcula por separado según el campo de ausentismo.</p>
                 </div>
             </section>
 
             <!-- COLABORADORES -->
             <section id="view-colaboradores" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="ui-card flex items-center justify-between gap-3 p-4">
-                    <h3 class="font-bold text-slate-900">
-                        Nómina de colaboradores
-                    </h3>
+                <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
+                    <div class="min-w-0 flex-1">
+                        <h3 class="font-bold text-slate-900">Nómina de colaboradores</h3>
+                        <p data-update-stamp="colaboradores" class="mt-2 inline-flex max-w-full items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
+                            <i data-lucide="clock-3" class="mr-1.5 h-3.5 w-3.5 shrink-0"></i>
+                            <span>Consultando última carga…</span>
+                        </p>
+                    </div>
 
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <label
                             class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white"
                         >
@@ -882,7 +938,6 @@ body{overflow-x:hidden}
                                 onchange="procesarExcelGenerico(event, 'colaboradores')"
                             >
                         </label>
-
                         <button
                             onclick="toggleModalColaborador(true)"
                             class="rounded-lg bg-simiRed px-4 py-2 text-xs font-semibold text-white"
@@ -892,6 +947,11 @@ body{overflow-x:hidden}
                     </div>
                 </div>
 
+                <div class="ui-card grid grid-cols-1 gap-3 p-4 sm:grid-cols-[1.3fr_1fr_auto]">
+                    <div><label for="col-filtro-busqueda" class="mb-1 block text-xs font-bold text-slate-600">Buscar colaborador</label><input id="col-filtro-busqueda" type="search" class="form-field" placeholder="Nombre, apellido, RUT o cargo" oninput="filtrarTablaColaboradores()"></div>
+                    <div><label for="col-filtro-sucursal" class="mb-1 block text-xs font-bold text-slate-600">Filtrar por sucursal</label><select id="col-filtro-sucursal" class="form-field" onchange="filtrarTablaColaboradores()"><option value="">Todas las sucursales</option></select></div>
+                    <div class="flex items-end"><button type="button" class="corp-button-dark w-full" onclick="document.getElementById('col-filtro-busqueda').value='';document.getElementById('col-filtro-sucursal').value='';filtrarTablaColaboradores()">Limpiar filtros</button></div>
+                </div>
                 <div class="ui-card table-scroll">
                     <table class="w-full min-w-[850px] text-left">
                         <thead class="bg-slate-50 text-[11px] uppercase text-slate-500">
@@ -913,6 +973,14 @@ body{overflow-x:hidden}
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                <div class="ui-card overflow-hidden">
+                    <div class="flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 bg-slate-50 p-4">
+                        <div><h4 class="font-extrabold text-slate-900">Historial del colaborador</h4><p class="mt-1 text-xs text-slate-500">Registra automáticamente los cambios de los datos maestros desde la activación del historial.</p></div>
+                        <div class="flex gap-2"><input id="hist-colaborador-rut" class="form-field" placeholder="Buscar por RUT" maxlength="14"><button type="button" class="corp-button-dark" onclick="cargarHistorialColaborador()">Consultar</button></div>
+                    </div>
+                    <p id="hist-colaborador-estado" class="px-4 pt-3 text-xs text-slate-500" aria-live="polite">Ingresa un RUT para consultar sus cambios.</p>
+                    <div class="table-scroll"><table class="w-full min-w-[850px] text-left"><thead class="text-[11px] uppercase text-slate-500"><tr><th class="p-3">Fecha</th><th class="p-3">Acción</th><th class="p-3">Cambios registrados</th><th class="p-3">Usuario / proceso</th></tr></thead><tbody id="hist-colaborador-body" class="divide-y divide-slate-100 text-xs"><tr><td colspan="4" class="p-5 text-center text-slate-500">Sin consulta.</td></tr></tbody></table></div>
                 </div>
             </section>
 
@@ -936,6 +1004,7 @@ body{overflow-x:hidden}
                             onchange="procesarExcelGenerico(event, 'sucursales')"
                         >
                     </label>
+                    <span data-update-stamp="sucursales" class="self-center text-[11px] text-slate-500">Consultando última carga…</span>
                 </div>
 
                 <div class="ui-card table-scroll">
@@ -961,7 +1030,7 @@ body{overflow-x:hidden}
                 </div>
 
                 <div class="ui-card p-5">
-                    <div class="flex flex-wrap items-center justify-between gap-3"><div><h3 class="section-title">Mapa y configuración operacional</h3><p class="mt-1 text-xs text-slate-500">Consulta sucursales y rutas caminando, en transporte público o en auto. Configura correos, copias y horarios mediante plantilla Excel.</p></div><div class="flex gap-2"><button onclick="descargarPlantillaSucursales()" class="corp-button-dark text-xs">Descargar plantilla</button><label class="corp-button cursor-pointer text-xs">Subir configuración<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarConfiguracionSucursales(event)"></label></div></div>
+                    <div class="flex flex-wrap items-center justify-between gap-3"><div><h3 class="section-title">Mapa y configuración operacional</h3><p class="mt-1 text-xs text-slate-500">Consulta sucursales y rutas caminando, en transporte público o en auto. Configura correos, copias y horarios mediante plantilla Excel.</p></div><div class="flex gap-2"><button onclick="descargarPlantillaSucursales()" class="corp-button-dark text-xs">Descargar plantilla</button><label class="corp-button cursor-pointer text-xs">Subir configuración<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarConfiguracionSucursales(event)"></label><span data-update-stamp="config_sucursales" class="self-center text-[11px] text-slate-500">Consultando última carga…</span></div></div>
                     <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4"><select id="map-origen" class="form-field"><option value="">Sucursal origen</option></select><select id="map-destino" class="form-field"><option value="">Sucursal destino</option></select><select id="map-modo" class="form-field"><option value="d">Auto</option><option value="r">Metro / micro / transporte público</option><option value="w">Caminando</option></select><button onclick="mostrarRutaSucursales()" class="corp-button">Ver ruta interactiva</button></div>
                     <iframe id="mapa-sucursales" class="map-frame mt-4" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
@@ -995,6 +1064,7 @@ body{overflow-x:hidden}
                             onchange="procesarReporteAsistencia(event)"
                         >
                     </label>
+                    <span data-update-stamp="asistencia" class="self-center text-[11px] text-slate-500">Consultando última carga…</span>
                 </div>
 
                 <div class="ui-card grid grid-cols-1 gap-4 p-4 sm:grid-cols-3">
@@ -1133,6 +1203,7 @@ body{overflow-x:hidden}
                             onchange="procesarHistorialLicencias(event)"
                         >
                     </label>
+                    <span data-update-stamp="licencias" class="self-center text-[11px] text-slate-500">Consultando última carga…</span>
                 </div>
 
                 <div class="ui-card grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -1235,12 +1306,13 @@ body{overflow-x:hidden}
                         <i data-lucide="upload-cloud" class="h-4 w-4"></i> Cargar histórico
                         <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarHistorialVacaciones(event)">
                     </label>
+                    <span data-update-stamp="vacaciones" class="self-center text-[11px] text-slate-500">Consultando última carga…</span>
                 </div>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
-                    <div class="ui-card border-l-4 border-emerald-500 p-4"><p class="text-xs uppercase text-slate-500">Vigentes</p><h4 id="vac-stat-vigentes" class="text-2xl font-black">0</h4></div>
-                    <div class="ui-card border-l-4 border-blue-500 p-4"><p class="text-xs uppercase text-slate-500">Próximas</p><h4 id="vac-stat-proximas" class="text-2xl font-black">0</h4></div>
-                    <div class="ui-card border-l-4 border-rose-500 p-4"><p class="text-xs uppercase text-slate-500">No vigentes</p><h4 id="vac-stat-caducadas" class="text-2xl font-black">0</h4></div>
-                    <div class="ui-card border-l-4 border-orange-500 p-4"><p class="text-xs uppercase text-slate-500">Con marcas</p><h4 id="vac-stat-alertas" class="text-2xl font-black">0</h4></div>
+                    <div role="button" tabindex="0" onclick="seleccionarFiltroVacaciones('VIGENTE')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();seleccionarFiltroVacaciones('VIGENTE')}" class="ui-card border-l-4 border-emerald-500 bg-gradient-to-br from-white to-emerald-50 p-4 text-left"><p class="text-xs uppercase text-emerald-700">Vigentes · ver detalle</p><h4 id="vac-stat-vigentes" class="text-2xl font-black text-emerald-800">0</h4></div>
+                    <div role="button" tabindex="0" onclick="seleccionarFiltroVacaciones('PROXIMA')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();seleccionarFiltroVacaciones('PROXIMA')}" class="ui-card border-l-4 border-blue-500 bg-gradient-to-br from-white to-blue-50 p-4 text-left"><p class="text-xs uppercase text-blue-700">Próximas · ver detalle</p><h4 id="vac-stat-proximas" class="text-2xl font-black text-blue-800">0</h4></div>
+                    <div role="button" tabindex="0" onclick="seleccionarFiltroVacaciones('CADUCADA')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();seleccionarFiltroVacaciones('CADUCADA')}" class="ui-card border-l-4 border-rose-500 bg-gradient-to-br from-white to-rose-50 p-4 text-left"><p class="text-xs uppercase text-rose-700">No vigentes · ver detalle</p><h4 id="vac-stat-caducadas" class="text-2xl font-black text-rose-800">0</h4></div>
+                    <div role="button" tabindex="0" onclick="seleccionarFiltroVacaciones('CON_MARCAS')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();seleccionarFiltroVacaciones('CON_MARCAS')}" class="ui-card border-l-4 border-orange-500 bg-gradient-to-br from-white to-orange-50 p-4 text-left"><p class="text-xs uppercase text-orange-700">Con marcas · ver alertas</p><h4 id="vac-stat-alertas" class="text-2xl font-black text-orange-800">0</h4></div>
                 </div>
                 <div class="ui-card grid grid-cols-1 gap-4 p-4 sm:grid-cols-4">
                     <select id="filtro-vac-persona" class="form-field" onchange="renderizarVacaciones()"><option value="TODOS">Todos los colaboradores</option></select>
@@ -1332,7 +1404,7 @@ body{overflow-x:hidden}
                     <div class="flex items-end"><button type="submit" class="w-full rounded-lg bg-simiRed px-4 py-3 text-sm font-bold text-white"><i data-lucide="file-down" class="mr-2 inline h-4 w-4"></i>Generar, firmar y guardar PDF</button></div>
                 </form>
 
-                <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4 text-xs font-bold uppercase">Papeletas generadas</div><div class="table-scroll"><table class="w-full min-w-[800px] text-left"><thead class="text-[11px] uppercase text-slate-500"><tr><th class="p-3">Fecha</th><th class="p-3">Colaborador</th><th class="p-3">Tipo</th><th class="p-3">Periodo</th><th class="p-3">Generado por</th></tr></thead><tbody id="tabla-papeletas-body" class="divide-y text-xs"><tr><td colspan="5" class="p-8 text-center text-slate-400">Sin registros.</td></tr></tbody></table></div></div>
+                <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4 text-xs font-bold uppercase">Papeletas generadas</div><div class="table-scroll"><table class="w-full min-w-[800px] text-left"><thead class="text-[11px] uppercase text-slate-500"><tr><th class="p-3">Fecha</th><th class="p-3">Colaborador</th><th class="p-3">Tipo</th><th class="p-3">Periodo</th><th class="p-3">Generado por</th><th class="p-3">Acciones</th></tr></thead><tbody id="tabla-papeletas-body" class="divide-y text-xs"><tr><td colspan="6" class="p-8 text-center text-slate-400">Sin registros.</td></tr></tbody></table></div></div>
             </section>
 
             <!-- CORREOS DE ASISTENCIA -->
@@ -1378,6 +1450,26 @@ body{overflow-x:hidden}
             <!-- COBERTURAS -->
             <section id="view-amonestaciones" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="ui-card p-5"><h3 class="section-title">Coberturas QF / AF</h3><p class="mt-1 text-xs text-slate-500">El tipo se obtiene automáticamente desde el cargo del colaborador.</p></div>
+                <div class="ui-card overflow-hidden border border-amber-200">
+                    <div class="flex flex-wrap items-start justify-between gap-3 bg-gradient-to-r from-amber-50 via-orange-50 to-rose-50 p-5">
+                        <div class="flex items-start gap-3"><span class="grid h-11 w-11 place-items-center rounded-2xl bg-amber-100 text-amber-800"><i data-lucide="user-round-search" class="h-5 w-5"></i></span><div><h4 class="font-extrabold text-slate-900">Alerta de necesidad de personal</h4><p class="mt-1 max-w-3xl text-xs leading-5 text-slate-600">Solicita una persona para una sucursal por fechas, cantidad de días, cargo y turno. El encargado de Traslados podrá revisar y aceptar o rechazar la solicitud.</p></div></div>
+                        <span class="rounded-full border border-amber-200 bg-white px-3 py-1 text-[11px] font-extrabold text-amber-800">Nueva solicitud</span>
+                    </div>
+                    <form id="form-alerta-dotacion" class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4" onsubmit="crearSolicitudDotacion(event)">
+                        <div class="xl:col-span-2"><label class="text-xs font-bold text-slate-700">Sucursal que necesita cobertura *</label><select id="dot-sucursal" required class="form-field mt-1"><option value="">Cargando sucursales…</option></select></div>
+                        <div><label class="text-xs font-bold text-slate-700">Cargo requerido *</label><select id="dot-cargo" required class="form-field mt-1"><option value="QF">QF · Químico farmacéutico</option><option value="AF">AF · Auxiliar de farmacia</option><option value="OTRO">Otro cargo</option></select></div>
+                        <div><label class="text-xs font-bold text-slate-700">Cantidad de personas *</label><input id="dot-cantidad" type="number" min="1" max="100" value="1" required class="form-field mt-1"></div>
+                        <div><label class="text-xs font-bold text-slate-700">Fecha de inicio *</label><input id="dot-inicio" type="date" required class="form-field mt-1" onchange="calcularDiasDotacion()"></div>
+                        <div><label class="text-xs font-bold text-slate-700">Fecha de término *</label><input id="dot-fin" type="date" required class="form-field mt-1" onchange="calcularDiasDotacion()"></div>
+                        <div><label class="text-xs font-bold text-slate-700">Días solicitados</label><input id="dot-dias" type="number" readonly class="form-field mt-1 bg-slate-50" placeholder="Se calcula automáticamente"></div>
+                        <div><label class="text-xs font-bold text-slate-700">Turno *</label><select id="dot-turno" required class="form-field mt-1" onchange="actualizarHorarioDotacion()"><option value="AM">AM · Apertura</option><option value="PM">PM · Cierre</option><option value="COMPLETO">Turno completo</option><option value="FLEXIBLE">Flexible / por definir</option></select></div>
+                        <div><label class="text-xs font-bold text-slate-700">Hora de inicio</label><input id="dot-hora-inicio" type="time" class="form-field mt-1"></div>
+                        <div><label class="text-xs font-bold text-slate-700">Hora de término</label><input id="dot-hora-fin" type="time" class="form-field mt-1"></div>
+                        <div class="sm:col-span-2 xl:col-span-4"><label class="text-xs font-bold text-slate-700">Motivo de la necesidad *</label><textarea id="dot-motivo" required maxlength="1500" rows="2" class="form-field mt-1" placeholder="Ej.: licencia médica, vacaciones, apertura, refuerzo operativo…"></textarea></div>
+                        <div class="sm:col-span-2 xl:col-span-4"><label class="text-xs font-bold text-slate-700">Observaciones adicionales</label><textarea id="dot-observaciones" maxlength="1500" rows="2" class="form-field mt-1" placeholder="Requisitos, restricciones de turno u otros detalles"></textarea></div>
+                        <div class="sm:col-span-2 xl:col-span-4 flex flex-wrap items-center justify-between gap-3"><p id="dot-estado" class="text-xs text-slate-500" aria-live="polite">La solicitud se guardará en la nube para revisión.</p><button class="corp-button inline-flex items-center gap-2"><i data-lucide="send" class="h-4 w-4"></i>Enviar alerta de cobertura</button></div>
+                    </form>
+                </div>
                 <form id="form-cobertura" class="ui-card grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3" onsubmit="guardarCobertura(event)"><div class="relative sm:col-span-2"><label class="required-label text-xs font-semibold">Buscar colaborador</label><input id="cob-buscar" required autocomplete="off" class="form-field" oninput="buscarCoberturaPersona()"><div id="cob-resultados" class="autocomplete-panel hidden"></div><input id="cob-id" type="hidden"></div><div><label class="text-xs font-semibold">Tipo / cargo</label><input id="cob-tipo" required readonly class="form-field bg-slate-50"></div><input id="cob-nombre" required readonly class="form-field bg-slate-50" placeholder="Nombre"><input id="cob-rut" required readonly class="form-field bg-slate-50" placeholder="RUT"><input id="cob-origen" required readonly class="form-field bg-slate-50" placeholder="Local de origen"><select id="cob-destino" required class="form-field"><option value="">Local a cubrir</option></select><input id="cob-inicio" type="date" required class="form-field" onchange="calcularDiasCobertura()"><input id="cob-fin" type="date" required class="form-field" onchange="calcularDiasCobertura()"><input id="cob-dias" type="number" min="1" required class="form-field" placeholder="Días"><textarea id="cob-motivo" required class="form-field sm:col-span-2" placeholder="Motivo"></textarea><textarea id="cob-observaciones" required class="form-field">Sin observaciones adicionales.</textarea><button class="corp-button lg:col-span-3">Guardar cobertura</button></form>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3"><div class="ui-card p-4">Pendientes <b id="cob-pendientes" class="block text-2xl">0</b></div><div class="ui-card p-4">En curso <b id="cob-curso" class="block text-2xl">0</b></div><div class="ui-card p-4">Realizadas <b id="cob-realizadas" class="block text-2xl">0</b></div></div><div class="ui-card table-scroll"><table class="w-full min-w-[1100px]"><thead><tr><th>Persona</th><th>Origen</th><th>Destino</th><th>Periodo</th><th>Motivo</th><th>Estado</th></tr></thead><tbody id="tabla-coberturas"></tbody></table></div>
             </section>
@@ -1391,7 +1483,24 @@ body{overflow-x:hidden}
                   <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="ASISTENCIA" checked><span><b>Asistencia y atrasos</b><small class="block text-xs text-slate-500">Marcas, atrasos y salidas anticipadas</small></span></label>
                   <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="LICENCIAS" checked><span><b>Licencias y ausentismo</b><small class="block text-xs text-slate-500">Periodos y duración</small></span></label>
                   <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="VACACIONES"><span><b>Vacaciones</b><small class="block text-xs text-slate-500">Histórico y periodos</small></span></label>
-                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="RESUMEN" checked><span><b>Resumen ejecutivo</b><small class="block text-xs text-slate-500">Indicadores generales</small></span></label></div></div>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="COLABORADORES"><span><b>Colaboradores</b><small class="block text-xs text-slate-500">Nómina y datos maestros</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="SUCURSALES"><span><b>Sucursales</b><small class="block text-xs text-slate-500">Directorio y ubicaciones</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="COBERTURAS"><span><b>Coberturas</b><small class="block text-xs text-slate-500">Movimientos temporales</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="TAREAS"><span><b>Tareas y KPI</b><small class="block text-xs text-slate-500">Asignación y cumplimiento</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="TRASLADOS"><span><b>Traslados</b><small class="block text-xs text-slate-500">Solicitudes y estados</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="PAPELETAS"><span><b>Papeletas</b><small class="block text-xs text-slate-500">Permisos generados</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="ACTUALIZACIONES"><span><b>Actualizaciones</b><small class="block text-xs text-slate-500">Fechas y origen de las cargas</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="AUDITORIA"><span><b>Auditoría</b><small class="block text-xs text-slate-500">Acciones y trazabilidad</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="DOCUMENTOS"><span><b>Documentos laborales</b><small class="block text-xs text-slate-500">Metadatos y fechas</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="IMPORTACIONES"><span><b>Importaciones</b><small class="block text-xs text-slate-500">Filas procesadas y errores</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="BOT_TALANA"><span><b>Bot Talana</b><small class="block text-xs text-slate-500">Ejecuciones y resultados</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="ARCHIVOS_BOT"><span><b>Archivos del bot</b><small class="block text-xs text-slate-500">Reportes guardados en nube</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="SOLICITUDES"><span><b>Solicitudes</b><small class="block text-xs text-slate-500">Permisos y estados</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="HISTORIAL"><span><b>Historial de colaboradores</b><small class="block text-xs text-slate-500">Cambios de datos maestros</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="GESTIONES_CORREO"><span><b>Gestiones de correo</b><small class="block text-xs text-slate-500">Seguimiento sin cuerpo del correo</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="CHAT"><span><b>Chat interno</b><small class="block text-xs text-slate-500">Solo metadatos, sin mensajes privados</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="NOTIFICACIONES"><span><b>Notificaciones</b><small class="block text-xs text-slate-500">Tipo, estado y fecha</small></span></label>
+                  <label class="flex gap-2 rounded-xl border p-3 text-sm"><input type="checkbox" class="rep-tipo mt-1" value="RESUMEN" checked><span><b>Resumen ejecutivo</b><small class="block text-xs text-slate-500">Indicadores de todos los módulos seleccionados</small></span></label></div></div>
                   <div class="lg:col-span-4 flex flex-wrap items-center gap-3"><button type="button" onclick="generarPaqueteReportesRRHH()" class="corp-button"><i data-lucide="file-chart-column" class="mr-2 inline h-4 w-4"></i>Generar informes seleccionados</button><span id="rep-estado" class="text-xs text-slate-500">Elige los informes y el formato.</span></div><div id="rep-kpis" class="hidden lg:col-span-4 grid grid-cols-2 gap-3 md:grid-cols-4"></div>
                 </div>
                 <div class="ui-card p-5"><h3 class="section-title">Análisis inteligente de archivos</h3><p class="mt-1 text-xs text-slate-500">El archivo solo se envía al análisis externo si autorizas el envío.</p><div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3"><input id="ai-archivo" type="file" accept=".xlsx,.xls,.csv,.pdf" class="form-field"><textarea id="ai-prompt" rows="5" class="form-field lg:col-span-2" placeholder="Ejemplo: identifica personas con tres atrasos o más y agrupa por sucursal."></textarea><label class="lg:col-span-3 flex gap-2 rounded-lg bg-amber-50 p-3 text-xs"><input id="ai-consentimiento" type="checkbox"> Autorizo enviar el archivo a Gemini para este análisis.</label><div class="lg:col-span-3"><button id="ai-btn" onclick="analizarConGeminiSeguro()" class="corp-button">Analizar archivo</button> <button onclick="descargarRespuestaIA()" class="corp-button-dark">Descargar análisis PDF</button></div><pre id="ai-resultado" class="lg:col-span-3 whitespace-pre-wrap rounded-xl bg-slate-50 p-4 text-sm">Aquí aparecerá el resultado.</pre></div></div>
@@ -1425,7 +1534,7 @@ body{overflow-x:hidden}
             <!-- CONFIGURACIÓN DE CORREOS -->
             <section id="view-configcorreos" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro">
-                    <div class="flex flex-wrap items-start justify-between gap-3"><div><span class="module-kicker">Punto 13 · Configuración</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Destinatarios y firma por sucursal</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Cada sucursal tiene su ficha. Busca una sucursal, revisa el correo principal y las copias, ajusta los horarios y guarda los cambios visibles.</p></div><div class="flex flex-wrap gap-2"><button onclick="descargarPlantillaCorreosSucursales()" class="corp-button-dark text-xs">Descargar Excel</button><label class="corp-button cursor-pointer text-xs">Importar Excel<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarCorreosSucursales(event)"></label></div></div>
+                    <div class="flex flex-wrap items-start justify-between gap-3"><div><span class="module-kicker">Punto 13 · Configuración</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Destinatarios y firma por sucursal</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Cada sucursal tiene su ficha. Busca una sucursal, revisa el correo principal y las copias, ajusta los horarios y guarda los cambios visibles.</p></div><div class="flex flex-wrap gap-2"><button onclick="descargarPlantillaCorreosSucursales()" class="corp-button-dark text-xs">Descargar Excel</button><label class="corp-button cursor-pointer text-xs">Importar Excel<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarCorreosSucursales(event)"></label><span data-update-stamp="config_correos" class="self-center text-[11px] text-slate-500">Consultando última carga…</span></div></div>
                 </div>
                 <div class="ui-card p-4"><div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]"><div><label class="text-xs font-bold text-slate-600">Buscar</label><input id="config-correo-buscar" oninput="renderizarConfigCorreos()" class="form-field mt-1" placeholder="Escribe el nombre de sucursal o supervisor"></div><button onclick="guardarConfigCorreosVisibles()" class="corp-button self-end"><i data-lucide="save" class="mr-2 inline h-4 w-4"></i>Guardar cambios visibles</button></div><div id="config-correo-resumen" class="mt-3 text-xs text-slate-500">Preparando configuración…</div></div>
                 <div id="tabla-config-correos" class="grid grid-cols-1 gap-4 xl:grid-cols-2"></div>
@@ -1435,12 +1544,12 @@ body{overflow-x:hidden}
             <section id="view-mapas" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro"><span class="module-kicker">Punto 14 · Traslados</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Mapa, rutas y distancias</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Selecciona las sucursales de origen y destino. Se priorizan las coordenadas guardadas; si faltan, se usa la dirección registrada. Google Maps calcula la ruta según el medio de transporte.</p><div class="mt-4 grid gap-3 sm:grid-cols-3"><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 1</span><b class="mt-1 block text-sm">Origen</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 2</span><b class="mt-1 block text-sm">Destino y transporte</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 3</span><b class="mt-1 block text-sm">Ver ruta y distancia</b></div></div></div>
                 <div class="ui-card grid grid-cols-1 gap-4 p-5 lg:grid-cols-4"><div><label class="text-xs font-bold text-slate-600" for="map14-buscar-origen">1. Buscar sucursal de origen</label><input id="map14-buscar-origen" type="search" class="form-field mt-1" placeholder="Escribe nombre o comuna…" autocomplete="off"><select id="map14-origen" class="form-field mt-2"><option value="">Selecciona el origen</option></select><p class="mt-1 text-[11px] text-slate-500">Escribe para filtrar las sucursales.</p></div><div><label class="text-xs font-bold text-slate-600" for="map14-buscar-destino">2. Buscar sucursal de destino</label><input id="map14-buscar-destino" type="search" class="form-field mt-1" placeholder="Escribe nombre o comuna…" autocomplete="off"><select id="map14-destino" class="form-field mt-2"><option value="">Selecciona el destino</option></select><p class="mt-1 text-[11px] text-slate-500">Elige una sucursal distinta del origen.</p></div><div><label class="text-xs font-bold text-slate-600">Medio de transporte</label><select id="map14-modo" class="form-field mt-1"><option value="d">🚗 Auto</option><option value="r">🚌 Transporte público</option><option value="w">🚶 Caminando</option></select></div><div class="flex flex-wrap items-end gap-2"><button onclick="mostrarRutaMapa14()" class="corp-button min-h-11 flex-1"><i data-lucide="route" class="mr-2 inline h-4 w-4"></i>Ver ruta</button><button onclick="buscarCoordenadasPorDireccion()" class="corp-button-dark min-h-11" title="Buscar coordenadas faltantes"><i data-lucide="map-pin" class="inline h-4 w-4"></i></button></div></div>
-                <div class="ui-card overflow-hidden p-3 sm:p-4"><div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ruta seleccionada</p><div id="mapa14-resumen" class="mt-1 text-sm font-bold text-slate-800">Selecciona origen, destino y medio de transporte.</div><p class="mt-1 text-xs text-slate-500">Estimaciones orientativas calculadas desde el GPS; el recorrido real y el tiempo pueden variar. Google Maps muestra la ruta para navegación.</p></div><a id="mapa14-externo" target="_blank" rel="noopener noreferrer" class="corp-button-dark hidden">Abrir Google Maps <i data-lucide="external-link" class="ml-1 inline h-4 w-4"></i></a></div><div class="map-canvas-shell"><div class="map-canvas-heading"><div><strong>Vista del mapa</strong><span id="mapa14-status">Selecciona dos sucursales y pulsa “Ver ruta”.</span></div><span class="map-live-pill"><i data-lucide="map" class="inline h-3 w-3"></i> Mapa interactivo</span></div><div id="mapa14-frame" role="application" aria-label="Mapa interactivo de ruta entre sucursales" class="map-frame"></div><div class="map-canvas-footer"><span>Si Google Maps no permite incrustar la ruta en esta ventana, utiliza el botón de apertura directa.</span><a id="mapa14-fallback-link" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Abrir mapa en otra pestaña ↗</a></div></div></div>
+                <div class="ui-card overflow-hidden p-3 sm:p-4"><div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ruta seleccionada</p><div id="mapa14-resumen" class="mt-1 text-sm font-bold text-slate-800">Selecciona origen, destino y medio de transporte.</div><p class="mt-1 text-xs text-slate-500">Estimaciones orientativas calculadas desde el GPS; el recorrido real y el tiempo pueden variar. Google Maps muestra la ruta para navegación.</p></div><a id="mapa14-externo" target="_blank" rel="noopener noreferrer" class="corp-button-dark hidden">Abrir Google Maps <i data-lucide="external-link" class="ml-1 inline h-4 w-4"></i></a></div><div class="map-canvas-shell"><div class="map-canvas-heading"><div><strong>Mapa de sucursales</strong><span id="mapa14-status">Mostrando todas las sucursales disponibles. Selecciona origen y destino para calcular una ruta.</span></div><span class="map-live-pill"><i data-lucide="map" class="inline h-3 w-3"></i> Mapa interactivo</span></div><div id="mapa14-frame" role="application" aria-label="Mapa interactivo de ruta entre sucursales" class="map-frame"></div><div class="map-canvas-footer"><span>Si Google Maps no permite incrustar la ruta en esta ventana, utiliza el botón de apertura directa.</span><a id="mapa14-fallback-link" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Abrir mapa en otra pestaña ↗</a></div></div></div>
             </section>
 
             <!-- TAREAS DIARIAS -->
             <section id="view-tareas" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="module-intro"><span class="module-kicker">Punto 15 · Productividad</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Tareas diarias, responsables y KPI</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Asigna una tarea en menos de un minuto, define quién la ejecuta y quién la valida. El tablero mide pendientes, atrasos y cumplimiento por usuario. La recurrencia queda registrada como dato de planificación; no genera tareas repetidas automáticamente.</p></div>
+                <div class="module-intro"><span class="module-kicker">Punto 15 · Productividad</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Tareas diarias, responsables y KPI</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Asigna una tarea en menos de un minuto, define quién la ejecuta y quién la valida. El tablero mide pendientes, atrasos y cumplimiento por usuario. Una vez publicado el programador en la rama principal, las tareas recurrentes aprobadas generarán su siguiente ocurrencia después del vencimiento, evitando duplicados.</p></div>
                 <div class="ui-card p-4"><label class="text-xs font-bold text-slate-600">Crear desde una plantilla (opcional)</label><div class="mt-1 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]"><select id="tarea-plantilla" class="form-field" onchange="aplicarPlantillaTarea()"><option value="">Elegir tarea sugerida…</option><option value="incidencias">Revisar correos de incidencias</option><option value="asistencia">Regularizar marcas de asistencia</option><option value="licencias">Revisar licencias médicas pendientes</option><option value="turnos">Revisar turnos y cambios</option><option value="reporte">Enviar reporte diario a jefatura</option><option value="sucursales">Contactar sucursales con pendientes</option></select><p class="self-center text-xs text-slate-500">La plantilla completa el título, la descripción y la prioridad; puedes editarlos.</p></div></div>
                 <div id="tarea-permiso-aviso" class="hidden rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">Puedes consultar tareas, pero no asignarlas. Solicita esa autorización al administrador.</div>
                 <form id="form-tarea" class="ui-card grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4" onsubmit="guardarTarea(event)">
@@ -1456,6 +1565,11 @@ body{overflow-x:hidden}
                 </form>
                 <div class="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8"><div class="ui-card p-3">Pendientes<b id="tk-pendiente" class="block text-2xl">0</b></div><div class="ui-card p-3">En proceso<b id="tk-proceso" class="block text-2xl">0</b></div><div class="ui-card p-3">Por validar<b id="tk-validar" class="block text-2xl">0</b></div><div class="ui-card p-3">Aprobadas<b id="tk-aprobada" class="block text-2xl">0</b></div><div class="ui-card p-3">Devueltas<b id="tk-devuelta" class="block text-2xl">0</b></div><div class="ui-card p-3">Vencidas<b id="tk-vencida" class="block text-2xl">0</b></div><div class="ui-card p-3">Tasa de cierre<b id="tk-cumplimiento" class="block text-2xl">0%</b></div><div class="ui-card p-3">Cierre a tiempo<b id="tk-tiempo" class="block text-2xl">0%</b></div></div>
                 <div class="ui-card grid grid-cols-1 gap-3 p-4 md:grid-cols-5"><select id="tarea-filtro-responsable" class="form-field" onchange="renderizarTareas()"><option value="TODOS">Todos los responsables</option></select><select id="tarea-filtro-estado" class="form-field" onchange="renderizarTareas()"><option value="TODOS">Todos los estados</option><option>PENDIENTE</option><option>EN_PROCESO</option><option>COMPLETADA_POR_VALIDAR</option><option>APROBADA</option><option>DEVUELTA</option><option>VENCIDA</option><option>CANCELADA</option></select><input id="tarea-filtro-buscar" class="form-field md:col-span-2" oninput="renderizarTareas()" placeholder="Buscar tarea, responsable o sucursal"><button onclick="cargarTareas()" class="corp-button-dark">Actualizar</button></div>
+                <div class="rounded-2xl border border-indigo-200 bg-gradient-to-br from-slate-950 via-indigo-950 to-cyan-900 p-5 text-white shadow-xl">
+                    <div class="flex flex-wrap items-start justify-between gap-3"><div><span class="text-[10px] font-extrabold uppercase tracking-[.22em] text-cyan-200">Punto 15 · Analítica operacional</span><h4 class="mt-2 text-xl font-black">Generador de KPI y medición</h4><p class="mt-1 max-w-2xl text-xs leading-5 text-slate-200">Define un período y mide tareas, cumplimiento, atrasos y rendimiento por responsable. Los porcentajes se calculan sobre los registros disponibles.</p></div><button type="button" onclick="exportarKpiTareasCSV()" class="rounded-xl border border-cyan-200/40 bg-cyan-300/10 px-4 py-2 text-xs font-extrabold text-cyan-50 hover:bg-cyan-300/20"><i data-lucide="download" class="mr-1 inline h-4 w-4"></i>Exportar KPI CSV</button></div>
+                    <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3"><div><label for="tarea-kpi-desde" class="text-xs font-bold text-cyan-100">Desde</label><input id="tarea-kpi-desde" type="date" class="form-field mt-1 !border-white/20 !bg-white/10 !text-white" onchange="renderizarTareas()"></div><div><label for="tarea-kpi-hasta" class="text-xs font-bold text-cyan-100">Hasta</label><input id="tarea-kpi-hasta" type="date" class="form-field mt-1 !border-white/20 !bg-white/10 !text-white" onchange="renderizarTareas()"></div><div><label for="tarea-kpi-sucursal" class="text-xs font-bold text-cyan-100">Sucursal</label><select id="tarea-kpi-sucursal" class="form-field mt-1 !border-white/20 !bg-slate-900 !text-white" onchange="renderizarTareas()"><option value="">Todas las sucursales</option></select></div></div>
+                    <div id="tarea-kpi-resumen" class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4"><div class="rounded-xl border border-white/10 bg-white/10 p-3"><span class="text-xs text-cyan-100">Tareas medibles</span><b class="mt-1 block text-2xl">0</b></div></div>
+                </div>
                 <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4"><h4 class="font-extrabold text-slate-800">KPI por usuario</h4><p class="mt-1 text-xs text-slate-500">Se calcula con las tareas asignadas a cada persona y su estado actual.</p></div><div class="mb-3 flex flex-wrap items-center justify-between gap-3"><div><h4 class="font-extrabold text-slate-900">Rendimiento por usuario</h4><p class="text-xs text-slate-500">Filtra para revisar asignaciones, aprobaciones y atrasos de cada persona.</p></div><select id="tarea-kpi-filtro-usuario" class="form-field max-w-sm" onchange="renderizarTareas()"><option value="TODOS">Todos los usuarios</option></select></div><div id="tabla-kpi-usuarios" class="space-y-2 p-4"><p class="text-sm text-slate-400">Cargando métricas…</p></div></div>
                 <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4"><h4 class="font-extrabold text-slate-800">Seguimiento de tareas</h4><p class="mt-1 text-xs text-slate-500">Busca por tarea, responsable o sucursal. Actualiza el estado cuando avances o termines.</p></div><div class="table-scroll"><table class="w-full min-w-[1000px]"><thead><tr><th>Tarea</th><th>Responsable</th><th>Revisor</th><th>Prioridad</th><th>Vencimiento</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="tabla-tareas"></tbody></table></div></div>
             </section>
@@ -1540,9 +1654,86 @@ body{overflow-x:hidden}
                         <span id="integ-actualizado" class="self-center text-xs text-slate-500">Sin comprobar</span>
                     </div>
                 </div>
+                <div id="talana-bot-panel" class="ui-card hidden overflow-hidden">
+                    <div class="border-b border-slate-100 p-5"><h4 class="text-lg font-black">Bot de reportes Talana</h4><p class="mt-1 text-sm text-slate-500">Ejecución en nube con GitHub Actions. Los reportes se guardan en Supabase Storage privado; no requiere dejar tu PC encendido.</p><p id="talana-bot-status" class="mt-3 text-sm text-slate-600">Consultando estado…</p><p data-update-stamp="talana_bot" class="mt-2 text-xs text-slate-500">Consultando última carga…</p></div>
+                    <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-3">
+                      <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-3"><input id="talana-bot-enabled" type="checkbox" class="h-4 w-4"><span><strong class="block text-sm">Automatización habilitada</strong><span class="text-xs text-slate-500">Solo se ejecuta en el horario laboral configurado.</span></span></label>
+                      <label class="text-sm font-semibold">Frecuencia<select id="talana-bot-interval" class="mt-2 w-full rounded-lg border border-slate-300 p-2"><option value="60">Cada hora (08:00–17:00)</option></select><span class="mt-1 block text-xs font-normal text-slate-500">Lunes a viernes, excepto feriados de Chile. Se ejecuta una vez por hora para respetar el plan gratuito.</span></label>
+                      <label class="text-sm font-semibold">Modo<select id="talana-bot-mode" class="mt-2 w-full rounded-lg border border-slate-300 p-2"><option value="both">Automático y manual</option><option value="automatic">Solo automático</option><option value="manual">Solo manual</option></select></label>
+                    </div>
+                    <div class="flex flex-wrap gap-2 px-5 pb-5"><button id="talana-bot-save" type="button" class="corp-button-dark">Guardar configuración</button><button id="talana-bot-run" type="button" class="corp-button">Ejecutar ahora</button><button id="talana-bot-refresh" type="button" class="corp-button">Actualizar estado</button></div>
+                    <div class="grid grid-cols-1 gap-5 border-t border-slate-100 p-5 xl:grid-cols-2"><div><h5 class="font-extrabold">Historial de ejecuciones</h5><div id="talana-bot-runs" class="mt-2"><p class="text-sm text-slate-500">Cargando…</p></div></div><div><h5 class="font-extrabold">Reportes almacenados en la nube</h5><div id="talana-bot-files" class="mt-2"><p class="text-sm text-slate-500">Cargando…</p></div></div></div>
+                    <div class="border-t border-amber-100 bg-amber-50 p-4 text-xs text-amber-900">La ejecución manual queda en cola. Se procesará cuando el workflow esté activo en la rama principal y llegue la siguiente revisión programada de GitHub Actions. La automatización de Talana permanece pausada hasta que la habilites y se complete una prueba real.</div>
+                </div>
                 <div id="integ-kpis" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"></div>
                 <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-5"><h4 class="font-extrabold">Inventario de integraciones</h4><p class="mt-1 text-xs text-slate-500">No se muestran claves ni secretos en el navegador.</p></div><div id="integ-lista" class="divide-y divide-slate-100 p-5"><p class="text-sm text-slate-500">Comprobación pendiente.</p></div></div>
                 <div class="helper-note"><strong>Seguridad:</strong> no pegues claves privadas de Talana, IMED, Google, Microsoft ni Supabase en esta pantalla. Las credenciales deben almacenarse como variables de entorno en el servidor.</div>
+            </section>
+
+            <section id="view-chat" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="module-intro">
+                    <span class="module-kicker"><i data-lucide="messages-square" class="h-3 w-3"></i> Comunicación interna</span>
+                    <h3 class="mt-3 text-xl font-extrabold text-slate-900">Chat de Recursos Humanos</h3>
+                    <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Conversaciones privadas y grupos con usuarios habilitados. Los mensajes se guardan en Supabase y solo los participantes autorizados pueden leerlos.</p>
+                </div>
+                <div class="ui-card grid min-h-[560px] grid-cols-1 overflow-hidden lg:grid-cols-[300px_minmax(0,1fr)]">
+                    <aside class="border-b border-slate-200 bg-slate-50 p-4 lg:border-b-0 lg:border-r">
+                        <h4 class="font-extrabold text-slate-900">Nueva conversación</h4>
+                        <label class="mt-3 block text-xs font-bold text-slate-600">Nombre del grupo (opcional)</label>
+                        <input id="chat-titulo-nuevo" class="form-field mt-1" maxlength="80" placeholder="Ej. Equipo de asistencia">
+                        <label class="mt-3 block text-xs font-bold text-slate-600">Participantes</label>
+                        <select id="chat-usuarios-nuevos" class="form-field mt-1 min-h-32" multiple size="5" aria-label="Seleccionar participantes"></select>
+                        <button type="button" class="corp-button mt-3 w-full" onclick="crearConversacionChat()">Crear conversación</button>
+                        <div class="my-4 border-t border-slate-200"></div>
+                        <div class="flex items-center justify-between"><h4 class="font-extrabold text-slate-900">Tus conversaciones</h4><button type="button" class="text-xs font-bold text-blue-700" onclick="cargarChatInterno()">Actualizar</button></div>
+                        <div id="chat-conversaciones-list" class="mt-3 space-y-2"><p class="text-sm text-slate-500">Cargando conversaciones…</p></div>
+                    </aside>
+                    <div class="flex min-h-[540px] min-w-0 flex-col">
+                        <div id="chat-conversacion-titulo" class="border-b border-slate-200 p-4"><h4 class="font-extrabold">Selecciona una conversación</h4><p class="mt-1 text-xs text-slate-500">Los mensajes solo son visibles para sus participantes.</p></div>
+                        <div id="chat-mensajes" class="flex-1 space-y-3 overflow-y-auto bg-white p-4"><p class="text-sm text-slate-500">Elige una conversación para ver los mensajes.</p></div>
+                        <form id="chat-form-mensaje" class="flex gap-2 border-t border-slate-200 bg-slate-50 p-3" onsubmit="enviarMensajeChat(event)">
+                            <input id="chat-mensaje-input" class="form-field min-w-0 flex-1" maxlength="5000" placeholder="Escribe un mensaje…" autocomplete="off" disabled>
+                            <label class="flex cursor-pointer items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-50" title="Adjuntar PDF, Word, Excel, imagen o texto (máximo 10 MB)">Adjuntar<input id="chat-archivo" type="file" class="hidden" accept=".pdf,.docx,.xlsx,.xls,.csv,.txt,.jpg,.jpeg,.png,.webp" disabled></label>
+                            <button id="chat-enviar" class="corp-button" disabled>Enviar</button>
+                        </form>
+                        <p id="chat-estado" class="px-4 pb-3 text-xs text-slate-500" aria-live="polite">Conectando con el chat seguro…</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-traslados" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="module-intro">
+                    <span class="module-kicker"><i data-lucide="users-round" class="h-3 w-3"></i> Movimientos de personal</span>
+                    <h3 class="mt-3 text-xl font-extrabold text-slate-900">Traslados entre sucursales</h3>
+                    <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Registra la sucursal de origen y destino, las fechas y el motivo. Cada solicitud queda en la nube con estado, responsable y trazabilidad de aprobación.</p>
+                </div>
+                <div class="ui-card p-5">
+                    <h4 class="font-extrabold text-slate-900">Nueva solicitud de traslado</h4>
+                    <form id="traslado-form" class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" onsubmit="crearSolicitudTraslado(event)">
+                        <div class="xl:col-span-2"><label class="block text-xs font-bold text-slate-600">Buscar colaborador por nombre o RUT</label><input id="traslado-buscar-colaborador" type="search" class="form-field mt-1" placeholder="Escribe nombre o RUT para filtrar" autocomplete="off" oninput="filtrarColaboradoresTraslado()"><select id="traslado-colaborador" class="form-field mt-2" required><option value="">Cargando colaboradores…</option></select></div>
+                        <div><label class="block text-xs font-bold text-slate-600">Sucursal de origen</label><select id="traslado-origen" class="form-field mt-1" required></select></div>
+                        <div><label class="block text-xs font-bold text-slate-600">Sucursal de destino</label><select id="traslado-destino" class="form-field mt-1" required></select></div>
+                        <div><label class="block text-xs font-bold text-slate-600">Inicio</label><input id="traslado-inicio" type="date" class="form-field mt-1" required></div>
+                        <div><label class="block text-xs font-bold text-slate-600">Término (si aplica)</label><input id="traslado-termino" type="date" class="form-field mt-1"></div>
+                        <label class="flex items-center gap-2 self-end rounded-lg border border-slate-200 p-3 text-sm"><input id="traslado-indefinido" type="checkbox"> Traslado indefinido</label>
+                        <div class="xl:col-span-4"><label class="block text-xs font-bold text-slate-600">Motivo</label><textarea id="traslado-motivo" class="form-field mt-1" rows="2" maxlength="1500" required placeholder="Explica el motivo de la solicitud"></textarea></div>
+                        <div class="xl:col-span-4 flex justify-end"><button class="corp-button">Enviar solicitud</button></div>
+                    </form>
+                    <p id="traslado-estado" class="mt-3 text-xs text-slate-500" aria-live="polite"></p>
+                </div>
+                <div class="ui-card overflow-hidden border border-indigo-100">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 via-sky-50 to-cyan-50 p-4"><div><h4 class="font-extrabold text-slate-900"><i data-lucide="bell-ring" class="mr-2 inline h-4 w-4 text-indigo-700"></i>Alertas de necesidad de personal</h4><p class="mt-1 text-xs text-slate-600">Revisa las sucursales que solicitan apoyo por fecha, días, cargo y turno.</p></div><button type="button" class="corp-button-dark text-xs" onclick="cargarSolicitudesDotacion()">Actualizar alertas</button></div>
+                    <div class="table-scroll"><table class="w-full min-w-[1050px] text-left"><thead class="bg-white text-[11px] uppercase text-slate-500"><tr><th class="p-3">Sucursal / cargo</th><th class="p-3">Período</th><th class="p-3">Turno</th><th class="p-3">Cantidad</th><th class="p-3">Motivo</th><th class="p-3">Estado</th><th class="p-3">Acciones</th></tr></thead><tbody id="dotacion-alertas-lista" class="divide-y divide-slate-100 text-xs"><tr><td colspan="7" class="p-6 text-center text-slate-500">Cargando alertas…</td></tr></tbody></table></div>
+                </div>
+                <div class="ui-card overflow-hidden">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 p-4"><div><h4 class="font-extrabold">Solicitudes e historial</h4><p class="mt-1 text-xs text-slate-500">Las aprobaciones requieren el permiso específico de traslados.</p></div><div class="flex gap-2"><select id="traslado-filtro-estado" class="form-field" onchange="cargarTrasladosPersonal()"><option value="TODOS">Todos los estados</option><option>SOLICITADO</option><option>APROBADO</option><option>RECHAZADO</option><option>CANCELADO</option><option>COMPLETADO</option></select><button type="button" class="corp-button-dark" onclick="cargarTrasladosPersonal()">Actualizar</button></div></div>
+                    <div class="table-scroll"><table class="w-full min-w-[1050px] text-left"><thead class="bg-white text-[11px] uppercase text-slate-500"><tr><th class="p-3">Colaborador</th><th class="p-3">Origen</th><th class="p-3">Destino</th><th class="p-3">Fechas</th><th class="p-3">Motivo</th><th class="p-3">Estado</th><th class="p-3">Acciones</th></tr></thead><tbody id="traslado-tabla-body" class="divide-y divide-slate-100 text-xs"><tr><td colspan="7" class="p-6 text-center text-slate-500">Cargando solicitudes…</td></tr></tbody></table></div>
+                </div>
+                <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                    <div class="ui-card overflow-hidden"><div class="border-b border-slate-200 bg-slate-50 p-4"><h4 class="font-extrabold text-slate-900">Calendario de movimientos</h4><p class="mt-1 text-xs text-slate-500">Solicitudes y traslados aprobados para los próximos 90 días.</p></div><div id="traslado-calendario" class="divide-y divide-slate-100 p-4"><p class="text-sm text-slate-500">Cargando calendario…</p></div></div>
+                    <div class="ui-card overflow-hidden"><div class="border-b border-slate-200 bg-slate-50 p-4"><h4 class="font-extrabold text-slate-900">Dotación y movimientos</h4><p class="mt-1 text-xs text-slate-500">Personal activo y movimientos aprobados pendientes de vigencia, por sucursal.</p></div><div id="traslado-dotacion" class="divide-y divide-slate-100 p-4"><p class="text-sm text-slate-500">Calculando dotación…</p></div></div>
+                </div>
+                <div class="helper-note">Los traslados aprobados con fecha futura se aplican al maestro de personal mediante el proceso diario del servidor cuando comienza su vigencia. El registro de una solicitud todavía no cambia la sucursal del colaborador.</div>
             </section>
 
             <div id="global-search-overlay" class="global-search-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="global-search-title" style="display:none" onclick="if(event.target===this)cerrarBuscadorGlobal()">
@@ -1610,10 +1801,14 @@ body{overflow-x:hidden}
 
     <script src="/js/app-config.js"></script>
 <script src="/js/app-core.js"></script>
+<script src="/js/freshness-dashboard.js"></script>
 <script src="/js/attendance-leave.js"></script>
 <script src="/js/workflows.js"></script>
 <script src="/js/maps-communications.js"></script>
 <script src="/js/people-directory.js"></script>
+<script src="/js/chat-transfers.js"></script>
+<script src="/js/employee-history.js"></script>
+<script src="/js/talana-bot.js"></script>
 
     <!--
     SQL QUE YA DEBE EXISTIR EN SUPABASE:
@@ -1718,7 +1913,7 @@ main>header{min-height:68px;padding:12px 26px!important;background:rgba(255,255,
 .topbar-quick-action:hover{transform:translateY(-1px);box-shadow:0 9px 22px rgba(8,104,232,.24)}
 .topbar-divider{height:26px;width:1px;background:#dce5f0}
 .topbar-user-email{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px!important;color:#415273!important}
-#view-dashboard,#view-colaboradores,#view-sucursales,#view-asistencia,#view-licencias,#view-vacaciones,#view-papeletas,#view-correos,#view-amonestaciones,#view-reportes,#view-usuarios,#view-auditoria,#view-configcorreos,#view-mapas,#view-tareas{padding:26px!important}
+#view-dashboard,#view-colaboradores,#view-sucursales,#view-asistencia,#view-licencias,#view-vacaciones,#view-papeletas,#view-correos,#view-amonestaciones,#view-reportes,#view-usuarios,#view-auditoria,#view-configcorreos,#view-mapas,#view-tareas,#view-chat,#view-traslados{padding:26px!important}
 .ui-card{border:1px solid var(--nova-line)!important;border-radius:var(--nova-radius)!important;background:rgba(255,255,255,.96);box-shadow:var(--nova-shadow)!important;transition:box-shadow .2s ease,border-color .2s ease,transform .2s ease}
 .ui-card:focus-within{border-color:#b9d5fa!important;box-shadow:0 12px 30px rgba(17,48,92,.09)!important}
 .module-intro{position:relative;overflow:hidden;border:1px solid #d7e6f7!important;border-radius:22px!important;padding:24px!important;background:linear-gradient(118deg,#fff 0%,#f0f7ff 58%,#eefbfc 100%)!important;box-shadow:0 8px 24px rgba(17,48,92,.045)}
@@ -1776,7 +1971,7 @@ table tbody tr:hover{background:#f7fbff}
 #mapa14-frame.map-frame{height:clamp(420px,58vh,700px);min-height:420px;border:0;border-radius:0}
 .map-estimate-2026>div{border-radius:15px;border-color:#dce7f5;box-shadow:0 6px 16px rgba(17,48,92,.045)}
 @media(min-width:1200px){#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8{grid-template-columns:repeat(8,minmax(0,1fr))}}
-@media(max-width:900px){#sidebar{width:250px}#view-dashboard,#view-colaboradores,#view-sucursales,#view-asistencia,#view-licencias,#view-vacaciones,#view-papeletas,#view-correos,#view-amonestaciones,#view-reportes,#view-usuarios,#view-auditoria,#view-configcorreos,#view-mapas,#view-tareas{padding:17px!important}#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8{grid-template-columns:repeat(2,minmax(0,1fr))}main>header{padding:12px 16px!important}}
+@media(max-width:900px){#sidebar{width:250px}#view-dashboard,#view-colaboradores,#view-sucursales,#view-asistencia,#view-licencias,#view-vacaciones,#view-papeletas,#view-correos,#view-amonestaciones,#view-reportes,#view-usuarios,#view-auditoria,#view-configcorreos,#view-mapas,#view-tareas,#view-chat,#view-traslados{padding:17px!important}#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8{grid-template-columns:repeat(2,minmax(0,1fr))}main>header{padding:12px 16px!important}}
 @media(max-width:560px){#view-tareas #form-tarea{padding:15px!important}#view-tareas .grid.grid-cols-2.gap-3.md\:grid-cols-4.lg\:grid-cols-8{grid-template-columns:repeat(2,minmax(0,1fr))}#view-tareas>.module-intro{padding:20px!important}#header-title{font-size:16px}.topbar-quick-action{padding:9px!important}}
 
 /* Nova HR · Operaciones y calidad */
@@ -1847,8 +2042,8 @@ body.search-open{overflow:hidden}
   window.actualizarContadoresSelectores2026=updateSelectorCounts;
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
   var allowed=new Set(['dashboard']);
-  var moduleNames=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
-  var allModulePermissions=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
+  var moduleNames=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
+  var allModulePermissions=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
   function permissionName(m){return m;}
   function hasModulePermission(m){
     if(allowed.has(m))return true;

@@ -193,6 +193,7 @@
                 await cargarAsistenciaDesdeNube(false);
                 await inicializarDashboard();
                 await registrarAuditoria('asistencia', 'CARGA_EXCEL', `Filas: ${originales.length}; únicos: ${procesadas.length}; duplicados: ${consolidado.duplicados.length}`);
+                await registrarActualizacionFuente('asistencia', file.name, procesadas.length, 'manual');
 
                 mostrarToast(
                     `Carga de asistencia finalizada. Excel: ${originales.length} filas. Registros únicos: ${procesadas.length}. Duplicados consolidados: ${consolidado.duplicados.length}. Supabase confirmó ${resultado.confirmados} registros en ${resultado.lotesProcesados} lote(s).`,
@@ -519,6 +520,7 @@
                 await cargarLicenciasDesdeNube(false);
                 await inicializarDashboard();
                 await registrarAuditoria('licencias', 'CARGA_EXCEL', `Filas: ${originales.length}; únicos: ${procesadas.length}; duplicados: ${consolidado.duplicados.length}`);
+                await registrarActualizacionFuente('licencias', file.name, procesadas.length, 'manual');
 
                 mostrarToast(
                     `Carga de licencias finalizada. Excel: ${originales.length} filas. Registros únicos: ${procesadas.length}. Duplicados consolidados: ${consolidado.duplicados.length}. Supabase confirmó ${resultado.confirmados} registros en ${resultado.lotesProcesados} lote(s). Las 900 filas anteriores se actualizaron y las restantes se insertaron.`,
