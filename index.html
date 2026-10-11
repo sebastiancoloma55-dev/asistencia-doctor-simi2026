@@ -422,6 +422,44 @@ body{overflow-x:hidden}
         [data-update-stamp][data-update-state="ok"]{color:#047857!important;border-color:#a7f3d0!important;background:#ecfdf5!important}[data-update-stamp][data-update-state="empty"]{color:#92400e!important;border-color:#fde68a!important;background:#fffbeb!important}
         @media(prefers-reduced-motion:reduce){#view-asistencia .ui-card,#view-vacaciones .ui-card{transition:none!important}}
 
+
+/* PERSONALIZACIÓN NOVA: tema, accesos híbridos y navegación compacta */
+:root{--user-accent:#087fa3;--user-accent-strong:#06627e;--user-accent-soft:#e3f7fb;--user-sidebar-start:#073a79;--user-sidebar-end:#063b7a;--user-page-bg:#f4f8fd;--user-panel:#fff;--user-text:#101d49;--user-line:#dce7f5}
+#sidebar{background:linear-gradient(180deg,var(--user-sidebar-start),var(--user-sidebar-end))!important;transition:width .22s ease,transform .22s ease}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{background:linear-gradient(110deg,var(--user-accent),var(--user-accent-strong))!important}
+.topbar-quick-action,.topbar-search{border-color:color-mix(in srgb,var(--user-accent) 24%,white);color:var(--user-accent-strong)}
+#quick-module-bar{display:flex;gap:8px;align-items:center;overflow-x:auto;padding:9px 24px;background:rgba(255,255,255,.68);border-bottom:1px solid var(--user-line);scrollbar-width:thin}
+#quick-module-bar .quick-module-chip{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;border:1px solid var(--user-line);background:var(--user-panel);color:var(--user-text);padding:8px 12px;border-radius:11px;font-size:12px;font-weight:750;transition:all .16s}
+#quick-module-bar .quick-module-chip:hover,#quick-module-bar .quick-module-chip[aria-current="page"]{background:var(--user-accent-soft);border-color:var(--user-accent);color:var(--user-accent-strong)}
+#quick-module-bar .quick-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#64748b;font-weight:800;white-space:nowrap}
+#btn-theme-settings{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--user-line);border-radius:10px;padding:8px 10px;color:var(--user-text);background:var(--user-panel);font-size:12px;font-weight:800}
+#btn-theme-settings:hover{border-color:var(--user-accent);color:var(--user-accent-strong)}
+body.sidebar-compact #sidebar{width:78px!important}
+body.sidebar-compact #sidebar>div:first-child{padding:16px 8px!important;justify-content:center}
+body.sidebar-compact #sidebar>div:first-child h1,body.sidebar-compact #sidebar>div:first-child p,body.sidebar-compact #sidebar .menu-btn{font-size:0!important}
+body.sidebar-compact #sidebar .menu-btn{justify-content:center;padding:12px 8px}
+body.sidebar-compact #sidebar .menu-btn svg{width:20px;height:20px}
+body.sidebar-compact #sidebar .sidebar-brand-text{display:none}
+body.theme-dark{--nova-ink:#e5eefb;--nova-muted:#9fb0c9;--nova-line:#293b55;--nova-panel:#142238;--nova-bg:#0b1424;--user-page-bg:#0b1424;--user-panel:#142238;--user-text:#e5eefb;--user-line:#293b55;color:#e5eefb;background:#0b1424}
+body.theme-dark>div.flex.h-screen{background:radial-gradient(ellipse at 70% 0%,color-mix(in srgb,var(--user-accent) 12%,transparent),transparent 40%),#0b1424!important}
+body.theme-dark main>header,body.theme-dark #quick-module-bar{background:rgba(15,27,45,.94)!important;border-color:#293b55!important}
+body.theme-dark #header-title,body.theme-dark .section-title,body.theme-dark .ui-card h3,body.theme-dark .ui-card h2{color:#e5eefb!important}
+body.theme-dark .ui-card,body.theme-dark [id^="view-"] .bg-white,body.theme-dark [id^="view-"] .bg-slate-50{background:#142238!important;border-color:#293b55!important;color:#e5eefb}
+body.theme-dark [id^="view-"] .text-slate-900,body.theme-dark [id^="view-"] .text-slate-800,body.theme-dark [id^="view-"] .text-slate-700{color:#e5eefb!important}
+body.theme-dark [id^="view-"] .text-slate-600,body.theme-dark [id^="view-"] .text-slate-500{color:#a6b6cd!important}
+body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark select,body.theme-dark textarea{background:#0b1729!important;color:#e5eefb!important;border-color:#344963!important}
+#theme-settings-modal{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(4,15,32,.62);backdrop-filter:blur(8px)}
+#theme-settings-modal.open{display:flex}
+.theme-settings-card{width:min(720px,100%);max-height:90vh;overflow:auto;background:var(--user-panel,#fff);color:var(--user-text,#101d49);border:1px solid var(--user-line,#dce7f5);border-radius:22px;box-shadow:0 28px 100px rgba(0,0,0,.3)}
+.theme-swatch{width:36px;height:36px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 1px #cbd5e1;cursor:pointer}
+.theme-swatch[aria-pressed=true]{box-shadow:0 0 0 3px var(--user-accent),0 0 0 5px white}
+.theme-control{width:100%;border:1px solid var(--user-line);border-radius:11px;padding:10px 12px;background:var(--user-panel);color:var(--user-text)}
+.theme-action{border-radius:11px;padding:10px 15px;font-weight:800;font-size:13px}
+.theme-action-primary{background:var(--user-accent);color:white}
+.theme-action-secondary{border:1px solid var(--user-line)}
+@media(max-width:640px){#quick-module-bar{padding:8px 12px}.topbar-user-email{display:none!important}#btn-theme-settings .theme-button-label{display:none}}
+@media(prefers-reduced-motion:reduce){#sidebar,#quick-module-bar .quick-module-chip{transition:none!important}}
+
 </style>
 </head>
 
@@ -644,7 +682,9 @@ body{overflow-x:hidden}
                     13. Correos sucursales
                 </button>
 
-                <button id="btn-mapas" class="menu-btn" onclick="cambiarModulo('mapas')">
+                       <div id="quick-module-bar" aria-label="Accesos rápidos a módulos autorizados"><span class="quick-label">Accesos rápidos</span></div>
+
+     <button id="btn-mapas" class="menu-btn" onclick="cambiarModulo('mapas')">
                     <i data-lucide="map-pinned" class="h-4 w-4"></i>
                     14. Mapa y distancias
                 </button>
@@ -718,6 +758,7 @@ body{overflow-x:hidden}
                     <span class="topbar-divider hidden sm:block"></span>
                     <span id="user-email-display" class="topbar-user-email hidden text-sm font-semibold text-slate-600 sm:inline">Cargando...</span>
 
+                    <button type="button" id="btn-theme-settings" onclick="openThemeSettings()" title="Personalizar colores y apariencia" aria-label="Personalizar colores y apariencia"><i data-lucide="palette" class="h-4 w-4"></i><span class="theme-button-label">Personalizar</span></button>
                     <button
                         onclick="cerrarSesion()"
                         class="text-xs font-bold text-simiRed hover:underline"
@@ -2178,6 +2219,71 @@ body.search-open{overflow:hidden}
   var oldLogout=window.cerrarSesion;
   if(typeof oldLogout==='function')window.cerrarSesion=async function(){allowed=new Set(['dashboard']);paintPermissions();return oldLogout.apply(this,arguments);};
   window.addEventListener('load',function(){setupSelectors();enhanceMapNote();conectarBuscadoresMapa14();});
+})();
+</script>
+
+
+<div id="theme-settings-modal" role="dialog" aria-modal="true" aria-labelledby="theme-settings-title" onclick="if(event.target===this)closeThemeSettings()">
+ <section class="theme-settings-card">
+  <header class="flex items-start justify-between gap-4 border-b p-5 sm:p-6" style="border-color:var(--user-line)">
+   <div><p class="text-xs font-black uppercase tracking-[.18em]" style="color:var(--user-accent)">Tu espacio de trabajo</p><h2 id="theme-settings-title" class="mt-1 text-xl font-black">Personalizar apariencia</h2><p class="mt-1 text-sm opacity-70">Ajusta colores y distribución sin cambiar tus permisos.</p></div>
+   <button type="button" class="rounded-xl p-2 hover:bg-slate-100" onclick="closeThemeSettings()" aria-label="Cerrar"><i data-lucide="x"></i></button>
+  </header>
+  <div class="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
+   <div class="space-y-3"><label class="block text-sm font-extrabold">Color principal</label>
+    <div id="theme-preset-swatches" class="flex flex-wrap gap-3">
+     <button class="theme-swatch" type="button" data-color="#087fa3" style="background:#087fa3" aria-label="Turquesa Doctor Simi" title="Turquesa"></button>
+     <button class="theme-swatch" type="button" data-color="#2563eb" style="background:#2563eb" aria-label="Azul" title="Azul"></button>
+     <button class="theme-swatch" type="button" data-color="#7c3aed" style="background:#7c3aed" aria-label="Violeta" title="Violeta"></button>
+     <button class="theme-swatch" type="button" data-color="#059669" style="background:#059669" aria-label="Verde" title="Verde"></button>
+     <button class="theme-swatch" type="button" data-color="#e11d48" style="background:#e11d48" aria-label="Rosa" title="Rosa"></button>
+     <button class="theme-swatch" type="button" data-color="#ea580c" style="background:#ea580c" aria-label="Naranja" title="Naranja"></button>
+     <button class="theme-swatch" type="button" data-color="#4f46e5" style="background:#4f46e5" aria-label="Índigo" title="Índigo"></button>
+     <button class="theme-swatch" type="button" data-color="#475569" style="background:#475569" aria-label="Grafito" title="Grafito"></button>
+    </div>
+    <label for="theme-custom-color" class="mt-3 block text-xs font-bold opacity-75">Elige cualquier color</label><div class="flex items-center gap-3"><input id="theme-custom-color" type="color" value="#087fa3" class="h-11 w-14 cursor-pointer rounded-lg border p-1"><span id="theme-color-value" class="text-sm font-bold">#087FA3</span></div>
+   </div>
+   <div class="space-y-3"><label for="theme-mode" class="block text-sm font-extrabold">Modo de pantalla</label><select id="theme-mode" class="theme-control"><option value="light">Claro</option><option value="dark">Oscuro</option><option value="system">Automático (según dispositivo)</option></select>
+    <label for="theme-sidebar-color" class="block pt-2 text-sm font-extrabold">Color del menú lateral</label><input id="theme-sidebar-color" type="color" value="#073a79" class="h-11 w-full cursor-pointer rounded-lg border p-1">
+   </div>
+   <div class="space-y-3"><label for="theme-nav-style" class="block text-sm font-extrabold">Distribución del menú</label><select id="theme-nav-style" class="theme-control"><option value="hybrid">Híbrido: menú lateral y accesos rápidos arriba</option><option value="compact">Lateral compacto y accesos rápidos arriba</option></select>
+    <label for="theme-density" class="block pt-2 text-sm font-extrabold">Densidad de la interfaz</label><select id="theme-density" class="theme-control"><option value="comfortable">Cómoda</option><option value="compact">Compacta</option></select>
+   </div>
+   <div class="rounded-2xl p-4" style="background:var(--user-accent-soft);border:1px solid var(--user-line)"><div class="flex items-center gap-3"><span class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-white" style="background:var(--user-accent)"><i data-lucide="sparkles"></i></span><div><p class="font-extrabold">Vista previa en vivo</p><p class="text-xs opacity-75">Los cambios se reflejan al instante.</p></div></div><p class="mt-3 text-sm">Tu selección es visual: no concede acceso a módulos ni cambia roles.</p></div>
+  </div>
+  <footer class="flex flex-wrap justify-between gap-2 border-t p-5 sm:px-6" style="border-color:var(--user-line)"><button class="theme-action theme-action-secondary" onclick="resetThemeSettings()" type="button">Restablecer</button><div class="flex gap-2"><button class="theme-action theme-action-secondary" onclick="closeThemeSettings()" type="button">Cancelar</button><button class="theme-action theme-action-primary" onclick="saveThemeSettings()" type="button"><i data-lucide="cloud-upload" class="mr-1 inline h-4 w-4"></i>Guardar preferencias</button></div></footer>
+ </section>
+</div>
+
+<script>
+(function(){
+ const KEY='doctorSimiUiPreferencesV1';
+ const defaults={accent:'#087fa3',sidebar:'#073a79',mode:'light',nav:'hybrid',density:'comfortable'};
+ let prefs={...defaults};
+ function validColor(v){return /^#[0-9a-f]{6}$/i.test(String(v||''));}
+ function colorRgb(hex){const n=parseInt(hex.slice(1),16);return [(n>>16)&255,(n>>8)&255,n&255];}
+ function mix(hex,ratio){const rgb=colorRgb(hex);return '#'+rgb.map(v=>Math.round(v+(255-v)*ratio).toString(16).padStart(2,'0')).join('');}
+ function apply(){const root=document.documentElement;root.style.setProperty('--user-accent',prefs.accent);root.style.setProperty('--user-accent-strong',mix(prefs.accent,.0));root.style.setProperty('--user-accent-soft',mix(prefs.accent,.88));root.style.setProperty('--user-sidebar-start',prefs.sidebar);root.style.setProperty('--user-sidebar-end',mix(prefs.sidebar,.12));document.body.classList.toggle('theme-dark',prefs.mode==='dark'||(prefs.mode==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches));document.body.classList.toggle('sidebar-compact',prefs.nav==='compact');document.body.classList.toggle('ui-density-compact',prefs.density==='compact');document.getElementById('theme-custom-color')?.setAttribute('value',prefs.accent);const color=document.getElementById('theme-color-value');if(color)color.textContent=prefs.accent.toUpperCase();const mode=document.getElementById('theme-mode');if(mode)mode.value=prefs.mode;const side=document.getElementById('theme-sidebar-color');if(side)side.value=prefs.sidebar;const nav=document.getElementById('theme-nav-style');if(nav)nav.value=prefs.nav;const density=document.getElementById('theme-density');if(density)density.value=prefs.density;document.querySelectorAll('.theme-swatch').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===prefs.accent)));}
+ function loadLocal(){try{const p=JSON.parse(localStorage.getItem(KEY)||'{}');prefs={...defaults,...p};if(!validColor(prefs.accent))prefs.accent=defaults.accent;if(!validColor(prefs.sidebar))prefs.sidebar=defaults.sidebar;}catch(e){prefs={...defaults};}apply();}
+ async function loadCloud(){try{const client=window._supabase||window.supabaseClient||null;if(!client||!client.auth)return;const s=await client.auth.getSession();const user=s?.data?.session?.user;if(!user)return;const r=await client.from('user_ui_preferences').select('preferences').eq('user_id',user.id).maybeSingle();if(!r.error&&r.data?.preferences&&typeof r.data.preferences==='object'){prefs={...defaults,...r.data.preferences};if(!validColor(prefs.accent))prefs.accent=defaults.accent;if(!validColor(prefs.sidebar))prefs.sidebar=defaults.sidebar;localStorage.setItem(KEY,JSON.stringify(prefs));apply();}}catch(e){/* Preferencias locales siguen disponibles si nube no está configurada. */}}
+ window.openThemeSettings=function(){const m=document.getElementById('theme-settings-modal');if(!m)return;m.classList.add('open');apply();if(window.lucide)lucide.createIcons();};
+ window.closeThemeSettings=function(){document.getElementById('theme-settings-modal')?.classList.remove('open');};
+ window.saveThemeSettings=async function(){const color=document.getElementById('theme-custom-color')?.value;const sidebar=document.getElementById('theme-sidebar-color')?.value;if(validColor(color))prefs.accent=color;if(validColor(sidebar))prefs.sidebar=sidebar;prefs.mode=document.getElementById('theme-mode')?.value||'light';prefs.nav=document.getElementById('theme-nav-style')?.value||'hybrid';prefs.density=document.getElementById('theme-density')?.value||'comfortable';localStorage.setItem(KEY,JSON.stringify(prefs));apply();let cloudSaved=false;try{const client=window._supabase||window.supabaseClient||null;const s=client?.auth?await client.auth.getSession():null;const user=s?.data?.session?.user;if(user){const r=await client.from('user_ui_preferences').upsert({user_id:user.id,preferences:prefs,updated_at:new Date().toISOString()},{onConflict:'user_id'});cloudSaved=!r.error;}}catch(e){}if(window.mostrarToast)mostrarToast(cloudSaved?'Preferencias guardadas en tu cuenta y en este dispositivo.':'Preferencias guardadas en este dispositivo. La sincronización en nube quedará activa cuando se aplique la migración de preferencias.',cloudSaved?'success':'warning',6500);closeThemeSettings();};
+ window.resetThemeSettings=function(){prefs={...defaults};localStorage.setItem(KEY,JSON.stringify(prefs));apply();};
+ document.addEventListener('DOMContentLoaded',function(){loadLocal();document.querySelectorAll('.theme-swatch').forEach(b=>b.addEventListener('click',()=>{prefs.accent=b.dataset.color;apply();}));const custom=document.getElementById('theme-custom-color');custom?.addEventListener('input',()=>{prefs.accent=custom.value.toLowerCase();apply();});document.getElementById('theme-mode')?.addEventListener('change',e=>{prefs.mode=e.target.value;apply();});document.getElementById('theme-sidebar-color')?.addEventListener('input',e=>{prefs.sidebar=e.target.value;apply();});document.getElementById('theme-nav-style')?.addEventListener('change',e=>{prefs.nav=e.target.value;apply();});document.getElementById('theme-density')?.addEventListener('change',e=>{prefs.density=e.target.value;document.body.classList.toggle('ui-density-compact',prefs.density==='compact');});loadCloud();});
+ window.addEventListener('storage',e=>{if(e.key===KEY)loadLocal();});window.addEventListener('keydown',e=>{if(e.key==='Escape')closeThemeSettings();});
+})();
+</script>
+
+<script>
+(function(){
+ const items=[['colaboradores','users'],['asistencia','clock'],['vacaciones','calendar-days'],['licencias','file-heart'],['coberturas','calendar-check'],['chat','messages-square'],['traslados','arrow-left-right'],['notificaciones','bell-ring'],['tareas','check-square'],['bot','bot']];
+ function makeQuickLinks(){const bar=document.getElementById('quick-module-bar');if(!bar||bar.dataset.ready==='1')return;bar.dataset.ready='1';const label=document.createElement('span');label.className='quick-label';label.textContent='Accesos';bar.appendChild(label);items.forEach(([id,icon])=>{const b=document.getElementById('btn-'+id);if(!b||b.classList.contains('permission-hidden-2026'))return;const chip=document.createElement('button');chip.type='button';chip.className='quick-module-chip';chip.dataset.module=id;chip.innerHTML='<i data-lucide="'+icon+'" class="h-4 w-4"></i><span></span>';chip.querySelector('span').textContent=b.textContent.trim().replace(/^\d+\.\s*/,'');chip.addEventListener('click',()=>{if(typeof window.cambiarModulo==='function')window.cambiarModulo(id);});bar.appendChild(chip);});if(window.lucide)lucide.createIcons();}
+ window.refreshQuickModuleBar=makeQuickLinks;
+ const originalPaint=window.paintPermissions;
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(makeQuickLinks,500));
+ const obs=new MutationObserver(()=>{const bar=document.getElementById('quick-module-bar');if(bar&&bar.dataset.ready==='1'){bar.querySelectorAll('[data-module]').forEach(chip=>{const b=document.getElementById('btn-'+chip.dataset.module);chip.hidden=!b||b.classList.contains('permission-hidden-2026');});}});
+ document.addEventListener('DOMContentLoaded',()=>{const nav=document.querySelector('#sidebar nav');if(nav)obs.observe(nav,{attributes:true,subtree:true,attributeFilter:['class']});setTimeout(makeQuickLinks,1300);});
 })();
 </script>
 
