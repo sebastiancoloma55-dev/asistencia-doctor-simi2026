@@ -271,7 +271,9 @@
             asistencia: 'Asistencia',
             licencias: 'Licencias médicas',
             vacaciones: 'Vacaciones',
-            talana_bot: 'Reportes del bot Talana'
+            talana_bot: 'Reportes del bot Talana',
+            talana_ausentismos: 'Reporte Talana de ausentismos',
+            talana_vacaciones: 'Reporte Talana de vacaciones'
         };
 
         function formatoFechaActualizacion(valor) {
