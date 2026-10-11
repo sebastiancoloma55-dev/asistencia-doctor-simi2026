@@ -49,6 +49,14 @@ jobs:
         id: schedule
         run: python bot_talana/holiday_schedule_guard.py
 
+      - name: Consultar si el panel permite ejecutar
+        id: bot_check
+        if: steps.schedule.outputs.run_bot == 'true' && hashFiles('bot_talana/agent_cloud.py') && hashFiles('bot_talana/integracion_supabase.py')
+        env:
+          TALANA_BOT_URL: ${{ secrets.TALANA_BOT_URL }}
+          TALANA_BOT_SECRET: ${{ secrets.TALANA_BOT_SECRET }}
+        run: python bot_talana/agent_cloud.py --check
+
       - name: Informar que falta incorporar el ejecutor de Talana
         if: steps.schedule.outputs.run_bot == 'true' && (!hashFiles('bot_talana/agent_cloud.py') || !hashFiles('bot_talana/talana_downloader.py'))
         run: |
@@ -56,7 +64,7 @@ jobs:
           echo "La programación está preparada; el bot no queda activo hasta incorporar y probar el ejecutor real."
 
       - name: Instalar dependencias del bot
-        if: steps.schedule.outputs.run_bot == 'true' && hashFiles('bot_talana/agent_cloud.py') && hashFiles('bot_talana/talana_downloader.py')
+        if: steps.schedule.outputs.run_bot == 'true' && steps.bot_check.outputs.run_bot == 'true' && hashFiles('bot_talana/agent_cloud.py') && hashFiles('bot_talana/talana_downloader.py')
         run: |
           python -m pip install --upgrade pip
           pip install -r bot_talana/requirements.txt
