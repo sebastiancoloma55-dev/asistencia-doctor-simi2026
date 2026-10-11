@@ -39,9 +39,14 @@ def main():
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--once", action="store_true", help="Ejecuta una sola descarga y termina")
     group.add_argument("--check", action="store_true", help="Comprueba si el panel permite ejecutar, sin descargar")
+    group.add_argument("--maintenance", action="store_true", help="Genera tareas recurrentes aprobadas, sin iniciar sesión en Talana")
     args = parser.parse_args()
 
     cloud = TalanaBotCloud()
+    if args.maintenance:
+        result = cloud.call("bot_generate_recurring_tasks")
+        LOG.info("Mantenimiento de tareas recurrentes: %s tarea(s) nueva(s).", result.get("created", 0))
+        return
     if args.check:
         mode, _, reason = eligibility(cloud)
         write_output(mode is not None, reason)
