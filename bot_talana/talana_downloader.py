@@ -343,8 +343,8 @@ def esperar_modal_progreso(page, timeout_segundos=600):
     raise RuntimeError("Talana mantuvo el proceso de Maestro empleado activo durante 10 minutos.")
 
 
-def descargar_maestro_empleado(page):
-    """Ejecuta Maestro Trabajadores; es un proceso del portal, no un archivo descargable."""
+def descargar_maestro_empleado(page, eventos):
+    """Genera y guarda el archivo descargable de Maestro Trabajadores."""
     click_texto(page, "Trabajadores")
     boton, limite = None, time.monotonic() + 60
     while time.monotonic() < limite and boton is None:
@@ -375,8 +375,13 @@ def descargar_maestro_empleado(page):
                 if objetivo is not None: break
         if objetivo is None: page.wait_for_timeout(300)
     if objetivo is None: raise RuntimeError("No apareció «Maestro Trabajadores» (#empleadosExport1).")
+    # Registrar el contador antes de iniciar la exportación para no confundir
+    # la animación de progreso con una descarga completada.
+    cantidad_inicial = len(eventos)
     objetivo.click(timeout=15000)
-    return esperar_modal_progreso(page)
+    return esperar_descarga_evento(
+        page, eventos, cantidad_inicial, "maestro_empleado", timeout_segundos=600
+    )
 
 
 def cambiar_a_asistencia_y_turnos(page):
@@ -461,7 +466,7 @@ def ejecutar_descargas(rut, clave, headless=True):
             tareas = [
                 ("Detalle Ausentismos histórico", lambda: descargar_ausentismo_historico(page, eventos), True),
                 ("Detalle solicitudes de vacaciones históricas", lambda: descargar_solicitudes_vacaciones(page, primer_dia_mes_actual(), eventos), True),
-                ("Maestro empleado", lambda: descargar_maestro_empleado(page), False),
+                ("Maestro empleado", lambda: descargar_maestro_empleado(page, eventos), True),
                 ("Reporte de Jornadas — Asistencia y Turnos", lambda: (cambiar_a_asistencia_y_turnos(page), descargar_reporte_jornadas(page, eventos))[1], True),
             ]
             for titulo, accion, es_archivo in tareas:
