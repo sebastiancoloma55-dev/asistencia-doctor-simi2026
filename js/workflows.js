@@ -231,7 +231,7 @@
             if(esAdministradorConAccesoGlobal())return true;
             if(modulo==='operaciones')return ['tareas','correos','asistencia','licencias','coberturas','reportes'].some(p=>modulosPermitidosActuales.includes(p));
             if(modulo==='calidad'||modulo==='integraciones')return false;
-            if(modulo==='notificaciones')return ['tareas','traslados','coberturas'].some(p=>modulosPermitidosActuales.includes(p));
+            if(modulo==='notificaciones')return ['tareas','traslados','amonestaciones'].some(p=>modulosPermitidosActuales.includes(p));
             return modulosPermitidosActuales.includes(modulo);
         }
         function puedeAsignarTareasActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_asignar_tareas;}
