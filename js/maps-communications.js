@@ -287,43 +287,74 @@
         let mapa14Ruta = null;
         let mapa14Sucursales = [];
 
-        function inicializarMapa14(lista = mapa14Sucursales) {
-            const host = document.getElementById('mapa14-frame');
-            const status = document.getElementById('mapa14-status');
-            if (!host || !window.L) {
-                if (status) status.textContent = 'No se pudo cargar el mapa interactivo. Los enlaces a Google Maps siguen disponibles.';
-                return;
-            }
-            if (!mapa14Leaflet) {
-                mapa14Leaflet = L.map(host, { scrollWheelZoom: true }).setView([-33.45, -70.66], 5);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(mapa14Leaflet);
-                mapa14Marcadores = L.layerGroup().addTo(mapa14Leaflet);
-                setTimeout(() => mapa14Leaflet && mapa14Leaflet.invalidateSize(), 200);
-            }
-            mapa14Marcadores.clearLayers();
-            if (mapa14Ruta) { mapa14Leaflet.removeLayer(mapa14Ruta); mapa14Ruta = null; }
-            const conGps = lista.map(x => ({ sucursal: x, punto: coordenadasSucursalMapa(x) })).filter(x => x.punto);
-            conGps.forEach(({sucursal, punto}) => {
-                const marker = L.marker([punto.lat, punto.lon]).bindPopup(
-                    '<strong>' + escaparHTML(sucursal.nombre) + '</strong><br>' +
-                    escaparHTML([sucursal.direccion, sucursal.comuna].filter(Boolean).join(', ')) +
-                    '<br><small>' + escaparHTML(sucursal.supervisor || 'Supervisor no asignado') + '</small>'
-                );
-                marker.addTo(mapa14Marcadores);
-            });
-            if (conGps.length) {
-                const bounds = L.latLngBounds(conGps.map(x => [x.punto.lat, x.punto.lon]));
-                mapa14Leaflet.fitBounds(bounds, { padding: [24, 24], maxZoom: 11 });
-            } else {
-                mapa14Leaflet.setView([-33.45, -70.66], 5);
-            }
-            if (status) status.textContent = conGps.length + ' sucursal(es) con coordenadas en el mapa · ' + (lista.length - conGps.length) + ' sin GPS registrado. Puedes ver todas las ubicaciones disponibles aunque no hayas elegido origen o destino.';
-            setTimeout(() => mapa14Leaflet && mapa14Leaflet.invalidateSize(), 150);
+        function marcadorFarmaciaMapa14(sucursal, punto) {
+            const marker=L.marker([punto.lat,punto.lon]).bindPopup(
+                '<strong>'+escaparHTML(sucursal.nombre)+'</strong><br>'+
+                escaparHTML([sucursal.direccion,sucursal.comuna].filter(Boolean).join(', '))+
+                '<br><small>'+escaparHTML(sucursal.supervisor||'Supervisor no asignado')+'</small>'
+            );
+            marker.addTo(mapa14Marcadores);
+            return marker;
         }
-
+        function pintarMarcadoresMapa14(lista, ajustarVista=true) {
+            if(!mapa14Leaflet||!mapa14Marcadores)return;
+            mapa14Marcadores.clearLayers();
+            const conGps=(lista||[]).map(x=>({sucursal:x,punto:coordenadasSucursalMapa(x)})).filter(x=>x.punto);
+            conGps.forEach(({sucursal,punto})=>marcadorFarmaciaMapa14(sucursal,punto));
+            if(ajustarVista&&conGps.length){
+                const bounds=L.latLngBounds(conGps.map(x=>[x.punto.lat,x.punto.lon]));
+                mapa14Leaflet.fitBounds(bounds,{padding:[28,28],maxZoom:11});
+            }else if(ajustarVista&&!conGps.length)mapa14Leaflet.setView([-33.45,-70.66],5);
+            return conGps.length;
+        }
+        function marcarSoloPuntosRutaMapa14(puntos) {
+            if(!mapa14Marcadores)return;
+            mapa14Marcadores.clearLayers();
+            (puntos||[]).forEach(p=>{
+                if(!Number.isFinite(p.lat)||!Number.isFinite(p.lon)||(p.lat===0&&p.lon===0))return;
+                const sucursal=mapa14Sucursales.find(x=>String(x.id||'')===String(p.id||''))||{nombre:p.nombre,direccion:p.direccion,comuna:p.comuna,supervisor:''};
+                marcadorFarmaciaMapa14(sucursal,{lat:p.lat,lon:p.lon});
+            });
+        }
+        function inicializarMapa14(lista = mapa14Sucursales) {
+            const host=document.getElementById('mapa14-frame'),status=document.getElementById('mapa14-status');
+            if(!host||!window.L){if(status)status.textContent='No se pudo cargar el mapa interactivo. Los enlaces a Google Maps siguen disponibles.';return;}
+            if(!mapa14Leaflet){
+                mapa14Leaflet=L.map(host,{scrollWheelZoom:true}).setView([-33.45,-70.66],5);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(mapa14Leaflet);
+                mapa14Marcadores=L.layerGroup().addTo(mapa14Leaflet);
+                setTimeout(()=>mapa14Leaflet&&mapa14Leaflet.invalidateSize(),200);
+            }
+            if(mapa14Ruta){mapa14Leaflet.removeLayer(mapa14Ruta);mapa14Ruta=null;}
+            const count=pintarMarcadoresMapa14(lista,true);
+            const visibleGps=Number(count||0);
+            const total=lista.length;
+            if(status)status.textContent=visibleGps+' farmacia(s) con coordenadas en el mapa'+(total-visibleGps?' · '+(total-visibleGps)+' sin GPS registrado':'')+'. Al consultar una ruta se mostrarán solo el origen y el destino; usa “Mostrar todas las farmacias” para limpiar el filtro.';
+            setTimeout(()=>mapa14Leaflet&&mapa14Leaflet.invalidateSize(),150);
+        }
+        function restaurarMapa14() {
+            if(mapa14Ruta&&mapa14Leaflet){mapa14Leaflet.removeLayer(mapa14Ruta);mapa14Ruta=null;}
+            ['origen','destino'].forEach(tipo=>{
+                const buscar=document.getElementById(tipo==='origen'?'map14-buscar-origen':'map14-buscar-destino');
+                const select=document.getElementById(tipo==='origen'?'map14-origen':'map14-destino');
+                if(buscar)buscar.value='';
+                renderOpcionesMapa14(tipo,'');
+                if(select)select.value='';
+            });
+            const frame=document.getElementById('mapa14-frame');
+            if(frame)frame.dataset.rutaCargada='0';
+            pintarMarcadoresMapa14(mapa14Sucursales,true);
+            const status=document.getElementById('mapa14-status');
+            if(status)status.textContent='Mostrando todas las farmacias disponibles. Selecciona un origen y destino para filtrar el mapa y consultar la ruta vial.';
+            const resumen=document.getElementById('mapa14-resumen');if(resumen)resumen.textContent='Selecciona origen, destino y medio de transporte.';
+            const link=document.getElementById('mapa14-externo');if(link)link.classList.add('hidden');
+            const stats=document.getElementById('mapa14-estadisticas');if(stats)stats.classList.add('hidden');
+            const steps=document.getElementById('mapa14-pasos');if(steps){steps.classList.add('hidden');steps.innerHTML='';}
+            const distancia=document.getElementById('mapa14-distancia');if(distancia)distancia.textContent='—';
+            const tiempo=document.getElementById('mapa14-tiempo');if(tiempo)tiempo.textContent='—';
+            const puntos=document.getElementById('mapa14-puntos');if(puntos)puntos.textContent=String(mapa14Sucursales.filter(x=>coordenadasSucursalMapa(x)).length);
+            if(window.lucide)lucide.createIcons();
+        }
         function renderOpcionesMapa14(tipo, query = '') {
             const select = document.getElementById(tipo === 'origen' ? 'map14-origen' : 'map14-destino');
             if (!select) return;
@@ -346,37 +377,81 @@
             inicializarMapa14(mapa14Sucursales);
             if (window.lucide) lucide.createIcons();
         }
-        function mostrarRutaMapa14() {
-            const selOrigen = document.getElementById('map14-origen'), selDestino = document.getElementById('map14-destino');
-            const origen = selOrigen.value, destino = selDestino.value, modo = document.getElementById('map14-modo').value;
-            const nombreOrigen = selOrigen.selectedOptions[0]?.dataset.nombre || selOrigen.selectedOptions[0]?.textContent || origen;
-            const nombreDestino = selDestino.selectedOptions[0]?.dataset.nombre || selDestino.selectedOptions[0]?.textContent || destino;
-            if (!origen || !destino) return mostrarToast('Selecciona una sucursal de origen y otra de destino.', 'warning');
-            if (origen === destino) return mostrarToast('El origen y el destino deben ser diferentes.', 'warning');
-            const travelmode = modo === 'w' ? 'walking' : modo === 'r' ? 'transit' : 'driving';
-            const externo = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origen)}&destination=${encodeURIComponent(destino)}&travelmode=${travelmode}`;
+        async function mostrarRutaMapa14() {
+            const selOrigen=document.getElementById('map14-origen'),selDestino=document.getElementById('map14-destino');
+            const origen=selOrigen?.value||'',destino=selDestino?.value||'',modo=document.getElementById('map14-modo')?.value||'d';
+            const opt1=selOrigen?.selectedOptions?.[0],opt2=selDestino?.selectedOptions?.[0];
+            const nombreOrigen=opt1?.dataset.nombre||opt1?.textContent||origen;
+            const nombreDestino=opt2?.dataset.nombre||opt2?.textContent||destino;
+            if(!origen||!destino)return mostrarToast('Selecciona una sucursal de origen y otra de destino.','warning');
+            if(origen===destino)return mostrarToast('El origen y el destino deben ser diferentes.','warning');
+            const travelmode=modo==='w'?'walking':modo==='r'?'transit':'driving';
+            const externo='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(origen)+'&destination='+encodeURIComponent(destino)+'&travelmode='+travelmode;
             const frame=document.getElementById('mapa14-frame');
-            frame.dataset.rutaCargada = '1';
-            frame.setAttribute('title',`Mapa de ruta: ${nombreOrigen} a ${nombreDestino}`);
-            const mapaStatus=document.getElementById('mapa14-status');if(mapaStatus)mapaStatus.textContent='Buscando coordenadas y calculando la ruta…';
-            const enlace = document.getElementById('mapa14-externo');
-            enlace.href = externo; enlace.classList.remove('hidden');
+            if(frame){frame.dataset.rutaCargada='1';frame.setAttribute('title','Mapa de ruta: '+nombreOrigen+' a '+nombreDestino);}
+            const enlace=document.getElementById('mapa14-externo');
+            if(enlace){enlace.href=externo;enlace.classList.remove('hidden');}
             const fallback=document.getElementById('mapa14-fallback-link');if(fallback)fallback.href=externo;
-            const modoTexto = modo === 'w' ? 'Caminando' : modo === 'r' ? 'Transporte público' : 'Auto';
-            document.getElementById('mapa14-resumen').textContent = `${nombreOrigen} → ${nombreDestino} · ${modoTexto}`;
-            const p1 = { lat: Number(selOrigen.selectedOptions[0]?.dataset.lat), lon: Number(selOrigen.selectedOptions[0]?.dataset.lon) };
-            const p2 = { lat: Number(selDestino.selectedOptions[0]?.dataset.lat), lon: Number(selDestino.selectedOptions[0]?.dataset.lon) };
-            if (mapa14Leaflet && Number.isFinite(p1.lat) && Number.isFinite(p1.lon) && Number.isFinite(p2.lat) && Number.isFinite(p2.lon) && (p1.lat !== 0 || p1.lon !== 0) && (p2.lat !== 0 || p2.lon !== 0)) {
-                if (mapa14Ruta) mapa14Leaflet.removeLayer(mapa14Ruta);
-                mapa14Ruta = L.polyline([[p1.lat,p1.lon],[p2.lat,p2.lon]], { color: '#06b6d4', weight: 4, opacity: .9, dashArray: '8 7' }).addTo(mapa14Leaflet);
-                mapa14Leaflet.fitBounds(mapa14Ruta.getBounds(), { padding: [36,36], maxZoom: 12 });
-                const status = document.getElementById('mapa14-status');
-                if (status) status.textContent = 'Vista previa de ruta recta entre las coordenadas guardadas. Abre Google Maps para el recorrido vial real.';
-            } else {
-                const status = document.getElementById('mapa14-status');
-                if (status) status.textContent = 'Una o ambas sucursales no tienen GPS. La ruta vial está disponible en Google Maps.';
+            const modoTexto=modo==='w'?'Caminando':modo==='r'?'Transporte público':'Auto';
+            const resumen=document.getElementById('mapa14-resumen');if(resumen)resumen.textContent=nombreOrigen+' → '+nombreDestino+' · '+modoTexto;
+            const status=document.getElementById('mapa14-status');if(status)status.textContent='Filtrando el mapa a las dos farmacias seleccionadas…';
+            if(mapa14Ruta&&mapa14Leaflet){mapa14Leaflet.removeLayer(mapa14Ruta);mapa14Ruta=null;}
+            const p1={id:opt1?.dataset.id||'',nombre:nombreOrigen,direccion:opt1?.dataset.direccion||'',comuna:opt1?.dataset.comuna||'',lat:Number(opt1?.dataset.lat),lon:Number(opt1?.dataset.lon)};
+            const p2={id:opt2?.dataset.id||'',nombre:nombreDestino,direccion:opt2?.dataset.direccion||'',comuna:opt2?.dataset.comuna||'',lat:Number(opt2?.dataset.lat),lon:Number(opt2?.dataset.lon)};
+            const validPoint=p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&(p.lat!==0||p.lon!==0);
+            const puntos=[p1,p2].filter(validPoint);
+            marcarSoloPuntosRutaMapa14(puntos);
+            const stats=document.getElementById('mapa14-estadisticas');
+            const stepsHost=document.getElementById('mapa14-pasos');
+            const distanceEl=document.getElementById('mapa14-distancia'),timeEl=document.getElementById('mapa14-tiempo'),pointsEl=document.getElementById('mapa14-puntos');
+            if(pointsEl)pointsEl.textContent=String(puntos.length);
+            if(stats)stats.classList.add('hidden');
+            if(stepsHost){stepsHost.classList.add('hidden');stepsHost.innerHTML='';}
+            if(puntos.length&&mapa14Leaflet){
+                const bounds=L.latLngBounds(puntos.map(p=>[p.lat,p.lon]));
+                mapa14Leaflet.fitBounds(bounds,{padding:[40,40],maxZoom:12});
             }
-            if (window.lucide) lucide.createIcons();
+            if(!validPoint(p1)||!validPoint(p2)){
+                if(status)status.textContent='El mapa muestra solo las ubicaciones seleccionadas. Falta GPS en una de ellas; usa Google Maps para obtener el recorrido vial.';
+                mostrarToast('Una o ambas sucursales no tienen coordenadas GPS. Se abrirá la ruta en Google Maps.','warning');
+                if(window.lucide)lucide.createIcons();
+                return;
+            }
+            if(modo!=='d'){
+                if(status)status.textContent='El mapa muestra solo origen y destino. Para obtener el trazado exacto '+(modo==='w'?'a pie':'en transporte público')+', abre Google Maps con el modo seleccionado.';
+                if(window.lucide)lucide.createIcons();
+                return;
+            }
+            if(status)status.textContent='Calculando el trayecto vial por calles y avenidas…';
+            try{
+                const url='https://router.project-osrm.org/route/v1/driving/'+p1.lon+','+p1.lat+';'+p2.lon+','+p2.lat+'?overview=full&geometries=geojson&steps=true';
+                const response=await fetch(url,{headers:{'Accept':'application/json'}});
+                if(!response.ok)throw new Error('El servidor de rutas respondió '+response.status);
+                const payload=await response.json();
+                if(payload.code!=='Ok'||!payload.routes?.length)throw new Error('No se encontró un recorrido vial para estas coordenadas.');
+                const route=payload.routes[0];
+                if(mapa14Ruta&&mapa14Leaflet)mapa14Leaflet.removeLayer(mapa14Ruta);
+                mapa14Ruta=L.geoJSON(route.geometry,{style:{color:'#078ca6',weight:6,opacity:.95,lineCap:'round',lineJoin:'round'}}).addTo(mapa14Leaflet);
+                mapa14Leaflet.fitBounds(mapa14Ruta.getBounds(),{padding:[35,35],maxZoom:14});
+                const km=Number(route.distance||0)/1000,minutes=Math.round(Number(route.duration||0)/60);
+                if(distanceEl)distanceEl.textContent=km<10?km.toFixed(1)+' km':km.toFixed(1)+' km';
+                if(timeEl)timeEl.textContent=minutes<60?minutes+' min':Math.floor(minutes/60)+' h '+(minutes%60)+' min';
+                if(stats)stats.classList.remove('hidden');
+                if(pointsEl)pointsEl.textContent='2';
+                const allSteps=(route.legs||[]).flatMap(leg=>leg.steps||[]).filter(step=>step.name||step.maneuver);
+                const turnLabel=m=>{const type=String(m?.type||'');const mod=String(m?.modifier||'');const map={depart:'Inicia el recorrido',arrive:'Llegada al destino',turn:'Gira',roundabout:'Entra a la rotonda',merge:'Incorpórate',fork:'Toma la bifurcación',continue:'Continúa',newname:'Continúa por la vía'};return (map[type]||'Continúa')+(mod?' '+mod.replace(/_/g,' '):'');};
+                if(stepsHost){
+                    stepsHost.innerHTML='<b>Calles y giros del trayecto</b><ol>'+allSteps.slice(0,18).map(step=>'<li>'+escaparHTML(turnLabel(step.maneuver))+(step.name?' por <strong>'+escaparHTML(step.name)+'</strong>':'')+'</li>').join('')+'</ol>';
+                    stepsHost.classList.remove('hidden');
+                }
+                if(status)status.textContent='Ruta vial calculada por calles y avenidas. Se muestran únicamente el origen y el destino; las demás farmacias están ocultas hasta que restaures la vista.';
+            }catch(error){
+                if(mapa14Ruta&&mapa14Leaflet){mapa14Leaflet.removeLayer(mapa14Ruta);mapa14Ruta=null;}
+                if(stats)stats.classList.add('hidden');
+                if(stepsHost){stepsHost.innerHTML='';stepsHost.classList.add('hidden');}
+                if(status)status.textContent='No fue posible calcular las calles en el mapa. Se mantienen visibles solo las farmacias seleccionadas; abre Google Maps para el recorrido exacto. '+(error.message||'');
+            }
+            if(window.lucide)lucide.createIcons();
         }
 
         async function prepararModuloCoberturas(){const lista=await obtenerSucursalesConfig();document.getElementById('cob-destino').innerHTML='<option value="">Local a cubrir</option>'+lista.map(x=>`<option>${escaparHTML(x.nombre)}</option>`).join('');await cargarCoberturas();}

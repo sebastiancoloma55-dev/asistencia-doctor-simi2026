@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { importKeyFields, importStableKey, normalizeImportValue, normalizeImportRut } from "./import_keys.js";
 const cors = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, apikey, content-type, x-client-info, x-bot-secret","Access-Control-Allow-Methods":"POST, OPTIONS","Content-Type":"application/json"};
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:cors});
 const url=Deno.env.get("SUPABASE_URL")!, anon=Deno.env.get("SUPABASE_ANON_KEY")!, service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, botSecret=Deno.env.get("TALANA_BOT_SECRET")||"";
@@ -34,8 +35,8 @@ if(a==="bot_import"){
   colaboradores:["rut","nombres","apellidos","cargo","sucursal","fecha_ingreso","estado"],
   registros_asistencia:["rut","nombre","sucursal","fecha","entrada","salida","atraso","estado","turno","tipo_ausentismo","salida_temprana","sin_marca","marca_incompleta","tiene_atraso","sin_turno_marcas"]
  }[table];
- const norm=(v:unknown)=>{let s=String(v??"").trim().toLowerCase();const d=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);if(d)s=d[3]+"-"+d[2].padStart(2,"0")+"-"+d[1].padStart(2,"0");return s.replace(/\s+/g," ");}; const normRut=(v:unknown)=>String(v??"").toUpperCase().replace(/[.\s]/g,"");
- const keyOf=(r:any)=>reportType==="ausentismos_historico"?["rut","fecha_inicio","fecha_fin","tipo_ausencia","motivo_ausencia"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):reportType==="solicitudes_vacaciones_historicas"?["rut","fecha_solicitud","fecha_inicio","fecha_fin"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):reportType==="reporte_jornadas_asistencia"?["rut","fecha","turno"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):normRut(r.rut);
+ const norm=normalizeImportValue; const normRut=normalizeImportRut;
+ const keyOf=(r:any)=>importStableKey(reportType,r);
  const clean=(r:any)=>Object.fromEntries(allowed.filter((k:string)=>r[k]!==undefined&&r[k]!==null&&r[k]!=="").map((k:string)=>[k,r[k]]));
  const errors:string[]=[...parseErrors.map((x:any)=>String(x).slice(0,250))], valid:any[]=[];
  let inserted=0,updated=0,skipped=0,failed=parseErrors.length;
@@ -43,6 +44,8 @@ if(a==="bot_import"){
   if(table==="vacaciones_historico"&&(!row.fecha_inicio||!row.fecha_fin||!row.tipo_vacaciones)){errors.push("lote fila "+(i+1)+": faltan campos obligatorios de vacaciones");failed++;continue;}
   if(table==="registros_asistencia"&&!row.fecha){errors.push("lote fila "+(i+1)+": falta fecha de asistencia");failed++;continue;}
   if(table==="colaboradores"&&(!row.nombres||!row.apellidos)){errors.push("lote fila "+(i+1)+": faltan nombres/apellidos");failed++;continue;}
+  const missingKeyFields=(importKeyFields(reportType)||[]).filter((field:string)=>row[field]===undefined||row[field]===null||String(row[field]).trim()==="");
+  if(missingKeyFields.length){errors.push("lote fila "+(i+1)+": faltan campos de identificación para evitar duplicados ("+missingKeyFields.join(", ")+")");failed++;continue;}
   if(table==="registros_asistencia"){row.sin_marca=Boolean(row.sin_marca);row.marca_incompleta=Boolean(row.marca_incompleta);row.tiene_atraso=Boolean(row.tiene_atraso);row.sin_turno_marcas=Boolean(row.sin_turno_marcas);}
   valid.push(row);
  }
@@ -64,27 +67,47 @@ if(a==="bot_import"){
   skipped+=valid.length-toUpsert.length;
  }else{
   const ruts=[...new Set(valid.flatMap((r:any)=>[String(r.rut),normRut(r.rut)]))];
+  const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia":table==="vacaciones_historico"?"id,rut,fecha_inicio,fecha_fin,tipo_vacaciones":"id,rut,fecha";
   let existingRows:any[]=[];
-  if(ruts.length){const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia,motivo_ausencia":table==="vacaciones_historico"?"id,rut,fecha_solicitud,fecha_inicio,fecha_fin,tipo_vacaciones":"id,rut,fecha,entrada,salida,turno";
-   const {data,error}=await admin.from(table).select(selectCols).in("rut",ruts).limit(20000);if(error)return json({error:error.message},500);existingRows=data||[];}
-  const existingByKey=new Map(existingRows.map((r:any)=>[keyOf(r),r])), seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
+  if(ruts.length){const {data,error}=await admin.from(table).select(selectCols).in("rut",ruts).order("id",{ascending:false}).limit(20000);if(error)return json({error:error.message},500);existingRows=data||[];}
+  const existingByKey=new Map<string,any>(); for(const old of existingRows){const oldKey=keyOf(old);if(oldKey&&!existingByKey.has(oldKey))existingByKey.set(oldKey,old);} const seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
   for(const row of valid){
    const k=keyOf(row);
+   if(!k){failed++;errors.push(table+" RUT "+row.rut+": clave natural incompleta; fila rechazada para no generar duplicados.");continue;}
    if(seenIncoming.has(k)){skipped++;continue;}
    seenIncoming.add(k);
    const old=existingByKey.get(k);
-   if(old){
-    if(table==="vacaciones_historico"||table==="registros_asistencia")pendingUpdates.push({id:old.id,row});
-    else skipped++;
-   }else pending.push(row);
+   if(old){pendingUpdates.push({id:old.id,row,old});}
+   else pending.push(row);
   }
   for(const item of pendingUpdates){
-   const {error}=await admin.from(table).update(item.row).eq("id",item.id);
+   const updateRow={...item.row};
+   for(const field of importKeyFields(reportType)||[]){updateRow[field]=item.old[field]??updateRow[field];}
+   const {error}=await admin.from(table).update(updateRow).eq("id",item.id);
    if(error){failed++;errors.push(table+" RUT "+item.row.rut+": "+error.message.slice(0,180));}
    else updated++;
   }
   if(pending.length){const {data,error}=await admin.from(table).insert(pending).select("id");if(error){
-    for(const row of pending){const {error:oneError}=await admin.from(table).insert(row);if(oneError){failed++;errors.push(table+" RUT "+row.rut+": "+oneError.message.slice(0,180));}else inserted++;}
+    for(const row of pending){
+     const {error:oneError}=await admin.from(table).insert(row);
+     if(!oneError){inserted++;continue;}
+     const duplicateConflict=(oneError as any).code==="23505"||(oneError as any).status===409;
+     if(duplicateConflict){
+      let lookup=admin.from(table).select(selectCols).order("id",{ascending:false}).limit(1);
+      for(const field of importKeyFields(reportType)||[]){lookup=lookup.eq(field,row[field]);}
+      const {data:existing,error:lookupError}=await lookup.maybeSingle();
+      if(!lookupError&&existing){
+       const updateRow={...row};
+       for(const field of importKeyFields(reportType)||[]){updateRow[field]=existing[field]??updateRow[field];}
+       const {error:updateError}=await admin.from(table).update(updateRow).eq("id",existing.id);
+       if(!updateError){updated++;continue;}
+       errors.push(table+" RUT "+row.rut+": conflicto duplicado; no se pudo actualizar el registro existente ("+updateError.message.slice(0,120)+").");
+      }else if(lookupError){
+       errors.push(table+" RUT "+row.rut+": falló la búsqueda tras conflicto de unicidad ("+lookupError.message.slice(0,120)+").");
+      }
+     }
+     failed++;errors.push(table+" RUT "+row.rut+": "+oneError.message.slice(0,180));
+    }
    }else inserted=(data||[]).length;}
  }
  const moduleNames=reportType==="ausentismos_historico"?["talana_bot","licencias","talana_ausentismos"]:reportType==="solicitudes_vacaciones_historicas"?["talana_bot","vacaciones","talana_vacaciones"]:reportType==="maestro_empleado"?["talana_bot","colaboradores"]:["talana_bot","asistencia","talana_asistencia"];

@@ -463,6 +463,343 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
 @media(max-width:640px){#quick-module-bar{padding:8px 12px}.topbar-user-email{display:none!important}#btn-theme-settings .theme-button-label{display:none}}
 @media(prefers-reduced-motion:reduce){#sidebar,#quick-module-bar .quick-module-chip{transition:none!important}}
 
+
+        /* AJUSTE FINO DE DISTRIBUCIÓN: conserva posiciones y elimina la barra horizontal visible */
+        main.flex.min-w-0.flex-1.flex-col.overflow-y-auto {
+            min-width: 0;
+            max-width: 100%;
+            overflow-x: hidden;
+            scrollbar-gutter: stable;
+        }
+        main > header {
+            box-sizing: border-box;
+            min-width: 0;
+            max-width: 100%;
+            gap: 12px;
+        }
+        main > header > div {
+            min-width: 0;
+        }
+        main > header > div:last-child {
+            flex: 0 1 auto;
+            gap: clamp(6px, .8vw, 14px);
+        }
+        #header-title {
+            min-width: 0;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        #quick-module-bar {
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            overscroll-behavior-x: contain;
+            scroll-behavior: smooth;
+        }
+        #quick-module-bar::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+        #quick-module-bar .quick-module-chip {
+            flex: 0 0 auto;
+        }
+        @media (max-width: 1180px) {
+            .topbar-user-email {
+                max-width: 150px;
+            }
+        }
+        @media (max-width: 980px) {
+            .topbar-user-email,
+            .topbar-divider {
+                display: none !important;
+            }
+            main > header {
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #quick-module-bar {
+                scroll-behavior: auto;
+            }
+        }
+
+
+/* NOVA LOGIN + TEMA GLOBAL v2 — mantiene el orden y las funciones existentes */
+:root{
+ --login-accent:var(--user-accent,#087fa3);
+ --login-accent-strong:var(--user-accent-strong,#06627e);
+ --login-glow:color-mix(in srgb,var(--user-accent,#087fa3) 45%,transparent);
+}
+.dashboard-welcome{
+ background:
+   radial-gradient(ellipse at 88% 12%,color-mix(in srgb,var(--user-accent,#087fa3) 65%,transparent),transparent 43%),
+   linear-gradient(118deg,var(--user-sidebar-start,#073a79) 0%,color-mix(in srgb,var(--user-sidebar-start,#073a79) 60%,var(--user-accent,#087fa3)) 52%,var(--user-accent,#087fa3) 100%)!important;
+ border:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 38%,white)!important;
+ box-shadow:0 18px 48px color-mix(in srgb,var(--user-accent,#087fa3) 20%,transparent)!important;
+ transition:background .35s ease,box-shadow .35s ease,border-color .35s ease;
+}
+.dashboard-welcome:after{color:color-mix(in srgb,var(--user-accent-contrast,#fff) 9%,transparent)!important}
+.login-overlay-modern{
+ isolation:isolate!important;
+ background:
+   radial-gradient(ellipse at 14% 18%,color-mix(in srgb,var(--user-accent,#087fa3) 42%,transparent),transparent 34%),
+   radial-gradient(ellipse at 86% 82%,rgba(227,24,55,.22),transparent 32%),
+   linear-gradient(135deg,#071321 0%,#0b1b30 48%,color-mix(in srgb,var(--user-sidebar-start,#073a79) 70%,#071321) 100%)!important;
+ transition:background .45s ease;
+}
+.login-overlay-modern:before{
+ content:"";position:absolute;inset:-30%;z-index:-1;pointer-events:none;
+ background:conic-gradient(from 0deg at 50% 50%,transparent 0deg,var(--login-glow) 65deg,transparent 125deg,rgba(227,24,55,.13) 190deg,transparent 255deg,var(--login-glow) 315deg,transparent 360deg);
+ filter:blur(72px);opacity:.58;animation:nova-login-orbit 28s linear infinite;
+}
+.login-overlay-modern:after{
+ content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.18;
+ background-image:radial-gradient(rgba(255,255,255,.55) .7px,transparent .7px);
+ background-size:23px 23px;mask-image:linear-gradient(110deg,#000,transparent 72%);
+}
+.login-grid-bg{opacity:.2!important;mask-image:radial-gradient(ellipse at center,#000,transparent 78%)}
+.login-glow-red{background:color-mix(in srgb,#e31837 58%,transparent)!important;opacity:.18!important}
+.login-glow-blue{background:var(--login-glow)!important;opacity:.3!important}
+.login-shell{
+ border-color:rgba(255,255,255,.18)!important;
+ background:rgba(255,255,255,.065)!important;
+ box-shadow:0 40px 120px rgba(0,0,0,.48),0 0 0 1px color-mix(in srgb,var(--user-accent,#087fa3) 12%,transparent)!important;
+}
+.login-hero{
+ background:
+  radial-gradient(ellipse at 10% 90%,color-mix(in srgb,var(--user-accent,#087fa3) 34%,transparent),transparent 48%),
+  linear-gradient(145deg,rgba(5,18,34,.48),color-mix(in srgb,var(--user-sidebar-start,#073a79) 58%,transparent))!important;
+}
+.login-brand-mark{background:linear-gradient(145deg,var(--user-accent,#087fa3),var(--user-accent-strong,#06627e))!important;box-shadow:0 10px 32px color-mix(in srgb,var(--user-accent,#087fa3) 38%,transparent)!important}
+.login-hero h2 span{color:var(--user-accent-bright,#6ee7f9)!important;text-shadow:0 0 34px color-mix(in srgb,var(--user-accent,#087fa3) 28%,transparent)}
+.login-eyebrow{border-color:color-mix(in srgb,var(--user-accent,#087fa3) 45%,transparent)!important}
+.login-proof-icon{color:var(--user-accent-bright,#6ee7f9)!important;border-color:color-mix(in srgb,var(--user-accent,#087fa3) 40%,transparent)!important}
+.login-track-line{background:linear-gradient(90deg,transparent,var(--user-accent,#087fa3),rgba(255,255,255,.45),#e31837,transparent)!important}
+#login-overlay button[type="submit"],#login-overlay .login-submit,#login-overlay #login-submit{
+ background:linear-gradient(105deg,var(--user-accent-strong,#06627e),var(--user-accent,#087fa3))!important;
+ box-shadow:0 12px 28px color-mix(in srgb,var(--user-accent,#087fa3) 32%,transparent)!important;
+ transition:filter .2s ease,transform .2s ease,box-shadow .2s ease!important;
+}
+#login-overlay button[type="submit"]:hover,#login-overlay .login-submit:hover,#login-overlay #login-submit:hover{filter:brightness(1.12);transform:translateY(-2px)}
+#login-overlay input:focus{border-color:var(--user-accent,#087fa3)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--user-accent,#087fa3) 16%,transparent)!important}
+body.theme-dark .login-shell{background:rgba(10,22,39,.78)!important}
+@keyframes nova-login-orbit{to{transform:rotate(360deg)}}
+@media(max-width:760px){.login-shell{grid-template-columns:minmax(0,1fr)!important;min-height:0!important}.login-hero{min-height:320px!important;padding:28px!important}.login-hero-copy{margin-top:28px!important;margin-bottom:70px!important}.login-simi-stage{transform:scale(.72);transform-origin:bottom left;bottom:0!important}}
+@media(prefers-reduced-motion:reduce){.login-overlay-modern:before{animation:none!important}.login-shell,.dashboard-welcome{transition:none!important}}
+
+
+/* NOVA V3 — identidad visual original para el acceso RRHH */
+body:has(.nova-v3-overlay){margin:0}
+.nova-v3-overlay{position:fixed!important;inset:0!important;z-index:150!important;display:flex!important;flex-direction:column!important;overflow:auto!important;isolation:isolate;background:#07131b!important;color:#f4f8f8!important;font-family:Inter,ui-sans-serif,system-ui,sans-serif!important}
+.nova-v3-overlay *{box-sizing:border-box}
+.nova-v3-atmosphere{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse at 22% 45%,rgba(0,161,145,.13),transparent 36%),radial-gradient(ellipse at 79% 42%,rgba(0,113,133,.12),transparent 38%),linear-gradient(118deg,#07131b 0%,#091922 53%,#0a1720 100%)}
+.nova-v3-grid{position:absolute;inset:0;opacity:.17;background-image:linear-gradient(rgba(177,221,220,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(177,221,220,.09) 1px,transparent 1px);background-size:54px 54px;mask-image:linear-gradient(90deg,black,transparent 75%)}
+.nova-v3-orb{position:absolute;border-radius:50%;filter:blur(1px);animation:nova-v3-drift 16s ease-in-out infinite alternate}
+.nova-v3-orb-a{width:420px;height:420px;left:-210px;top:14%;background:radial-gradient(circle,rgba(0,191,166,.15),transparent 70%)}
+.nova-v3-orb-b{width:520px;height:520px;right:-240px;bottom:-220px;background:radial-gradient(circle,rgba(0,130,162,.16),transparent 70%);animation-delay:-8s}
+.nova-v3-cross{position:absolute;color:rgba(104,220,205,.5);font-size:20px;font-weight:200}.nova-v3-cross-a{top:25%;left:5%}.nova-v3-cross-b{right:5%;top:18%}
+.nova-v3-coordinate{position:absolute;right:26px;bottom:30%;font-size:9px;letter-spacing:.26em;writing-mode:vertical-rl;color:rgba(195,223,225,.35)}
+.nova-v3-topbar{width:min(1440px,100%);margin:0 auto;padding:26px clamp(22px,5vw,78px);display:flex;align-items:center;justify-content:space-between;gap:20px}
+.nova-v3-brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}.nova-v3-brand-image{width:43px;height:43px;border:1px solid rgba(115,222,209,.6);border-radius:15px;display:grid;place-items:center;background:rgba(255,255,255,.07);box-shadow:0 0 26px rgba(0,194,170,.12);overflow:hidden}.nova-v3-brand-image img{width:100%;height:100%;object-fit:cover}.nova-v3-brand-copy{display:flex;flex-direction:column;gap:4px}.nova-v3-brand-copy strong{font-size:12px;letter-spacing:.2em;font-weight:850}.nova-v3-brand-copy small{font-size:9px;letter-spacing:.17em;color:#7f9caa}
+.nova-v3-top-status{display:flex;align-items:center;gap:10px;font-size:9px;letter-spacing:.18em;color:#a4bdc6}.nova-v3-top-status span,.nova-v3-live i{width:6px;height:6px;background:#53e1ba;border-radius:50%;box-shadow:0 0 12px rgba(83,225,186,.8)}.nova-v3-top-status i{height:14px;width:1px;background:rgba(180,210,215,.25)}
+.nova-v3-main{width:min(1280px,100%);margin:auto;flex:1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(360px,.72fr);align-items:center;gap:clamp(36px,8vw,128px);padding:25px clamp(22px,7vw,110px) 45px}
+.nova-v3-intro{position:relative;min-width:0;padding-top:8px}.nova-v3-kicker{display:flex;align-items:center;gap:12px;font-size:9px;font-weight:800;letter-spacing:.24em;color:#79d6ca}.nova-v3-kicker-line{width:29px;height:1px;background:#49d6c1;box-shadow:0 0 12px #49d6c1}
+.nova-v3-intro h1{margin:28px 0 15px;font-size:clamp(43px,5.4vw,76px);line-height:.99;letter-spacing:-.065em;font-weight:760;color:#f4f8f8}.nova-v3-intro h1 em{font-style:normal;color:#6ee0cf}.nova-v3-description{max-width:410px;color:#9bb2bb;font-size:14px;line-height:1.9;margin:0}
+.nova-v3-orbit-scene{height:250px;max-width:530px;position:relative;margin-top:12px;overflow:visible}
+.nova-v3-orbit{position:absolute;border:1px solid rgba(103,214,203,.2);border-radius:50%;left:48%;top:50%;transform:translate(-50%,-50%) rotate(-18deg)}
+.nova-v3-orbit-outer{width:270px;height:150px;border-style:dashed;animation:nova-v3-spin 28s linear infinite}.nova-v3-orbit-middle{width:220px;height:118px;transform:translate(-50%,-50%) rotate(52deg);border-color:rgba(103,214,203,.32);animation:nova-v3-spin-reverse 22s linear infinite}.nova-v3-orbit-inner{width:155px;height:155px;border-color:rgba(103,214,203,.15);box-shadow:0 0 55px rgba(0,177,157,.07)}
+.nova-v3-core{position:absolute;left:48%;top:50%;transform:translate(-50%,-50%);width:82px;height:82px;border-radius:28px;display:grid;place-items:center;background:linear-gradient(145deg,#12363d,#0c242d);border:1px solid rgba(105,228,211,.5);box-shadow:0 0 0 10px rgba(65,197,180,.035),0 0 45px rgba(0,195,172,.16);animation:nova-v3-float 5s ease-in-out infinite}.nova-v3-core img{width:61px;height:61px;object-fit:contain;border-radius:50%;position:relative;z-index:2}.nova-v3-core-pulse{position:absolute;inset:-9px;border:1px solid rgba(103,214,203,.28);border-radius:33px;animation:nova-v3-pulse 3.4s ease-out infinite}
+.nova-v3-orbit-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:#7df1d9;box-shadow:0 0 13px #7df1d9}.nova-v3-dot-one{left:65%;top:19%}.nova-v3-dot-two{left:25%;top:58%;width:5px;height:5px}.nova-v3-dot-three{left:70%;top:76%;background:#e1f8f4}
+.nova-v3-float-tag{position:absolute;display:flex;align-items:center;gap:10px;padding:10px 13px;background:rgba(14,36,44,.82);border:1px solid rgba(129,205,199,.17);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.14);backdrop-filter:blur(12px);animation:nova-v3-float 6s ease-in-out infinite}.nova-v3-tag-one{left:0;top:18%}.nova-v3-tag-two{right:0;top:34%;animation-delay:-2s}.nova-v3-tag-three{left:20%;bottom:0;animation-delay:-4s}.nova-v3-tag-icon{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:rgba(82,218,197,.1);color:#79e2d2;font-size:9px;font-weight:800}.nova-v3-float-tag b,.nova-v3-float-tag small{display:block;white-space:nowrap}.nova-v3-float-tag b{font-size:9px;letter-spacing:.1em}.nova-v3-float-tag small{font-size:9px;color:#7f9da5;margin-top:4px}
+.nova-v3-bottom-note{display:flex;align-items:center;gap:12px;padding-top:20px;border-top:1px solid rgba(180,218,218,.13);max-width:440px}.nova-v3-bottom-icon{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:#78ddcf;background:rgba(85,216,198,.08);border:1px solid rgba(85,216,198,.2)}.nova-v3-bottom-icon svg{width:16px;height:16px}.nova-v3-bottom-note b,.nova-v3-bottom-note small{display:block}.nova-v3-bottom-note b{font-size:11px;font-weight:650}.nova-v3-bottom-note small{font-size:10px;color:#829ba5;margin-top:4px}.nova-v3-bottom-arrow{margin-left:auto;color:#6faaa9;font-size:20px}
+.nova-v3-auth{width:100%;max-width:440px;justify-self:end;position:relative;padding:clamp(26px,3vw,43px);background:linear-gradient(145deg,rgba(20,43,52,.94),rgba(10,27,36,.92));border:1px solid rgba(156,219,214,.17);border-radius:24px;box-shadow:0 30px 100px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.05);backdrop-filter:blur(22px);overflow:hidden}
+.nova-v3-auth:before{content:"";position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,#70e1d0,transparent);opacity:.75}.nova-v3-auth-top{display:flex;align-items:center;justify-content:space-between}.nova-v3-auth-symbol{width:45px;height:45px;border-radius:15px;display:grid;place-items:center;color:#77e1d0;background:rgba(78,211,193,.09);border:1px solid rgba(106,222,209,.24)}.nova-v3-auth-symbol svg{width:23px;height:23px}.nova-v3-auth-step{font-size:9px;letter-spacing:.18em;color:#7d9aa4}.nova-v3-auth-step b{color:#70ddce;font-weight:700}
+.nova-v3-auth-heading{margin:32px 0 27px}.nova-v3-auth-heading>span{font-size:9px;font-weight:800;letter-spacing:.2em;color:#71dfcf}.nova-v3-auth-heading h2{font-size:clamp(32px,3vw,43px);line-height:1.05;letter-spacing:-.055em;font-weight:730;color:#f2f8f7;margin:13px 0 11px}.nova-v3-auth-heading p{font-size:12px;line-height:1.7;color:#92aab3;margin:0}
+.nova-v3-form{display:flex;flex-direction:column;gap:20px}.nova-v3-field label{display:block;font-size:9px;font-weight:750;letter-spacing:.13em;color:#b8cbd0;margin-bottom:9px}.nova-v3-input-wrap{display:flex;align-items:center;gap:12px;min-height:54px;padding:0 15px;border-radius:12px;background:rgba(3,15,22,.44);border:1px solid rgba(149,190,195,.18);transition:border-color .2s,box-shadow .2s,background .2s}.nova-v3-input-wrap:focus-within{border-color:#65d9c8;background:rgba(3,15,22,.65);box-shadow:0 0 0 3px rgba(79,211,191,.09)}.nova-v3-input-wrap>svg{width:17px;height:17px;flex-shrink:0;color:#7c9ba5}.nova-v3-input-wrap input{width:100%;min-width:0;outline:none;border:0;background:transparent;color:#f1f8f8;font-size:12px;padding:16px 0}.nova-v3-input-wrap input::placeholder{color:#617e89}.nova-v3-eye{border:0;background:transparent;color:#82a3ad;cursor:pointer;padding:6px;display:grid;place-items:center}.nova-v3-eye svg{width:17px;height:17px}.nova-v3-form-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:-4px}.nova-v3-remember{display:flex;align-items:center;gap:8px;font-size:10px;color:#91aab3;cursor:pointer}.nova-v3-remember input{position:absolute;opacity:0;width:1px;height:1px}.nova-v3-remember span{width:14px;height:14px;border:1px solid #587782;border-radius:4px;display:inline-block;position:relative}.nova-v3-remember input:checked+span{background:#52cbb9;border-color:#52cbb9}.nova-v3-remember input:checked+span:after{content:"✓";position:absolute;left:2px;top:-2px;color:#08202a;font-size:11px;font-weight:900}.nova-v3-forgot{border:0;background:transparent;color:#70ddce;font-size:10px;font-weight:650;cursor:pointer;padding:4px 0}.nova-v3-forgot:hover{color:#b1fff1}
+.nova-v3-error{font-size:12px;color:#ffb7bc;background:rgba(190,40,61,.13);border:1px solid rgba(255,111,127,.28);border-radius:10px;padding:10px 12px}.nova-v3-submit{width:100%;min-height:54px;border:1px solid rgba(132,246,226,.28);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 8px 7px 18px;background:#59d6c1;color:#07252b;font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 10px 30px rgba(39,190,169,.15);transition:transform .2s,filter .2s,box-shadow .2s}.nova-v3-submit:hover{transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 14px 35px rgba(39,190,169,.23)}.nova-v3-submit:active{transform:translateY(0)}.nova-v3-submit-icon{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;background:rgba(4,48,53,.1)}.nova-v3-submit-icon svg{width:18px;height:18px}
+.nova-v3-auth-foot{display:flex;align-items:center;gap:10px;border-top:1px solid rgba(160,202,205,.12);margin-top:25px;padding-top:18px}.nova-v3-lock{width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(133,194,197,.16);border-radius:9px;color:#85b9bb}.nova-v3-lock svg{width:14px;height:14px}.nova-v3-auth-foot b,.nova-v3-auth-foot small{display:block}.nova-v3-auth-foot b{font-size:10px;color:#c5d8da;font-weight:650}.nova-v3-auth-foot small{font-size:9px;color:#78939e;margin-top:4px}.nova-v3-live{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:8px;letter-spacing:.12em;color:#83c4b8}.nova-v3-live i{width:5px;height:5px}
+.nova-v3-footer{width:min(1440px,100%);margin:0 auto;padding:15px clamp(22px,5vw,78px) 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;color:#5e7b86;font-size:8px;letter-spacing:.14em}.nova-v3-footer-mark{color:#a2bdc1;font-weight:850;letter-spacing:.1em}.nova-v3-footer-mark span{color:#55d6c2;padding:0 5px}
+@keyframes nova-v3-spin{to{transform:translate(-50%,-50%) rotate(342deg)}}@keyframes nova-v3-spin-reverse{to{transform:translate(-50%,-50%) rotate(-308deg)}}@keyframes nova-v3-float{0%,100%{translate:0 0}50%{translate:0 -8px}}@keyframes nova-v3-pulse{0%{transform:scale(.88);opacity:.75}100%{transform:scale(1.25);opacity:0}}@keyframes nova-v3-drift{to{transform:translate3d(40px,-25px,0) scale(1.12)}}
+@media(max-width:900px){.nova-v3-main{grid-template-columns:minmax(0,1fr) minmax(330px,.85fr);gap:28px;padding-left:28px;padding-right:28px}.nova-v3-intro h1{font-size:clamp(40px,6vw,58px)}.nova-v3-orbit-scene{transform:scale(.9);transform-origin:left center;margin-right:-35px}.nova-v3-auth{padding:28px}.nova-v3-coordinate{display:none}}
+@media(max-width:700px){.nova-v3-topbar{padding:18px 20px}.nova-v3-top-status{font-size:8px}.nova-v3-main{display:flex;flex-direction:column;align-items:stretch;gap:28px;padding:30px 20px 35px}.nova-v3-intro h1{font-size:48px;margin-top:20px}.nova-v3-description{font-size:13px}.nova-v3-orbit-scene{height:205px;max-width:100%;transform:scale(.85);transform-origin:center top;margin:12px 0 -10px}.nova-v3-orbit{left:50%}.nova-v3-core{left:50%}.nova-v3-tag-one{left:0}.nova-v3-tag-two{right:0}.nova-v3-tag-three{left:14%}.nova-v3-auth{max-width:none;padding:26px 22px;border-radius:20px}.nova-v3-auth-heading{margin:25px 0 23px}.nova-v3-footer{padding:15px 20px 20px;flex-wrap:wrap}.nova-v3-footer span:nth-child(2){display:none}}
+@media(max-width:380px){.nova-v3-top-status{letter-spacing:.08em}.nova-v3-intro h1{font-size:42px}.nova-v3-orbit-scene{transform:scale(.74);transform-origin:left top;width:130%;margin-bottom:-35px}.nova-v3-form-meta{align-items:flex-start;flex-direction:column}.nova-v3-auth{padding:23px 18px}}
+@media(prefers-reduced-motion:reduce){.nova-v3-orb,.nova-v3-orbit-outer,.nova-v3-orbit-middle,.nova-v3-core,.nova-v3-core-pulse,.nova-v3-float-tag{animation:none!important;transition:none!important}}
+
+
+/* Respeta el cierre de sesión visual que controla la lógica existente */
+.nova-v3-overlay.hidden{display:none!important}
+
+/* NOVA V3 — estados accesibles y microinteracciones finales */
+.nova-v3-overlay ::selection{background:rgba(91,220,199,.28);color:#f6fffd}
+.nova-v3-overlay :focus-visible{outline:2px solid #76e7d5!important;outline-offset:3px}
+.nova-v3-submit:disabled{cursor:wait;opacity:.82;transform:none!important;filter:saturate(.82)}
+.nova-v3-submit.is-loading .nova-v3-submit-icon svg{animation:nova-v3-icon-spin 1.1s linear infinite}
+.nova-v3-error:not(.hidden){animation:nova-v3-error-in .22s ease-out}
+.nova-v3-forgot:focus-visible,.nova-v3-eye:focus-visible{border-radius:6px}
+@keyframes nova-v3-icon-spin{to{transform:rotate(360deg)}}
+@keyframes nova-v3-error-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:1200px){.nova-v3-main{padding-top:36px;padding-bottom:54px}.nova-v3-auth{transform:translateY(2px)}}
+@media(max-height:760px) and (min-width:701px){.nova-v3-topbar{padding-top:14px;padding-bottom:14px}.nova-v3-main{padding-top:12px;padding-bottom:18px}.nova-v3-orbit-scene{height:205px}.nova-v3-auth{padding-top:27px;padding-bottom:27px}.nova-v3-auth-heading{margin:22px 0 20px}.nova-v3-form{gap:15px}.nova-v3-auth-foot{margin-top:18px;padding-top:13px}.nova-v3-footer{padding-top:8px;padding-bottom:12px}}
+
+
+/* NOVA V3 — respeta el color que se elija en Personalizar */
+.nova-v3-atmosphere{background:radial-gradient(ellipse at 22% 45%,color-mix(in srgb,var(--user-accent) 20%,transparent),transparent 36%),radial-gradient(ellipse at 79% 42%,color-mix(in srgb,var(--user-accent-strong) 24%,transparent),transparent 38%),linear-gradient(118deg,#07131b 0%,#091922 53%,#0a1720 100%)}
+.nova-v3-orb-a{background:radial-gradient(circle,color-mix(in srgb,var(--user-accent) 25%,transparent),transparent 70%)}
+.nova-v3-orb-b{background:radial-gradient(circle,color-mix(in srgb,var(--user-accent-strong) 28%,transparent),transparent 70%)}
+.nova-v3-kicker,.nova-v3-intro h1 em,.nova-v3-auth-step b,.nova-v3-auth-heading>span,.nova-v3-forgot,.nova-v3-tag-icon{color:var(--user-accent)!important}
+.nova-v3-kicker-line{background:var(--user-accent)!important;box-shadow:0 0 12px color-mix(in srgb,var(--user-accent) 65%,transparent)}
+.nova-v3-orbit{border-color:color-mix(in srgb,var(--user-accent) 30%,transparent)}
+.nova-v3-core{border-color:color-mix(in srgb,var(--user-accent) 70%,transparent);box-shadow:0 0 0 10px color-mix(in srgb,var(--user-accent) 7%,transparent),0 0 45px color-mix(in srgb,var(--user-accent) 23%,transparent)}
+.nova-v3-core-pulse{border-color:color-mix(in srgb,var(--user-accent) 42%,transparent)}
+.nova-v3-orbit-dot{background:var(--user-accent);box-shadow:0 0 13px color-mix(in srgb,var(--user-accent) 85%,transparent)}
+.nova-v3-tag-icon{background:color-mix(in srgb,var(--user-accent) 13%,transparent)}
+.nova-v3-bottom-icon,.nova-v3-auth-symbol{color:var(--user-accent);background:color-mix(in srgb,var(--user-accent) 10%,transparent);border-color:color-mix(in srgb,var(--user-accent) 25%,transparent)}
+.nova-v3-bottom-note{border-top-color:color-mix(in srgb,var(--user-accent) 18%,transparent)}
+.nova-v3-input-wrap:focus-within{border-color:var(--user-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--user-accent) 15%,transparent)}
+.nova-v3-submit{background:linear-gradient(110deg,var(--user-accent-strong),var(--user-accent));color:#fff;border-color:color-mix(in srgb,var(--user-accent) 70%,white);box-shadow:0 10px 30px color-mix(in srgb,var(--user-accent) 24%,transparent)}
+.nova-v3-submit:hover{box-shadow:0 14px 35px color-mix(in srgb,var(--user-accent) 34%,transparent)}
+.nova-v3-submit-icon{background:rgba(0,0,0,.12)}
+.nova-v3-auth:before{background:linear-gradient(90deg,transparent,var(--user-accent),transparent)}
+.nova-v3-brand-image{border-color:color-mix(in srgb,var(--user-accent) 65%,transparent);box-shadow:0 0 26px color-mix(in srgb,var(--user-accent) 15%,transparent)}
+
+
+/* ORGANIZACIÓN GLOBAL NOVA: jerarquía, consistencia y navegación por grupos */
+.nova-nav-divider{display:flex;align-items:center;gap:8px;margin:16px 6px 7px;padding:8px 4px 4px;color:#7f9baa;font-size:9px;letter-spacing:.16em;line-height:1.35;font-weight:850;text-transform:uppercase;border-top:1px solid rgba(153,190,204,.12)}
+.nova-nav-divider:first-child{margin-top:4px;border-top:0}
+#sidebar nav{scrollbar-width:thin;scrollbar-color:rgba(121,179,194,.25) transparent}
+#sidebar .menu-btn{min-height:39px;display:flex;align-items:center;gap:11px;border-radius:11px;padding:9px 11px;margin:2px 0;color:#c1d2de;font-weight:620;transition:background .18s,color .18s,transform .18s;position:relative}
+#sidebar .menu-btn>span:first-of-type{min-width:0;flex:1}
+#sidebar .menu-btn svg{width:17px;height:17px;flex-shrink:0;opacity:.9}
+#sidebar .menu-btn:hover{background:rgba(255,255,255,.075);color:#fff;transform:translateX(2px)}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{background:linear-gradient(105deg,color-mix(in srgb,var(--user-accent,#0891b2) 27%,#123446),color-mix(in srgb,var(--user-accent,#0891b2) 18%,#0c2537));color:#fff;box-shadow:inset 3px 0 var(--user-accent,#0891b2),inset 0 0 0 1px color-mix(in srgb,var(--user-accent,#0891b2) 23%,transparent)}
+.nav-new-mark{font-size:7px!important;font-weight:900!important;letter-spacing:.07em;background:var(--user-accent,#0891b2)!important;color:white!important;border-radius:5px;padding:3px 5px;flex:0 0 auto!important}
+.module-context-rail{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:0 0 6px;padding:2px 1px 11px;color:#6f8795;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;border-bottom:1px solid #e5edf3}
+.module-context-dot{width:8px;height:8px;border-radius:3px;background:var(--user-accent,#0891b2);box-shadow:0 0 0 4px color-mix(in srgb,var(--user-accent,#0891b2) 12%,transparent)}
+.module-context-sep{opacity:.42}.module-context-name{color:#1b3447;letter-spacing:.08em}
+#quick-module-bar .quick-module-chip{border-radius:999px;padding:8px 13px}
+section[id^="view-"]{scroll-margin-top:76px}
+section[id^="view-"] .module-intro{padding:2px 0 10px}
+section[id^="view-"] .module-intro h3{font-size:clamp(22px,2vw,30px);letter-spacing:-.035em;color:#142d3e!important}
+section[id^="view-"] .module-intro p{max-width:840px;line-height:1.7}
+section[id^="view-"] .ui-card{min-width:0}
+section[id^="view-"] .ui-card>h3,section[id^="view-"] .ui-card h4{letter-spacing:-.018em}
+section[id^="view-"] input:not([type=checkbox]):not([type=radio]):not([type=file]),section[id^="view-"] select,section[id^="view-"] textarea{transition:border-color .16s,box-shadow .16s}
+section[id^="view-"] input:focus-visible,section[id^="view-"] select:focus-visible,section[id^="view-"] textarea:focus-visible{outline:0;border-color:var(--user-accent,#0891b2)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--user-accent,#0891b2) 12%,transparent)}
+section[id^="view-"] table thead{background:#f4f8fb}
+section[id^="view-"] table thead th{font-size:10px;letter-spacing:.08em;font-weight:850;color:#60778a}
+section[id^="view-"] table tbody tr{transition:background .13s}
+section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
+.module-section-caption{display:flex;align-items:center;gap:12px;padding:8px 2px 2px}
+.module-section-caption>span{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:color-mix(in srgb,var(--user-accent,#0891b2) 12%,white);color:var(--user-accent-strong,#06627e)}
+.module-section-caption svg{width:18px;height:18px}
+.module-section-caption b,.module-section-caption small{display:block}
+.module-section-caption b{font-size:13px;color:#183448}.module-section-caption small{font-size:11px;color:#738797;margin-top:3px}
+.colab-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.colab-kpi{display:flex;align-items:center;gap:12px;min-width:0;background:linear-gradient(145deg,#fff,#f8fbfd);border:1px solid #e0eaf0;border-radius:16px;padding:16px;box-shadow:0 8px 22px rgba(16,47,65,.04)}
+.colab-kpi>span{display:grid;place-items:center;width:40px;height:40px;border:1px solid color-mix(in srgb,var(--user-accent,#0891b2) 20%,white);border-radius:13px;background:color-mix(in srgb,var(--user-accent,#0891b2) 9%,white);color:var(--user-accent-strong,#06627e);flex:0 0 auto}
+.colab-kpi svg{width:19px;height:19px}.colab-kpi small,.colab-kpi strong{display:block}.colab-kpi small{font-size:10px;color:#6e8493;line-height:1.4}.colab-kpi strong{font-size:25px;font-weight:900;color:#183548;margin-top:3px;letter-spacing:-.04em}
+.dash-space-card{position:relative;overflow:hidden;border:1px solid color-mix(in srgb,var(--user-accent,#0891b2) 22%,#deebf2);border-radius:20px;padding:19px;background:radial-gradient(ellipse at 95% 0%,color-mix(in srgb,var(--user-accent,#0891b2) 11%,transparent),transparent 42%),linear-gradient(135deg,#fff,#f7fbfc);box-shadow:0 13px 32px rgba(16,47,65,.055)}
+.dash-space-intro{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.dash-space-kicker,.space-section-kicker{display:block;font-size:9px;font-weight:900;letter-spacing:.19em;color:var(--user-accent-strong,#06627e)}
+.dash-space-intro h3{font-size:18px;letter-spacing:-.03em;font-weight:850;color:#16354a;margin:5px 0}.dash-space-intro p{font-size:11px;color:#738797;margin:0}
+.dash-space-open{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:11px;background:var(--user-accent,#087fa3);color:#fff;font-size:11px;font-weight:800;box-shadow:0 6px 18px color-mix(in srgb,var(--user-accent,#087fa3) 20%,transparent);transition:transform .15s,filter .15s}
+.dash-space-open:hover{transform:translateY(-2px);filter:brightness(1.05)}.dash-space-open svg{width:15px;height:15px}
+.dash-space-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:17px}.dash-space-stat-grid>div{display:flex;align-items:center;gap:10px;min-width:0;border:1px solid #e2edf2;border-radius:12px;background:rgba(255,255,255,.8);padding:11px}
+.dash-space-stat-icon{display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:color-mix(in srgb,var(--user-accent,#0891b2) 10%,white);color:var(--user-accent-strong,#06627e);flex:0 0 auto}.dash-space-stat-icon svg{width:16px;height:16px}.dash-space-stat-grid b,.dash-space-stat-grid small{display:block}.dash-space-stat-grid b{font-size:20px;font-weight:900;color:#18384a}.dash-space-stat-grid small{font-size:9px;color:#728999;margin-top:1px}
+.space-hero{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(220px,.75fr);gap:24px;align-items:center;padding:clamp(22px,3.2vw,38px);border-radius:24px;color:#effbfb;background:radial-gradient(ellipse at 78% 44%,color-mix(in srgb,var(--user-accent,#0891b2) 27%,transparent),transparent 35%),linear-gradient(120deg,#0a1c28 0%,#102b39 57%,#113846 100%);box-shadow:0 22px 50px rgba(5,31,44,.14)}
+.space-hero-orb{position:absolute;right:15%;top:-125px;width:300px;height:300px;border:1px solid rgba(124,225,216,.13);border-radius:50%;box-shadow:0 0 0 32px rgba(124,225,216,.025),0 0 0 64px rgba(124,225,216,.02);z-index:-1}.space-hero-copy{max-width:690px}
+.space-hero-kicker{display:flex;align-items:center;gap:8px;color:#7ee1d4;font-size:9px;font-weight:900;letter-spacing:.18em}.space-hero-kicker svg{width:15px;height:15px}
+.space-hero-copy h3{font-size:clamp(26px,3.2vw,42px);line-height:1.04;letter-spacing:-.05em;font-weight:840;margin:15px 0 10px;color:#f1fbfa}.space-hero-copy p{max-width:620px;margin:0;color:#a6c0c7;font-size:12px;line-height:1.8}
+.space-hero-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}.space-hero-pills span{display:flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid rgba(160,213,213,.15);border-radius:999px;background:rgba(255,255,255,.045);font-size:9px;color:#c4dadd}.space-hero-pills svg{width:13px;height:13px;color:#78ddcf}
+.space-hero-graphic{position:relative;justify-self:center;width:220px;height:185px;display:grid;place-items:center}.space-hero-ring{position:absolute;border:1px solid rgba(104,222,210,.26);border-radius:50%;transform:rotate(-30deg)}.ring-one{width:212px;height:116px;animation:space-orbit 25s linear infinite}.ring-two{width:160px;height:160px;border-style:dashed;opacity:.6;animation:space-orbit-reverse 32s linear infinite}
+.space-hero-center{width:68px;height:68px;border-radius:23px;display:grid;place-items:center;border:1px solid rgba(132,235,221,.5);background:linear-gradient(145deg,#1b5a62,#133641);box-shadow:0 0 36px color-mix(in srgb,var(--user-accent,#0891b2) 23%,transparent),0 0 0 10px rgba(113,221,210,.05)}.space-hero-center svg{width:28px;height:28px;color:#9af0e5}
+.space-hero-sticky{position:absolute;display:grid;place-items:center;width:74px;height:49px;border-radius:8px;font-size:8px;letter-spacing:.13em;font-weight:950;color:#213b3d;box-shadow:0 8px 20px rgba(0,0,0,.15);transform:rotate(-10deg);animation:space-float 5s ease-in-out infinite}.sticky-one{left:0;top:19px;background:#f2e6a6}.sticky-two{right:-3px;bottom:12px;background:#a8ead7;transform:rotate(9deg);animation-delay:-2s}
+.space-metrics-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.space-metric{display:flex;align-items:center;gap:12px;min-width:0;padding:14px 16px;background:#fff;border:1px solid #e1ebf0;border-radius:16px;box-shadow:0 8px 22px rgba(16,47,65,.04)}
+.space-metric-icon{display:grid;place-items:center;flex:0 0 auto;width:40px;height:40px;border-radius:13px;background:#ecf7f7;color:#138e88;border:1px solid #d4efec}.space-metric-icon svg{width:19px;height:19px}.space-metric-copy small,.space-metric-copy strong{display:block}.space-metric-copy small{font-size:10px;color:#718895}.space-metric-copy strong{font-size:25px;line-height:1.1;font-weight:900;letter-spacing:-.04em;color:#18394a;margin-top:4px}
+.space-metric-violet .space-metric-icon{background:#f1edff;color:#7760cf;border-color:#e4dcff}.space-metric-amber .space-metric-icon{background:#fff5df;color:#b47c1b;border-color:#ffebc4}.space-metric-blue .space-metric-icon{background:#eaf2ff;color:#3671bb;border-color:#d9e7ff}
+.space-tabbar{display:flex;gap:8px;align-items:center;overflow:auto;border-bottom:1px solid #dce7ed;padding:0 4px}.space-tab{display:flex;align-items:center;gap:9px;white-space:nowrap;padding:12px 14px;border-bottom:2px solid transparent;color:#6c8392;font-size:11px;font-weight:800}.space-tab svg{width:16px;height:16px}.space-tab span{font-size:8px;letter-spacing:.1em;border:1px solid #dce7ed;border-radius:5px;padding:3px 5px}.space-tab.is-active{color:var(--user-accent-strong,#06627e);border-bottom-color:var(--user-accent,#087fa3)}.space-tab.is-active span{background:color-mix(in srgb,var(--user-accent,#0891b2) 10%,white);border-color:color-mix(in srgb,var(--user-accent,#0891b2) 25%,white)}
+.space-panel{min-width:0}.space-panel-heading{display:flex;justify-content:space-between;align-items:end;gap:15px;flex-wrap:wrap;margin:3px 0 16px}.space-panel-heading h3{font-size:23px;letter-spacing:-.04em;font-weight:900;color:#16364a;margin:5px 0}.space-panel-heading p{font-size:11px;line-height:1.7;color:#718796;margin:0}.space-count-chip{border:1px solid #dce9ee;background:#fff;border-radius:999px;padding:7px 10px;font-size:10px;color:#607a8a;font-weight:750}
+.space-notes-layout{display:grid;grid-template-columns:minmax(270px,.72fr) minmax(0,1.65fr);align-items:start;gap:17px}.space-compose-card{position:sticky;top:91px;display:flex;flex-direction:column;gap:10px;padding:20px;background:#fff;border:1px solid #dfe9ee;border-radius:20px;box-shadow:0 10px 30px rgba(17,49,68,.055)}
+.space-compose-top{display:flex;align-items:center;gap:10px;margin-bottom:5px}.space-compose-icon{width:38px;height:38px;display:grid;place-items:center;background:color-mix(in srgb,var(--user-accent,#0891b2) 11%,white);border:1px solid color-mix(in srgb,var(--user-accent,#0891b2) 20%,white);border-radius:12px;color:var(--user-accent-strong,#06627e);flex:0 0 auto}.space-compose-icon svg{width:18px;height:18px}.space-compose-label{font-size:9px;letter-spacing:.16em;font-weight:900;color:#79909e}
+.space-compose-card>label,.space-log-fields label{font-size:10px;font-weight:800;color:#3b5668}.space-compose-card .form-field,.space-log-fields .form-field{margin-top:-5px;font-size:11px;min-height:39px;padding:9px 11px}.space-compose-card textarea.form-field,.space-log-fields textarea.form-field{min-height:auto;resize:vertical}
+.space-form-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.space-form-row>div{display:flex;flex-direction:column;gap:9px;min-width:0}.space-color-select{display:flex;gap:8px;align-items:center;justify-content:space-between}.space-color-option{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:8px;color:#738796;cursor:pointer}.space-color-option input{position:absolute;opacity:0;width:1px;height:1px}.space-color-option span{width:25px;height:25px;border-radius:9px;display:block;border:2px solid rgba(30,50,60,.08);box-shadow:0 0 0 0 var(--user-accent);transition:box-shadow .16s}.note-color-amarillo span{background:#f3e6a1}.note-color-menta span{background:#ade8d5}.note-color-celeste span{background:#b8def7}.note-color-lila span{background:#d9c8f8}.note-color-rosa span{background:#f5bed2}.space-color-option input:checked+span{box-shadow:0 0 0 3px var(--user-accent,#0891b2)}
+.space-pin-check{display:flex;align-items:center;gap:9px;color:#667f8d;font-size:10px;cursor:pointer}.space-pin-check input{accent-color:var(--user-accent,#0891b2)}.space-pin-check span{display:none}
+.space-create-button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 13px;background:linear-gradient(110deg,var(--user-accent-strong,#06627e),var(--user-accent,#087fa3));color:#fff;border-radius:11px;font-size:11px;font-weight:850;box-shadow:0 8px 20px color-mix(in srgb,var(--user-accent,#0891b2) 20%,transparent);transition:transform .16s,filter .16s}.space-create-button:hover{transform:translateY(-1px);filter:brightness(1.06)}.space-create-button svg{width:15px;height:15px}
+.space-form-foot{display:flex;align-items:center;gap:6px;font-size:9px;color:#8296a3;margin:0}.space-form-foot svg{width:13px;height:13px}
+.space-note-board-wrap{min-width:0}.space-note-tools{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}.space-note-search{display:flex;align-items:center;gap:9px;min-width:0;border:1px solid #dae6ec;background:#fff;border-radius:11px;padding:0 11px}.space-note-search>svg{width:15px;height:15px;color:#8095a1;flex:0 0 auto}.space-note-search input{width:100%;min-width:0;border:0!important;outline:0!important;box-shadow:none!important;padding:11px 0!important;font-size:11px!important;background:transparent!important}.space-note-filters{display:flex;flex-wrap:wrap;gap:6px}.space-note-filters button{padding:7px 10px;border:1px solid #dbe6eb;border-radius:999px;color:#6c8290;background:#fff;font-size:9px;font-weight:800}.space-note-filters button.is-active{color:var(--user-accent-strong,#06627e);border-color:color-mix(in srgb,var(--user-accent,#0891b2) 35%,white);background:color-mix(in srgb,var(--user-accent,#0891b2) 9%,white)}
+.space-note-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}.space-note{position:relative;min-width:0;overflow:hidden;padding:16px 16px 13px;border:1px solid rgba(32,60,70,.12);border-radius:15px;box-shadow:0 9px 22px rgba(23,48,60,.06);transition:transform .16s,box-shadow .16s}.space-note:hover{transform:translateY(-2px);box-shadow:0 13px 30px rgba(23,48,60,.11)}.space-note:before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:rgba(43,65,75,.12)}.space-note.is-pinned:after{content:"";position:absolute;right:18px;top:-1px;width:2px;height:17px;background:var(--user-accent,#087fa3);box-shadow:0 0 0 3px rgba(255,255,255,.4);transform:rotate(15deg)}
+.space-note-amarillo{background:linear-gradient(145deg,#fff8d5,#fff1ab)}.space-note-menta{background:linear-gradient(145deg,#e3fff5,#c8f4e5)}.space-note-celeste{background:linear-gradient(145deg,#ecf8ff,#d7edff)}.space-note-lila{background:linear-gradient(145deg,#f5efff,#e7dcff)}.space-note-rosa{background:linear-gradient(145deg,#fff0f5,#f9dce7)}.space-note-neutro{background:linear-gradient(145deg,#fff,#f0f4f5)}.space-note.is-muted{opacity:.74}
+.space-note-top{display:flex;justify-content:space-between;align-items:start;gap:8px}.space-note-category{font-size:8px;letter-spacing:.1em;text-transform:uppercase;font-weight:900;color:#425d68;opacity:.8}.space-note-actions{display:flex;gap:3px;flex:0 0 auto}.space-note-action{width:26px;height:26px;display:grid;place-items:center;border-radius:8px;color:#465f6a;background:rgba(255,255,255,.55);transition:background .14s,color .14s}.space-note-action:hover{background:#fff;color:#173d4e}.space-note-action svg{width:13px;height:13px}.space-note-delete:hover{color:#b42332}
+.space-note h4{margin:8px 0 6px;color:#173849;font-size:14px;font-weight:900;letter-spacing:-.025em;overflow-wrap:anywhere}.space-note-content{font-size:11px;line-height:1.7;color:#405966;overflow-wrap:anywhere;white-space:normal;min-height:19px;margin:0}.space-note-placeholder{opacity:.6;font-style:italic}.space-note-foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:7px;margin-top:14px}.space-note-owner,.space-note-due{display:flex;align-items:center;gap:5px;color:#5c737f;font-size:8px;font-weight:700}.space-note-owner svg,.space-note-due svg{width:12px;height:12px}.space-note-due.is-late{color:#b42b3b}.space-note-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(38,68,78,.12)}.space-note-bottom>small{font-size:8px;color:#68808c}
+.space-status{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:rgba(60,81,90,.08);color:#526b78;font-size:8px;font-weight:850}.space-status-open{color:#106f63;background:rgba(24,161,135,.13)}.space-status-late{color:#a22b36;background:rgba(209,63,76,.13)}.space-status-done{color:#3f6c41;background:rgba(68,145,80,.14)}
+.space-empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;padding:43px 20px;border:1px dashed #cfdee5;border-radius:17px;background:linear-gradient(135deg,#fff,#f8fcfc)}.space-empty-state>span{width:48px;height:48px;display:grid;place-items:center;border-radius:15px;background:#e7f6f5;color:#158c85}.space-empty-state>span svg{width:23px;height:23px}.space-empty-state h4{margin:12px 0 5px;font-size:15px;font-weight:900;color:#1d4151}.space-empty-state p{max-width:370px;font-size:11px;line-height:1.8;color:#718692;margin:0}.space-empty-state button{margin-top:14px;padding:9px 12px;border-radius:10px;background:var(--user-accent,#087fa3);color:#fff;font-size:10px;font-weight:800}
+.space-loading{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:45px 12px;color:#748b98;font-size:11px}.space-loading p{margin:0}.space-loader-ring{width:27px;height:27px;border:2px solid #d4e8e9;border-top-color:var(--user-accent,#087fa3);border-radius:50%;animation:space-orbit .9s linear infinite}.space-error{display:flex;gap:13px;padding:18px;border:1px solid #f4cbd0;border-radius:14px;background:#fff5f6;color:#92323b;font-size:11px}.space-error>svg{width:22px;height:22px;flex:0 0 auto}.space-error p{margin:5px 0}.space-error small{color:#a8656b}
+.space-log-compose{padding:19px;border:1px solid #dfe9ee;border-radius:18px;background:linear-gradient(140deg,#fff,#f8fcfd);box-shadow:0 10px 30px rgba(17,49,68,.045)}.space-log-compose-heading{display:flex;align-items:center;gap:11px;margin-bottom:17px}.space-log-compose-heading b,.space-log-compose-heading small{display:block}.space-log-compose-heading b{font-size:13px;color:#18394b}.space-log-compose-heading small{font-size:10px;color:#78909d;margin-top:4px}.space-log-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.space-log-fields>div{display:flex;flex-direction:column;gap:9px;min-width:0}.space-log-fields .space-log-detail-field{grid-column:1/-1}.space-log-form-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;padding-top:13px;border-top:1px solid #e4edf1}.space-log-form-bottom>span{display:flex;align-items:center;gap:7px;font-size:9px;color:#6d8794}.space-log-form-bottom>span svg{width:14px;height:14px;color:#128b85}.space-log-form-bottom .space-create-button{width:auto}
+.space-log-history-head{display:flex;align-items:end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:22px 0 13px}.space-log-history-head h4{font-size:16px;font-weight:900;color:#19394a;margin:0}.space-log-history-head p{font-size:10px;color:#718795;margin:4px 0 0}.space-log-history-head .space-note-search{width:min(100%,330px)}
+.space-timeline{position:relative;padding:0 0 0 12px}.space-timeline:before{content:"";position:absolute;left:8px;top:15px;bottom:15px;width:1px;background:#d6e4eb}.space-timeline-entry{display:grid;grid-template-columns:62px minmax(0,1fr);gap:14px;position:relative;padding:12px 0 12px 23px}.space-timeline-dot{position:absolute;left:-9px;top:28px;width:11px;height:11px;border-radius:50%;background:var(--timeline-tone);box-shadow:0 0 0 4px #fff;border:2px solid #fff}.space-timeline-date b,.space-timeline-date small{display:block}.space-timeline-date b{font-size:10px;color:#324e5d}.space-timeline-date small{margin-top:4px;font-size:9px;color:#7b909d}.space-timeline-main{min-width:0;background:#fff;border:1px solid #e0eaf0;border-radius:14px;padding:14px 15px;box-shadow:0 7px 18px rgba(15,41,58,.035)}.space-timeline-head{display:flex;align-items:center;flex-wrap:wrap;gap:7px}.space-log-category,.space-log-module{display:inline-flex;padding:4px 7px;border-radius:6px;background:#eef5f7;color:#57717f;font-size:8px;font-weight:850}.space-log-module{background:#eef2fc;color:#586b9a}.space-timeline-main h4{font-size:12px;font-weight:900;color:#1d3c4b;margin:9px 0 5px;overflow-wrap:anywhere}.space-timeline-main p{font-size:10px;line-height:1.75;color:#627a88;margin:0;overflow-wrap:anywhere}.space-timeline-meta{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}.space-timeline-meta span{display:flex;align-items:center;gap:5px;font-size:8px;color:#7c919c}.space-timeline-meta svg{width:11px;height:11px}
+.map-route-tools{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px 16px;background:linear-gradient(120deg,#eef8fb,#f8fbff);border:1px solid #cde6ef;border-radius:15px}.map-route-explanation{display:flex;flex-direction:column;gap:5px}.map-route-step{font-size:8px;letter-spacing:.15em;color:#087f9d;font-weight:950}.map-route-explanation b{font-size:11px;color:#23485b}.map-route-explanation small{font-size:10px;color:#708995;line-height:1.6}.map-route-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0}.map-route-stats>div{padding:12px;border:1px solid #dce8ef;border-radius:12px;background:#fff}.map-route-stats small,.map-route-stats strong{display:block}.map-route-stats small{font-size:9px;color:#6f8592}.map-route-stats strong{font-size:17px;color:#164257;font-weight:900;margin-top:5px}.map-route-steps{margin-bottom:12px;max-height:190px;overflow:auto;border:1px solid #dce8ef;background:#fff;border-radius:12px;padding:13px}.map-route-steps b{display:block;font-size:10px;color:#244b60;margin-bottom:8px}.map-route-steps ol{padding-left:22px;margin:0;display:grid;gap:6px}.map-route-steps li{font-size:10px;color:#57717f;line-height:1.55}
+@keyframes space-orbit{to{transform:rotate(330deg)}}@keyframes space-orbit-reverse{to{transform:rotate(-360deg)}}@keyframes space-float{0%,100%{translate:0 0}50%{translate:0 -7px}}
+@media(max-width:980px){.colab-kpi-grid,.space-metrics-grid,.dash-space-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.space-notes-layout{grid-template-columns:1fr}.space-compose-card{position:static}.space-hero{grid-template-columns:minmax(0,1fr) 180px}.space-hero-graphic{transform:scale(.8)}}
+@media(max-width:640px){.colab-kpi-grid,.space-metrics-grid,.dash-space-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.colab-kpi{padding:11px;gap:9px}.colab-kpi>span{width:33px;height:33px}.colab-kpi strong{font-size:21px}.dash-space-card{padding:15px}.dash-space-stat-grid>div{padding:9px;gap:7px}.dash-space-stat-icon{width:28px;height:28px}.dash-space-stat-grid b{font-size:17px}.dash-space-stat-grid small{font-size:8px}.space-hero{grid-template-columns:1fr;padding:24px 20px}.space-hero-graphic{display:none}.space-hero-copy h3{font-size:31px}.space-form-row{grid-template-columns:1fr}.space-note-grid{grid-template-columns:1fr}.space-log-fields{grid-template-columns:1fr}.space-log-fields .space-log-detail-field{grid-column:auto}.space-log-form-bottom .space-create-button{width:100%}.space-timeline-entry{grid-template-columns:44px minmax(0,1fr);gap:9px;padding-left:18px}.space-timeline-date b{font-size:9px}.space-timeline-main{padding:11px}.map-route-tools{align-items:stretch}.map-route-tools button{width:100%}.map-route-stats{grid-template-columns:1fr 1fr}.map-route-stats>div:last-child{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){.space-hero-ring,.space-hero-sticky,.space-loader-ring{animation:none!important}.space-note,.dash-space-open{transition:none!important}}
+
+
+.colab-status-active,.colab-status-inactive{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:850;white-space:nowrap}
+.colab-status-active{background:#e5f8ef;color:#14714b;border:1px solid #bbe9d0}
+.colab-status-active:before{content:"";width:6px;height:6px;border-radius:50%;background:#22a06b;box-shadow:0 0 0 3px rgba(34,160,107,.10)}
+.colab-status-inactive{background:#fff0f0;color:#a4313c;border:1px solid #f5c9cd}
+.colab-status-inactive:before{content:"";width:6px;height:6px;border-radius:50%;background:#c9434e}
+.space-readonly-note{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;color:#58737f;background:rgba(255,255,255,.52)}
+.space-readonly-note svg{width:13px;height:13px}
+
+
+.space-edit-overlay{position:fixed;inset:0;z-index:180;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,20,31,.65);backdrop-filter:blur(9px)}
+.space-edit-overlay.hidden{display:none!important}
+.space-edit-dialog{width:min(620px,100%);max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:11px;border:1px solid rgba(255,255,255,.7);border-radius:23px;padding:clamp(18px,3vw,29px);background:linear-gradient(145deg,#fff,#f7fbfc);box-shadow:0 30px 100px rgba(0,0,0,.25)}
+.space-edit-head{display:flex;align-items:center;gap:11px;margin-bottom:8px}.space-edit-head>div{min-width:0;flex:1}.space-edit-head h3{font-size:22px;font-weight:900;letter-spacing:-.04em;color:#18394b;margin:4px 0}.space-edit-head p{font-size:10px;color:#718895;margin:0}.space-edit-dialog>label,.space-edit-dialog .space-form-row label{font-size:10px;font-weight:800;color:#3b5668}.space-edit-dialog .form-field{margin-top:-5px;font-size:11px}.space-edit-actions{display:flex;justify-content:flex-end;align-items:center;gap:9px;margin-top:7px;padding-top:14px;border-top:1px solid #e3edf1}.space-edit-actions .space-create-button{width:auto}.space-edit-cancel{padding:11px 14px;border:1px solid #dbe6eb;border-radius:10px;background:#fff;color:#5e7581;font-size:10px;font-weight:800}
+
+
+/* Perfilado de usuarios: propietario, visualizador, alcance y mapa de módulos */
+.users-hero{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) 200px;align-items:center;gap:24px;padding:clamp(22px,3vw,34px);border:1px solid rgba(106,211,204,.2);border-radius:24px;color:#effbfb;background:radial-gradient(ellipse at 82% 40%,rgba(23,172,167,.2),transparent 34%),linear-gradient(118deg,#091c29,#123542 70%,#10404a);box-shadow:0 20px 48px rgba(8,42,54,.12)}
+.users-hero-copy{min-width:0}.users-hero-kicker{display:flex;align-items:center;gap:8px;font-size:9px;letter-spacing:.18em;font-weight:950;color:#82e5d8}.users-hero-kicker svg{width:15px;height:15px}.users-hero h3{margin:12px 0 8px;font-size:clamp(25px,3vw,38px);font-weight:900;letter-spacing:-.05em;color:#f2fbfa}.users-hero p{max-width:750px;font-size:11px;line-height:1.8;color:#abc3c9;margin:0}.users-hero-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}.users-hero-tags span{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(162,218,214,.17);background:rgba(255,255,255,.045);border-radius:999px;padding:7px 10px;font-size:9px;color:#d1e6e5}.users-hero-tags svg{width:13px;height:13px;color:#7fe3d5}
+.users-hero-art{position:relative;width:190px;height:155px;display:grid;place-items:center}.users-art-ring{position:absolute;width:176px;height:103px;transform:rotate(-24deg);border:1px solid rgba(114,230,216,.35);border-radius:50%;animation:users-access-orbit 25s linear infinite}.users-art-core{width:68px;height:68px;display:grid;place-items:center;border:1px solid rgba(155,243,229,.5);border-radius:22px;background:linear-gradient(145deg,#1c5b62,#102e3e);box-shadow:0 0 0 10px rgba(112,226,210,.055),0 0 40px rgba(37,204,179,.18)}.users-art-core svg{width:30px;height:30px;color:#a5f3e8}.users-art-dot{position:absolute;right:16px;top:17px;width:7px;height:7px;border-radius:50%;background:#76eed7;box-shadow:0 0 15px #76eed7}
+.usr-admin-banner{display:flex;align-items:center;gap:15px;padding:18px 20px;border:1px solid #b9dfe2;border-radius:18px;background:radial-gradient(ellipse at 94% 0%,rgba(19,158,156,.12),transparent 42%),linear-gradient(115deg,#f0fbfa,#fff);box-shadow:0 10px 28px rgba(13,75,84,.06)}.usr-admin-banner.hidden{display:none!important}.usr-admin-crown{display:grid;place-items:center;width:48px;height:48px;flex:0 0 auto;border-radius:15px;background:#0e5965;color:#aaf2e7;box-shadow:0 0 0 6px rgba(19,158,156,.09)}.usr-admin-crown svg{width:23px;height:23px}.usr-admin-banner>div{flex:1;min-width:0}.usr-admin-eyebrow{display:block;color:#0e7f7b;letter-spacing:.18em;font-size:8px;font-weight:950;margin-bottom:4px}.usr-admin-banner b{font-size:14px;color:#123c4b}.usr-admin-banner p{font-size:10px;line-height:1.7;color:#69828f;margin:5px 0 0}.usr-admin-pill{white-space:nowrap;border:1px solid #9cdacf;border-radius:999px;background:#dff8f1;color:#0e7066;padding:7px 10px;font-size:8px;letter-spacing:.09em;font-weight:950}
+.usr-role-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.usr-role-summary-card{border:1px solid #e0eaf0;border-radius:15px;padding:15px 16px;background:linear-gradient(145deg,#fff,#f8fbfd);box-shadow:0 8px 22px rgba(16,47,65,.035)}.usr-role-summary-card small{display:block;font-size:10px;color:#6e8593}.usr-role-summary-card strong{display:block;margin-top:7px;font-size:27px;line-height:1;font-weight:950;letter-spacing:-.04em;color:#153b4c}
+.usr-matrix-tools{padding:18px}.usr-matrix-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}.usr-matrix-heading h3{font-size:19px;font-weight:900;color:#193a4b;margin:4px 0}.usr-matrix-heading p{font-size:10px;line-height:1.65;color:#718795;margin:0}.usr-matrix-filters{display:grid;grid-template-columns:minmax(230px,1.5fr) repeat(2,minmax(160px,.8fr));gap:12px;margin-top:16px}.usr-matrix-filters>div{display:flex;flex-direction:column;gap:6px}.usr-matrix-filters label{font-size:10px;font-weight:800;color:#597281}.usr-matrix-filters .form-field{margin:0;font-size:11px}
+.usr-permission-help{display:inline-flex;border:1px solid #d9e8ef;border-radius:999px;background:#f6fafc;color:#698391;padding:6px 9px;font-size:9px;font-weight:750}
+.usr-permission-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.usr-permission-group{min-width:0;border:1px solid #dfe9ee;border-radius:13px;padding:11px;background:#fbfdfe}.usr-permission-group h4{display:flex;align-items:center;gap:7px;margin:0 0 8px;font-size:10px;letter-spacing:.06em;font-weight:900;text-transform:uppercase;color:#35576a}.usr-permission-group h4 svg{width:14px;height:14px;color:var(--user-accent-strong,#087f91)}.usr-permission-group-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.usr-permission-group .usr-check-label{display:flex;align-items:center;gap:7px;min-width:0;border:1px solid #e5edf1;border-radius:8px;padding:8px;background:white;color:#476272;font-size:10px;line-height:1.35;cursor:pointer}.usr-permission-group .usr-check-label:has(input:checked){background:#eaf9f6;border-color:#b9e9dc;color:#125d5d;font-weight:800}.usr-permission-group .usr-check{accent-color:var(--user-accent,#0b8a9f);flex:0 0 auto}.usr-permission-group .usr-check-label span{min-width:0;overflow-wrap:anywhere}
+.usr-table-caption{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;border-bottom:1px solid #e7eff3;background:linear-gradient(115deg,#f9fbfd,#f3f8fa)}.usr-table-caption b,.usr-table-caption small{display:block}.usr-table-caption b{font-size:12px;color:#173b4d}.usr-table-caption small{font-size:10px;color:#718795;margin-top:4px}
+.usr-access-matrix thead{background:#f5f9fb}.usr-access-matrix th{padding-top:14px!important;padding-bottom:14px!important}.usr-access-matrix td{vertical-align:top!important;white-space:normal}.usr-user-name{font-size:11px;font-weight:900;color:#1e4052}.usr-user-email{font-size:9px;line-height:1.5;color:#728795;margin-top:4px;overflow-wrap:anywhere}.usr-role-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid #dce7ed;border-radius:999px;background:#f7fafb;color:#3c5f70;padding:6px 9px;font-size:9px;font-weight:900}.usr-role-pill.role-admin{background:#e4f8f2;color:#126b60;border-color:#bce9dc}.usr-role-pill.role-view{background:#eef3ff;color:#3e5b96;border-color:#d6e1ff}.usr-role-pill.role-global{margin-top:5px;background:#e6f8ed;color:#216e46;border-color:#c6ead1}.usr-scope-list{display:grid;gap:6px;max-width:235px}.usr-scope-line{display:flex;align-items:start;gap:6px;color:#607a89;font-size:9px;line-height:1.5}.usr-scope-line svg{width:12px;height:12px;flex:0 0 auto;margin-top:1px;color:#64909d}.usr-resource-summary{display:flex;flex-wrap:wrap;gap:5px;max-width:390px}.usr-resource-chip{display:inline-flex;align-items:center;border:1px solid #dce7ec;border-radius:6px;background:#f7fbfc;color:#58717f;padding:4px 6px;font-size:8px;font-weight:800}.usr-resource-chip.is-granted{background:#e8f8f2;border-color:#c4ebdc;color:#1d6a5b}.usr-resource-chip.is-capability{background:#fff5df;border-color:#f3e4ba;color:#876219}.usr-resources-details{margin-top:8px}.usr-resources-details summary{display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:9px;font-weight:850;color:var(--user-accent-strong,#06627e)}.usr-resources-details>div{max-width:480px;padding:10px;margin-top:7px;background:#f9fcfd;border:1px solid #e0eaf0;border-radius:10px}.usr-state-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:900}.usr-state-pill:before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}.usr-state-pill.is-active{color:#16714c;background:#e8f7ee}.usr-state-pill.is-inactive{color:#9f3440;background:#fff0f0}.usr-row-actions{display:flex;flex-wrap:wrap;gap:6px;min-width:150px}.usr-row-actions button{border:1px solid #dbe6ec;border-radius:8px;padding:7px 9px;background:#fff;color:#526e7d;font-size:9px;font-weight:850}.usr-row-actions button:hover{border-color:#9dcbd1;background:#f3fbfb;color:#145b6b}.usr-row-actions button.is-danger{color:#a3313c;border-color:#f0d0d3}.usr-row-empty{text-align:center;padding:30px;color:#6c8491;font-size:11px}
+.ficha-section{overflow:hidden;border:1px solid #e0e8ee;border-radius:17px;background:white;box-shadow:0 8px 23px rgba(14,39,55,.035)}.ficha-section>header{display:flex;align-items:center;gap:11px;padding:14px 16px;background:linear-gradient(100deg,var(--ficha-soft,#f8fafc),white);border-bottom:1px solid #edf1f4}.ficha-section-icon{display:grid;place-items:center;flex:0 0 auto;width:38px;height:38px;border-radius:12px;background:var(--ficha-soft,#f8fafc);color:var(--ficha-strong,#345b72);font-size:19px}.ficha-section>header>div{min-width:0;flex:1}.ficha-section>header h4{font-size:14px;font-weight:900;color:#173b4d;margin:3px 0}.ficha-section>header p{font-size:9px;color:#718795;margin:0}.ficha-record-kicker{display:block;font-size:8px;letter-spacing:.12em;font-weight:950;color:#718795;margin-bottom:4px}.ficha-section-count{display:grid;place-items:center;min-width:31px;height:31px;border-radius:10px;background:white;border:1px solid #e5edf1;color:#2e5063;font-size:11px;font-weight:900}.ficha-section-body{display:grid;gap:9px;padding:12px}.ficha-record{border:1px solid #e3ebef;border-radius:12px;background:linear-gradient(140deg,#fff,#fafcfd);padding:12px}.ficha-record-licencia{border-left:3px solid #d76b81}.ficha-record-permiso{border-left:3px solid #8570d6}.ficha-record-vacaciones{border-left:3px solid #4e92d4}.ficha-record-head{display:flex;align-items:start;justify-content:space-between;gap:9px}.ficha-record-head>div{min-width:0}.ficha-record-head b{display:block;font-size:11px;color:#234456;overflow-wrap:anywhere}.ficha-record-status{flex:0 0 auto;border:1px solid #e0e8ec;border-radius:999px;background:#f6fafb;color:#5d7785;padding:4px 7px;font-size:8px;font-weight:850}.ficha-permission-dates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}.ficha-permission-dates>div{min-width:0;padding:8px;border:1px solid #e5edf1;border-radius:9px;background:#f8fbfc}.ficha-permission-dates small,.ficha-permission-dates b{display:block}.ficha-permission-dates small{font-size:8px;color:#718795}.ficha-permission-dates b{margin-top:4px;font-size:10px;color:#284e61;overflow-wrap:anywhere}.ficha-record-detail{font-size:10px;line-height:1.65;color:#617987;margin:9px 0 0;overflow-wrap:anywhere}.ficha-date-warning{margin:9px 0 0;padding:8px 10px;border:1px solid #f5d6a7;border-radius:8px;background:#fff8e8;color:#8c5b17;font-size:9px;line-height:1.6}.ficha-created-at{display:block;margin-top:8px;color:#8597a1;font-size:8px;line-height:1.5}.ficha-empty{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:23px 12px;border:1px dashed #d7e4ea;border-radius:12px;background:#fbfdfe}.ficha-empty>span{display:grid;place-items:center;width:35px;height:35px;border-radius:11px;background:#edf6f7;font-size:17px}.ficha-empty b{font-size:10px;color:#4c6877}.ficha-empty p{font-size:9px;color:#80939d;line-height:1.6;margin:0}.ficha-section-error{padding:10px;border-radius:9px;background:#fff4f4;color:#9b3641;font-size:10px}.ficha-section-more{font-size:9px;color:#758a96;padding:4px}.ficha-attendance-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px;border:1px solid #e2ebef;border-radius:11px;background:#fafcfd}.ficha-attendance-row b{font-size:10px;color:#244759}.ficha-attendance-row p,.ficha-attendance-row small{display:block;font-size:9px;color:#728795;margin:4px 0 0}.ficha-attendance-status{flex:0 0 auto;border-radius:999px;padding:5px 8px;font-size:8px;font-weight:900}.ficha-attendance-status.is-late{background:#fff4d9;color:#8c6318}.ficha-attendance-status.is-ok{background:#e7f7ed;color:#206a46}
+@keyframes users-access-orbit{to{transform:rotate(336deg)}}@media(max-width:800px){.users-hero{grid-template-columns:1fr}.users-hero-art{display:none}.usr-role-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.usr-matrix-filters{grid-template-columns:1fr}.usr-permission-groups{grid-template-columns:1fr}}@media(max-width:520px){.usr-admin-banner{align-items:flex-start;flex-wrap:wrap}.usr-admin-pill{margin-left:63px}.usr-role-summary-grid{gap:8px}.usr-role-summary-card{padding:12px}.usr-role-summary-card strong{font-size:23px}.ficha-permission-dates{grid-template-columns:1fr}.ficha-section>header{padding:12px}.ficha-section-body{padding:9px}}
+
+
+.usr-role-summary-icon{display:grid;place-items:center;width:33px;height:33px;border:1px solid #d7e9ec;background:#edf8f7;color:#168a83;border-radius:11px;margin-bottom:9px}.usr-role-summary-icon svg{width:16px;height:16px}
+.dash-space-error{display:flex;align-items:center;gap:9px;margin-top:12px;padding:10px 12px;border:1px solid #f2d6a5;background:#fff9e9;border-radius:10px;color:#855c18}.dash-space-error>svg{width:15px;height:15px;flex:0 0 auto}.dash-space-error span{min-width:0;flex:1}.dash-space-error b,.dash-space-error small{display:block}.dash-space-error b{font-size:10px}.dash-space-error small{margin-top:3px;font-size:9px;line-height:1.5;overflow-wrap:anywhere}.dash-space-error button{border:1px solid #ead09a;background:#fffdf5;color:#805717;border-radius:8px;padding:6px 9px;font-size:9px;font-weight:850}
+
+
+.visualizador-notice{display:flex;align-items:center;gap:11px;margin:0 0 5px;padding:12px 14px;border:1px solid #cbdaf3;border-radius:13px;background:linear-gradient(100deg,#f0f5ff,#fbfcff);color:#35558a}
+.visualizador-notice>span{display:grid;place-items:center;flex:0 0 auto;width:33px;height:33px;border-radius:10px;background:#e1eaff;color:#476fb6}.visualizador-notice>span svg{width:16px;height:16px}
+.visualizador-notice>div{min-width:0}.visualizador-notice b,.visualizador-notice small{display:block}.visualizador-notice b{font-size:11px;font-weight:900}.visualizador-notice small{font-size:9px;line-height:1.6;color:#627da7;margin-top:3px}
+.modo-visualizador [data-readonly-locked]{cursor:not-allowed!important;filter:grayscale(.35);opacity:.48!important;box-shadow:none!important}
+.usr-role-pill.is-owner{background:linear-gradient(110deg,#e2f8f2,#effcf7);border-color:#9bdccd;color:#075e58}
+.usr-role-pill.is-owner svg{width:12px;height:12px;flex:0 0 auto}
+
+
+.colab-pagination{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:-10px 0 4px;padding:15px 17px;border:1px solid #e0eaf0;border-radius:15px;background:linear-gradient(110deg,#fff,#f6fafc);box-shadow:0 7px 20px rgba(16,47,65,.035)}
+.colab-pagination-info b,.colab-pagination-info span{display:block}.colab-pagination-info b{font-size:11px;font-weight:900;color:#193d50}.colab-pagination-info span{margin-top:4px;font-size:9px;line-height:1.5;color:#728795}
+.colab-pagination-controls{display:flex;align-items:center;gap:10px}.colab-pagination-controls>span{white-space:nowrap;color:#627d8a;font-size:10px}.colab-pagination-controls>span b{color:#183e51;font-weight:900}
+.colab-pagination-controls button,.colab-load-error button{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #d4e4eb;border-radius:9px;padding:8px 11px;background:#fff;color:#30596d;font-size:10px;font-weight:850;transition:background .14s,border-color .14s}.colab-pagination-controls button:hover,.colab-load-error button:hover{background:#eaf7f8;border-color:#a6d4dc}.colab-pagination-controls button:disabled{opacity:.35;cursor:not-allowed}.colab-pagination-controls svg{width:14px;height:14px}.colab-pagination-loading,.colab-pagination-error{font-size:10px;color:#6e8592}.colab-pagination-error{color:#a4313c}
+.colab-load-error{display:flex;align-items:center;flex-direction:column;gap:8px;max-width:550px;margin:auto;padding:20px;border:1px solid #f0d2ac;border-radius:14px;background:#fff9ef;color:#87581c}.colab-load-error>svg{width:25px;height:25px}.colab-load-error b{font-size:12px;font-weight:900}.colab-load-error p{max-width:480px;margin:0;font-size:10px;line-height:1.7;overflow-wrap:anywhere}.colab-load-error small{max-width:480px;font-size:9px;line-height:1.6;color:#927950}.colab-load-error button{margin-top:4px;border-color:#ebd4b1;color:#87581c}
+@media(max-width:640px){.colab-pagination{align-items:stretch;padding:12px}.colab-pagination-controls{justify-content:space-between;gap:5px}.colab-pagination-controls button{padding:8px}.colab-pagination-info span{max-width:100%}}
+
 </style>
 </head>
 
@@ -472,117 +809,62 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
         class="fixed right-4 top-4 z-[200] w-full max-w-md space-y-3 px-4"
     ></div>
 
-    <!-- LOGIN MODERNO E INTERACTIVO -->
-    <div id="login-overlay" class="login-overlay-modern">
-        <div class="login-grid-bg" aria-hidden="true"></div>
-        <div class="login-glow login-glow-red" aria-hidden="true"></div>
-        <div class="login-glow login-glow-blue" aria-hidden="true"></div>
+    <!-- NOVA V3: PORTAL RRHH DISEÑADO DESDE CERO -->
+    <div id="login-overlay" class="nova-v3-overlay">
+      <div class="nova-v3-atmosphere" aria-hidden="true">
+        <span class="nova-v3-orb nova-v3-orb-a"></span>
+        <span class="nova-v3-orb nova-v3-orb-b"></span>
+        <span class="nova-v3-grid"></span>
+        <span class="nova-v3-cross nova-v3-cross-a">+</span>
+        <span class="nova-v3-cross nova-v3-cross-b">+</span>
+        <span class="nova-v3-coordinate">RRHH / CL · 2026</span>
+      </div>
 
-        <div class="login-shell">
-            <section class="login-hero" aria-label="Bienvenida a Recursos Humanos">
-                <div class="login-brand">
-                    <div class="login-brand-mark"><img class="login-brand-logo" src="/doctor-simi-logo.jpg" alt="Logo Doctor Simi"></div>
-                    <div>
-                        <div class="login-brand-name">DOCTOR SIMI</div>
-                        <div class="login-brand-sub">Recursos Humanos · Chile</div>
-                    </div>
-                </div>
+      <header class="nova-v3-topbar">
+        <a class="nova-v3-brand" href="#" aria-label="Doctor Simi Recursos Humanos">
+          <span class="nova-v3-brand-image"><img src="/doctor-simi-logo.jpg" alt="Doctor Simi"></span>
+          <span class="nova-v3-brand-copy"><strong>DOCTOR SIMI</strong><small>PEOPLE & OPERATIONS</small></span>
+        </a>
+        <div class="nova-v3-top-status"><span></span> PORTAL INTERNO <i></i> CHILE</div>
+      </header>
 
-                <div class="login-hero-copy">
-                    <div class="login-eyebrow"><span class="login-eyebrow-dot"></span> PLATAFORMA INTERNA RRHH</div>
-                    <h2>Tu equipo de RRHH,<br><span>siempre en movimiento.</span></h2>
-                    <p>Asistencia, ausentismo, tareas y gestión diaria en un solo lugar. Entra y pongamos todo en orden.</p>
-                    <div class="login-proof">
-                        <span class="login-proof-icon"><i data-lucide="shield-check" style="width:17px;height:17px"></i></span>
-                        <span>Acceso protegido para usuarios autorizados</span>
-                    </div>
-                </div>
+      <main class="nova-v3-main">
+        <section class="nova-v3-intro" aria-label="Portal de Recursos Humanos">
+          <div class="nova-v3-kicker"><span class="nova-v3-kicker-line"></span> PLATAFORMA DE OPERACIONES HUMANAS</div>
+          <h1>Las personas<br>mueven <em>todo.</em></h1>
+          <p class="nova-v3-description">Un centro de control para asistencia, turnos y equipos. Todo conectado. Todo en orden.</p>
 
-                <div class="login-simi-stage" aria-hidden="true">
-                    <div class="login-track-line"></div>
-                    <div class="login-runner runner-one">
-                        <svg viewBox="0 0 100 145" role="img" aria-label="Mascota médica corriendo">
-                            <g class="simi-leg-left"><path d="M44 104 L35 121 L22 130" stroke="#243b53" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M12 131 Q24 124 34 132 L32 138 L11 138Z" fill="#e31837"/></g>
-                            <g class="simi-leg-right"><path d="M58 103 L65 119 L78 124" stroke="#243b53" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M74 122 Q86 117 92 126 L90 132 L72 130Z" fill="#e31837"/></g>
-                            <path d="M34 61 Q50 53 67 62 L73 104 Q50 113 29 103Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
-                            <path d="M45 63 L51 75 L57 63 L54 92 L49 92Z" fill="#e31837"/>
-                            <path d="M36 65 L45 72 L40 87 L31 78Z" fill="#ffffff" stroke="#d7dee7" stroke-width="1.5"/>
-                            <path d="M65 65 L57 72 L63 87 L72 77Z" fill="#ffffff" stroke="#d7dee7" stroke-width="1.5"/>
-                            <g class="simi-arm-left"><path d="M34 67 L22 78 L16 67" stroke="#f0c6a6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M32 63 L23 72 L18 66" stroke="#ffffff" stroke-width="12" stroke-linecap="round" fill="none"/></g>
-                            <g class="simi-arm-right"><path d="M68 66 L80 54 L88 62" stroke="#f0c6a6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M68 63 L79 51 L85 58" stroke="#ffffff" stroke-width="12" stroke-linecap="round" fill="none"/></g>
-                            <path d="M25 32 Q20 11 43 8 Q62 -1 76 16 Q88 28 77 47 L70 56 L30 52Z" fill="#f4f6f8" stroke="#cbd5e1" stroke-width="2"/>
-                            <ellipse cx="51" cy="35" rx="25" ry="27" fill="#f1c7a6"/>
-                            <path d="M26 31 Q27 10 47 10 Q66 5 77 25 L68 24 Q59 17 46 22 Q37 25 26 31Z" fill="#f7f8fa" stroke="#d4dbe3" stroke-width="2"/>
-                            <path d="M32 35 L44 35 M57 35 L69 35" stroke="#263746" stroke-width="2.5" stroke-linecap="round"/>
-                            <ellipse cx="39" cy="38" rx="3" ry="4" fill="#263746"/><ellipse cx="62" cy="38" rx="3" ry="4" fill="#263746"/>
-                            <path d="M49 38 L46 46 L51 47" stroke="#d79c7a" stroke-width="2" stroke-linecap="round" fill="none"/>
-                            <path d="M30 47 Q39 42 49 48 Q59 42 72 47 Q65 60 52 53 Q40 60 30 47Z" fill="#4b342b"/>
-                            <path d="M41 59 Q51 64 61 58" stroke="#bd806a" stroke-width="2" fill="none" stroke-linecap="round"/>
-                            <circle cx="69" cy="72" r="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/><path d="M67 72 L71 72 M69 70 L69 74" stroke="#E31837" stroke-width="1.3"/>
-                        </svg>
-                    </div>
-                    <div class="login-runner runner-two">
-                        <svg viewBox="0 0 100 145" role="img" aria-label="Mascota médica saltando">
-                            <g class="simi-leg-left"><path d="M44 104 L35 121 L22 130" stroke="#243b53" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M12 131 Q24 124 34 132 L32 138 L11 138Z" fill="#f4b942"/></g>
-                            <g class="simi-leg-right"><path d="M58 103 L65 119 L78 124" stroke="#243b53" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M74 122 Q86 117 92 126 L90 132 L72 130Z" fill="#f4b942"/></g>
-                            <path d="M34 61 Q50 53 67 62 L73 104 Q50 113 29 103Z" fill="#fff" stroke="#cbd5e1" stroke-width="2"/><path d="M45 63 L51 75 L57 63 L54 92 L49 92Z" fill="#002B49"/>
-                            <g class="simi-arm-left"><path d="M34 67 L22 78 L16 67" stroke="#f0c6a6" stroke-width="9" stroke-linecap="round" fill="none"/><path d="M32 63 L23 72 L18 66" stroke="#fff" stroke-width="12" stroke-linecap="round" fill="none"/></g>
-                            <g class="simi-arm-right"><path d="M68 66 L80 54 L88 62" stroke="#f0c6a6" stroke-width="9" stroke-linecap="round" fill="none"/><path d="M68 63 L79 51 L85 58" stroke="#fff" stroke-width="12" stroke-linecap="round" fill="none"/></g>
-                            <path d="M25 32 Q20 11 43 8 Q62 -1 76 16 Q88 28 77 47 L70 56 L30 52Z" fill="#f4f6f8" stroke="#cbd5e1" stroke-width="2"/><ellipse cx="51" cy="35" rx="25" ry="27" fill="#f1c7a6"/><path d="M26 31 Q27 10 47 10 Q66 5 77 25 L68 24 Q59 17 46 22 Q37 25 26 31Z" fill="#f7f8fa" stroke="#d4dbe3" stroke-width="2"/><path d="M32 35 L44 35 M57 35 L69 35" stroke="#263746" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="39" cy="38" rx="3" ry="4" fill="#263746"/><ellipse cx="62" cy="38" rx="3" ry="4" fill="#263746"/><path d="M49 38 L46 46 L51 47" stroke="#d79c7a" stroke-width="2" fill="none"/><path d="M30 47 Q39 42 49 48 Q59 42 72 47 Q65 60 52 53 Q40 60 30 47Z" fill="#4b342b"/><path d="M41 59 Q51 64 61 58" stroke="#bd806a" stroke-width="2" fill="none"/><circle cx="69" cy="72" r="5" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
-                        </svg>
-                    </div>
-                    <div class="login-runner runner-three">
-                        <svg viewBox="0 0 100 145" role="img" aria-label="Mascota médica corriendo">
-                            <g class="simi-leg-left"><path d="M44 104 L35 121 L22 130" stroke="#243b53" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M12 131 Q24 124 34 132 L32 138 L11 138Z" fill="#E31837"/></g><g class="simi-leg-right"><path d="M58 103 L65 119 L78 124" stroke="#243b53" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M74 122 Q86 117 92 126 L90 132 L72 130Z" fill="#E31837"/></g><path d="M34 61 Q50 53 67 62 L73 104 Q50 113 29 103Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/><path d="M45 63 L51 75 L57 63 L54 92 L49 92Z" fill="#e31837"/><g class="simi-arm-left"><path d="M34 67 L22 78 L16 67" stroke="#f0c6a6" stroke-width="9" stroke-linecap="round" fill="none"/><path d="M32 63 L23 72 L18 66" stroke="#fff" stroke-width="12" stroke-linecap="round" fill="none"/></g><g class="simi-arm-right"><path d="M68 66 L80 54 L88 62" stroke="#f0c6a6" stroke-width="9" stroke-linecap="round" fill="none"/><path d="M68 63 L79 51 L85 58" stroke="#fff" stroke-width="12" stroke-linecap="round" fill="none"/></g><path d="M25 32 Q20 11 43 8 Q62 -1 76 16 Q88 28 77 47 L70 56 L30 52Z" fill="#f4f6f8" stroke="#cbd5e1" stroke-width="2"/><ellipse cx="51" cy="35" rx="25" ry="27" fill="#f1c7a6"/><path d="M26 31 Q27 10 47 10 Q66 5 77 25 L68 24 Q59 17 46 22 Q37 25 26 31Z" fill="#f7f8fa" stroke="#d4dbe3" stroke-width="2"/><path d="M32 35 L44 35 M57 35 L69 35" stroke="#263746" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="39" cy="38" rx="3" ry="4" fill="#263746"/><ellipse cx="62" cy="38" rx="3" ry="4" fill="#263746"/><path d="M49 38 L46 46 L51 47" stroke="#d79c7a" stroke-width="2" fill="none"/><path d="M30 47 Q39 42 49 48 Q59 42 72 47 Q65 60 52 53 Q40 60 30 47Z" fill="#4b342b"/>
-                        </svg>
-                    </div>
-                </div>
-            </section>
+          <div class="nova-v3-orbit-scene" aria-hidden="true">
+            <div class="nova-v3-orbit nova-v3-orbit-outer"></div>
+            <div class="nova-v3-orbit nova-v3-orbit-middle"></div>
+            <div class="nova-v3-orbit nova-v3-orbit-inner"></div>
+            <span class="nova-v3-orbit-dot nova-v3-dot-one"></span>
+            <span class="nova-v3-orbit-dot nova-v3-dot-two"></span>
+            <span class="nova-v3-orbit-dot nova-v3-dot-three"></span>
+            <div class="nova-v3-core"><img src="/doctor-simi-logo.jpg" alt=""><span class="nova-v3-core-pulse"></span></div>
+            <div class="nova-v3-float-tag nova-v3-tag-one"><span class="nova-v3-tag-icon">01</span><span><b>ASISTENCIA</b><small>Control diario</small></span></div>
+            <div class="nova-v3-float-tag nova-v3-tag-two"><span class="nova-v3-tag-icon">02</span><span><b>PERSONAS</b><small>Equipos conectados</small></span></div>
+            <div class="nova-v3-float-tag nova-v3-tag-three"><span class="nova-v3-tag-icon">03</span><span><b>OPERACIONES</b><small>Todo bajo control</small></span></div>
+          </div>
 
-            <section class="login-form-panel" aria-label="Inicio de sesión">
-                <div class="login-form-inner">
-                    <div class="login-form-logo-wrap"><img class="login-form-logo" src="/doctor-simi-logo.jpg" alt="Logo Doctor Simi"></div>
-                    <div class="login-kicker">Bienvenido de vuelta</div>
-                    <h1 class="login-title">Inicia sesión</h1>
-                    <p class="login-description">Ingresa con tu cuenta autorizada para acceder al panel de gestión de Recursos Humanos.</p>
+          <div class="nova-v3-bottom-note"><span class="nova-v3-bottom-icon"><i data-lucide="shield-check"></i></span><span><b>Un espacio de trabajo protegido</b><small>Acceso exclusivo para personal autorizado</small></span><span class="nova-v3-bottom-arrow">↗</span></div>
+        </section>
 
-                    <form id="form-login" class="space-y-4" onsubmit="iniciarSesion(event)">
-                        <div class="login-field">
-                            <label for="login-email">Correo electrónico</label>
-                            <div class="login-input-wrap">
-                                <i data-lucide="mail" class="login-input-icon"></i>
-                                <input id="login-email" type="email" autocomplete="username" required class="login-input" placeholder="nombre@farmaciasdoctorsimi.cl" aria-label="Correo electrónico">
-                            </div>
-                        </div>
+        <section class="nova-v3-auth" aria-label="Inicio de sesión">
+          <div class="nova-v3-auth-top"><span class="nova-v3-auth-symbol"><i data-lucide="fingerprint"></i></span><span class="nova-v3-auth-step">ACCESO <b> / 01</b></span></div>
+          <div class="nova-v3-auth-heading"><span>BIENVENIDO/A DE VUELTA</span><h2>Entra a tu<br>espacio.</h2><p>Usa tus credenciales corporativas para continuar.</p></div>
 
-                        <div class="login-field">
-                            <label for="login-pass">Contraseña</label>
-                            <div class="login-input-wrap">
-                                <i data-lucide="lock-keyhole" class="login-input-icon"></i>
-                                <input id="login-pass" type="password" autocomplete="current-password" required class="login-input" placeholder="Ingresa tu contraseña" aria-label="Contraseña">
-                                <button type="button" class="login-eye" id="btn-toggle-password" onclick="togglePasswordVisibility()" aria-label="Mostrar contraseña" title="Mostrar contraseña"><i data-lucide="eye" id="password-eye-icon" style="width:17px;height:17px"></i></button>
-                            </div>
-                        </div>
-
-                        <div class="login-form-meta">
-                            <label class="login-remember"><input id="login-remember" type="checkbox"> Recordar correo en este equipo</label>
-                            <button type="button" class="login-link" onclick="recuperarContrasena()">¿Olvidaste tu contraseña?</button>
-                        </div>
-
-                        <div id="login-error" class="login-error hidden" role="alert" aria-live="polite"></div>
-
-                        <button id="btn-login" type="submit" class="login-submit">
-                            <i data-lucide="log-in" style="width:18px;height:18px"></i>
-                            <span>Ingresar al sistema</span>
-                            <i data-lucide="arrow-up-right" style="width:16px;height:16px;margin-left:auto"></i>
-                        </button>
-                    </form>
-
-                    <div class="login-security-note"><i data-lucide="shield-check" style="width:14px;height:14px"></i> Sesión segura · Solo personal autorizado</div>
-                    <div class="login-footer">Doctor Simi Chile · Recursos Humanos</div>
-                </div>
-            </section>
-        </div>
+          <form id="form-login" class="nova-v3-form" onsubmit="iniciarSesion(event)">
+            <div class="nova-v3-field"><label for="login-email">CORREO CORPORATIVO</label><div class="nova-v3-input-wrap"><i data-lucide="at-sign"></i><input id="login-email" type="email" autocomplete="username" required placeholder="nombre@farmaciasdoctorsimi.cl" aria-label="Correo electrónico"></div></div>
+            <div class="nova-v3-field"><label for="login-pass">CONTRASEÑA</label><div class="nova-v3-input-wrap"><i data-lucide="key-round"></i><input id="login-pass" type="password" autocomplete="current-password" required placeholder="Introduce tu contraseña" aria-label="Contraseña"><button type="button" class="nova-v3-eye" id="btn-toggle-password" onclick="togglePasswordVisibility()" aria-label="Mostrar contraseña" title="Mostrar contraseña"><i data-lucide="eye" id="password-eye-icon"></i></button></div></div>
+            <div class="nova-v3-form-meta"><label class="nova-v3-remember"><input id="login-remember" type="checkbox"><span></span> Recordar correo</label><button type="button" class="nova-v3-forgot" onclick="recuperarContrasena()">¿Olvidaste tu contraseña?</button></div>
+            <div id="login-error" class="nova-v3-error hidden" role="alert" aria-live="polite"></div>
+            <button id="btn-login" type="submit" class="nova-v3-submit"><span class="nova-v3-submit-label">Acceder al portal</span><span class="nova-v3-submit-icon"><i data-lucide="arrow-up-right"></i></span></button>
+          </form>
+          <div class="nova-v3-auth-foot"><span class="nova-v3-lock"><i data-lucide="lock-keyhole"></i></span><span><b>Conexión privada</b><small>Doctor Simi Chile · Recursos Humanos</small></span><span class="nova-v3-live"><i></i> SEGURO</span></div>
+        </section>
+      </main>
+      <footer class="nova-v3-footer"><span>© FARMACIAS DE SIMILARES CHILE S.A.</span><span>PERSONAS · PROCESOS · PROPÓSITO</span><span class="nova-v3-footer-mark">DS<span>—</span>RH</span></footer>
     </div>
 
     <!-- APP -->
@@ -619,114 +901,43 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
                 </button>
             </div>
 
-            <nav style="visibility:hidden" class="flex-1 space-y-1 overflow-y-auto p-3 text-sm">
-                <button id="btn-dashboard" class="menu-btn" onclick="cambiarModulo('dashboard')">
-                    <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
-                    1. Dashboard
-                </button>
-
-                <button id="btn-colaboradores" class="menu-btn" onclick="cambiarModulo('colaboradores')">
-                    <i data-lucide="users" class="h-4 w-4"></i>
-                    2. Colaboradores
-                </button>
-
-                <button id="btn-sucursales" class="menu-btn" onclick="cambiarModulo('sucursales')">
-                    <i data-lucide="building-2" class="h-4 w-4"></i>
-                    3. Sucursales
-                </button>
-
-                <button id="btn-asistencia" class="menu-btn" onclick="cambiarModulo('asistencia')">
-                    <i data-lucide="clock" class="h-4 w-4"></i>
-                    4. Asistencia y atrasos
-                </button>
-
-                <button id="btn-licencias" class="menu-btn" onclick="cambiarModulo('licencias')">
-                    <i data-lucide="file-heart" class="h-4 w-4"></i>
-                    5. Licencias y ausentismo
-                </button>
-
-                <button id="btn-vacaciones" class="menu-btn" onclick="cambiarModulo('vacaciones')">
-                    <i data-lucide="palmtree" class="h-4 w-4"></i>
-                    6. Vacaciones
-                </button>
-
-                <button id="btn-papeletas" class="menu-btn" onclick="cambiarModulo('papeletas')">
-                    <i data-lucide="file-text" class="h-4 w-4"></i>
-                    7. Papeletas
-                </button>
-
-                <button id="btn-correos" class="menu-btn" onclick="cambiarModulo('correos')">
-                    <i data-lucide="mail" class="h-4 w-4"></i>
-                    8. Borradores correo
-                </button>
-
-                <button id="btn-amonestaciones" class="menu-btn" onclick="cambiarModulo('amonestaciones')">
-                    <i data-lucide="folder-alert" class="h-4 w-4"></i>
-                    9. Coberturas
-                </button>
-
-                <button id="btn-reportes" class="menu-btn" onclick="cambiarModulo('reportes')">
-                    <i data-lucide="bar-chart-3" class="h-4 w-4"></i>
-                    10. Reportes
-                </button>
-
-                <button id="btn-usuarios" class="menu-btn" onclick="cambiarModulo('usuarios')">
-                    <i data-lucide="shield-check" class="h-4 w-4"></i>
-                    11. Usuarios y roles
-                </button>
-
-                <button id="btn-auditoria" class="menu-btn" onclick="cambiarModulo('auditoria')">
-                    <i data-lucide="history" class="h-4 w-4"></i>
-                    12. Auditoría
-                </button>
-
-                <button id="btn-configcorreos" class="menu-btn" onclick="cambiarModulo('configcorreos')">
-                    <i data-lucide="mail-cog" class="h-4 w-4"></i>
-                    13. Correos sucursales
-                </button>
-
-     <button id="btn-mapas" class="menu-btn" onclick="cambiarModulo('mapas')">
-                    <i data-lucide="map-pinned" class="h-4 w-4"></i>
-                    14. Mapa y distancias
-                </button>
-
-                <button id="btn-tareas" class="menu-btn" onclick="cambiarModulo('tareas')">
-                    <i data-lucide="list-checks" class="h-4 w-4"></i>
-                    15. Tareas diarias
-                </button>
-
-                <div class="nova-nav-divider"><span>GESTIÓN Y CONTROL</span></div>
-                <button id="btn-operaciones" class="menu-btn" onclick="cambiarModulo('operaciones')">
-                    <i data-lucide="gauge" class="h-4 w-4"></i>
-                    16. Centro de operaciones
-                </button>
-                <button id="btn-calidad" class="menu-btn" onclick="cambiarModulo('calidad')">
-                    <i data-lucide="shield-check" class="h-4 w-4"></i>
-                    17. Calidad de datos
-                </button>
-                <button id="btn-notificaciones" class="menu-btn" onclick="cambiarModulo('notificaciones')">
-                    <i data-lucide="bell-ring" class="h-4 w-4"></i>
-                    18. Notificaciones
-                    <span id="nav-notif-count" class="nav-count hidden">0</span>
-                </button>
-                <button id="btn-integraciones" class="menu-btn" onclick="cambiarModulo('integraciones')">
-                    <i data-lucide="plug-zap" class="h-4 w-4"></i>
-                    19. Integraciones
-                </button>
-                            <div class="nova-nav-divider"><span>COMUNICACIÓN Y DOTACIÓN</span></div>
-                <button id="btn-chat" class="menu-btn" onclick="cambiarModulo('chat')">
-                    <i data-lucide="messages-square" class="h-4 w-4"></i>
-                    20. Chat interno
-                </button>
-                <button id="btn-traslados" class="menu-btn" onclick="cambiarModulo('traslados')">
-                    <i data-lucide="users-round" class="h-4 w-4"></i>
-                    21. Traslados de personal
-                </button>
+            <nav style="visibility:hidden" class="flex-1 space-y-1 overflow-y-auto p-3 text-sm" aria-label="Navegación principal de Recursos Humanos">
+  <div class="nova-nav-divider" data-nav-group><span>INICIO Y PRODUCTIVIDAD</span></div>
+  <button id="btn-dashboard" class="menu-btn" onclick="cambiarModulo('dashboard')"><i data-lucide="layout-dashboard" class="h-4 w-4"></i><span>Dashboard</span></button>
+  <button id="btn-espacio" class="menu-btn" onclick="cambiarModulo('espacio')"><i data-lucide="notebook-pen" class="h-4 w-4"></i><span>Mi espacio de trabajo</span><span class="nav-new-mark">NUEVO</span></button>
+  <button id="btn-tareas" class="menu-btn" onclick="cambiarModulo('tareas')"><i data-lucide="list-checks" class="h-4 w-4"></i><span>Tareas diarias</span></button>
+  <div class="nova-nav-divider" data-nav-group><span>PERSONAS Y ESTRUCTURA</span></div>
+  <button id="btn-colaboradores" class="menu-btn" onclick="cambiarModulo('colaboradores')"><i data-lucide="users" class="h-4 w-4"></i><span>Colaboradores</span></button>
+  <button id="btn-sucursales" class="menu-btn" onclick="cambiarModulo('sucursales')"><i data-lucide="building-2" class="h-4 w-4"></i><span>Sucursales</span></button>
+  <button id="btn-usuarios" class="menu-btn" onclick="cambiarModulo('usuarios')"><i data-lucide="shield-check" class="h-4 w-4"></i><span>Usuarios y roles</span></button>
+  <div class="nova-nav-divider" data-nav-group><span>ASISTENCIA Y BENEFICIOS</span></div>
+  <button id="btn-asistencia" class="menu-btn" onclick="cambiarModulo('asistencia')"><i data-lucide="clock" class="h-4 w-4"></i><span>Asistencia y atrasos</span></button>
+  <button id="btn-licencias" class="menu-btn" onclick="cambiarModulo('licencias')"><i data-lucide="file-heart" class="h-4 w-4"></i><span>Licencias y ausentismo</span></button>
+  <button id="btn-vacaciones" class="menu-btn" onclick="cambiarModulo('vacaciones')"><i data-lucide="palmtree" class="h-4 w-4"></i><span>Vacaciones</span></button>
+  <button id="btn-papeletas" class="menu-btn" onclick="cambiarModulo('papeletas')"><i data-lucide="file-text" class="h-4 w-4"></i><span>Papeletas y permisos</span></button>
+  <div class="nova-nav-divider" data-nav-group><span>COBERTURAS Y COMUNICACIÓN</span></div>
+  <button id="btn-amonestaciones" class="menu-btn" onclick="cambiarModulo('amonestaciones')"><i data-lucide="calendar-check" class="h-4 w-4"></i><span>Coberturas</span></button>
+  <button id="btn-traslados" class="menu-btn" onclick="cambiarModulo('traslados')"><i data-lucide="users-round" class="h-4 w-4"></i><span>Traslados de personal</span></button>
+  <button id="btn-correos" class="menu-btn" onclick="cambiarModulo('correos')"><i data-lucide="mail" class="h-4 w-4"></i><span>Borradores de correo</span></button>
+  <button id="btn-configcorreos" class="menu-btn" onclick="cambiarModulo('configcorreos')"><i data-lucide="mail-check" class="h-4 w-4"></i><span>Correos de sucursales</span></button>
+  <button id="btn-chat" class="menu-btn" onclick="cambiarModulo('chat')"><i data-lucide="messages-square" class="h-4 w-4"></i><span>Chat interno</span></button>
+  <div class="nova-nav-divider" data-nav-group><span>ANÁLISIS Y CONTROL</span></div>
+  <button id="btn-reportes" class="menu-btn" onclick="cambiarModulo('reportes')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Reportes</span></button>
+  <button id="btn-mapas" class="menu-btn" onclick="cambiarModulo('mapas')"><i data-lucide="map-pinned" class="h-4 w-4"></i><span>Mapa y distancias</span></button>
+  <button id="btn-operaciones" class="menu-btn" onclick="cambiarModulo('operaciones')"><i data-lucide="gauge" class="h-4 w-4"></i><span>Centro de operaciones</span></button>
+  <button id="btn-calidad" class="menu-btn" onclick="cambiarModulo('calidad')"><i data-lucide="shield-check" class="h-4 w-4"></i><span>Calidad de datos</span></button>
+  <button id="btn-notificaciones" class="menu-btn" onclick="cambiarModulo('notificaciones')"><i data-lucide="bell-ring" class="h-4 w-4"></i><span>Notificaciones</span><span id="nav-notif-count" class="nav-count hidden">0</span></button>
+  <button id="btn-integraciones" class="menu-btn" onclick="cambiarModulo('integraciones')"><i data-lucide="plug-zap" class="h-4 w-4"></i><span>Integraciones y monitoreo</span></button>
+  <button id="btn-auditoria" class="menu-btn" onclick="cambiarModulo('auditoria')"><i data-lucide="history" class="h-4 w-4"></i><span>Bitácora y auditoría</span></button>
 </nav>
+            <div class="sidebar-credit" aria-label="Gestionado por el equipo de Asistencia" title="Gestionado por el equipo de Asistencia">
+                <span class="sidebar-credit-icon"><i data-lucide="shield-check" class="h-4 w-4"></i></span>
+                <span class="sidebar-credit-copy"><span>GESTIONADO POR</span><strong>Equipo de Asistencia</strong></span>
+            </div>
         </aside>
 
         <main class="flex min-w-0 flex-1 flex-col overflow-y-auto">
-            <div class="app-watermark" aria-hidden="true">Gestionado por el equipo de Asistencia</div>
+            
             <header
                 class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 sm:px-8"
             >
@@ -750,6 +961,7 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
                     <button type="button" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('tareas');setTimeout(()=>document.getElementById('tarea-titulo')?.focus(),250)">
                         <i data-lucide="plus" class="h-4 w-4"></i><span>Nueva tarea rápida</span>
                     </button>
+                    <button type="button" id="topbar-quick-note" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('espacio');setTimeout(()=>document.getElementById('rrhh-nota-titulo')?.focus(),250)"><i data-lucide="sticky-note" class="h-4 w-4"></i><span>Nueva nota rápida</span></button>
                     <button type="button" id="topbar-notification-button" class="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-100 bg-gradient-to-br from-white to-indigo-50 text-indigo-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" onclick="cambiarModulo('notificaciones');setTimeout(()=>cargarCentroNotificaciones(),150)" aria-label="Abrir notificaciones" title="Notificaciones">
                         <i data-lucide="bell-ring" class="h-5 w-5"></i><span id="topbar-notif-count" class="absolute -right-1 -top-1 hidden min-w-[18px] rounded-full bg-rose-600 px-1 text-center text-[10px] font-black leading-[18px] text-white">0</span>
                     </button>
@@ -782,6 +994,18 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
                         </div>
                         <span id="dashboard-welcome-role" class="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-2 text-xs font-bold text-white"><i data-lucide="shield-check" class="h-4 w-4"></i> Usuario autorizado</span>
                     </div>
+                </div>
+                <div id="dashboard-space-summary" class="dash-space-card" aria-live="polite">
+                    <div class="dash-space-intro"><div><span class="dash-space-kicker">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo('espacio')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div>
+                    <div class="dash-space-stat-grid"><div><span class="dash-space-stat-icon"><i data-lucide="sticky-note"></i></span><span><b>0</b><small>Notas activas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="pin"></i></span><span><b>0</b><small>Notas fijadas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-alert"></i></span><span><b>0</b><small>Fuera de plazo</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="history"></i></span><span><b>0</b><small>Gestiones recientes</small></span></div></div>
+                </div>
+                <div id="dashboard-ops-summary" class="ui-card dashboard-ops-summary p-4 sm:p-5" aria-live="polite">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div><span class="dash-space-kicker">SEGUIMIENTO EN TIEMPO REAL</span><h3 class="mt-1 font-extrabold text-slate-900">Resumen operativo</h3><p class="mt-1 text-xs text-slate-500">Tareas abiertas, vencimientos, solicitudes de dotación, avisos y salud del bot. Los errores de lectura se muestran como no disponibles, nunca como cero.</p></div>
+                        <button type="button" class="corp-button-dark text-xs" onclick="cargarResumenOperativoRRHH()"><i data-lucide="refresh-cw" class="mr-1 inline h-4 w-4"></i>Actualizar resumen</button>
+                    </div>
+                    <div id="dashboard-ops-cards" class="dashboard-ops-grid mt-4"><div class="ops-summary-loading"><span class="space-loader-ring"></span><span>Consultando estado operativo…</span></div></div>
+                    <p id="dashboard-ops-updated" class="mt-3 text-right text-[10px] text-slate-400">Pendiente de actualización</p>
                 </div>
                 <div class="ui-card p-4 sm:p-5">
                     <div class="flex flex-wrap items-center justify-between gap-2">
@@ -957,11 +1181,63 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
                 </div>
             </section>
 
+            <!-- MI ESPACIO DE TRABAJO -->
+            <section id="view-espacio" class="hidden space-y-6 p-4 sm:p-8">
+                <div class="space-hero">
+                    <div class="space-hero-orb" aria-hidden="true"></div>
+                    <div class="space-hero-copy"><span class="space-hero-kicker"><i data-lucide="notebook-pen"></i> MI CENTRO DE SEGUIMIENTO</span><h3>Todo lo que no quieres olvidar.</h3><p>Notas adhesivas, fechas límite y una bitácora ordenada de las gestiones de RR. HH. Guardado en la nube con acceso protegido.</p><div class="space-hero-pills"><span><i data-lucide="cloud"></i> Guardado en Supabase</span><span><i data-lucide="shield-check"></i> Acceso protegido</span><span><i data-lucide="history"></i> Historial cronológico</span></div></div>
+                    <div class="space-hero-graphic" aria-hidden="true"><div class="space-hero-ring ring-one"></div><div class="space-hero-ring ring-two"></div><div class="space-hero-sticky sticky-one">RECORDAR</div><div class="space-hero-sticky sticky-two">SEGUIR</div><div class="space-hero-center"><i data-lucide="layers-3"></i></div></div>
+                </div>
+                <div id="space-metrics" class="space-metrics-grid"><div class="space-metric"><span class="space-metric-icon"><i data-lucide="sticky-note"></i></span><span class="space-metric-copy"><small>Notas activas</small><strong>0</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="pin"></i></span><span class="space-metric-copy"><small>Fijadas</small><strong>0</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="clock-alert"></i></span><span class="space-metric-copy"><small>Por revisar</small><strong>0</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="history"></i></span><span class="space-metric-copy"><small>Gestiones · 7 días</small><strong>0</strong></span></div></div>
+                <div class="space-tabbar" role="tablist" aria-label="Mi espacio de trabajo"><button type="button" data-space-tab="notas" class="space-tab is-active" aria-selected="true"><i data-lucide="sticky-note"></i> Notas adhesivas <span>01</span></button><button type="button" data-space-tab="bitacora" class="space-tab" aria-selected="false"><i data-lucide="history"></i> Bitácora de gestión <span>02</span></button></div>
+                <div id="rrhh-space-panel-notas" class="space-panel">
+                    <div class="space-panel-heading"><div><span class="space-section-kicker">CAPTURA RÁPIDA</span><h3>El tablero de tus ideas</h3><p>Fija recordatorios, ponles color y conviértelos en acciones.</p></div><span id="rrhh-notas-count" class="space-count-chip">Cargando notas…</span></div>
+                    <div class="space-notes-layout">
+                        <form class="space-compose-card" onsubmit="guardarNotaRRHH(event)">
+                            <div class="space-compose-top"><span class="space-compose-icon"><i data-lucide="pen-line"></i></span><span class="space-compose-label">NUEVA NOTA</span></div>
+                            <label for="rrhh-nota-titulo">Título de la nota</label><input id="rrhh-nota-titulo" class="form-field" maxlength="160" required placeholder="Ej. Confirmar cobertura del sábado">
+                            <label for="rrhh-nota-contenido">Detalle / recordatorio</label><textarea id="rrhh-nota-contenido" class="form-field" rows="4" maxlength="12000" placeholder="Anota el contexto, a quién contactar o qué falta resolver…"></textarea>
+                            <div class="space-form-row"><div><label for="rrhh-nota-categoria">Categoría</label><select id="rrhh-nota-categoria" class="form-field"><option>General</option><option>Seguimiento</option><option>Asistencia</option><option>Licencias</option><option>Cobertura</option><option>Sucursal</option><option>Reunión</option><option>Urgente</option></select></div><div><label for="rrhh-nota-vence">Fecha límite</label><input id="rrhh-nota-vence" type="datetime-local" class="form-field"></div></div>
+                            <label>Color del posit</label><div class="space-color-select"><label class="space-color-option note-color-amarillo"><input type="radio" name="rrhh-nota-color-radio" value="amarillo" checked onchange="document.getElementById('rrhh-nota-color').value=this.value"><span></span><small>Sol</small></label><label class="space-color-option note-color-menta"><input type="radio" name="rrhh-nota-color-radio" value="menta" onchange="document.getElementById('rrhh-nota-color').value=this.value"><span></span><small>Menta</small></label><label class="space-color-option note-color-celeste"><input type="radio" name="rrhh-nota-color-radio" value="celeste" onchange="document.getElementById('rrhh-nota-color').value=this.value"><span></span><small>Cielo</small></label><label class="space-color-option note-color-lila"><input type="radio" name="rrhh-nota-color-radio" value="lila" onchange="document.getElementById('rrhh-nota-color').value=this.value"><span></span><small>Lila</small></label><label class="space-color-option note-color-rosa"><input type="radio" name="rrhh-nota-color-radio" value="rosa" onchange="document.getElementById('rrhh-nota-color').value=this.value"><span></span><small>Rosa</small></label></div><input type="hidden" id="rrhh-nota-color" value="amarillo">
+                            <label for="rrhh-nota-visibilidad">Quién puede verla</label><select id="rrhh-nota-visibilidad" class="form-field"><option value="PERSONAL">Solo yo · privada</option><option value="COMPARTIDA">Equipo autorizado · compartida</option></select>
+                            <label class="space-pin-check"><input id="rrhh-nota-fijada" type="checkbox"><span><i data-lucide="pin"></i></span> Fijar al comienzo del tablero</label>
+                            <button type="submit" class="space-create-button"><i data-lucide="plus"></i> Guardar nota <i data-lucide="arrow-up-right"></i></button><p class="space-form-foot"><i data-lucide="cloud"></i> Se guarda en tu cuenta; no se almacena localmente como única copia.</p>
+                        </form>
+                        <div class="space-note-board-wrap">
+                            <div class="space-note-tools"><div class="space-note-search"><i data-lucide="search"></i><input id="rrhh-nota-buscar" type="search" placeholder="Buscar notas, categorías o palabras…"></div><div class="space-note-filters"><button type="button" data-note-filter="ACTIVAS" class="is-active">Activas</button><button type="button" data-note-filter="TODAS">Todas</button><button type="button" data-note-filter="COMPARTIDAS">Compartidas</button><button type="button" data-note-filter="RESUELTAS">Resueltas</button><button type="button" data-note-filter="ARCHIVADAS">Archivadas</button></div></div>
+                            <div id="rrhh-notas-lista" class="space-note-grid"><div class="space-loading"><span class="space-loader-ring"></span><p>Organizando tu espacio de trabajo…</p></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="rrhh-space-panel-bitacora" class="space-panel hidden">
+                    <div class="space-panel-heading"><div><span class="space-section-kicker">SEGUIMIENTO OPERATIVO</span><h3>Bitácora de gestión</h3><p>Registra incidencias, decisiones, reuniones y seguimientos. Estos registros son de solo lectura después de crearlos.</p></div><span id="rrhh-bitacora-count" class="space-count-chip">Cargando registros…</span></div>
+                    <form class="space-log-compose" onsubmit="guardarRegistroBitacoraRRHH(event)">
+                        <div class="space-log-compose-heading"><span class="space-compose-icon"><i data-lucide="notebook-tabs"></i></span><div><b>Registrar una gestión</b><small>Un registro claro facilita retomar el caso y rendir cuentas.</small></div></div>
+                        <div class="space-log-fields"><div><label for="rrhh-log-titulo">Asunto</label><input id="rrhh-log-titulo" class="form-field" maxlength="180" required placeholder="Ej. Se solicita confirmación de marcaciones"></div><div><label for="rrhh-log-categoria">Tipo de gestión</label><select id="rrhh-log-categoria" class="form-field"><option>Gestión</option><option>Incidencia</option><option>Seguimiento</option><option>Decisión</option><option>Reunión</option><option>Cobertura</option><option>Asistencia</option><option>Licencias</option><option>Otro</option></select></div><div><label for="rrhh-log-modulo">Módulo relacionado</label><select id="rrhh-log-modulo" class="form-field"><option value="general">Gestión general</option><option value="colaboradores">Colaboradores</option><option value="sucursales">Sucursales</option><option value="asistencia">Asistencia</option><option value="licencias">Licencias</option><option value="vacaciones">Vacaciones</option><option value="papeletas">Papeletas</option><option value="amonestaciones">Coberturas</option><option value="correos">Borradores de correo</option><option value="reportes">Reportes</option><option value="usuarios">Usuarios y roles</option><option value="tareas">Tareas diarias</option><option value="traslados">Traslados</option><option value="espacio">Mi espacio</option></select></div><div><label for="rrhh-log-sucursal">Sucursal relacionada (opcional)</label><input id="rrhh-log-sucursal" class="form-field" maxlength="180" placeholder="Nombre de sucursal"></div><div><label for="rrhh-log-fecha">Fecha y hora de la gestión</label><input id="rrhh-log-fecha" type="datetime-local" class="form-field"></div><div><label for="rrhh-log-visibilidad">Visibilidad</label><select id="rrhh-log-visibilidad" class="form-field"><option value="PERSONAL">Solo yo · privada</option><option value="COMPARTIDA">Equipo autorizado · compartida</option></select></div><div class="space-log-detail-field"><label for="rrhh-log-detalle">Detalle y resultado</label><textarea id="rrhh-log-detalle" class="form-field" rows="3" maxlength="16000" required placeholder="Qué pasó, qué se hizo, qué falta y cuál es el siguiente paso…"></textarea></div></div>
+                        <div class="space-log-form-bottom"><span><i data-lucide="shield-check"></i> Registro cronológico protegido</span><button type="submit" class="space-create-button"><i data-lucide="plus"></i> Guardar en bitácora <i data-lucide="arrow-up-right"></i></button></div>
+                    </form>
+                    <div class="space-log-history-head"><div><h4>Historial reciente</h4><p>Más recientes primero · hasta 350 registros visibles.</p></div><div class="space-note-search"><i data-lucide="search"></i><input id="rrhh-bitacora-buscar" type="search" placeholder="Buscar por asunto, sucursal o detalle…"></div></div>
+                    <div id="rrhh-bitacora-lista" class="space-log-list"><div class="space-loading"><span class="space-loader-ring"></span><p>Cargando bitácora…</p></div></div>
+                </div>
+                            <div id="rrhh-modal-editar-nota" class="space-edit-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="rrhh-edit-note-title">
+                    <form class="space-edit-dialog" onsubmit="guardarEdicionNotaRRHH(event)">
+                        <div class="space-edit-head"><span class="space-compose-icon"><i data-lucide="pencil-line"></i></span><div><span class="space-section-kicker">ACTUALIZAR RECORDATORIO</span><h3 id="rrhh-edit-note-title">Editar nota</h3><p>Guarda los cambios en tu espacio en la nube.</p></div><button type="button" class="space-note-action" onclick="cerrarEdicionNotaRRHH()" aria-label="Cerrar editor"><i data-lucide="x"></i></button></div>
+                        <input type="hidden" id="rrhh-edit-nota-id">
+                        <label for="rrhh-edit-nota-titulo">Título</label><input id="rrhh-edit-nota-titulo" class="form-field" maxlength="160" required>
+                        <label for="rrhh-edit-nota-contenido">Detalle</label><textarea id="rrhh-edit-nota-contenido" class="form-field" rows="4" maxlength="12000"></textarea>
+                        <div class="space-form-row"><div><label for="rrhh-edit-nota-categoria">Categoría</label><select id="rrhh-edit-nota-categoria" class="form-field"><option>General</option><option>Seguimiento</option><option>Asistencia</option><option>Licencias</option><option>Cobertura</option><option>Sucursal</option><option>Reunión</option><option>Urgente</option></select></div><div><label for="rrhh-edit-nota-color">Color</label><select id="rrhh-edit-nota-color" class="form-field"><option value="amarillo">Amarillo</option><option value="menta">Menta</option><option value="celeste">Celeste</option><option value="lila">Lila</option><option value="rosa">Rosa</option><option value="neutro">Neutro</option></select></div></div>
+                        <div class="space-form-row"><div><label for="rrhh-edit-nota-vence">Fecha límite</label><input id="rrhh-edit-nota-vence" type="datetime-local" class="form-field"></div><div><label for="rrhh-edit-nota-visibilidad">Visibilidad</label><select id="rrhh-edit-nota-visibilidad" class="form-field"><option value="PERSONAL">Solo yo · privada</option><option value="COMPARTIDA">Equipo autorizado · compartida</option></select></div></div>
+                        <label class="space-pin-check"><input id="rrhh-edit-nota-fijada" type="checkbox"><span></span> Fijar al comienzo del tablero</label>
+                        <div class="space-edit-actions"><button type="button" class="space-edit-cancel" onclick="cerrarEdicionNotaRRHH()">Cancelar</button><button type="submit" class="space-create-button"><i data-lucide="check"></i> Guardar cambios</button></div>
+                    </form>
+                </div>
+</section>
+
             <!-- COLABORADORES -->
             <section id="view-colaboradores" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
                     <div class="min-w-0 flex-1">
-                        <h3 class="font-bold text-slate-900">Nómina de colaboradores</h3>
+                        <span class="module-kicker">PERSONAS Y ESTRUCTURA</span><h3 class="font-bold text-slate-900">Directorio de colaboradores</h3><p class="mt-1 text-xs text-slate-500">Nómina maestra, sucursal, supervisión y estado de cada persona.</p>
                         <p data-update-stamp="colaboradores" class="mt-2 inline-flex max-w-full items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
                             <i data-lucide="clock-3" class="mr-1.5 h-3.5 w-3.5 shrink-0"></i>
                             <span>Consultando última carga…</span>
@@ -991,10 +1267,13 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
                     </div>
                 </div>
 
-                <div class="ui-card grid grid-cols-1 gap-3 p-4 sm:grid-cols-[1.3fr_1fr_auto]">
+                <div id="colab-kpi-grid" class="colab-kpi-grid" aria-live="polite"><div class="colab-kpi"><span><i data-lucide="users"></i></span><div><small>Colaboradores en nómina</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="user-check"></i></span><div><small>Activos</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="user-round-x"></i></span><div><small>Inactivos</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="building-2"></i></span><div><small>Sucursales cubiertas</small><strong>—</strong></div></div></div>
+                <div class="module-section-caption"><span><i data-lucide="contact-round"></i></span><div><b>Directorio maestro</b><small>Busca por RUT, cargo o sucursal; abre la ficha para consultar el historial.</small></div></div>
+                <div class="ui-card grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-[1.35fr_1fr_.8fr_auto]">
                     <div><label for="col-filtro-busqueda" class="mb-1 block text-xs font-bold text-slate-600">Buscar colaborador</label><input id="col-filtro-busqueda" type="search" class="form-field" placeholder="Nombre, apellido, RUT o cargo" oninput="filtrarTablaColaboradores()"></div>
-                    <div><label for="col-filtro-sucursal" class="mb-1 block text-xs font-bold text-slate-600">Filtrar por sucursal</label><select id="col-filtro-sucursal" class="form-field" onchange="filtrarTablaColaboradores()"><option value="">Todas las sucursales</option></select></div>
-                    <div class="flex items-end"><button type="button" class="corp-button-dark w-full" onclick="document.getElementById('col-filtro-busqueda').value='';document.getElementById('col-filtro-sucursal').value='';filtrarTablaColaboradores()">Limpiar filtros</button></div>
+                    <div><label for="col-filtro-sucursal" class="mb-1 block text-xs font-bold text-slate-600">Sucursal</label><select id="col-filtro-sucursal" class="form-field" onchange="filtrarTablaColaboradores()"><option value="">Todas las sucursales</option></select></div>
+                    <div><label for="col-filtro-estado" class="mb-1 block text-xs font-bold text-slate-600">Estado laboral</label><select id="col-filtro-estado" class="form-field" onchange="filtrarTablaColaboradores()"><option value="">Todos los estados</option><option value="activos">Activos</option><option value="inactivos">Inactivos</option></select></div>
+                    <div class="flex items-end"><button type="button" class="corp-button-dark w-full" onclick="document.getElementById('col-filtro-busqueda').value='';document.getElementById('col-filtro-sucursal').value='';document.getElementById('col-filtro-estado').value='';filtrarTablaColaboradores()">Limpiar filtros</button></div>
                 </div>
                 <div class="ui-card table-scroll">
                     <table class="w-full min-w-[850px] text-left">
@@ -1018,9 +1297,10 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
                         </tbody>
                     </table>
                 </div>
+                <div id="colab-paginacion" class="colab-pagination" aria-live="polite"><span class="colab-pagination-loading">La nómina se cargará desde Supabase en bloques de 1.000 registros.</span></div>
                 <div class="ui-card overflow-hidden">
                     <div class="flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 bg-slate-50 p-4">
-                        <div><h4 class="font-extrabold text-slate-900">Historial del colaborador</h4><p class="mt-1 text-xs text-slate-500">Registra automáticamente los cambios de los datos maestros desde la activación del historial.</p></div>
+                        <div><h4 class="font-extrabold text-slate-900">Expediente e historial del colaborador</h4><p class="mt-1 text-xs text-slate-500">Registra automáticamente los cambios de los datos maestros desde la activación del historial.</p></div>
                         <div class="flex gap-2"><input id="hist-colaborador-rut" class="form-field" placeholder="Buscar por RUT" maxlength="14"><button type="button" class="corp-button-dark" onclick="cargarHistorialColaborador()">Consultar</button></div>
                     </div>
                     <p id="hist-colaborador-estado" class="px-4 pt-3 text-xs text-slate-500" aria-live="polite">Ingresa un RUT para consultar sus cambios.</p>
@@ -1493,7 +1773,7 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
 
             <!-- COBERTURAS -->
             <section id="view-amonestaciones" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="ui-card p-5"><h3 class="section-title">Coberturas QF / AF</h3><p class="mt-1 text-xs text-slate-500">El tipo se obtiene automáticamente desde el cargo del colaborador.</p></div>
+                <div class="ui-card p-5 module-title-card module-title-coberturas"><div class="module-title-row"><span class="module-logo-mark" aria-hidden="true"><i data-lucide="calendar-check" class="h-5 w-5"></i></span><div class="min-w-0"><span class="module-overline">MÓDULO 09 · DOTACIÓN</span><h3 class="section-title">Coberturas QF / AF</h3><p class="mt-1 text-xs text-slate-500">El tipo se obtiene automáticamente desde el cargo del colaborador.</p></div></div></div>
                 <div class="ui-card overflow-hidden border border-amber-200">
                     <div class="flex flex-wrap items-start justify-between gap-3 bg-gradient-to-r from-amber-50 via-orange-50 to-rose-50 p-5">
                         <div class="flex items-start gap-3"><span class="grid h-11 w-11 place-items-center rounded-2xl bg-amber-100 text-amber-800"><i data-lucide="user-round-search" class="h-5 w-5"></i></span><div><h4 class="font-extrabold text-slate-900">Alerta de necesidad de personal</h4><p class="mt-1 max-w-3xl text-xs leading-5 text-slate-600">Solicita una persona para una sucursal por fechas, cantidad de días, cargo y turno. El encargado de Traslados podrá revisar y aceptar o rechazar la solicitud.</p></div></div>
@@ -1553,19 +1833,22 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
 
             <!-- USUARIOS -->
             <section id="view-usuarios" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="ui-card p-5"><h3 class="section-title">Usuarios y permisos</h3><p class="mt-1 text-xs text-slate-500">Crea el acceso, envía una invitación para que cada persona defina su propia clave y administra permisos, supervisores y sucursales.</p></div>
+                <div class="users-hero"><div class="users-hero-copy"><span class="users-hero-kicker"><i data-lucide="shield-check"></i> GOBIERNO DE ACCESOS · RR. HH.</span><h3>Usuarios, roles y alcance</h3><p>Administra quién entra, qué módulos puede consultar, en qué sucursales opera y qué capacidades tiene habilitadas cada perfil.</p><div class="users-hero-tags"><span><i data-lucide="layers-3"></i> Recursos por módulo</span><span><i data-lucide="map-pin"></i> Alcance por sucursal</span><span><i data-lucide="eye"></i> Perfil visualizador</span></div></div><div class="users-hero-art" aria-hidden="true"><div class="users-art-ring"></div><div class="users-art-core"><i data-lucide="shield-check"></i></div><span class="users-art-dot"></span></div></div>
                 <div class="ui-card grid grid-cols-1 gap-4 p-5 sm:grid-cols-3">
                     <div><label class="text-xs font-semibold">Correo</label><input id="usr-email" type="email" class="form-field" placeholder="usuario@empresa.cl"></div>
                     <div><label class="text-xs font-semibold">Nombre</label><input id="usr-nombre" class="form-field" placeholder="Nombre visible"></div>
-                    <div><label class="text-xs font-semibold">Rol</label><select id="usr-rol" class="form-field"><option value="ADMIN">Administrador</option><option value="RRHH">RRHH</option><option value="CARGA">Carga de datos</option><option value="CONSULTA">Solo consulta</option></select></div>
+                    <div><label class="text-xs font-semibold">Rol</label><select id="usr-rol" class="form-field"><option value="ADMIN">Administrador</option><option value="RRHH">Gestión de RR. HH.</option><option value="CARGA">Carga de datos</option><option value="CONSULTA">Visualizador · solo lectura</option></select><p id="usr-rol-description" class="mt-2 text-[10px] leading-5 text-slate-500">Visualizador: consulta de los módulos asignados; las operaciones sensibles están sujetas a las políticas y permisos del sistema.</p></div>
                     <div><label class="text-xs font-semibold">Clave temporal o nueva</label><div class="relative"><input id="usr-clave" type="password" minlength="8" class="form-field pr-10" placeholder="Mínimo 8 caracteres"><button type="button" onclick="alternarClaveUsuario()" class="absolute right-3 top-3 text-slate-500"><i data-lucide="eye" class="h-4 w-4"></i></button></div></div>
                     <div><label class="text-xs font-semibold">Repetir clave</label><input id="usr-clave-repetir" type="password" minlength="8" class="form-field" placeholder="Repite la clave"></div>
-                    <div class="sm:col-span-3 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6" id="usr-permisos"></div>
+                    <div class="sm:col-span-3 space-y-3"><div class="flex flex-wrap items-end justify-between gap-2"><div><b class="block text-sm text-slate-800">Recursos y módulos autorizados</b><p class="mt-1 text-xs text-slate-500">Marca exactamente qué secciones podrá abrir este perfil. Los privilegios operativos se configuran por separado.</p></div><span class="usr-permission-help">Módulos agrupados por función</span></div><div id="usr-permisos" class="usr-permission-groups"></div></div>
                     <div class="sm:col-span-3 grid grid-cols-1 gap-4 lg:grid-cols-2"><div><label class="text-xs font-semibold">Supervisores asignados</label><select id="usr-supervisores" multiple class="form-field h-40"></select></div><div><label class="text-xs font-semibold">Sucursales autorizadas</label><select id="usr-sucursales" multiple class="form-field h-40"></select></div></div>
                     <div class="sm:col-span-3 grid grid-cols-2 gap-2 md:grid-cols-4"><label class="rounded-lg border p-3 text-xs"><input id="usr-puede-asignar" type="checkbox"> Asignar tareas</label><label class="rounded-lg border p-3 text-xs"><input id="usr-puede-revisar" type="checkbox"> Revisar tareas</label><label class="rounded-lg border p-3 text-xs"><input id="usr-puede-correos" type="checkbox"> Preparar correos</label><label class="rounded-lg border p-3 text-xs"><input id="usr-acceso-global" type="checkbox"> Acceso global</label></div>
                     <div class="sm:col-span-3 flex flex-wrap gap-2"><button onclick="crearUsuarioConClave()" class="corp-button">Crear usuario con clave</button><button onclick="cambiarClaveUsuario()" class="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-bold text-white">Cambiar clave</button><button onclick="crearInvitarUsuario()" class="corp-button-dark">Crear y enviar invitación</button><button onclick="guardarUsuarioRol()" class="rounded-lg border px-5 py-2.5 text-sm font-bold">Guardar permisos</button><button onclick="enviarRecuperacionUsuario()" class="rounded-lg border border-cyan-700 px-5 py-2.5 text-sm font-bold text-cyan-800">Enviar recuperación</button></div><div class="sm:col-span-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">La clave manual se envía directamente a Supabase Auth y no se almacena en la base de datos ni en el navegador. Comunícala por un canal seguro y solicita cambiarla al primer ingreso.</div>
                 </div>
-                <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4 text-xs font-bold uppercase">Matriz de usuarios</div><div class="table-scroll"><table class="w-full min-w-[1000px] text-left"><thead class="text-[11px] uppercase text-slate-500"><tr><th class="p-3">Correo</th><th class="p-3">Nombre</th><th class="p-3">Rol</th><th class="p-3">Permisos</th><th class="p-3">Estado</th><th class="p-3">Acción</th></tr></thead><tbody id="tabla-usuarios-body" class="divide-y text-xs"><tr><td colspan="6" class="p-8 text-center text-slate-400">Sin usuarios configurados.</td></tr></tbody></table></div></div>
+                <div id="usr-admin-status" class="usr-admin-banner hidden"><span class="usr-admin-crown"><i data-lucide="shield-check"></i></span><div><span class="usr-admin-eyebrow">CENTRO DE CONTROL</span><b>Administrador principal · acceso global</b><p>Tu perfil principal tiene control de la configuración de usuarios, recursos, roles, capacidades y alcance por sucursal. Revisa cada ficha antes de guardar cambios.</p></div><span class="usr-admin-pill">CONTROL PRINCIPAL</span></div>
+                <div class="usr-role-summary-grid" id="usr-role-summary" aria-live="polite"><div class="usr-role-summary-card"><small>Perfiles registrados</small><strong>—</strong></div><div class="usr-role-summary-card"><small>Activos</small><strong>—</strong></div><div class="usr-role-summary-card"><small>Visualizadores</small><strong>—</strong></div><div class="usr-role-summary-card"><small>Acceso global</small><strong>—</strong></div></div>
+                <div class="ui-card usr-matrix-tools"><div class="usr-matrix-heading"><div><span class="module-kicker">MATRIZ DE PERFILES</span><h3>Roles, recursos y alcance efectivo</h3><p>Revisa los módulos, sucursales, supervisores y capacidades habilitadas por usuario.</p></div><button type="button" class="corp-button-dark" onclick="cargarUsuariosRoles()"><i data-lucide="refresh-cw" class="mr-2 inline h-4 w-4"></i>Actualizar</button></div><div class="usr-matrix-filters"><div><label for="usr-matrix-search">Buscar usuario o recurso</label><input id="usr-matrix-search" class="form-field" type="search" placeholder="Correo, nombre, sucursal, módulo…" oninput="renderizarMatrizUsuarios()"></div><div><label for="usr-matrix-role">Rol efectivo</label><select id="usr-matrix-role" class="form-field" onchange="renderizarMatrizUsuarios()"><option value="">Todos los roles</option><option value="ADMIN">Administrador</option><option value="RRHH">Gestión RR. HH.</option><option value="CARGA">Carga de datos</option><option value="CONSULTA">Visualizador</option><option value="GLOBAL">Acceso global</option></select></div><div><label for="usr-matrix-status">Estado del perfil</label><select id="usr-matrix-status" class="form-field" onchange="renderizarMatrizUsuarios()"><option value="">Todos los estados</option><option value="ACTIVO">Activos</option><option value="INACTIVO">Inactivos</option></select></div></div></div>
+                <div class="ui-card overflow-hidden"><div class="usr-table-caption"><div><b>Perfiles y alcance efectivo</b><small>Usa “Ver recursos” para inspeccionar todos los módulos y privilegios del perfil.</small></div><span id="usr-matrix-count" class="space-count-chip">0 perfiles</span></div><div class="table-scroll"><table class="w-full min-w-[1350px] text-left usr-access-matrix"><thead class="text-[10px] uppercase text-slate-500"><tr><th class="p-3">Usuario</th><th class="p-3">Rol efectivo</th><th class="p-3">Alcance</th><th class="p-3">Recursos y capacidades</th><th class="p-3">Estado</th><th class="p-3">Administrar</th></tr></thead><tbody id="tabla-usuarios-body" class="divide-y text-xs"><tr><td colspan="6" class="p-8 text-center text-slate-400">Cargando perfiles desde la nube…</td></tr></tbody></table></div></div>
             </section>
 
             <!-- AUDITORÍA -->
@@ -1578,7 +1861,7 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
             <!-- CONFIGURACIÓN DE CORREOS -->
             <section id="view-configcorreos" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro">
-                    <div class="flex flex-wrap items-start justify-between gap-3"><div><span class="module-kicker">Punto 13 · Configuración</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Destinatarios y firma por sucursal</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Cada sucursal tiene su ficha. Busca una sucursal, revisa el correo principal y las copias, ajusta los horarios y guarda los cambios visibles.</p></div><div class="flex flex-wrap gap-2"><button onclick="descargarPlantillaCorreosSucursales()" class="corp-button-dark text-xs">Descargar Excel</button><label class="corp-button cursor-pointer text-xs">Importar Excel<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarCorreosSucursales(event)"></label><span data-update-stamp="config_correos" class="self-center text-[11px] text-slate-500">Consultando última carga…</span></div></div>
+                    <div class="flex flex-wrap items-start justify-between gap-3"><div class="module-title-with-logo"><span class="module-logo-mark" aria-hidden="true"><i data-lucide="mail-check" class="h-5 w-5"></i></span><div class="min-w-0"><span class="module-kicker">Punto 13 · Configuración de correos</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Destinatarios y firma por sucursal</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Cada sucursal tiene su ficha. Busca una sucursal, revisa el correo principal y las copias, ajusta los horarios y guarda los cambios visibles.</p></div></div><div class="flex flex-wrap gap-2"><button onclick="descargarPlantillaCorreosSucursales()" class="corp-button-dark text-xs">Descargar Excel</button><label class="corp-button cursor-pointer text-xs">Importar Excel<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarCorreosSucursales(event)"></label><span data-update-stamp="config_correos" class="self-center text-[11px] text-slate-500">Consultando última carga…</span></div></div>
                 </div>
                 <div class="ui-card p-4"><div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]"><div><label class="text-xs font-bold text-slate-600">Buscar</label><input id="config-correo-buscar" oninput="renderizarConfigCorreos()" class="form-field mt-1" placeholder="Escribe el nombre de sucursal o supervisor"></div><button onclick="guardarConfigCorreosVisibles()" class="corp-button self-end"><i data-lucide="save" class="mr-2 inline h-4 w-4"></i>Guardar cambios visibles</button></div><div id="config-correo-resumen" class="mt-3 text-xs text-slate-500">Preparando configuración…</div></div>
                 <div id="tabla-config-correos" class="grid grid-cols-1 gap-4 xl:grid-cols-2"></div>
@@ -1586,9 +1869,10 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
 
             <!-- MAPA Y DISTANCIAS -->
             <section id="view-mapas" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="module-intro"><span class="module-kicker">Punto 14 · Traslados</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Mapa, rutas y distancias</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Selecciona las sucursales de origen y destino. Se priorizan las coordenadas guardadas; si faltan, se usa la dirección registrada. Google Maps calcula la ruta según el medio de transporte.</p><div class="mt-4 grid gap-3 sm:grid-cols-3"><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 1</span><b class="mt-1 block text-sm">Origen</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 2</span><b class="mt-1 block text-sm">Destino y transporte</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 3</span><b class="mt-1 block text-sm">Ver ruta y distancia</b></div></div></div>
+                <div class="module-intro"><span class="module-kicker">RUTAS Y DISTANCIAS</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Mapa, rutas y distancias</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">En modo auto se traza el recorrido por calles y avenidas desde las coordenadas registradas, mostrando únicamente las farmacias seleccionadas. Para caminata y transporte público se abre el modo correspondiente en Google Maps.</p><div class="mt-4 grid gap-3 sm:grid-cols-3"><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 1</span><b class="mt-1 block text-sm">Origen</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 2</span><b class="mt-1 block text-sm">Destino y transporte</b></div><div class="rounded-xl bg-white p-3"><span class="text-xs text-slate-500">Paso 3</span><b class="mt-1 block text-sm">Ver ruta y distancia</b></div></div></div>
                 <div class="ui-card grid grid-cols-1 gap-4 p-5 lg:grid-cols-4"><div><label class="text-xs font-bold text-slate-600" for="map14-buscar-origen">1. Buscar sucursal de origen</label><input id="map14-buscar-origen" type="search" class="form-field mt-1" placeholder="Escribe nombre o comuna…" autocomplete="off"><select id="map14-origen" class="form-field mt-2"><option value="">Selecciona el origen</option></select><p class="mt-1 text-[11px] text-slate-500">Escribe para filtrar las sucursales.</p></div><div><label class="text-xs font-bold text-slate-600" for="map14-buscar-destino">2. Buscar sucursal de destino</label><input id="map14-buscar-destino" type="search" class="form-field mt-1" placeholder="Escribe nombre o comuna…" autocomplete="off"><select id="map14-destino" class="form-field mt-2"><option value="">Selecciona el destino</option></select><p class="mt-1 text-[11px] text-slate-500">Elige una sucursal distinta del origen.</p></div><div><label class="text-xs font-bold text-slate-600">Medio de transporte</label><select id="map14-modo" class="form-field mt-1"><option value="d">🚗 Auto</option><option value="r">🚌 Transporte público</option><option value="w">🚶 Caminando</option></select></div><div class="flex flex-wrap items-end gap-2"><button onclick="mostrarRutaMapa14()" class="corp-button min-h-11 flex-1"><i data-lucide="route" class="mr-2 inline h-4 w-4"></i>Ver ruta</button><button onclick="buscarCoordenadasPorDireccion()" class="corp-button-dark min-h-11" title="Buscar coordenadas faltantes"><i data-lucide="map-pin" class="inline h-4 w-4"></i></button></div></div>
-                <div class="ui-card overflow-hidden p-3 sm:p-4"><div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ruta seleccionada</p><div id="mapa14-resumen" class="mt-1 text-sm font-bold text-slate-800">Selecciona origen, destino y medio de transporte.</div><p class="mt-1 text-xs text-slate-500">Estimaciones orientativas calculadas desde el GPS; el recorrido real y el tiempo pueden variar. Google Maps muestra la ruta para navegación.</p></div><a id="mapa14-externo" target="_blank" rel="noopener noreferrer" class="corp-button-dark hidden">Abrir Google Maps <i data-lucide="external-link" class="ml-1 inline h-4 w-4"></i></a></div><div class="map-canvas-shell"><div class="map-canvas-heading"><div><strong>Mapa de sucursales</strong><span id="mapa14-status">Mostrando todas las sucursales disponibles. Selecciona origen y destino para calcular una ruta.</span></div><span class="map-live-pill"><i data-lucide="map" class="inline h-3 w-3"></i> Mapa interactivo</span></div><div id="mapa14-frame" role="application" aria-label="Mapa interactivo de ruta entre sucursales" class="map-frame"></div><div class="map-canvas-footer"><span>Si Google Maps no permite incrustar la ruta en esta ventana, utiliza el botón de apertura directa.</span><a id="mapa14-fallback-link" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Abrir mapa en otra pestaña ↗</a></div></div></div>
+                <div class="map-route-tools"><div class="map-route-explanation"><span class="map-route-step">TRAZADO SELECTIVO</span><b>Solo se verán las sucursales del origen y destino mientras consultas la ruta.</b><small>Usa “Mostrar todas las farmacias” para limpiar la selección y recuperar todos los marcadores.</small></div><button id="mapa14-mostrar-todas" type="button" onclick="restaurarMapa14()" class="corp-button-dark"><i data-lucide="layers" class="mr-2 inline h-4 w-4"></i>Mostrar todas las farmacias</button></div>
+<div class="ui-card overflow-hidden p-3 sm:p-4"><div class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ruta seleccionada</p><div id="mapa14-resumen" class="mt-1 text-sm font-bold text-slate-800">Selecciona origen, destino y medio de transporte.</div><p class="mt-1 text-xs text-slate-500">Estimaciones orientativas calculadas desde el GPS; el recorrido real y el tiempo pueden variar. Google Maps muestra la ruta para navegación.</p></div><a id="mapa14-externo" target="_blank" rel="noopener noreferrer" class="corp-button-dark hidden">Abrir Google Maps <i data-lucide="external-link" class="ml-1 inline h-4 w-4"></i></a></div><div class="map-canvas-shell"><div class="map-canvas-heading"><div><strong>Mapa de sucursales</strong><span id="mapa14-status">Mostrando todas las sucursales disponibles. Selecciona origen y destino para calcular una ruta.</span></div><span class="map-live-pill"><i data-lucide="map" class="inline h-3 w-3"></i> Mapa interactivo</span></div><div id="mapa14-frame" role="application" aria-label="Mapa interactivo de ruta entre sucursales" class="map-frame"></div><div id="mapa14-estadisticas" class="map-route-stats hidden" aria-live="polite"><div><small>Distancia vial</small><strong id="mapa14-distancia">—</strong></div><div><small>Tiempo estimado</small><strong id="mapa14-tiempo">—</strong></div><div><small>Farmacias visibles</small><strong id="mapa14-puntos">2</strong></div></div><div id="mapa14-pasos" class="map-route-steps hidden"></div><div class="map-canvas-footer"><span>Si Google Maps no permite incrustar la ruta en esta ventana, utiliza el botón de apertura directa.</span><a id="mapa14-fallback-link" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Abrir mapa en otra pestaña ↗</a></div></div></div>
             </section>
 
             <!-- TAREAS DIARIAS -->
@@ -1700,6 +1984,7 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
                 </div>
                 <div id="talana-bot-panel" class="ui-card hidden overflow-hidden">
                     <div class="border-b border-slate-100 p-5"><h4 class="text-lg font-black">Bot de reportes Talana</h4><p class="mt-1 text-sm text-slate-500">Ejecución en nube con GitHub Actions. Los reportes se guardan en Supabase Storage privado; no requiere dejar tu PC encendido.</p><p id="talana-bot-status" class="mt-3 text-sm text-slate-600">Consultando estado…</p><p data-update-stamp="talana_bot" class="mt-2 text-xs text-slate-500">Consultando última carga…</p></div>
+                    <div id="talana-bot-health" class="grid grid-cols-1 gap-3 border-b border-slate-100 p-5 sm:grid-cols-2 xl:grid-cols-4"><div class="ops-summary-loading"><span class="space-loader-ring"></span><span>Calculando salud del bot…</span></div></div>
                     <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-3">
                       <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-3"><input id="talana-bot-enabled" type="checkbox" class="h-4 w-4"><span><strong class="block text-sm">Automatización habilitada</strong><span class="text-xs text-slate-500">Solo se ejecuta en el horario laboral configurado.</span></span></label>
                       <label class="text-sm font-semibold">Frecuencia<select id="talana-bot-interval" class="mt-2 w-full rounded-lg border border-slate-300 p-2"><option value="60">Cada hora (08:00–17:00)</option></select><span class="mt-1 block text-xs font-normal text-slate-500">Lunes a viernes, excepto feriados de Chile. Se ejecuta una vez por hora para respetar el plan gratuito.</span></label>
@@ -1767,6 +2052,14 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
                 </div>
                 <div class="ui-card overflow-hidden border border-indigo-100">
                     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 via-sky-50 to-cyan-50 p-4"><div><h4 class="font-extrabold text-slate-900"><i data-lucide="bell-ring" class="mr-2 inline h-4 w-4 text-indigo-700"></i>Alertas de necesidad de personal</h4><p class="mt-1 text-xs text-slate-600">Revisa las sucursales que solicitan apoyo por fecha, días, cargo y turno.</p></div><button type="button" class="corp-button-dark text-xs" onclick="cargarSolicitudesDotacion()">Actualizar alertas</button></div>
+                    <div class="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_minmax(145px,.7fr)_minmax(130px,.55fr)_minmax(130px,.55fr)_auto]">
+                        <input id="dotacion-filtro-buscar" type="search" class="form-field" placeholder="Buscar sucursal, cargo, turno o motivo…" aria-label="Buscar solicitudes de dotación" oninput="filtrarSolicitudesDotacion()">
+                        <select id="dotacion-filtro-estado" class="form-field" aria-label="Filtrar solicitudes por estado" onchange="filtrarSolicitudesDotacion()"><option value="TODOS">Todos los estados</option><option value="PENDIENTE">Pendientes</option><option value="APROBADA">Aprobadas</option><option value="CUBIERTA">Cubiertas</option><option value="RECHAZADA">Rechazadas</option><option value="CANCELADA">Canceladas</option></select>
+                        <input id="dotacion-filtro-desde" type="date" class="form-field" aria-label="Fecha de inicio desde" title="Inicio desde" onchange="filtrarSolicitudesDotacion()">
+                        <input id="dotacion-filtro-hasta" type="date" class="form-field" aria-label="Fecha de inicio hasta" title="Inicio hasta" onchange="filtrarSolicitudesDotacion()">
+                        <button type="button" class="corp-button-dark text-xs" onclick="limpiarFiltrosSolicitudesDotacion()">Limpiar</button>
+                    </div>
+                    <p id="dotacion-filter-summary" class="mb-2 text-xs text-slate-500" aria-live="polite">Consultando conteos…</p>
                     <div class="table-scroll"><table class="w-full min-w-[1050px] text-left"><thead class="bg-white text-[11px] uppercase text-slate-500"><tr><th class="p-3">Sucursal / cargo</th><th class="p-3">Período</th><th class="p-3">Turno</th><th class="p-3">Cantidad</th><th class="p-3">Motivo</th><th class="p-3">Estado</th><th class="p-3">Acciones</th></tr></thead><tbody id="dotacion-alertas-lista" class="divide-y divide-slate-100 text-xs"><tr><td colspan="7" class="p-6 text-center text-slate-500">Cargando alertas…</td></tr></tbody></table></div>
                 </div>
                 <div class="ui-card overflow-hidden">
@@ -1853,6 +2146,9 @@ body.theme-dark input:not([type=checkbox]):not([type=radio]),body.theme-dark sel
 <script src="/js/chat-transfers.js"></script>
 <script src="/js/employee-history.js"></script>
 <script src="/js/talana-bot.js"></script>
+<script src="/js/workspace.js"></script>
+<script src="/js/module-organization.js"></script>
+<script src="/js/operational-summary.js"></script>
 
     <!--
     SQL QUE YA DEBE EXISTIR EN SUPABASE:
@@ -2065,6 +2361,479 @@ body.search-open{overflow:hidden}
 @keyframes searchPanelIn{from{opacity:0;transform:translateY(-8px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(prefers-reduced-motion:reduce){.global-search-panel{animation:none}}
 @media(max-width:700px){.global-search-overlay{padding:7vh 10px 15px}.global-search-panel{border-radius:16px}.topbar-search{padding:8px}}
+
+/* Identidad visual por módulo: misma navegación, acento propio para cada área */
+#view-dashboard{--module-accent:var(--user-accent,#087fa3)}
+#view-colaboradores{--module-accent:var(--user-accent,#087fa3)}
+#view-sucursales{--module-accent:var(--user-accent,#087fa3)}
+#view-asistencia{--module-accent:var(--user-accent,#087fa3)}
+#view-licencias{--module-accent:var(--user-accent,#087fa3)}
+#view-vacaciones{--module-accent:var(--user-accent,#087fa3)}
+#view-papeletas{--module-accent:var(--user-accent,#087fa3)}
+#view-correos{--module-accent:var(--user-accent,#087fa3)}
+#view-amonestaciones{--module-accent:var(--user-accent,#087fa3)}
+#view-reportes{--module-accent:var(--user-accent,#087fa3)}
+#view-usuarios{--module-accent:var(--user-accent,#087fa3)}
+#view-auditoria{--module-accent:var(--user-accent,#087fa3)}
+#view-configcorreos{--module-accent:var(--user-accent,#087fa3)}
+#view-mapas{--module-accent:var(--user-accent,#087fa3)}
+#view-tareas{--module-accent:var(--user-accent,#087fa3)}
+#view-operaciones{--module-accent:var(--user-accent,#087fa3)}
+#view-calidad{--module-accent:var(--user-accent,#087fa3)}
+#view-notificaciones{--module-accent:var(--user-accent,#087fa3)}
+#view-integraciones{--module-accent:var(--user-accent,#087fa3)}
+#view-chat{--module-accent:var(--user-accent,#087fa3)}
+#view-traslados{--module-accent:var(--user-accent,#087fa3)}
+#view-generic{--module-accent:var(--user-accent,#087fa3)}
+
+[id^="view-"] .module-intro{
+  position:relative;isolation:isolate;overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--module-accent,#087fa3) 22%,#e2e8f0);
+  border-left:4px solid var(--module-accent,#087fa3);
+  background:linear-gradient(112deg,color-mix(in srgb,var(--module-accent,#087fa3) 8%,#fff) 0%,#fff 68%);
+  box-shadow:0 8px 22px rgba(15,41,64,.045);
+}
+[id^="view-"] .module-intro:after{
+  content:"";position:absolute;z-index:-1;right:-48px;top:-72px;width:190px;height:190px;
+  border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--module-accent,#087fa3) 17%,transparent),transparent 72%);
+}
+[id^="view-"] .module-kicker{
+  color:var(--module-accent,#087fa3);
+  background:color-mix(in srgb,var(--module-accent,#087fa3) 10%,#fff);
+  border:1px solid color-mix(in srgb,var(--module-accent,#087fa3) 22%,#fff);
+}
+[id^="view-"]>.ui-card:first-child{
+  border-top:3px solid color-mix(in srgb,var(--module-accent,#087fa3) 80%,#fff)!important;
+}
+[id^="view-"]>.ui-card:first-child .section-title,
+[id^="view-"]>.ui-card:first-child>h3{
+  text-decoration-color:color-mix(in srgb,var(--module-accent,#087fa3) 30%,transparent);
+  text-underline-offset:5px;
+}
+[id^="view-"] .module-intro h3{position:relative;z-index:1;letter-spacing:-.025em}
+[id^="view-"] .module-intro p{position:relative;z-index:1}
+#view-dashboard .dashboard-welcome{border-bottom:4px solid #18b7c6}
+#view-asistencia .badge-alerta,#view-licencias .badge-alerta{border-color:color-mix(in srgb,var(--module-accent) 28%,white)}
+#view-tareas .module-intro,#view-operaciones .module-intro,#view-calidad .module-intro,
+#view-notificaciones .module-intro,#view-integraciones .module-intro,#view-chat .module-intro,
+#view-traslados .module-intro{border-radius:18px;padding:24px}
+@media(max-width:640px){
+  [id^="view-"] .module-intro{border-left-width:3px}
+  #view-tareas .module-intro,#view-operaciones .module-intro,#view-calidad .module-intro,
+  #view-notificaciones .module-intro,#view-integraciones .module-intro,#view-chat .module-intro,
+  #view-traslados .module-intro{padding:18px}
+}
+
+/* Menú lateral premium: misma anchura y orden, estados claros y color propio por módulo */
+#sidebar{
+  background:linear-gradient(180deg,#123f79 0%,#0a4c91 58%,#073766 100%)!important;
+  border-right:1px solid rgba(191,219,254,.2);
+}
+#sidebar>div:first-child{
+  flex-shrink:0;background:linear-gradient(120deg,rgba(255,255,255,.045),transparent);
+  border-bottom-color:rgba(219,234,254,.18)!important;
+}
+#sidebar .menu-btn{
+  box-sizing:border-box;min-height:42px;border:1px solid transparent!important;
+  border-radius:12px!important;margin-block:2px;padding:8px 10px!important;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease,box-shadow .18s ease;
+  font-weight:750;line-height:1.25;
+}
+#sidebar .menu-btn>svg{
+  flex:0 0 24px;width:24px!important;height:24px!important;padding:4px;
+  border-radius:8px;color:var(--nav-accent,#bfdbfe)!important;
+  background:color-mix(in srgb,var(--nav-accent,#bfdbfe) 13%,#0c427d);
+  border:1px solid color-mix(in srgb,var(--nav-accent,#bfdbfe) 19%,transparent);
+  transition:background .18s ease,color .18s ease;
+}
+#sidebar .menu-btn:hover:not(.active){
+  background:rgba(255,255,255,.085)!important;border-color:rgba(219,234,254,.15)!important;
+  transform:translateX(2px);
+}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{
+  background:linear-gradient(110deg,var(--nav-accent,#069fb4),color-mix(in srgb,var(--nav-accent,#069fb4) 74%,#07529c))!important;
+  border-color:color-mix(in srgb,var(--nav-accent,#069fb4) 68%,white)!important;
+  box-shadow:0 7px 18px color-mix(in srgb,var(--nav-accent,#069fb4) 23%,transparent),inset 0 1px rgba(255,255,255,.18);
+  color:#fff!important;
+}
+#sidebar .menu-btn.active>svg,#sidebar .menu-btn[aria-current="page"]>svg{
+  background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.26);color:#fff!important;
+}
+#sidebar #btn-dashboard{--nav-accent:#06b6d4}
+#sidebar #btn-colaboradores{--nav-accent:#60a5fa}
+#sidebar #btn-sucursales{--nav-accent:#2dd4bf}
+#sidebar #btn-asistencia{--nav-accent:#fbbf24}
+#sidebar #btn-licencias{--nav-accent:#fb7185}
+#sidebar #btn-vacaciones{--nav-accent:#4ade80}
+#sidebar #btn-papeletas{--nav-accent:#c4b5fd}
+#sidebar #btn-correos{--nav-accent:#38bdf8}
+#sidebar #btn-amonestaciones{--nav-accent:#fb923c}
+#sidebar #btn-reportes{--nav-accent:#a5b4fc}
+#sidebar #btn-usuarios{--nav-accent:#cbd5e1}
+#sidebar #btn-auditoria{--nav-accent:#94a3b8}
+#sidebar #btn-configcorreos{--nav-accent:#5eead4}
+#sidebar #btn-mapas{--nav-accent:#6ee7b7}
+#sidebar #btn-tareas{--nav-accent:#f0abfc}
+#sidebar #btn-operaciones{--nav-accent:#7dd3fc}
+#sidebar #btn-calidad{--nav-accent:#c4b5fd}
+#sidebar #btn-notificaciones{--nav-accent:#f9a8d4}
+#sidebar #btn-integraciones{--nav-accent:#a5b4fc}
+#sidebar #btn-chat{--nav-accent:#5eead4}
+#sidebar #btn-traslados{--nav-accent:#fdba74}
+#sidebar .nova-nav-divider{
+  color:#bfdbfe;border-top-color:rgba(219,234,254,.2);margin-top:12px;
+}
+#sidebar nav{scrollbar-width:thin;scrollbar-color:rgba(191,219,254,.4) transparent;overscroll-behavior:contain}
+#sidebar nav::-webkit-scrollbar{width:6px}
+#sidebar nav::-webkit-scrollbar-thumb{background:rgba(191,219,254,.4);border-radius:99px}
+body.sidebar-compact #sidebar .menu-btn>svg{width:22px!important;height:22px!important;flex-basis:22px;padding:3px}
+@media(prefers-reduced-motion:reduce){#sidebar .menu-btn,#sidebar .menu-btn>svg{transition:none!important}}
+@media(max-width:900px){#sidebar .menu-btn:hover:not(.active){transform:none}}
+
+/* Firma institucional fija en el pie del menú: visible y sin tapar datos de los módulos */
+.sidebar-credit{
+  display:flex;align-items:center;gap:10px;flex:0 0 auto;min-width:0;
+  margin:8px 12px 12px;padding:11px 10px;border:1px solid rgba(191,219,254,.23);
+  border-radius:13px;background:linear-gradient(115deg,rgba(255,255,255,.1),rgba(255,255,255,.045));
+  box-shadow:inset 0 1px rgba(255,255,255,.08);
+}
+.sidebar-credit-icon{
+  display:grid;place-items:center;flex:0 0 31px;width:31px;height:31px;border-radius:10px;
+  color:#dff9ff;background:linear-gradient(135deg,#0ea5b7,#0872ba);
+  border:1px solid rgba(255,255,255,.25);
+}
+.sidebar-credit-copy{display:flex;flex-direction:column;gap:3px;min-width:0;color:#dbeafe;line-height:1.2}
+.sidebar-credit-copy>span{font-size:8px;font-weight:900;letter-spacing:.13em;color:#a9d5ed}
+.sidebar-credit-copy>strong{font-size:11px;letter-spacing:.01em;color:#fff;font-weight:850;white-space:normal}
+body.sidebar-compact .sidebar-credit{justify-content:center;margin:8px 7px 10px;padding:8px 4px}
+body.sidebar-compact .sidebar-credit-copy{display:none}
+@media(max-width:900px){
+  .sidebar-credit{margin-bottom:10px}
+}
+
+
+/* Contraste coherente de las cabeceras de módulo al usar modo oscuro */
+body.theme-dark [id^="view-"] .module-intro{
+  color:#e5eefb!important;
+  background:linear-gradient(112deg,
+    color-mix(in srgb,var(--module-accent,#087fa3) 18%,#142238) 0%,
+    #142238 72%)!important;
+  border-color:color-mix(in srgb,var(--module-accent,#087fa3) 35%,#293b55)!important;
+}
+body.theme-dark [id^="view-"] .module-intro .text-slate-600,
+body.theme-dark [id^="view-"] .module-intro .text-slate-500{
+  color:#a6b6cd!important;
+}
+body.theme-dark [id^="view-"] .module-kicker{
+  color:color-mix(in srgb,var(--module-accent,#087fa3) 55%,#fff)!important;
+  background:color-mix(in srgb,var(--module-accent,#087fa3) 17%,#142238)!important;
+  border-color:color-mix(in srgb,var(--module-accent,#087fa3) 37%,#293b55)!important;
+}
+body.theme-dark [id^="view-"] .module-intro:after{
+  opacity:.55;
+}
+
+/* SISTEMA VISUAL NOVA RR. HH. · identidad unificada y adaptable a las preferencias del usuario */
+#sidebar{
+  background:linear-gradient(180deg,var(--user-sidebar-start,#073a79),var(--user-sidebar-end,#063b7a))!important;
+  color:var(--user-sidebar-foreground,#fff)!important;
+  border-right:1px solid color-mix(in srgb,var(--user-sidebar-foreground,#fff) 15%,transparent)!important;
+}
+#sidebar>div:first-child h1,#sidebar>div:first-child p,
+#sidebar .sidebar-credit-copy,#sidebar .sidebar-credit-copy>span,
+#sidebar .sidebar-credit-copy>strong{color:var(--user-sidebar-foreground,#fff)!important}
+#sidebar .menu-btn{
+  color:var(--user-sidebar-foreground,#fff)!important;
+  border-color:transparent!important;
+}
+#sidebar .menu-btn>svg{
+  color:var(--user-sidebar-foreground,#fff)!important;
+  background:color-mix(in srgb,var(--user-sidebar-foreground,#fff) 10%,transparent)!important;
+  border:1px solid color-mix(in srgb,var(--user-sidebar-foreground,#fff) 18%,transparent)!important;
+}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{
+  color:var(--user-accent-contrast,#fff)!important;
+  background:linear-gradient(110deg,var(--user-accent,#087fa3),var(--user-accent-strong,#06627e))!important;
+  border-color:color-mix(in srgb,var(--user-accent,#087fa3) 60%,white)!important;
+  box-shadow:0 8px 22px color-mix(in srgb,var(--user-accent,#087fa3) 24%,transparent),inset 0 1px rgba(255,255,255,.18)!important;
+}
+#sidebar .menu-btn.active>svg,#sidebar .menu-btn[aria-current="page"]>svg{
+  color:var(--user-accent-contrast,#fff)!important;
+  background:color-mix(in srgb,var(--user-accent-contrast,#fff) 12%,transparent)!important;
+  border-color:color-mix(in srgb,var(--user-accent-contrast,#fff) 20%,transparent)!important;
+}
+/* Logos propios de 9 · Coberturas y 13 · Correos sucursales; monocromáticos. */
+#sidebar #btn-amonestaciones>svg,#sidebar #btn-configcorreos>svg{
+  color:var(--user-sidebar-foreground,#fff)!important;
+  background:color-mix(in srgb,var(--user-sidebar-foreground,#fff) 10%,transparent)!important;
+  border-color:color-mix(in srgb,var(--user-sidebar-foreground,#fff) 20%,transparent)!important;
+  box-shadow:none!important;
+}
+#sidebar #btn-amonestaciones.active>svg,#sidebar #btn-configcorreos.active>svg,
+#sidebar #btn-amonestaciones[aria-current="page"]>svg,#sidebar #btn-configcorreos[aria-current="page"]>svg{
+  color:var(--user-accent-contrast,#fff)!important;
+}
+#sidebar .menu-btn:hover:not(.active){
+  background:color-mix(in srgb,var(--user-sidebar-foreground,#fff) 10%,transparent)!important;
+  border-color:color-mix(in srgb,var(--user-sidebar-foreground,#fff) 16%,transparent)!important;
+}
+#sidebar .sidebar-credit-icon{color:var(--user-accent-contrast,#fff)!important;background:var(--user-accent,#087fa3)!important;border-color:color-mix(in srgb,var(--user-sidebar-foreground,#fff) 25%,transparent)!important}
+
+/* El color elegido ahora controla también el login, no solo el menú interno. */
+#login-overlay.login-overlay-modern{
+  background:
+    radial-gradient(circle at 18% 15%,color-mix(in srgb,var(--user-accent,#087fa3) 34%,transparent),transparent 31%),
+    radial-gradient(circle at 78% 82%,color-mix(in srgb,var(--user-sidebar-start,#073a79) 45%,transparent),transparent 37%),
+    linear-gradient(135deg,color-mix(in srgb,var(--user-sidebar-start,#073a79) 85%,#061827),#061827 55%,color-mix(in srgb,var(--user-sidebar-end,#063b7a) 75%,#071725))!important;
+}
+.login-hero{
+  background:linear-gradient(145deg,color-mix(in srgb,var(--user-sidebar-start,#073a79) 76%,#081727),color-mix(in srgb,var(--user-sidebar-end,#063b7a) 78%,#071725))!important;
+}
+.login-glow-red{background:var(--user-accent,#087fa3)!important}
+.login-glow-blue{background:var(--user-sidebar-start,#073a79)!important}
+.login-hero h2 span,.login-proof-icon{color:var(--user-accent-bright,#65c7e0)!important}
+.login-kicker,.login-link{color:var(--user-accent-strong,#06627e)!important}
+.login-input:focus{border-color:var(--user-accent,#087fa3)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--user-accent,#087fa3) 14%,transparent)!important}
+.login-remember input{accent-color:var(--user-accent,#087fa3)!important}
+.login-submit{
+  color:var(--user-accent-contrast,#fff)!important;
+  background:linear-gradient(110deg,var(--user-accent,#087fa3),var(--user-accent-strong,#06627e))!important;
+  box-shadow:0 11px 24px color-mix(in srgb,var(--user-accent,#087fa3) 27%,transparent)!important;
+}
+.login-submit:hover{box-shadow:0 15px 30px color-mix(in srgb,var(--user-accent,#087fa3) 34%,transparent)!important}
+.login-brand-mark{background:var(--user-accent,#087fa3)!important;box-shadow:0 10px 28px color-mix(in srgb,var(--user-accent,#087fa3) 30%,transparent)!important}
+
+/* Modernización consistente de los 21 módulos sin reordenar controles ni cambiar sus funciones. */
+[id^="view-"]{--module-accent:var(--user-accent,#087fa3);min-width:0}
+[id^="view-"] .module-intro{
+  border:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 21%,var(--user-line,#dce7f5))!important;
+  border-left:4px solid var(--user-accent,#087fa3)!important;
+  border-radius:18px!important;
+  background:linear-gradient(115deg,color-mix(in srgb,var(--user-accent,#087fa3) 7%,var(--nova-panel,#fff)),var(--nova-panel,#fff) 72%)!important;
+  box-shadow:0 8px 22px rgba(15,41,64,.045)!important;
+}
+[id^="view-"] .module-kicker{
+  color:var(--user-accent-strong,#06627e)!important;
+  background:color-mix(in srgb,var(--user-accent,#087fa3) 10%,white)!important;
+  border:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 18%,white)!important;
+}
+[id^="view-"]>.ui-card:first-child:not(.module-intro){
+  position:relative;border-top:3px solid var(--user-accent,#087fa3)!important;
+  border-radius:16px!important;box-shadow:0 8px 22px rgba(15,41,64,.045)!important;
+}
+[id^="view-"] .ui-card{
+  min-width:0;border-radius:15px;
+  border-color:var(--user-line,#dce7f5);
+  box-shadow:0 2px 8px rgba(15,41,64,.035);
+  transition:box-shadow .18s ease,border-color .18s ease,transform .18s ease;
+}
+[id^="view-"] h3.section-title,[id^="view-"]>.ui-card:first-child h3{
+  letter-spacing:-.025em;text-wrap:pretty;
+}
+[id^="view-"] table{border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:12px}
+[id^="view-"] table thead th{
+  background:color-mix(in srgb,var(--user-accent,#087fa3) 8%,#f8fafc);
+  color:var(--nova-ink,#15233e);font-weight:800;
+  border-bottom:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 20%,var(--user-line,#dce7f5));
+}
+[id^="view-"] table tbody tr{transition:background-color .14s ease}
+[id^="view-"] table tbody tr:hover{background:color-mix(in srgb,var(--user-accent,#087fa3) 5%,transparent)}
+[id^="view-"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+[id^="view-"] select,[id^="view-"] textarea{
+  border-radius:11px;transition:border-color .16s ease,box-shadow .16s ease;
+}
+[id^="view-"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+[id^="view-"] select:focus,[id^="view-"] textarea:focus{
+  border-color:var(--user-accent,#087fa3)!important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--user-accent,#087fa3) 12%,transparent)!important;
+  outline:none;
+}
+[id^="view-"] button:focus-visible,[id^="view-"] a:focus-visible,#sidebar button:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--user-accent,#087fa3) 48%,transparent)!important;outline-offset:2px;
+}
+.module-title-row,.module-title-with-logo{display:flex;align-items:flex-start;gap:14px;min-width:0}
+.module-logo-mark{
+  display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;
+  border-radius:15px;color:var(--user-accent-strong,#06627e);
+  background:color-mix(in srgb,var(--user-accent,#087fa3) 10%,var(--nova-panel,#fff));
+  border:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 23%,var(--user-line,#dce7f5));
+}
+.module-overline{display:block;margin-bottom:5px;font-size:10px;font-weight:900;letter-spacing:.15em;color:var(--user-accent-strong,#06627e)}
+.module-title-coberturas .section-title{margin-top:0}
+#view-configcorreos .module-title-with-logo{gap:14px}
+#view-configcorreos .module-logo-mark{margin-top:1px}
+#view-dashboard .dashboard-welcome{
+  border:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 28%,var(--user-line,#dce7f5))!important;
+  box-shadow:0 14px 32px color-mix(in srgb,var(--user-accent,#087fa3) 8%,transparent)!important;
+}
+
+/* Contraste al activar modo oscuro */
+body.theme-dark [id^="view-"] .ui-card{
+  color:var(--nova-ink,#e5eefb);border-color:var(--nova-line,#293b55)!important;
+  box-shadow:0 8px 26px rgba(0,0,0,.12);
+}
+body.theme-dark [id^="view-"]>.ui-card:first-child:not(.module-intro),
+body.theme-dark [id^="view-"] .module-intro{
+  background:linear-gradient(115deg,color-mix(in srgb,var(--user-accent,#087fa3) 15%,var(--nova-panel,#142238)),var(--nova-panel,#142238) 76%)!important;
+}
+body.theme-dark [id^="view-"] .module-intro h3,
+body.theme-dark [id^="view-"] .module-intro .text-slate-900,
+body.theme-dark [id^="view-"] .module-intro .text-slate-600,
+body.theme-dark [id^="view-"] .module-intro .text-slate-500,
+body.theme-dark [id^="view-"]>.ui-card:first-child h3{color:var(--nova-ink,#e5eefb)!important}
+body.theme-dark [id^="view-"] .module-kicker{
+  color:var(--user-accent-bright,#9bdff0)!important;
+  background:color-mix(in srgb,var(--user-accent,#087fa3) 18%,var(--nova-panel,#142238))!important;
+  border-color:color-mix(in srgb,var(--user-accent,#087fa3) 35%,var(--nova-line,#293b55))!important;
+}
+body.theme-dark [id^="view-"] table thead th{background:color-mix(in srgb,var(--user-accent,#087fa3) 18%,var(--nova-panel,#142238));color:var(--nova-ink,#e5eefb)}
+body.theme-dark [id^="view-"] table tbody tr:hover{background:color-mix(in srgb,var(--user-accent,#087fa3) 12%,var(--nova-panel,#142238))}
+body.theme-dark [id^="view-"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+body.theme-dark [id^="view-"] select,body.theme-dark [id^="view-"] textarea{
+  color:var(--nova-ink,#e5eefb);background:var(--nova-bg,#0b1424);border-color:var(--nova-line,#293b55);
+}
+body.theme-dark [id^="view-"] .module-logo-mark{color:var(--user-accent-bright,#9bdff0);background:color-mix(in srgb,var(--user-accent,#087fa3) 20%,var(--nova-panel,#142238));border-color:var(--nova-line,#293b55)}
+@media(max-width:640px){
+  .module-title-row,.module-title-with-logo{gap:10px}
+  .module-logo-mark{flex-basis:42px;width:42px;height:42px;border-radius:13px}
+  [id^="view-"] .module-intro{padding:16px!important}
+}
+@media(prefers-reduced-motion:reduce){[id^="view-"] .ui-card,[id^="view-"] table tbody tr{transition:none!important}}
+
+
+/* El modo oscuro se refleja también en la pantalla de acceso. */
+body.theme-dark #login-overlay .login-form-panel{background:var(--nova-panel,#142238)!important}
+body.theme-dark #login-overlay .login-title,
+body.theme-dark #login-overlay .login-field label{color:var(--nova-ink,#e5eefb)!important}
+body.theme-dark #login-overlay .login-description,
+body.theme-dark #login-overlay .login-form-meta,
+body.theme-dark #login-overlay .login-footer,
+body.theme-dark #login-overlay .login-footer p{color:var(--nova-muted,#a6b6cd)!important}
+body.theme-dark #login-overlay .login-input{
+  color:var(--nova-ink,#e5eefb)!important;background:var(--nova-bg,#0b1424)!important;border-color:var(--nova-line,#293b55)!important
+}
+body.theme-dark #login-overlay .login-input::placeholder{color:#8092ad!important}
+body.theme-dark #login-overlay .login-input:focus{background:var(--nova-panel,#142238)!important}
+body.theme-dark #login-overlay .login-eye{color:var(--nova-muted,#a6b6cd)!important}
+body.theme-dark #login-overlay .login-eye:hover{background:var(--nova-line,#293b55)!important;color:var(--nova-ink,#e5eefb)!important}
+body.theme-dark #login-overlay .login-error{background:#3a1822!important;color:#fecdd3!important;border-color:#7f1d35!important}
+
+
+/* AJUSTES RESPONSIVE RR. HH. — espacio, cabecera y navegación */
+#view-espacio{box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow-x:clip;padding:clamp(12px,2.1vw,30px)!important}
+#view-espacio>*{box-sizing:border-box;max-width:100%;min-width:0}
+#view-espacio .space-hero{grid-template-columns:minmax(0,1.15fr) minmax(145px,.55fr);gap:clamp(14px,2vw,26px);padding:clamp(18px,2.7vw,36px);min-width:0}
+#view-espacio .space-hero-copy{min-width:0}
+#view-espacio .space-hero-copy h3{font-size:clamp(1.7rem,3.3vw,2.65rem);overflow-wrap:anywhere}
+#view-espacio .space-hero-copy p{overflow-wrap:anywhere}
+#view-espacio .space-hero-graphic{width:min(220px,100%);max-width:100%;transform:none}
+#view-espacio .space-metrics-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(7px,1vw,12px)}
+#view-espacio .space-metric{min-width:0;padding:clamp(10px,1.2vw,15px);gap:clamp(7px,1vw,12px)}
+#view-espacio .space-metric-copy{min-width:0;overflow-wrap:anywhere}
+#view-espacio .space-metric-copy strong{font-size:clamp(19px,2vw,25px);overflow-wrap:anywhere}
+#view-espacio .space-notes-layout{grid-template-columns:minmax(0,.72fr) minmax(0,1.65fr);gap:clamp(10px,1.4vw,17px)}
+#view-espacio .space-compose-card,#view-espacio .space-note-board-wrap,#view-espacio .space-note-grid,#view-espacio .space-note{min-width:0}
+#view-espacio .space-note-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+#view-espacio .space-tabbar{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+#view-espacio .space-error{min-width:0;max-width:100%;flex-wrap:wrap;overflow-wrap:anywhere}
+#view-espacio .space-error>div{min-width:0;flex:1 1 180px;overflow-wrap:anywhere}
+#view-espacio .space-error p{overflow-wrap:anywhere;word-break:break-word}
+main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header{box-sizing:border-box;min-width:0;max-width:100%;gap:8px}
+main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:first-child{flex:1 1 160px;min-width:0}
+main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-width:0;gap:clamp(5px,.65vw,10px)!important}
+@media(max-width:1180px){
+ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header{padding-left:12px!important;padding-right:12px!important}
+ .topbar-quick-action{padding:8px 9px!important;gap:6px!important;min-width:0}
+ .topbar-quick-action span{max-width:88px;font-size:10px;line-height:1.18;text-align:center}
+ .topbar-search{padding:8px 9px!important;gap:6px!important;min-width:0}
+ .topbar-user-email{max-width:105px}
+ #btn-theme-settings{padding:7px 8px!important}
+ #view-espacio .space-notes-layout{grid-template-columns:minmax(0,1fr)}
+ #view-espacio .space-compose-card{position:static}
+}
+@media(max-width:980px){
+ #view-espacio .space-metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #view-espacio .space-hero{grid-template-columns:minmax(0,1fr) 145px}
+ #view-espacio .space-hero-graphic{transform:scale(.82);transform-origin:center}
+}
+@media(max-width:760px){
+ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header{align-items:flex-start!important;flex-wrap:wrap;padding-top:10px!important;padding-bottom:10px!important}
+ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:first-child{flex:1 1 100%;width:100%}
+ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{flex:1 1 100%;width:100%;justify-content:flex-end;flex-wrap:wrap}
+ #header-title{font-size:clamp(15px,3.7vw,19px)!important;white-space:normal;overflow-wrap:anywhere;text-overflow:clip}
+ #quick-module-bar{padding:7px 10px;gap:6px;max-width:100%}
+ #quick-module-bar .quick-module-chip{padding:7px 9px;font-size:10px}
+ #view-espacio .space-hero{grid-template-columns:minmax(0,1fr);padding:22px 18px}
+ #view-espacio .space-hero-graphic{display:none}
+ #view-espacio .space-hero-copy h3{font-size:clamp(27px,7vw,35px)}
+ #view-espacio .space-panel-heading{align-items:flex-start}
+ #view-espacio .space-panel-heading h3{font-size:clamp(19px,5vw,23px)}
+ #view-espacio .space-log-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #view-espacio .space-log-fields .space-log-detail-field{grid-column:1/-1}
+ #view-espacio .space-timeline-entry{grid-template-columns:48px minmax(0,1fr);gap:8px}
+}
+@media(max-width:540px){
+ #view-espacio{padding:12px!important}
+ #view-espacio .space-hero{border-radius:18px;padding:20px 16px}
+ #view-espacio .space-hero-pills{gap:6px;margin-top:15px}
+ #view-espacio .space-hero-pills span{font-size:8px;padding:6px 7px}
+ #view-espacio .space-metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ #view-espacio .space-metric{align-items:flex-start;flex-direction:column;padding:10px}
+ #view-espacio .space-metric-icon{width:34px;height:34px}
+ #view-espacio .space-metric-copy strong{font-size:20px}
+ #view-espacio .space-note-grid{grid-template-columns:minmax(0,1fr)}
+ #view-espacio .space-form-row,#view-espacio .space-log-fields{grid-template-columns:minmax(0,1fr)}
+ #view-espacio .space-log-fields .space-log-detail-field{grid-column:auto}
+ #view-espacio .space-log-form-bottom .space-create-button{width:100%}
+ #view-espacio .space-log-history-head .space-note-search{width:100%}
+ #view-espacio .space-timeline-entry{grid-template-columns:minmax(0,1fr);gap:6px;padding-left:20px}
+ #view-espacio .space-timeline-date{display:flex;align-items:center;gap:8px}
+ #view-espacio .space-timeline-date small{margin-top:0}
+ #view-espacio .space-timeline-main{padding:11px}
+ #view-espacio .space-tab{padding:10px 11px;gap:6px;font-size:10px}
+ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{gap:6px!important}
+}
+@media(max-width:380px){
+ #view-espacio .space-metrics-grid{grid-template-columns:minmax(0,1fr)}
+ #view-espacio .space-metric{flex-direction:row;align-items:center}
+ #view-espacio .space-hero-copy h3{font-size:26px}
+ #quick-module-bar .quick-module-chip{padding:6px 8px;font-size:9px}
+}
+
+
+/* Centro operativo, cobertura y bot: datos accionables y adaptable al ancho disponible */
+.dashboard-ops-summary{min-width:0;overflow:hidden}
+.dashboard-ops-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;min-width:0}
+.ops-summary-tile{display:flex;align-items:flex-start;gap:10px;min-width:0;width:100%;padding:12px;border:1px solid #dfe9ef;border-radius:14px;background:linear-gradient(145deg,#fff,#f8fbfd);color:#14394b;text-align:left;transition:border-color .16s,transform .16s,box-shadow .16s}
+.ops-summary-tile:hover:not(:disabled){transform:translateY(-1px);border-color:#8ccbd5;box-shadow:0 8px 22px rgba(16,47,65,.07)}
+.ops-summary-tile:focus-visible{outline:3px solid #89cfdb;outline-offset:2px}
+.ops-summary-tile:disabled{cursor:default}
+.ops-summary-tile.is-alert{border-color:#f1d6b0;background:linear-gradient(145deg,#fffdf7,#fff8ec)}
+.ops-summary-tile.is-unavailable{border-style:dashed;background:#f8fafc}
+.ops-summary-icon{display:grid;place-items:center;flex:0 0 33px;width:33px;height:33px;border:1px solid #d3eceb;border-radius:10px;background:#eaf7f6;color:#138a87}
+.ops-summary-icon svg{width:16px;height:16px}
+.ops-summary-copy{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.ops-summary-copy small{font-size:9px;line-height:1.35;color:#647d8a;font-weight:800}
+.ops-summary-copy strong{font-size:clamp(15px,1.45vw,22px);line-height:1.15;letter-spacing:-.035em;color:#14394b;font-weight:950;overflow-wrap:anywhere}
+.ops-summary-copy>span{font-size:9px;line-height:1.45;color:#718693;overflow-wrap:anywhere}
+.ops-summary-arrow{display:grid;place-items:center;flex:0 0 16px;color:#8ba1ac}
+.ops-summary-arrow svg{width:13px;height:13px}
+.ops-summary-loading{grid-column:1/-1;display:flex;align-items:center;gap:10px;min-height:54px;padding:12px;color:#718693;font-size:11px}
+#talana-bot-health .ops-summary-tile{min-height:90px}
+#talana-bot-status[data-state="error"]{color:#b42332!important}
+#talana-bot-status[data-state="ok"]{color:#176d5c!important}
+#dotacion-filtro-buscar,#dotacion-filtro-estado,#dotacion-filtro-desde,#dotacion-filtro-hasta{min-width:0;width:100%}
+#dotacion-filter-summary{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+@media(max-width:1280px){.dashboard-ops-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.ops-summary-copy>span{font-size:8px}}
+@media(max-width:760px){.dashboard-ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ops-summary-tile{padding:10px;gap:8px}.ops-summary-copy strong{font-size:18px}#dashboard-ops-summary{padding:14px}}
+@media(max-width:420px){.dashboard-ops-grid{grid-template-columns:minmax(0,1fr)}.ops-summary-tile{align-items:center}.ops-summary-copy strong{font-size:20px}}
+
+
+/* Transición de módulos: breve, ligera y respetuosa con movimiento reducido */
+@keyframes rrhhModuleEnter{from{opacity:0;transform:translate3d(0,7px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+.rrhh-view-enter{animation:rrhhModuleEnter 190ms cubic-bezier(.2,.75,.25,1) both}
+@media(prefers-reduced-motion:reduce){.rrhh-view-enter{animation:none!important}}
 </style>
 <script>
 (function(){
@@ -2086,11 +2855,13 @@ body.search-open{overflow:hidden}
   window.actualizarContadoresSelectores2026=updateSelectorCounts;
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
   var allowed=new Set(['dashboard']);
-  var moduleNames=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
-  var allModulePermissions=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
+  var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
+  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
   function permissionName(m){return m;}
   function hasModulePermission(m){
     if(allowed.has(m))return true;
+    // Mi espacio comparte el permiso de Tareas para perfiles ya configurados.
+    if(m==='espacio')return allowed.has('tareas');
     // Compatibilidad con perfiles antiguos que guardaban "coberturas" para el módulo de amonestaciones.
     if(m==='amonestaciones')return allowed.has('coberturas');
     if(m==='coberturas')return allowed.has('amonestaciones');
@@ -2266,7 +3037,9 @@ body.search-open{overflow:hidden}
  function validColor(v){return /^#[0-9a-f]{6}$/i.test(String(v||''));}
  function colorRgb(hex){const n=parseInt(hex.slice(1),16);return [(n>>16)&255,(n>>8)&255,n&255];}
  function mix(hex,ratio){const rgb=colorRgb(hex);return '#'+rgb.map(v=>Math.round(v+(255-v)*ratio).toString(16).padStart(2,'0')).join('');}
- function apply(){const root=document.documentElement;root.style.setProperty('--user-accent',prefs.accent);root.style.setProperty('--user-accent-strong',mix(prefs.accent,.0));root.style.setProperty('--user-accent-soft',mix(prefs.accent,.88));root.style.setProperty('--user-sidebar-start',prefs.sidebar);root.style.setProperty('--user-sidebar-end',mix(prefs.sidebar,.12));document.body.classList.toggle('theme-dark',prefs.mode==='dark'||(prefs.mode==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches));document.body.classList.toggle('sidebar-compact',prefs.nav==='compact');document.body.classList.toggle('ui-density-compact',prefs.density==='compact');document.getElementById('theme-custom-color')?.setAttribute('value',prefs.accent);const color=document.getElementById('theme-color-value');if(color)color.textContent=prefs.accent.toUpperCase();const mode=document.getElementById('theme-mode');if(mode)mode.value=prefs.mode;const side=document.getElementById('theme-sidebar-color');if(side)side.value=prefs.sidebar;const nav=document.getElementById('theme-nav-style');if(nav)nav.value=prefs.nav;const density=document.getElementById('theme-density');if(density)density.value=prefs.density;document.querySelectorAll('.theme-swatch').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===prefs.accent)));}
+ function shade(hex,ratio){const rgb=colorRgb(hex);return '#'+rgb.map(v=>Math.round(v*(1-ratio)).toString(16).padStart(2,'0')).join('');}
+ function luminance(hex){const rgb=colorRgb(hex).map(v=>{v/=255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4);});return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2];}
+ function apply(){const root=document.documentElement;root.style.setProperty('--user-accent',prefs.accent);root.style.setProperty('--user-accent-strong',shade(prefs.accent,.2));root.style.setProperty('--user-accent-bright',mix(prefs.accent,.42));root.style.setProperty('--user-accent-contrast',luminance(prefs.accent)>.43?'#102038':'#ffffff');root.style.setProperty('--user-accent-soft',mix(prefs.accent,.9));root.style.setProperty('--user-sidebar-start',prefs.sidebar);root.style.setProperty('--user-sidebar-end',shade(prefs.sidebar,.18));root.style.setProperty('--user-sidebar-foreground',luminance(prefs.sidebar)>.48?'#102038':'#ffffff');root.style.setProperty('--user-sidebar-muted',luminance(prefs.sidebar)>.48?'#41536a':'rgba(255,255,255,.76)');document.body.classList.toggle('theme-dark',prefs.mode==='dark'||(prefs.mode==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches));document.body.classList.toggle('sidebar-compact',prefs.nav==='compact');document.body.classList.toggle('ui-density-compact',prefs.density==='compact');document.getElementById('theme-custom-color')?.setAttribute('value',prefs.accent);const color=document.getElementById('theme-color-value');if(color)color.textContent=prefs.accent.toUpperCase();const mode=document.getElementById('theme-mode');if(mode)mode.value=prefs.mode;const side=document.getElementById('theme-sidebar-color');if(side)side.value=prefs.sidebar;const nav=document.getElementById('theme-nav-style');if(nav)nav.value=prefs.nav;const density=document.getElementById('theme-density');if(density)density.value=prefs.density;document.querySelectorAll('.theme-swatch').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===prefs.accent)));}
  function getClient(){try{if(typeof _supabase!=='undefined'&&_supabase)return _supabase;}catch(e){}return window._supabase||window.supabaseClient||null;}
  function loadLocal(){try{const p=JSON.parse(localStorage.getItem(KEY)||'{}');prefs={...defaults,...p};if(!validColor(prefs.accent))prefs.accent=defaults.accent;if(!validColor(prefs.sidebar))prefs.sidebar=defaults.sidebar;}catch(e){prefs={...defaults};}apply();}
  async function loadCloud(){try{const client=getClient();if(!client||!client.auth)return;const s=await client.auth.getSession();const user=s?.data?.session?.user;if(!user)return;const r=await client.from('user_ui_preferences').select('preferences').eq('user_id',user.id).maybeSingle();if(!r.error&&r.data?.preferences&&typeof r.data.preferences==='object'){prefs={...defaults,...r.data.preferences};if(!validColor(prefs.accent))prefs.accent=defaults.accent;if(!validColor(prefs.sidebar))prefs.sidebar=defaults.sidebar;localStorage.setItem(KEY,JSON.stringify(prefs));apply();}}catch(e){/* Preferencias locales siguen disponibles si nube no está configurada. */}}
@@ -2274,7 +3047,7 @@ body.search-open{overflow:hidden}
  window.closeThemeSettings=function(){document.getElementById('theme-settings-modal')?.classList.remove('open');};
  window.saveThemeSettings=async function(){const color=document.getElementById('theme-custom-color')?.value;const sidebar=document.getElementById('theme-sidebar-color')?.value;if(validColor(color))prefs.accent=color;if(validColor(sidebar))prefs.sidebar=sidebar;prefs.mode=document.getElementById('theme-mode')?.value||'light';prefs.nav=document.getElementById('theme-nav-style')?.value||'hybrid';prefs.density=document.getElementById('theme-density')?.value||'comfortable';localStorage.setItem(KEY,JSON.stringify(prefs));apply();let cloudSaved=false;try{const client=getClient();const s=client?.auth?await client.auth.getSession():null;const user=s?.data?.session?.user;if(user){const r=await client.from('user_ui_preferences').upsert({user_id:user.id,preferences:prefs,updated_at:new Date().toISOString()},{onConflict:'user_id'});cloudSaved=!r.error;}}catch(e){}if(window.mostrarToast)mostrarToast(cloudSaved?'Preferencias guardadas en tu cuenta y en este dispositivo.':'Preferencias guardadas en este dispositivo. No se pudo sincronizar con la nube; revisa tu sesión y permisos.',cloudSaved?'success':'warning',6500);closeThemeSettings();};
  window.resetThemeSettings=function(){prefs={...defaults};localStorage.setItem(KEY,JSON.stringify(prefs));apply();};
- document.addEventListener('DOMContentLoaded',function(){loadLocal();document.querySelectorAll('.theme-swatch').forEach(b=>b.addEventListener('click',()=>{prefs.accent=b.dataset.color;const custom=document.getElementById('theme-custom-color'),value=document.getElementById('theme-color-value');if(custom)custom.value=prefs.accent;if(value)value.textContent=prefs.accent.toUpperCase();apply();}));const custom=document.getElementById('theme-custom-color');custom?.addEventListener('input',()=>{prefs.accent=custom.value.toLowerCase();const value=document.getElementById('theme-color-value');if(value)value.textContent=prefs.accent.toUpperCase();apply();});document.getElementById('theme-mode')?.addEventListener('change',e=>{prefs.mode=e.target.value;apply();});document.getElementById('theme-sidebar-color')?.addEventListener('input',e=>{prefs.sidebar=e.target.value;apply();});document.getElementById('theme-nav-style')?.addEventListener('change',e=>{prefs.nav=e.target.value;apply();});document.getElementById('theme-density')?.addEventListener('change',e=>{prefs.density=e.target.value;document.body.classList.toggle('ui-density-compact',prefs.density==='compact');});loadCloud();});
+ document.addEventListener('DOMContentLoaded',function(){loadLocal();document.querySelectorAll('.theme-swatch').forEach(b=>b.addEventListener('click',()=>{prefs.accent=b.dataset.color;const custom=document.getElementById('theme-custom-color'),value=document.getElementById('theme-color-value');if(custom)custom.value=prefs.accent;if(value)value.textContent=prefs.accent.toUpperCase();apply();}));const custom=document.getElementById('theme-custom-color');custom?.addEventListener('input',()=>{prefs.accent=custom.value.toLowerCase();const value=document.getElementById('theme-color-value');if(value)value.textContent=prefs.accent.toUpperCase();apply();});document.getElementById('theme-mode')?.addEventListener('change',e=>{prefs.mode=e.target.value;apply();});document.getElementById('theme-sidebar-color')?.addEventListener('input',e=>{prefs.sidebar=e.target.value;apply();});document.getElementById('theme-nav-style')?.addEventListener('change',e=>{prefs.nav=e.target.value;apply();});document.getElementById('theme-density')?.addEventListener('change',e=>{prefs.density=e.target.value;document.body.classList.toggle('ui-density-compact',prefs.density==='compact');});loadCloud();const client=getClient();if(client?.auth?.onAuthStateChange){client.auth.onAuthStateChange((_event,session)=>{if(session?.user)setTimeout(()=>{loadCloud();},0);});}});
  window.addEventListener('storage',e=>{if(e.key===KEY)loadLocal();});window.addEventListener('keydown',e=>{if(e.key==='Escape')closeThemeSettings();});
 })();
 </script>
@@ -2288,6 +3061,63 @@ body.search-open{overflow:hidden}
  document.addEventListener('DOMContentLoaded',()=>setTimeout(makeQuickLinks,500));
  const obs=new MutationObserver(()=>{const bar=document.getElementById('quick-module-bar');if(bar&&bar.dataset.ready==='1'){bar.querySelectorAll('[data-module]').forEach(chip=>{const b=document.getElementById('btn-'+chip.dataset.module);chip.hidden=!b||b.classList.contains('permission-hidden-2026');});}});
  document.addEventListener('DOMContentLoaded',()=>{const nav=document.querySelector('#sidebar nav');if(nav)obs.observe(nav,{attributes:true,subtree:true,attributeFilter:['class']});setTimeout(makeQuickLinks,1300);});
+})();
+</script>
+
+
+<script>
+(function(){
+  const moduleIcons={
+    dashboard:"layout-dashboard",
+    colaboradores:"users-round",
+    sucursales:"building-2",
+    asistencia:"clock",
+    licencias:"file-heart",
+    vacaciones:"palmtree",
+    papeletas:"file-text",
+    correos:"mail",
+    amonestaciones:"calendar-check",
+    reportes:"bar-chart-3",
+    usuarios:"shield-check",
+    auditoria:"history",
+    configcorreos:"mail-check",
+    mapas:"map-pinned",
+    tareas:"list-checks",
+    operaciones:"gauge",
+    calidad:"shield-check",
+    notificaciones:"bell-ring",
+    integraciones:"plug-zap",
+    chat:"messages-square",
+    traslados:"users-round"
+  };
+  function enhanceModuleHeaders(){
+    Object.entries(moduleIcons).forEach(([moduleId,iconName])=>{
+      const section=document.getElementById("view-"+moduleId);
+      if(!section)return;
+      const header=section.querySelector(".module-intro")||
+        section.querySelector(".dashboard-welcome")||
+        section.firstElementChild;
+      if(!header||header.querySelector(".module-logo-mark"))return;
+      const heading=header.querySelector("h3, h2");
+      if(!heading||!heading.parentElement)return;
+      const row=document.createElement("div");
+      row.className="module-title-row module-heading-row";
+      row.dataset.moduleHeading=moduleId;
+      const mark=document.createElement("span");
+      mark.className="module-logo-mark";
+      mark.setAttribute("aria-hidden","true");
+      mark.innerHTML='<i data-lucide="'+iconName+'" class="h-5 w-5"></i>';
+      const parent=heading.parentElement;
+      parent.insertBefore(row,heading);
+      row.append(mark,heading);
+    });
+    if(window.lucide&&typeof window.lucide.createIcons==="function")window.lucide.createIcons();
+  }
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",enhanceModuleHeaders,{once:true});
+  }else{
+    enhanceModuleHeaders();
+  }
 })();
 </script>
 

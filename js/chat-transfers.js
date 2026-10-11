@@ -7,6 +7,7 @@
   const norm = value => String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLocaleLowerCase("es-CL");
   let currentRoleId = null, chatUsers = [], activeConversation = null, chatChannel = null, chatBusy = false;
   let collaborators = [], branches = [], canApproveTransfers = false;
+  let solicitudesDotacionCache = [], solicitudesDotacionError = null;
 
   async function currentUserId() {
     if (currentRoleId) return currentRoleId;
@@ -340,31 +341,96 @@
     });
   }
 
-  async function cargarSolicitudesDotacion(){
-    const host=$("dotacion-alertas-lista");if(!host)return;
-    host.innerHTML='<tr><td colspan="7" class="p-5 text-center text-slate-500">Consultando solicitudes de dotación…</td></tr>';
-    try{
-      const {data,error}=await _supabase.from("solicitudes_dotacion").select("id,sucursal_nombre,fecha_inicio,fecha_fin,cantidad,cargo_requerido,turno,hora_inicio,hora_fin,motivo,observaciones,estado,created_at,solicitada_por").order("created_at",{ascending:false}).limit(500);
-      if(error)throw error;
-      const rows=data||[];host.replaceChildren();
-      if(!rows.length){host.innerHTML='<tr><td colspan="7" class="p-6 text-center text-slate-500">No hay alertas de necesidad de personal todavía.</td></tr>';return;}
-      rows.forEach(r=>{
-        const tr=document.createElement("tr");
-        const period=dateOnly(r.fecha_inicio)+" – "+dateOnly(r.fecha_fin);
-        const shift=({AM:"AM · Apertura",PM:"PM · Cierre",COMPLETO:"Turno completo",FLEXIBLE:"Flexible"})[r.turno]||r.turno;
-        const hours=r.hora_inicio&&r.hora_fin?" · "+r.hora_inicio.slice(0,5)+"–"+r.hora_fin.slice(0,5):"";
-        const stateClass=r.estado==="APROBADA"||r.estado==="CUBIERTA"?"bg-emerald-50 text-emerald-700":r.estado==="RECHAZADA"||r.estado==="CANCELADA"?"bg-rose-50 text-rose-700":"bg-amber-50 text-amber-800";
-        const cells=[r.sucursal_nombre+" · "+({QF:"QF",AF:"AF",OTRO:"Otro cargo"})[r.cargo_requerido],period,shift+hours,String(r.cantidad||1),r.motivo||"—",r.estado];
-        cells.forEach((v,i)=>{const td=document.createElement("td");td.className="p-3 align-top";if(i===5)td.innerHTML='<span class="rounded-full px-2 py-1 font-bold '+stateClass+'">'+esc(v)+'</span>';else td.textContent=v;tr.append(td);});
+  function renderSolicitudesDotacion(){
+    const host=$("dotacion-alertas-lista");
+    if(!host)return;
+    const summary=$("dotacion-filter-summary");
+    if(solicitudesDotacionError){
+      if(summary)summary.textContent="No se pudieron consultar las solicitudes. Revisa tu permiso de acceso.";
+      host.innerHTML='<tr><td colspan="7" class="p-5 text-center text-rose-700">No se pudieron cargar las alertas: '+esc(solicitudesDotacionError)+'</td></tr>';
+      return;
+    }
+    const q=norm($("dotacion-filtro-buscar")?.value||"");
+    const stateFilter=$("dotacion-filtro-estado")?.value||"TODOS";
+    const from=$("dotacion-filtro-desde")?.value||"";
+    const to=$("dotacion-filtro-hasta")?.value||"";
+    const total=solicitudesDotacionCache.length;
+    const pending=solicitudesDotacionCache.filter(r=>r.estado==="PENDIENTE");
+    const requestedPeople=pending.reduce((sum,r)=>sum+Math.max(0,Number(r.cantidad||1)),0);
+    const rows=solicitudesDotacionCache.filter(r=>{
+      if(stateFilter!=="TODOS"&&String(r.estado||"")!==stateFilter)return false;
+      const start=String(r.fecha_inicio||"");
+      if(from&&start<from)return false;
+      if(to&&start>to)return false;
+      if(q){
+        const haystack=norm([r.sucursal_nombre,r.cargo_requerido,r.turno,r.hora_inicio,r.hora_fin,r.motivo,r.observaciones,r.estado].join(" "));
+        if(!haystack.includes(q))return false;
+      }
+      return true;
+    });
+    if(summary)summary.textContent=rows.length+" de "+total+" solicitudes · "+pending.length+" pendientes · "+requestedPeople+" persona(s) requeridas en solicitudes pendientes";
+    host.replaceChildren();
+    if(!rows.length){
+      const tr=document.createElement("tr"),td=document.createElement("td");
+      td.colSpan=7;td.className="p-6 text-center text-slate-500";
+      td.textContent=total?"Ninguna solicitud coincide con los filtros elegidos.":"No hay alertas de necesidad de personal todavía.";
+      tr.append(td);host.append(tr);return;
+    }
+    const cargoLabel={QF:"QF",AF:"AF",OTRO:"Otro cargo"};
+    const turnoLabel={AM:"AM · Apertura",PM:"PM · Cierre",COMPLETO:"Turno completo",FLEXIBLE:"Flexible"};
+    const statusClass={APROBADA:"bg-emerald-50 text-emerald-700",CUBIERTA:"bg-emerald-50 text-emerald-700",RECHAZADA:"bg-rose-50 text-rose-700",CANCELADA:"bg-rose-50 text-rose-700",PENDIENTE:"bg-amber-50 text-amber-800"};
+    rows.forEach(r=>{
+      const tr=document.createElement("tr");
+      const period=dateOnly(r.fecha_inicio)+" – "+dateOnly(r.fecha_fin);
+      const shift=(turnoLabel[r.turno]||r.turno||"Turno no indicado")+(r.hora_inicio&&r.hora_fin?" · "+String(r.hora_inicio).slice(0,5)+"–"+String(r.hora_fin).slice(0,5):"");
+      const values=[
+        String(r.sucursal_nombre||"Sucursal sin nombre")+" · "+(cargoLabel[r.cargo_requerido]||r.cargo_requerido||"Cargo no definido"),
+        period,shift,String(r.cantidad||1),String(r.motivo||"—"),String(r.estado||"Sin estado")
+      ];
+      values.forEach((value,index)=>{
         const td=document.createElement("td");td.className="p-3 align-top";
-        if(canApproveTransfers&&r.estado==="PENDIENTE"){
-          td.innerHTML='<div class="flex flex-wrap gap-2"><button type="button" data-dotacion-action="APROBADA" data-id="'+esc(r.id)+'" class="rounded-lg bg-emerald-600 px-2 py-1.5 font-bold text-white">Aceptar</button><button type="button" data-dotacion-action="RECHAZADA" data-id="'+esc(r.id)+'" class="rounded-lg bg-rose-600 px-2 py-1.5 font-bold text-white">Rechazar</button></div>';
-        }else td.textContent=r.created_at?("Registrada "+dateTime(r.created_at)):"—";
-        tr.append(td);host.append(tr);
+        if(index===5){const badge=document.createElement("span");badge.className="rounded-full px-2 py-1 font-bold "+(statusClass[r.estado]||"bg-slate-100 text-slate-700");badge.textContent=value;td.append(badge);}
+        else td.textContent=value;
+        tr.append(td);
       });
+      const actions=document.createElement("td");actions.className="p-3 align-top";
+      if(canApproveTransfers&&r.estado==="PENDIENTE"){
+        const rowActions=document.createElement("div");rowActions.className="flex flex-wrap gap-2";
+        [["APROBADA","Aceptar","rounded-lg bg-emerald-600 px-2 py-1.5 font-bold text-white"],["RECHAZADA","Rechazar","rounded-lg bg-rose-600 px-2 py-1.5 font-bold text-white"]].forEach(([action,label,style])=>{
+          const button=document.createElement("button");button.type="button";button.dataset.dotacionAction=action;button.dataset.id=String(r.id);button.className=style;button.textContent=label;rowActions.append(button);
+        });
+        actions.append(rowActions);
+      }else actions.textContent=r.created_at?("Registrada "+dateTime(r.created_at)):"—";
+      tr.append(actions);host.append(tr);
+    });
+  }
+
+  function filtrarSolicitudesDotacion(){renderSolicitudesDotacion();}
+
+  function limpiarFiltrosSolicitudesDotacion(){
+    ["dotacion-filtro-buscar","dotacion-filtro-desde","dotacion-filtro-hasta"].forEach(id=>{const node=$(id);if(node)node.value="";});
+    const state=$("dotacion-filtro-estado");if(state)state.value="TODOS";
+    renderSolicitudesDotacion();
+  }
+
+  async function cargarSolicitudesDotacion(){
+    const host=$("dotacion-alertas-lista");
+    if(!host)return;
+    host.innerHTML='<tr><td colspan="7" class="p-5 text-center text-slate-500">Consultando solicitudes de dotación…</td></tr>';
+    const summary=$("dotacion-filter-summary");if(summary)summary.textContent="Cargando solicitudes y conteos…";
+    try{
+      const {data,error}=await _supabase.from("solicitudes_dotacion")
+        .select("id,sucursal_nombre,fecha_inicio,fecha_fin,cantidad,cargo_requerido,turno,hora_inicio,hora_fin,motivo,observaciones,estado,created_at,solicitada_por")
+        .order("created_at",{ascending:false}).limit(500);
+      if(error)throw error;
+      solicitudesDotacionCache=data||[];
+      solicitudesDotacionError=null;
+      renderSolicitudesDotacion();
     }catch(error){
       console.error("Solicitudes de dotación:",error);
-      host.innerHTML='<tr><td colspan="7" class="p-5 text-center text-rose-700">No se pudieron cargar las alertas: '+esc(error.message||"Error desconocido")+'</td></tr>';
+      solicitudesDotacionCache=[];
+      solicitudesDotacionError=error.message||"Error desconocido";
+      renderSolicitudesDotacion();
     }
   }
 
@@ -427,4 +493,6 @@
   window.crearSolicitudTraslado=crearSolicitudTraslado;
   window.cargarTrasladosPersonal=cargarTrasladosPersonal;
   window.cargarSolicitudesDotacion=cargarSolicitudesDotacion;
+  window.filtrarSolicitudesDotacion=filtrarSolicitudesDotacion;
+  window.limpiarFiltrosSolicitudesDotacion=limpiarFiltrosSolicitudesDotacion;
 })();

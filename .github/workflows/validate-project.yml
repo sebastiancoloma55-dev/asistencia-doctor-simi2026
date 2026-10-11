@@ -35,3 +35,7 @@ jobs:
           node-version: "20"
       - name: Revisar archivos JS y scripts inline de index.html
         run: node scripts/validate-js.mjs
+      - name: Probar claves naturales del importador Talana
+        run: node --test scripts/test-talana-import-keys.mjs
+      - name: Validar sintaxis de la función Talana de Supabase
+        run: npx --yes esbuild@0.25.0 supabase/functions/talana-bot-control/index.ts --loader:.ts=ts --format=esm --outfile=/tmp/talana-bot-control.js

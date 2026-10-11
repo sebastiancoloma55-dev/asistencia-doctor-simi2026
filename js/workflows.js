@@ -218,7 +218,7 @@
             await registrarAuditoria('reportes','GENERA_REPORTE',`${tipo} · ${formato} · ${desde||'s/f'} a ${hasta||'s/f'} · ${datos.length} registros`);mostrarToast('Reporte generado y descargado.','success');
         }
 
-        const listaPermisos=['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','traslados_aprobar'];
+        const listaPermisos=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','traslados_aprobar'];
         let perfilActualSistema=null, modulosPermitidosActuales=[];
         const EMAIL_ADMIN_PRINCIPAL='scoloma@farmaciasdoctorsimi.cl';
         function esAdminPrincipalActual(){return String(perfilActualSistema?.email||'').trim().toLowerCase()===EMAIL_ADMIN_PRINCIPAL;}
@@ -227,16 +227,21 @@
             return esAdminPrincipalActual() || perfilActualSistema?.acceso_global===true || ['ADMIN','ADMINISTRADOR','SUPERADMIN','SUPER_ADMIN','ADMIN_PRINCIPAL','ADMINISTRADOR_PRINCIPAL'].includes(rol);
         }
         function tienePermisoModulo(modulo){
-            // Los perfiles administradores y las cuentas con acceso_global pueden administrar los 19 módulos.
+            // Administradores globales mantienen acceso a todo el catálogo.
             if(esAdministradorConAccesoGlobal())return true;
-            if(modulo==='operaciones')return ['tareas','correos','asistencia','licencias','coberturas','reportes'].some(p=>modulosPermitidosActuales.includes(p));
+            // Mi espacio acompaña a Tareas para evitar quitarle al equipo una herramienta de seguimiento útil.
+            if(modulo==='espacio')return modulosPermitidosActuales.includes('espacio')||modulosPermitidosActuales.includes('tareas');
+            if(modulo==='operaciones')return ['tareas','correos','asistencia','licencias','amonestaciones','reportes'].some(p=>modulosPermitidosActuales.includes(p));
             if(modulo==='calidad'||modulo==='integraciones')return false;
             if(modulo==='notificaciones')return ['tareas','traslados','amonestaciones'].some(p=>modulosPermitidosActuales.includes(p));
             return modulosPermitidosActuales.includes(modulo);
         }
-        function puedeAsignarTareasActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_asignar_tareas;}
-        function puedeRevisarTareasActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_revisar_tareas;}
-        function puedePrepararCorreosActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_preparar_correos;}
+        function esVisualizadorActual(){
+            return !esAdminPrincipalActual() && rolNormalizadoUsuario(perfilActualSistema?.rol)==='CONSULTA';
+        }
+        function puedeAsignarTareasActual(){return esAdminPrincipalActual()||(!esVisualizadorActual()&&!!perfilActualSistema?.puede_asignar_tareas);}
+        function puedeRevisarTareasActual(){return esAdminPrincipalActual()||(!esVisualizadorActual()&&!!perfilActualSistema?.puede_revisar_tareas);}
+        function puedePrepararCorreosActual(){return esAdminPrincipalActual()||(!esVisualizadorActual()&&!!perfilActualSistema?.puede_preparar_correos);}
         async function cargarPerfilPermisosActual(user){
             const email=String(user?.email||'').trim().toLowerCase();
             if(!email)throw new Error('La sesión no contiene un correo válido.');
@@ -263,10 +268,118 @@
             const aviso=document.getElementById('tarea-permiso-aviso');if(aviso)aviso.classList.toggle('hidden',!tienePermisoModulo('tareas')||puedeAsignarTareasActual());
             const avisoCorreo=document.getElementById('correo-permiso-aviso');if(avisoCorreo)avisoCorreo.classList.toggle('hidden',!tienePermisoModulo('correos')||puedePrepararCorreosActual());
             document.querySelectorAll('[data-accion="preparar-correos"],[data-accion="abrir-borradores"]').forEach(b=>b.classList.toggle('hidden',!puedePrepararCorreosActual()));
+            if(window.organizarNavegacionPermisos)window.organizarNavegacionPermisos();
+            aplicarModoVisualizadorActual();
             if(window.lucide)lucide.createIcons();
         }
+
+        function esAccionDeModificacionVisualizador(el){
+            if(!el)return false;
+            const handler=String(el.getAttribute('onclick')||'');
+            const title=String(el.getAttribute('title')||el.getAttribute('aria-label')||'');
+            const label=String(el.innerText||el.value||'');
+            const signals=handler+' '+title+' '+label;
+            return /(guardar|crear|eliminar|borrar|editar|modificar|aprobar|rechazar|archivar|resolver|desactivar|importar|procesarexcel|procesarhistorial|asignar|registrar|toggleusuario|cambiarclave|enviarrecuperacion|guardarusuario|alternarfijado|cambiarestadonota|eliminarnota|crearinvitar|crearusuario|generarinvitacion|subirarchivo|procesarhistorial)/i.test(signals);
+        }
+        function aplicarModoVisualizadorActual(root=document){
+            const visualizador=esVisualizadorActual();
+            document.body.classList.toggle('modo-visualizador',visualizador);
+            document.querySelectorAll('section[id^="view-"]').forEach(view=>{
+                let banner=view.querySelector(':scope > .visualizador-notice');
+                if(visualizador&&!banner){
+                    banner=document.createElement('div');
+                    banner.className='visualizador-notice';
+                    banner.innerHTML='<span><i data-lucide="eye"></i></span><div><b>Modo visualizador · solo lectura</b><small>Puedes consultar los módulos autorizados. Las acciones de creación, edición, aprobación e importación están deshabilitadas para este perfil.</small></div>';
+                    view.insertBefore(banner,view.firstChild);
+                }else if(!visualizador&&banner)banner.remove();
+            });
+            const controls=root.querySelectorAll?root.querySelectorAll('button,input[type="submit"],input[type="file"],form input,form select,form textarea'):[];
+            controls.forEach(el=>{
+                const form=el.closest('form');
+                const handler=String(form?.getAttribute('onsubmit')||'');
+                const writeForm=!!form&&/(guardar|crear|eliminar|borrar|editar|modificar|aprobar|rechazar|procesar|importar|registrar|asignar|cambiar|enviarrecuperacion|crearusuario)/i.test(handler);
+                const safeButton=el.tagName==='BUTTON'&&/(cerrar|cancelar|volver|limpiar filtros|abrir|consultar|buscar|filtrar|actualizar|refrescar|ver ficha|mostrar todas|descargar|exportar|imprimir|copiar|generar reporte|ruta vial)/i.test(String(el.innerText||el.getAttribute('title')||''));
+                const shouldLock=visualizador&&!safeButton&&(
+                    (el.tagName==='BUTTON'&&esAccionDeModificacionVisualizador(el))||
+                    (el.matches('input[type="submit"],input[type="file"]'))||
+                    writeForm
+                );
+                if(shouldLock){
+                    if(!el.hasAttribute('data-readonly-locked')){
+                        el.setAttribute('data-readonly-locked','1');
+                        el.dataset.readonlyWasDisabled=el.disabled?'1':'0';
+                        el.dataset.readonlyWasTitle=el.getAttribute('title')||'';
+                    }
+                    el.disabled=true;
+                    el.setAttribute('aria-disabled','true');
+                    el.title='Perfil visualizador: acción de modificación no disponible.';
+                }else if(!visualizador&&el.hasAttribute('data-readonly-locked')){
+                    el.disabled=el.dataset.readonlyWasDisabled==='1';
+                    el.removeAttribute('data-readonly-locked');
+                    el.removeAttribute('aria-disabled');
+                    if(el.dataset.readonlyWasTitle)el.title=el.dataset.readonlyWasTitle;else el.removeAttribute('title');
+                    delete el.dataset.readonlyWasDisabled;delete el.dataset.readonlyWasTitle;
+                }
+            });
+            if(visualizador&&!window.__rrhhViewerObserver&&document.body&&window.MutationObserver){
+                window.__rrhhViewerObserver=new MutationObserver(records=>{
+                    if(records.some(r=>r.addedNodes&&r.addedNodes.length))aplicarModoVisualizadorActual(document);
+                });
+                window.__rrhhViewerObserver.observe(document.body,{childList:true,subtree:true});
+            }
+        }
+
         function opcionesSeleccionadas(id){return [...document.getElementById(id).selectedOptions].map(x=>x.value);}
-        function construirChecksPermisos(){const c=document.getElementById('usr-permisos');if(!c)return;c.innerHTML=listaPermisos.map(p=>`<label class="flex items-center gap-2 rounded-lg border p-2 text-xs"><input type="checkbox" value="${p}" class="usr-check">${p}</label>`).join('');}
+        const etiquetasPermisosUsuarios = {
+            dashboard:'Dashboard', espacio:'Mi espacio de trabajo', tareas:'Tareas diarias',
+            colaboradores:'Colaboradores', sucursales:'Sucursales', usuarios:'Usuarios y roles',
+            asistencia:'Asistencia y atrasos', licencias:'Licencias médicas', vacaciones:'Vacaciones',
+            papeletas:'Permisos y ausencias', amonestaciones:'Coberturas', traslados:'Traslados de personal',
+            correos:'Borradores de correo', configcorreos:'Correos de sucursales', chat:'Chat interno',
+            reportes:'Reportes', mapas:'Mapa y distancias', operaciones:'Centro de operaciones',
+            calidad:'Calidad de datos', notificaciones:'Notificaciones', integraciones:'Integraciones y monitoreo',
+            auditoria:'Bitácora y auditoría', traslados_aprobar:'Aprobar traslados'
+        };
+        const gruposPermisosUsuarios = [
+            {label:'Inicio y productividad',icon:'layout-dashboard',keys:['dashboard','espacio','tareas']},
+            {label:'Personas y estructura',icon:'users',keys:['colaboradores','sucursales','usuarios']},
+            {label:'Asistencia y beneficios',icon:'clock',keys:['asistencia','licencias','vacaciones','papeletas']},
+            {label:'Coberturas y comunicación',icon:'calendar-check',keys:['amonestaciones','traslados','correos','configcorreos','chat']},
+            {label:'Análisis y control',icon:'chart-no-axes-combined',keys:['reportes','mapas','operaciones','calidad','notificaciones','integraciones','auditoria']},
+            {label:'Privilegios especiales',icon:'shield-check',keys:['traslados_aprobar']}
+        ];
+        function construirChecksPermisos(){
+            const c=document.getElementById('usr-permisos');if(!c)return;
+            c.innerHTML=gruposPermisosUsuarios.map(grupo=>{
+                const checks=grupo.keys.filter(key=>listaPermisos.includes(key)).map(key=>
+                    '<label class="usr-check-label" title="'+escaparHTML(etiquetasPermisosUsuarios[key]||key)+'"><input type="checkbox" value="'+key+'" class="usr-check"><span>'+escaparHTML(etiquetasPermisosUsuarios[key]||key)+'</span></label>'
+                ).join('');
+                return '<section class="usr-permission-group"><h4><i data-lucide="'+grupo.icon+'"></i>'+escaparHTML(grupo.label)+'</h4><div class="usr-permission-group-list">'+checks+'</div></section>';
+            }).join('');
+            if(window.lucide)lucide.createIcons();
+        }
+        function rolNormalizadoUsuario(rol){
+            return String(rol||'CONSULTA').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s-]+/g,'_');
+        }
+        function etiquetaRolUsuario(rol){
+            const key=rolNormalizadoUsuario(rol);
+            return ({ADMIN:'Administrador',ADMINISTRADOR:'Administrador',SUPERADMIN:'Administrador principal',SUPER_ADMIN:'Administrador principal',ADMIN_PRINCIPAL:'Administrador principal',ADMINISTRADOR_PRINCIPAL:'Administrador principal',RRHH:'Gestión de RR. HH.',CARGA:'Carga de datos',CONSULTA:'Visualizador · solo lectura'})[key]||String(rol||'Sin rol definido');
+        }
+        function usuarioTieneAlcanceGlobal(u){
+            const role=rolNormalizadoUsuario(u?.rol);
+            return !!u?.acceso_global||['ADMIN','ADMINISTRADOR','SUPERADMIN','SUPER_ADMIN','ADMIN_PRINCIPAL','ADMINISTRADOR_PRINCIPAL'].includes(role);
+        }
+        function nombresSucursalesUsuario(u){
+            const select=document.getElementById('usr-sucursales');
+            return (u?.usuarios_sucursales||[]).map(x=>{
+                const option=[...(select?.options||[])].find(op=>op.value===String(x.sucursal_id));
+                return option?.textContent||('ID '+x.sucursal_id);
+            });
+        }
+        function recursosEfectivosUsuario(u){
+            if(usuarioTieneAlcanceGlobal(u))return listaPermisos.filter(p=>p!=='traslados_aprobar');
+            return [...new Set((Array.isArray(u?.permisos)?u.permisos:[]).map(String))];
+        }
         async function prepararSelectoresUsuarios(){
             const suc=await obtenerSucursalesConfig();
             const supervisores=[...new Set(suc.map(x=>texto(x.supervisor)).filter(Boolean))].sort();
@@ -276,6 +389,8 @@
         }
         async function tokenSesionActual(){const {data:{session}}=await _supabase.auth.getSession();return session?.access_token||'';}
         async function llamarApiAdmin(ruta,payload){const token=await tokenSesionActual();const res=await fetch(ruta,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify(payload)});const raw=await res.text();let json;try{json=JSON.parse(raw)}catch{throw new Error(raw||`Error ${res.status}`)}if(!res.ok)throw new Error(json.error||`Error ${res.status}`);return json;}
+
+        document.getElementById('usr-rol')?.addEventListener('change',event=>{const node=document.getElementById('usr-rol-description');if(node)node.textContent=descripcionRolUsuario(event.target.value);});
         async function crearInvitarUsuario(){const email=texto(document.getElementById('usr-email').value).toLowerCase(),nombre=texto(document.getElementById('usr-nombre').value);if(!email)return mostrarToast('Ingresa el correo del usuario.','warning');try{await guardarUsuarioRol();const json=await llamarApiAdmin('/api/usuarios-auth',{accion:'INVITAR',email,nombre,redirectTo:window.location.origin});mostrarToast(json.message||'Invitación enviada.','success',12000);}catch(e){mostrarToast(e.message,'error',15000)}}
         async function enviarRecuperacionUsuario(){const email=texto(document.getElementById('usr-email').value).toLowerCase();if(!email)return mostrarToast('Ingresa o selecciona el correo.','warning');try{const json=await llamarApiAdmin('/api/usuarios-auth',{accion:'RECUPERAR',email,redirectTo:window.location.origin});mostrarToast(json.message||'Correo de recuperación enviado.','success',12000);}catch(e){mostrarToast(e.message,'error',15000)}}
         async function buscarCoordenadasPorDireccion(){const lista=await obtenerSucursalesConfig(),faltantes=lista.filter(x=>!coordenadaValida(x)&&texto(x.direccion));if(!faltantes.length)return mostrarToast('Todas las sucursales con dirección ya tienen coordenadas válidas.','success');if(!confirm(`Se buscarán coordenadas para ${faltantes.length} sucursal(es), una por una. ¿Continuar?`))return;const token=await tokenSesionActual();if(!token)return mostrarToast('Tu sesión expiró. Inicia sesión nuevamente.','error');let ok=0,fallas=[];for(let i=0;i<faltantes.length;i++){const x=faltantes[i],consulta=[x.direccion,x.comuna,'Chile'].filter(Boolean).join(', ');mostrarToast(`Buscando ${i+1} de ${faltantes.length}: ${x.nombre}`,'info',1800);try{const r=await fetch(`/api/geocodificar?direccion=${encodeURIComponent(consulta)}&nombre=${encodeURIComponent(x.nombre||'')}&comuna=${encodeURIComponent(x.comuna||'')}`,{headers:{'Authorization':`Bearer ${token}`}}),j=await r.json();if(!r.ok||!j.latitud)throw new Error(j.error||'Sin resultado');const u=await _supabase.from('sucursales').update({latitud:j.latitud,longitud:j.longitud}).eq('id',x.id);if(u.error)throw u.error;ok++;}catch(e){fallas.push(x.nombre);}await new Promise(r=>setTimeout(r,1100));}await prepararMapa14();mostrarToast(`Coordenadas encontradas: ${ok}. Sin resultado: ${fallas.length}${fallas.length?' ('+fallas.join(', ')+')':''}.`,fallas.length?'warning':'success',18000);}
@@ -288,54 +403,116 @@
         async function eliminarUsuarioCreado(email,nombre){if(!confirm(`¿Eliminar definitivamente el acceso de ${nombre||email}?`))return;if(prompt('Escribe ELIMINAR para confirmar')!=='ELIMINAR')return mostrarToast('Eliminación cancelada.','warning');try{const j=await llamarApiAdmin('/api/usuarios-auth',{accion:'ELIMINAR',email});mostrarToast(j.message,'success',12000);await cargarUsuariosRoles()}catch(e){mostrarToast(e.message,'error',15000)}}
         async function guardarUsuarioRol(){try{const payload=payloadFichaUsuario('GUARDAR_FICHA');if(!payload.email)throw new Error('Ingresa un correo.');const j=await llamarApiAdmin('/api/usuarios-auth',payload);mostrarToast(j.message,'success');await cargarUsuariosRoles();return j}catch(e){mostrarToast(e.message,'error',15000);throw e}}
         async function cargarUsuariosRoles(){
-            construirChecksPermisos();await prepararSelectoresUsuarios();
-            const {data,error}=await _supabase.from('usuarios_roles').select('*,usuarios_supervisores(supervisor),usuarios_sucursales(sucursal_id)').order('email');
-            const tbody=document.getElementById('tabla-usuarios-body');if(error){tbody.innerHTML=`<tr><td colspan="6" class="p-8 text-center text-red-600">${escaparHTML(error.message)}</td></tr>`;return;}
-            usuariosSistemaGlobal=data||[];
-
-            tbody.innerHTML = data?.length
-                ? data.map((u, i) => `
-                    <tr>
-                        <td class="p-3">${escaparHTML(u.email)}</td>
-                        <td class="p-3">${escaparHTML(u.nombre || '')}</td>
-                        <td class="p-3 font-bold">${escaparHTML(u.rol || '')}</td>
-                        <td class="p-3">
-                            <b>Módulos:</b>
-                            ${escaparHTML((u.permisos || []).join(', '))}
-                            <br>
-                            <b>Supervisores:</b>
-                            ${escaparHTML((u.usuarios_supervisores || []).map(x => x.supervisor).join(', '))}
-                            <br>
-                            <b>Sucursales:</b>
-                            ${(u.usuarios_sucursales || []).length}
-                        </td>
-                        <td class="p-3">${u.activo ? 'Activo' : 'Inactivo'}</td>
-                        <td class="p-3">
-                            <div class="flex flex-wrap gap-2">
-                                <button
-                                    onclick="editarUsuarioRol(${i})"
-                                    class="rounded-lg bg-blue-600 px-3 py-1.5 font-bold text-white">
-                                    Editar perfil
-                                </button>
-
-                                <button
-                                    onclick="toggleUsuario('${escaparHTML(u.email)}',${!u.activo})"
-                                    class="font-bold text-simiNavy">
-                                    ${u.activo ? 'Desactivar' : 'Activar'}
-                                </button>
-
-                                <button
-                                    onclick="eliminarUsuarioCreado('${escaparHTML(u.email)}','${escaparHTML(u.nombre || u.email)}')"
-                                    class="font-bold text-rose-700">
-                                    Eliminar acceso
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('')
-                : '<tr><td colspan="6" class="p-8 text-center">Sin usuarios registrados</td></tr>';
+            const tbody=document.getElementById('tabla-usuarios-body');
+            if(tbody)tbody.innerHTML='<tr><td colspan="6" class="p-8 text-center text-slate-500">Cargando matriz de permisos…</td></tr>';
+            try{
+                construirChecksPermisos();
+                await prepararSelectoresUsuarios();
+                const {data,error}=await _supabase.from('usuarios_roles').select('*,usuarios_supervisores(supervisor),usuarios_sucursales(sucursal_id)').order('email');
+                if(error)throw error;
+                usuariosSistemaGlobal=data||[];
+                actualizarResumenMatrizUsuarios();
+                renderizarMatrizUsuarios();
+                const banner=document.getElementById('usr-admin-status');
+                const owner=!!(window.esAdminPrincipalActual&&window.esAdminPrincipalActual());
+                if(banner)banner.classList.toggle('hidden',!owner);
+                const roleDescription=document.getElementById('usr-rol-description');
+                if(roleDescription)roleDescription.textContent=descripcionRolUsuario(document.getElementById('usr-rol')?.value||'CONSULTA');
+                if(window.lucide)lucide.createIcons();
+            }catch(error){
+                if(tbody)tbody.innerHTML='<tr><td colspan="6" class="p-8 text-center text-red-700">No se pudo cargar la matriz: '+escaparHTML(error.message||error)+'</td></tr>';
+                mostrarToast('No se pudieron cargar los perfiles de usuario: '+(error.message||error),'error',10000);
+            }
         }
-
+        function descripcionRolUsuario(rol){
+            const key=rolNormalizadoUsuario(rol);
+            return ({
+                ADMIN:'Administrador: acceso a todos los módulos y funciones administrativas según las políticas del sistema.',
+                RRHH:'Gestión de RR. HH.: acceso a los módulos seleccionados y a las capacidades operativas autorizadas.',
+                CARGA:'Carga de datos: acceso a los módulos marcados para importar, actualizar o preparar información.',
+                CONSULTA:'Visualizador: perfil pensado para consultar información en los módulos asignados; las operaciones sensibles siguen sujetas a permisos y políticas de datos.'
+            })[key]||'El perfil tendrá acceso a los módulos seleccionados y al alcance asignado.';
+        }
+        function actualizarResumenMatrizUsuarios(){
+            const users=usuariosSistemaGlobal||[];
+            const active=users.filter(u=>u.activo===true).length;
+            const viewers=users.filter(u=>rolNormalizadoUsuario(u.rol)==='CONSULTA').length;
+            const global=users.filter(usuarioTieneAlcanceGlobal).length;
+            const box=document.getElementById('usr-role-summary');
+            if(box){
+                const values=[['Perfiles registrados',users.length,'users'],['Activos',active,'user-check'],['Visualizadores',viewers,'eye'],['Acceso global',global,'shield-check']];
+                box.innerHTML=values.map(([label,value,icon])=>'<div class="usr-role-summary-card"><span class="usr-role-summary-icon"><i data-lucide="'+icon+'"></i></span><small>'+label+'</small><strong>'+Number(value).toLocaleString('es-CL')+'</strong></div>').join('');
+            }
+            const banner=document.getElementById('usr-admin-status');
+            if(banner&&window.esAdminPrincipalActual)banner.classList.toggle('hidden',!window.esAdminPrincipalActual());
+            if(window.lucide)lucide.createIcons();
+        }
+        function renderizarMatrizUsuarios(){
+            const tbody=document.getElementById('tabla-usuarios-body');
+            if(!tbody)return;
+            const query=String(document.getElementById('usr-matrix-search')?.value||'').trim().toLocaleLowerCase('es-CL');
+            const roleFilter=String(document.getElementById('usr-matrix-role')?.value||'').toUpperCase();
+            const statusFilter=String(document.getElementById('usr-matrix-status')?.value||'').toUpperCase();
+            const users=(usuariosSistemaGlobal||[]).map((u,index)=>({u,index})).filter(({u})=>{
+                const role=rolNormalizadoUsuario(u.rol);
+                const global=usuarioTieneAlcanceGlobal(u);
+                const matchRole=!roleFilter||(roleFilter==='GLOBAL'?global:role===roleFilter);
+                const matchStatus=!statusFilter||(statusFilter==='ACTIVO'?u.activo===true:u.activo!==true);
+                const modules=recursosEfectivosUsuario(u).map(p=>etiquetasPermisosUsuarios[p]||p).join(' ');
+                const scopes=[...(u.usuarios_supervisores||[]).map(x=>x.supervisor||''),...nombresSucursalesUsuario(u)];
+                const capabilities=[u.puede_asignar_tareas?'Asignar tareas':'',u.puede_revisar_tareas?'Revisar tareas':'',u.puede_preparar_correos?'Preparar correos':'',((u.permisos||[]).includes('traslados_aprobar')?'Aprobar traslados':'')].filter(Boolean).join(' ');
+                const all=[u.email,u.nombre,u.rol,modules,scopes.join(' '),capabilities,global?'global':''].join(' ').toLocaleLowerCase('es-CL');
+                return matchRole&&matchStatus&&(!query||all.includes(query));
+            });
+            const count=document.getElementById('usr-matrix-count');
+            if(count)count.textContent=users.length+' perfil'+(users.length===1?'':'es');
+            if(!users.length){
+                tbody.innerHTML='<tr><td colspan="6" class="usr-row-empty">No hay perfiles que coincidan con los filtros. Prueba otra búsqueda o limpia los filtros.</td></tr>';
+                return;
+            }
+            tbody.innerHTML=users.map(({u,index})=>{
+                const global=usuarioTieneAlcanceGlobal(u);
+                const role=rolNormalizadoUsuario(u.rol);
+                const isPrimaryOwner=String(u.email||'').trim().toLowerCase()===EMAIL_ADMIN_PRINCIPAL;
+                const roleClass=isPrimaryOwner?'role-admin is-owner':role==='CONSULTA'?'role-view':global?'role-admin':'';
+                const roleLabel=isPrimaryOwner?'Administrador principal · propietario':etiquetaRolUsuario(u.rol);
+                const assignedModules=recursosEfectivosUsuario(u);
+                const modules=assignedModules.map(p=>'<span class="usr-resource-chip is-granted">'+escaparHTML(etiquetasPermisosUsuarios[p]||p)+'</span>').join('');
+                const supervisors=(u.usuarios_supervisores||[]).map(x=>String(x.supervisor||'').trim()).filter(Boolean);
+                const branches=nombresSucursalesUsuario(u);
+                const scopeHtml='<div class="usr-scope-list">'+
+                    '<span class="usr-scope-line"><i data-lucide="layers-3"></i><span>'+(global?'Acceso global a módulos':assignedModules.length+' módulo(s) asignado(s)')+'</span></span>'+
+                    '<span class="usr-scope-line"><i data-lucide="map-pin"></i><span>'+(branches.length?branches.map(escaparHTML).join(', '):'Sin sucursales asignadas explícitamente')+'</span></span>'+
+                    '<span class="usr-scope-line"><i data-lucide="users"></i><span>'+(supervisors.length?supervisors.map(escaparHTML).join(', '):'Sin supervisores asignados explícitamente')+'</span></span></div>';
+                const caps=[];
+                if(u.puede_asignar_tareas)caps.push('Asignar tareas');
+                if(u.puede_revisar_tareas)caps.push('Revisar tareas');
+                if(u.puede_preparar_correos)caps.push('Preparar correos');
+                if((u.permisos||[]).includes('traslados_aprobar'))caps.push('Aprobar traslados');
+                const chipCaps=caps.length?caps.map(x=>'<span class="usr-resource-chip is-capability">'+escaparHTML(x)+'</span>').join(''):'<span class="text-[9px] text-slate-400">Sin privilegios operativos adicionales</span>';
+                const fullResources='<details class="usr-resources-details"><summary><i data-lucide="list-checks"></i> Ver recursos ('+assignedModules.length+')</summary><div><div class="usr-resource-summary">'+(modules||'<span class="text-xs text-slate-500">No hay módulos asignados explícitamente.</span>')+'</div><p class="mb-2 mt-3 text-[9px] font-extrabold uppercase tracking-wide text-slate-500">Capacidades operativas</p><div class="usr-resource-summary">'+chipCaps+'</div></div></details>';
+                const status=u.activo===true?'<span class="usr-state-pill is-active">Activo</span>':'<span class="usr-state-pill is-inactive">Inactivo</span>';
+                return '<tr>'+
+                    '<td class="p-3"><div class="usr-user-name">'+escaparHTML(u.nombre||'Nombre no informado')+'</div><div class="usr-user-email">'+escaparHTML(u.email||'')+'</div></td>'+
+                    '<td class="p-3"><span class="usr-role-pill '+roleClass+'">'+(isPrimaryOwner?'<i data-lucide="crown"></i>':'')+escaparHTML(roleLabel)+'</span>'+(global?'<div><span class="usr-role-pill role-global">'+(isPrimaryOwner?'CONTROL PRINCIPAL':'Acceso global')+'</span></div>':'')+'</td>'+
+                    '<td class="p-3">'+scopeHtml+'</td>'+
+                    '<td class="p-3"><div class="usr-resource-summary">'+modules+'</div>'+fullResources+'</td>'+
+                    '<td class="p-3">'+status+'</td>'+
+                    '<td class="p-3"><div class="usr-row-actions"><button type="button" data-user-action="edit" data-index="'+index+'">Editar perfil</button><button type="button" data-user-action="toggle" data-index="'+index+'">'+(u.activo===true?'Desactivar':'Activar')+'</button><button type="button" class="is-danger" data-user-action="delete" data-index="'+index+'">Eliminar acceso</button></div></td>'+
+                    '</tr>';
+            }).join('');
+            tbody.querySelectorAll('[data-user-action]').forEach(button=>{
+                button.addEventListener('click',()=>{
+                    const index=Number(button.dataset.index),u=usuariosSistemaGlobal[index];
+                    if(!u)return;
+                    if(button.dataset.userAction==='edit')editarUsuarioRol(index);
+                    else if(button.dataset.userAction==='toggle')toggleUsuario(u.email,u.activo!==true);
+                    else if(button.dataset.userAction==='delete')eliminarUsuarioCreado(u.email,u.nombre||u.email);
+                });
+            });
+            if(window.lucide)lucide.createIcons();
+        }
+        window.renderizarMatrizUsuarios=renderizarMatrizUsuarios;
         async function toggleUsuario(email, activo) {
             try {
                 const j = await llamarApiAdmin('/api/usuarios-auth', {
@@ -362,6 +539,8 @@
             document.getElementById('usr-email').value = u.email || '';
             document.getElementById('usr-nombre').value = u.nombre || '';
             document.getElementById('usr-rol').value = u.rol || 'CONSULTA';
+            const roleDescription = document.getElementById('usr-rol-description');
+            if (roleDescription) roleDescription.textContent = descripcionRolUsuario(u.rol || 'CONSULTA');
 
             construirChecksPermisos();
 
