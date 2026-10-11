@@ -172,8 +172,12 @@
                 .join('');
         }
 
+        let temporizadorFiltroColaboradores = null;
         function filtrarTablaColaboradores() {
-            cargarTablaColaboradores().catch(error => mostrarToast('No se pudo filtrar la nómina: ' + error.message, 'error'));
+            if (temporizadorFiltroColaboradores) clearTimeout(temporizadorFiltroColaboradores);
+            temporizadorFiltroColaboradores = setTimeout(() => {
+                cargarTablaColaboradores().catch(error => mostrarToast('No se pudo filtrar la nómina: ' + error.message, 'error'));
+            }, 180);
         }
 
         function verColaboradoresSucursal(nombre) {
