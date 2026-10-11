@@ -12,6 +12,7 @@ Los cambios nuevos se trabajan en `feature/talana-bot-integration` y en migracio
 - Módulo 21: solicitudes de traslado con colaborador, origen, destino, fecha inicial/final o indefinido, motivo, estado y revisor.
 - Las coberturas temporales se envían a la bandeja de traslados para aprobar o rechazar; aprobar una cobertura no cambia la sucursal permanente del colaborador.
 - Búsqueda por nombre/RUT en el formulario de traslado y filtros por nombre/RUT/sucursal en la nómina de colaboradores.
+- Ficha rápida de RR. HH. por colaborador: licencias médicas, vacaciones, marcas de asistencia y atrasos, respetando los permisos de lectura de cada módulo y sin mostrar diagnósticos.
 - Acceso rápido desde el directorio de sucursales a la nómina filtrada de esa sucursal.
 - Seguimiento de fecha y hora de cargas en hora de Chile para archivos manuales y del bot. Las referencias iniciales están etiquetadas como seguimiento iniciado cuando no se conoce la fecha histórica original.
 - Mapa de sucursales con marcadores GPS por defecto y línea orientativa al seleccionar origen y destino; Google Maps mantiene el cálculo vial real.
