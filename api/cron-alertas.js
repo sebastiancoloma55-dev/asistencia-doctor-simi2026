@@ -47,6 +47,13 @@ export default async function handler(req, res) {
   );
 
   try {
+    // Apply only approved transfers whose effective date has arrived.
+    // The service-role key stays server-side and is never returned to the browser.
+    const { data: trasladosAplicados, error: trasladosError } = await db.rpc(
+      'aplicar_traslados_personal_vigentes'
+    );
+    if (trasladosError) throw trasladosError;
+
     const estadosExcluidos =
       `("${ESTADOS_CERRADOS.join('","')}")`;
 
@@ -136,6 +143,7 @@ export default async function handler(req, res) {
       vencidas: vencidas.length,
       proximasAVencer: proximas.length,
       avisosNuevos: guardadas,
+      trasladosAplicados: trasladosAplicados || 0,
       ejecutadoEn: ahora.toISOString()
     });
   } catch (error) {
