@@ -10,12 +10,10 @@
             else host.value='';
         }
         function actualizarHorarioDotacion(){
-            const turno=document.getElementById('dot-turno')?.value,ini=document.getElementById('dot-hora-inicio'),fin=document.getElementById('dot-hora-fin');
+            const ini=document.getElementById('dot-hora-inicio'),fin=document.getElementById('dot-hora-fin');
             if(!ini||!fin)return;
-            if(turno==='AM'){ini.value='08:00';fin.value='14:00';}
-            else if(turno==='PM'){ini.value='13:00';fin.value='19:00';}
-            else if(turno==='COMPLETO'){ini.value='08:00';fin.value='18:00';}
-            else {ini.value='';fin.value='';}
+            // Los horarios varían por sucursal; no se inventan horas por defecto.
+            ini.value='';fin.value='';
         }
         async function cargarSucursalesDotacion(){
             const select=document.getElementById('dot-sucursal');if(!select)return;
