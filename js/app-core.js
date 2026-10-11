@@ -541,6 +541,7 @@
                         document.getElementById('login-overlay').classList.add('hidden');
                         await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
                         await inicializarDashboard();
+                        if (window.cargarResumenEspacioDashboard) await window.cargarResumenEspacioDashboard();
                         await actualizarContadorNotificacionesTopbar();
                     }catch(perfilError){
                         await _supabase.auth.signOut();
