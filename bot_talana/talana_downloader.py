@@ -156,51 +156,92 @@ def registrar_descargas(context, page):
     return eventos
 
 
+def modal_progreso_visible(page):
+    """Detecta el modal de generación de reportes que puede bloquear los siguientes clics."""
+    for frame in list(page.frames):
+        try:
+            progreso = frame.locator("#liquidacionesProgressModal")
+            for i in range(min(progreso.count(), 5)):
+                if progreso.nth(i).is_visible():
+                    return True
+        except Exception:
+            pass
+        for selector in ("[role='dialog']", ".modal.show", ".modal.in"):
+            try:
+                loc = frame.locator(selector)
+                for i in range(min(loc.count(), 10)):
+                    el = loc.nth(i)
+                    if not el.is_visible():
+                        continue
+                    txt = (el.inner_text(timeout=500) or "").lower()
+                    if el.locator(".percent").count() or any(
+                        word in txt for word in ("generando", "procesando", "importando", "descargando", "cargando")
+                    ):
+                        return True
+            except Exception:
+                pass
+    return False
+
+
+def esperar_fin_modal_progreso(page, timeout_segundos=600):
+    """No permite que el modal de generación interfiera con la siguiente tarea."""
+    inicio = time.monotonic()
+    oculto_desde = None
+    while time.monotonic() - inicio < timeout_segundos:
+        if modal_progreso_visible(page):
+            oculto_desde = None
+        else:
+            if oculto_desde is None:
+                oculto_desde = time.monotonic()
+            elif time.monotonic() - oculto_desde >= 3:
+                return
+        page.wait_for_timeout(500)
+    raise RuntimeError("El modal de generación de Talana no terminó dentro del tiempo permitido.")
+
+
 def esperar_descarga_evento(page, eventos, cantidad_inicial, nombre_base, timeout_segundos=600):
     inicio = time.monotonic()
-    progreso_visto, oculto_desde = False, None
+    progreso_visto = False
+    oculto_desde = None
     captura = DOWNLOAD_DIR / f"{nombre_seguro(nombre_base)}_pendiente.png"
     while time.monotonic() - inicio < timeout_segundos:
         if len(eventos) > cantidad_inicial:
             _, descarga = eventos[cantidad_inicial]
-            return guardar_descarga(descarga, nombre_base)
-        visible = False
-        for frame in list(page.frames):
-            for selector in ("#liquidacionesProgressModal", "[role='dialog']", ".modal.show", ".modal.in"):
-                try:
-                    loc = frame.locator(selector)
-                    for i in range(min(loc.count(), 10)):
-                        el = loc.nth(i)
-                        if el.is_visible():
-                            txt = (el.inner_text(timeout=500) or "").lower()
-                            if any(w in txt for w in ("generando", "procesando", "importando", "descargando", "%")):
-                                visible = True
-                                break
-                    if visible:
-                        break
-                except Exception:
-                    pass
-            if visible:
-                break
+            archivo = guardar_descarga(descarga, nombre_base)
+            # Talana puede emitir el archivo mientras su modal sigue activo.
+            # Esperar a que se cierre evita que bloquee la tarea siguiente.
+            esperar_fin_modal_progreso(page, timeout_segundos=min(600, max(30, timeout_segundos - (time.monotonic() - inicio))))
+            return archivo
+
+        visible = modal_progreso_visible(page)
         if visible:
-            progreso_visto, oculto_desde = True, None
+            progreso_visto = True
+            oculto_desde = None
         elif progreso_visto:
             if oculto_desde is None:
                 oculto_desde = time.monotonic()
-            elif time.monotonic() - oculto_desde >= 2:
-                page.wait_for_timeout(1000)
-                if len(eventos) > cantidad_inicial:
-                    _, descarga = eventos[cantidad_inicial]
-                    return guardar_descarga(descarga, nombre_base)
+            elif time.monotonic() - oculto_desde >= 3:
+                # Dar margen a Playwright para recibir el evento de descarga tras cerrar el modal.
+                limite_gracia = time.monotonic() + 10
+                while time.monotonic() < limite_gracia:
+                    if len(eventos) > cantidad_inicial:
+                        _, descarga = eventos[cantidad_inicial]
+                        return guardar_descarga(descarga, nombre_base)
+                    page.wait_for_timeout(250)
                 break
-        elif time.monotonic() - inicio >= 45:
-            break
+        # No abortar a los 45 s: algunos reportes de Talana tardan más en generar el archivo.
         page.wait_for_timeout(500)
+
     try:
         page.screenshot(path=str(captura), full_page=True)
     except Exception:
         pass
-    raise RuntimeError(f"Talana no entregó la descarga «{nombre_base}». Captura: {captura}")
+    if modal_progreso_visible(page):
+        raise RuntimeError(
+            f"Talana mantuvo activo el modal de generación de «{nombre_base}» y no entregó el archivo. "
+            f"Captura: {captura}"
+        )
+    raise RuntimeError(f"Talana no entregó la descarga «{nombre_base}» tras esperar {int(time.monotonic() - inicio)} s. Captura: {captura}")
 
 def descargar_ausentismo_historico(page, eventos):
     report = "Detalle Ausentismos histórico"
