@@ -145,7 +145,7 @@
                             <td class="p-4">${escaparHTML(registro.cargo)}</td>
                             <td class="p-4">${escaparHTML(registro.sucursal)}</td>
                             <td class="p-4">${escaparHTML(supervisor)}</td>
-                            <td class="p-4"><span class="\${esActivo ? 'colab-status-active' : 'colab-status-inactive'}">\${esActivo ? 'Activo' : 'Inactivo'}</span></td>
+                            <td class="p-4"><span class="${esActivo ? 'colab-status-active' : 'colab-status-inactive'}">${esActivo ? 'Activo' : 'Inactivo'}</span></td>
                         </tr>
                     `;
                 })
