@@ -34,8 +34,8 @@ if(a==="bot_import"){
   colaboradores:["rut","nombres","apellidos","cargo","sucursal","fecha_ingreso","estado"],
   registros_asistencia:["rut","nombre","sucursal","fecha","entrada","salida","atraso","estado","turno","tipo_ausentismo","salida_temprana","sin_marca","marca_incompleta","tiene_atraso","sin_turno_marcas"]
  }[table];
- const norm=(v:unknown)=>{let s=String(v??"").trim().toLowerCase();const d=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);if(d)s=d[3]+"-"+d[2].padStart(2,"0")+"-"+d[1].padStart(2,"0");return s.replace(/\s+/g," ");};
- const keyOf=(r:any)=>reportType==="ausentismos_historico"?["rut","fecha_inicio","fecha_fin","tipo_ausencia","motivo_ausencia"].map(k=>norm(r[k])).join("|"):reportType==="solicitudes_vacaciones_historicas"?["rut","fecha_solicitud","fecha_inicio","fecha_fin","tipo_vacaciones"].map(k=>norm(r[k])).join("|"):reportType==="reporte_jornadas_asistencia"?["rut","fecha","entrada","salida","turno"].map(k=>norm(r[k])).join("|"):norm(r.rut);
+ const norm=(v:unknown)=>{let s=String(v??"").trim().toLowerCase();const d=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);if(d)s=d[3]+"-"+d[2].padStart(2,"0")+"-"+d[1].padStart(2,"0");return s.replace(/\s+/g," ");}; const normRut=(v:unknown)=>String(v??"").toUpperCase().replace(/[.\s]/g,"");
+ const keyOf=(r:any)=>reportType==="ausentismos_historico"?["rut","fecha_inicio","fecha_fin","tipo_ausencia","motivo_ausencia"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):reportType==="solicitudes_vacaciones_historicas"?["rut","fecha_solicitud","fecha_inicio","fecha_fin","tipo_vacaciones"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):reportType==="reporte_jornadas_asistencia"?["rut","fecha","entrada","salida","turno"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):normRut(r.rut);
  const clean=(r:any)=>Object.fromEntries(allowed.filter((k:string)=>r[k]!==undefined).map((k:string)=>[k,r[k]]));
  const errors:string[]=[...parseErrors.map((x:any)=>String(x).slice(0,250))], valid:any[]=[];
  for(let i=0;i<rows.length;i++){const row=clean(rows[i]);if(!row.rut){errors.push("lote fila "+(i+1)+": falta RUT");failed++;continue;}
@@ -73,7 +73,7 @@ if(a==="bot_import"){
     for(const row of pending){const {error:oneError}=await admin.from(table).insert(row);if(oneError){failed++;errors.push(table+" RUT "+row.rut+": "+oneError.message.slice(0,180));}else inserted++;}
    }else inserted=(data||[]).length;}
  }
- const moduleNames=reportType==="ausentismos_historico"?["talana_bot","talana_ausentismos"]:reportType==="solicitudes_vacaciones_historicas"?["talana_bot","talana_vacaciones"]:reportType==="maestro_empleado"?["talana_bot","colaboradores"]:["talana_bot","talana_asistencia"];
+ const moduleNames=reportType==="ausentismos_historico"?["talana_bot","licencias","talana_ausentismos"]:reportType==="solicitudes_vacaciones_historicas"?["talana_bot","vacaciones","talana_vacaciones"]:reportType==="maestro_empleado"?["talana_bot","colaboradores"]:["talana_bot","asistencia","talana_asistencia"];
  let trackingRegistered=true;
  for(const moduleName of moduleNames){const {error}=await admin.from("actualizaciones_fuentes").upsert({modulo:moduleName,actualizado_en:new Date().toISOString(),archivo:String(b.file_name||"Talana"),origen:"bot",usuario_email:"Bot Talana",registros:inserted+updated,detalles:{report_type:reportType,run_id:b.run_id||null,inserted,updated,skipped,failed}},{onConflict:"modulo"});if(error){trackingRegistered=false;console.error("Tracking de importación:",error.message);}}
  return json({report_type:reportType,table,received:rows.length,inserted,updated,skipped,failed,errors:errors.slice(0,100),tracking_registered:trackingRegistered});
