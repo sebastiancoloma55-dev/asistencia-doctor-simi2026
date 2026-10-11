@@ -249,7 +249,7 @@
     const host=$("traslado-tabla-body");if(!host)return;
     host.innerHTML='<tr><td colspan="7" class="p-6 text-center text-slate-500">Cargando solicitudes…</td></tr>';
     try{
-      const {data,error}=await _supabase.from("traslados_personal").select("id,rut,colaborador_nombre,cargo,sucursal_origen_nombre,sucursal_destino_nombre,fecha_inicio,fecha_termino,indefinido,motivo,estado,created_at,solicitado_por,revisado_por").order("created_at",{ascending:false}).limit(1000);
+      const {data,error}=await _supabase.from("traslados_personal").select("id,rut,colaborador_nombre,cargo,sucursal_origen_nombre,sucursal_destino_nombre,fecha_inicio,fecha_termino,indefinido,motivo,estado,aplicado_en,created_at,solicitado_por,revisado_por").order("created_at",{ascending:false}).limit(1000);
       if(error)throw error;
       const filter=$("traslado-filtro-estado")?.value||"TODOS";
       const rows=(data||[]).filter(r=>filter==="TODOS"||r.estado===filter);
@@ -261,7 +261,8 @@
         const stateClass=r.estado==="APROBADO"?"bg-emerald-50 text-emerald-700":r.estado==="RECHAZADO"||r.estado==="CANCELADO"?"bg-rose-50 text-rose-700":"bg-amber-50 text-amber-800";
         let actions='<span class="text-slate-400">Sin acciones</span>';
         if(canApproveTransfers&&r.estado==="SOLICITADO")actions='<div class="flex gap-2"><button type="button" data-transfer-action="APROBADO" data-id="'+esc(r.id)+'" class="rounded-lg bg-emerald-600 px-2 py-1.5 font-bold text-white">Aprobar</button><button type="button" data-transfer-action="RECHAZADO" data-id="'+esc(r.id)+'" class="rounded-lg bg-rose-600 px-2 py-1.5 font-bold text-white">Rechazar</button></div>';
-        const cells=[(r.colaborador_nombre||"")+" · "+(r.rut||"Sin RUT"),r.sucursal_origen_nombre,r.sucursal_destino_nombre,dateText,r.motivo,r.estado,actions];
+        const stateLabel=r.estado==="APROBADO"?(r.aplicado_en?"APROBADO · APLICADO":"APROBADO · PROGRAMADO"):r.estado;
+        const cells=[(r.colaborador_nombre||"")+" · "+(r.rut||"Sin RUT"),r.sucursal_origen_nombre,r.sucursal_destino_nombre,dateText,r.motivo,stateLabel,actions];
         cells.forEach((v,i)=>{const td=document.createElement("td");td.className="p-3 align-top";if(i===5)td.innerHTML='<span class="rounded-full px-2 py-1 font-bold '+stateClass+'">'+esc(v)+'</span>';else if(i===6)td.innerHTML=v;else td.textContent=v||"—";tr.append(td);});
         host.append(tr);
       });
