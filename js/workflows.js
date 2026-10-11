@@ -236,9 +236,12 @@
             if(modulo==='notificaciones')return ['tareas','traslados','amonestaciones'].some(p=>modulosPermitidosActuales.includes(p));
             return modulosPermitidosActuales.includes(modulo);
         }
-        function puedeAsignarTareasActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_asignar_tareas;}
-        function puedeRevisarTareasActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_revisar_tareas;}
-        function puedePrepararCorreosActual(){return esAdminPrincipalActual()||!!perfilActualSistema?.puede_preparar_correos;}
+        function esVisualizadorActual(){
+            return !esAdminPrincipalActual() && rolNormalizadoUsuario(perfilActualSistema?.rol)==='CONSULTA';
+        }
+        function puedeAsignarTareasActual(){return esAdminPrincipalActual()||(!esVisualizadorActual()&&!!perfilActualSistema?.puede_asignar_tareas);}
+        function puedeRevisarTareasActual(){return esAdminPrincipalActual()||(!esVisualizadorActual()&&!!perfilActualSistema?.puede_revisar_tareas);}
+        function puedePrepararCorreosActual(){return esAdminPrincipalActual()||(!esVisualizadorActual()&&!!perfilActualSistema?.puede_preparar_correos);}
         async function cargarPerfilPermisosActual(user){
             const email=String(user?.email||'').trim().toLowerCase();
             if(!email)throw new Error('La sesión no contiene un correo válido.');
@@ -266,8 +269,66 @@
             const avisoCorreo=document.getElementById('correo-permiso-aviso');if(avisoCorreo)avisoCorreo.classList.toggle('hidden',!tienePermisoModulo('correos')||puedePrepararCorreosActual());
             document.querySelectorAll('[data-accion="preparar-correos"],[data-accion="abrir-borradores"]').forEach(b=>b.classList.toggle('hidden',!puedePrepararCorreosActual()));
             if(window.organizarNavegacionPermisos)window.organizarNavegacionPermisos();
+            aplicarModoVisualizadorActual();
             if(window.lucide)lucide.createIcons();
         }
+
+        function esAccionDeModificacionVisualizador(el){
+            if(!el)return false;
+            const handler=String(el.getAttribute('onclick')||'');
+            const title=String(el.getAttribute('title')||el.getAttribute('aria-label')||'');
+            const label=String(el.innerText||el.value||'');
+            const signals=handler+' '+title+' '+label;
+            return /(guardar|crear|eliminar|borrar|editar|modificar|aprobar|rechazar|archivar|resolver|desactivar|importar|procesarexcel|procesarhistorial|asignar|registrar|toggleusuario|cambiarclave|enviarrecuperacion|guardarusuario|alternarfijado|cambiarestadonota|eliminarnota|crearinvitar|crearusuario|generarinvitacion|subirarchivo|procesarhistorial)/i.test(signals);
+        }
+        function aplicarModoVisualizadorActual(root=document){
+            const visualizador=esVisualizadorActual();
+            document.body.classList.toggle('modo-visualizador',visualizador);
+            document.querySelectorAll('section[id^="view-"]').forEach(view=>{
+                let banner=view.querySelector(':scope > .visualizador-notice');
+                if(visualizador&&!banner){
+                    banner=document.createElement('div');
+                    banner.className='visualizador-notice';
+                    banner.innerHTML='<span><i data-lucide="eye"></i></span><div><b>Modo visualizador · solo lectura</b><small>Puedes consultar los módulos autorizados. Las acciones de creación, edición, aprobación e importación están deshabilitadas para este perfil.</small></div>';
+                    view.insertBefore(banner,view.firstChild);
+                }else if(!visualizador&&banner)banner.remove();
+            });
+            const controls=root.querySelectorAll?root.querySelectorAll('button,input[type="submit"],input[type="file"],form input,form select,form textarea'):[];
+            controls.forEach(el=>{
+                const form=el.closest('form');
+                const handler=String(form?.getAttribute('onsubmit')||'');
+                const writeForm=!!form&&/(guardar|crear|eliminar|borrar|editar|modificar|aprobar|rechazar|procesar|importar|registrar|asignar|cambiar|enviarrecuperacion|crearusuario)/i.test(handler);
+                const safeButton=el.tagName==='BUTTON'&&/(cerrar|cancelar|volver|limpiar filtros|abrir|consultar|buscar|filtrar|actualizar|refrescar|ver ficha|mostrar todas|descargar|exportar|imprimir|copiar|generar reporte|ruta vial)/i.test(String(el.innerText||el.getAttribute('title')||''));
+                const shouldLock=visualizador&&!safeButton&&(
+                    (el.tagName==='BUTTON'&&esAccionDeModificacionVisualizador(el))||
+                    (el.matches('input[type="submit"],input[type="file"]'))||
+                    writeForm
+                );
+                if(shouldLock){
+                    if(!el.hasAttribute('data-readonly-locked')){
+                        el.setAttribute('data-readonly-locked','1');
+                        el.dataset.readonlyWasDisabled=el.disabled?'1':'0';
+                        el.dataset.readonlyWasTitle=el.getAttribute('title')||'';
+                    }
+                    el.disabled=true;
+                    el.setAttribute('aria-disabled','true');
+                    el.title='Perfil visualizador: acción de modificación no disponible.';
+                }else if(!visualizador&&el.hasAttribute('data-readonly-locked')){
+                    el.disabled=el.dataset.readonlyWasDisabled==='1';
+                    el.removeAttribute('data-readonly-locked');
+                    el.removeAttribute('aria-disabled');
+                    if(el.dataset.readonlyWasTitle)el.title=el.dataset.readonlyWasTitle;else el.removeAttribute('title');
+                    delete el.dataset.readonlyWasDisabled;delete el.dataset.readonlyWasTitle;
+                }
+            });
+            if(visualizador&&!window.__rrhhViewerObserver&&document.body&&window.MutationObserver){
+                window.__rrhhViewerObserver=new MutationObserver(records=>{
+                    if(records.some(r=>r.addedNodes&&r.addedNodes.length))aplicarModoVisualizadorActual(document);
+                });
+                window.__rrhhViewerObserver.observe(document.body,{childList:true,subtree:true});
+            }
+        }
+
         function opcionesSeleccionadas(id){return [...document.getElementById(id).selectedOptions].map(x=>x.value);}
         const etiquetasPermisosUsuarios = {
             dashboard:'Dashboard', espacio:'Mi espacio de trabajo', tareas:'Tareas diarias',
