@@ -426,6 +426,11 @@ def ejecutar_descargas(rut, clave, headless=True):
             ]
             for titulo, accion, es_archivo in tareas:
                 try:
+                    # Si la tarea anterior dejó un modal de generación abierto, esperar
+                    # antes de intentar clicar el siguiente reporte.
+                    if modal_progreso_visible(page):
+                        print(f"Esperando que Talana cierre el modal anterior antes de: {titulo}")
+                        esperar_fin_modal_progreso(page, timeout_segundos=600)
                     print(f"INICIO: {titulo}")
                     valor = accion()
                     if es_archivo:
