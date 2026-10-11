@@ -16,6 +16,7 @@ class TalanaBotCloud:
   if out.get("error"): raise RuntimeError(out["error"])
   return out
  def poll(self): return self.call("bot_config")
+ def generate_recurring_tasks(self): return self.call("bot_generate_recurring_tasks")
  def claim_manual(self,run_id): return self.call("bot_claim_manual",run_id=run_id)
  def start_run(self,trigger_type="automatic"): return self.call("bot_start",trigger_type=trigger_type)["run"]["id"]
  def upload_file(self,run_id,report_type,path):
