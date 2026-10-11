@@ -595,6 +595,44 @@ body.theme-dark .login-shell{background:rgba(10,22,39,.78)!important}
 @media(max-width:760px){.login-shell{grid-template-columns:minmax(0,1fr)!important;min-height:0!important}.login-hero{min-height:320px!important;padding:28px!important}.login-hero-copy{margin-top:28px!important;margin-bottom:70px!important}.login-simi-stage{transform:scale(.72);transform-origin:bottom left;bottom:0!important}}
 @media(prefers-reduced-motion:reduce){.login-overlay-modern:before{animation:none!important}.login-shell,.dashboard-welcome{transition:none!important}}
 
+
+/* NOVA V3 — identidad visual original para el acceso RRHH */
+body:has(.nova-v3-overlay){margin:0}
+.nova-v3-overlay{position:fixed!important;inset:0!important;z-index:150!important;display:flex!important;flex-direction:column!important;overflow:auto!important;isolation:isolate;background:#07131b!important;color:#f4f8f8!important;font-family:Inter,ui-sans-serif,system-ui,sans-serif!important}
+.nova-v3-overlay *{box-sizing:border-box}
+.nova-v3-atmosphere{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse at 22% 45%,rgba(0,161,145,.13),transparent 36%),radial-gradient(ellipse at 79% 42%,rgba(0,113,133,.12),transparent 38%),linear-gradient(118deg,#07131b 0%,#091922 53%,#0a1720 100%)}
+.nova-v3-grid{position:absolute;inset:0;opacity:.17;background-image:linear-gradient(rgba(177,221,220,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(177,221,220,.09) 1px,transparent 1px);background-size:54px 54px;mask-image:linear-gradient(90deg,black,transparent 75%)}
+.nova-v3-orb{position:absolute;border-radius:50%;filter:blur(1px);animation:nova-v3-drift 16s ease-in-out infinite alternate}
+.nova-v3-orb-a{width:420px;height:420px;left:-210px;top:14%;background:radial-gradient(circle,rgba(0,191,166,.15),transparent 70%)}
+.nova-v3-orb-b{width:520px;height:520px;right:-240px;bottom:-220px;background:radial-gradient(circle,rgba(0,130,162,.16),transparent 70%);animation-delay:-8s}
+.nova-v3-cross{position:absolute;color:rgba(104,220,205,.5);font-size:20px;font-weight:200}.nova-v3-cross-a{top:25%;left:5%}.nova-v3-cross-b{right:5%;top:18%}
+.nova-v3-coordinate{position:absolute;right:26px;bottom:30%;font-size:9px;letter-spacing:.26em;writing-mode:vertical-rl;color:rgba(195,223,225,.35)}
+.nova-v3-topbar{width:min(1440px,100%);margin:0 auto;padding:26px clamp(22px,5vw,78px);display:flex;align-items:center;justify-content:space-between;gap:20px}
+.nova-v3-brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}.nova-v3-brand-image{width:43px;height:43px;border:1px solid rgba(115,222,209,.6);border-radius:15px;display:grid;place-items:center;background:rgba(255,255,255,.07);box-shadow:0 0 26px rgba(0,194,170,.12);overflow:hidden}.nova-v3-brand-image img{width:100%;height:100%;object-fit:cover}.nova-v3-brand-copy{display:flex;flex-direction:column;gap:4px}.nova-v3-brand-copy strong{font-size:12px;letter-spacing:.2em;font-weight:850}.nova-v3-brand-copy small{font-size:9px;letter-spacing:.17em;color:#7f9caa}
+.nova-v3-top-status{display:flex;align-items:center;gap:10px;font-size:9px;letter-spacing:.18em;color:#a4bdc6}.nova-v3-top-status span,.nova-v3-live i{width:6px;height:6px;background:#53e1ba;border-radius:50%;box-shadow:0 0 12px rgba(83,225,186,.8)}.nova-v3-top-status i{height:14px;width:1px;background:rgba(180,210,215,.25)}
+.nova-v3-main{width:min(1280px,100%);margin:auto;flex:1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(360px,.72fr);align-items:center;gap:clamp(36px,8vw,128px);padding:25px clamp(22px,7vw,110px) 45px}
+.nova-v3-intro{position:relative;min-width:0;padding-top:8px}.nova-v3-kicker{display:flex;align-items:center;gap:12px;font-size:9px;font-weight:800;letter-spacing:.24em;color:#79d6ca}.nova-v3-kicker-line{width:29px;height:1px;background:#49d6c1;box-shadow:0 0 12px #49d6c1}
+.nova-v3-intro h1{margin:28px 0 15px;font-size:clamp(43px,5.4vw,76px);line-height:.99;letter-spacing:-.065em;font-weight:760;color:#f4f8f8}.nova-v3-intro h1 em{font-style:normal;color:#6ee0cf}.nova-v3-description{max-width:410px;color:#9bb2bb;font-size:14px;line-height:1.9;margin:0}
+.nova-v3-orbit-scene{height:250px;max-width:530px;position:relative;margin-top:12px;overflow:visible}
+.nova-v3-orbit{position:absolute;border:1px solid rgba(103,214,203,.2);border-radius:50%;left:48%;top:50%;transform:translate(-50%,-50%) rotate(-18deg)}
+.nova-v3-orbit-outer{width:270px;height:150px;border-style:dashed;animation:nova-v3-spin 28s linear infinite}.nova-v3-orbit-middle{width:220px;height:118px;transform:translate(-50%,-50%) rotate(52deg);border-color:rgba(103,214,203,.32);animation:nova-v3-spin-reverse 22s linear infinite}.nova-v3-orbit-inner{width:155px;height:155px;border-color:rgba(103,214,203,.15);box-shadow:0 0 55px rgba(0,177,157,.07)}
+.nova-v3-core{position:absolute;left:48%;top:50%;transform:translate(-50%,-50%);width:82px;height:82px;border-radius:28px;display:grid;place-items:center;background:linear-gradient(145deg,#12363d,#0c242d);border:1px solid rgba(105,228,211,.5);box-shadow:0 0 0 10px rgba(65,197,180,.035),0 0 45px rgba(0,195,172,.16);animation:nova-v3-float 5s ease-in-out infinite}.nova-v3-core img{width:61px;height:61px;object-fit:contain;border-radius:50%;position:relative;z-index:2}.nova-v3-core-pulse{position:absolute;inset:-9px;border:1px solid rgba(103,214,203,.28);border-radius:33px;animation:nova-v3-pulse 3.4s ease-out infinite}
+.nova-v3-orbit-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:#7df1d9;box-shadow:0 0 13px #7df1d9}.nova-v3-dot-one{left:65%;top:19%}.nova-v3-dot-two{left:25%;top:58%;width:5px;height:5px}.nova-v3-dot-three{left:70%;top:76%;background:#e1f8f4}
+.nova-v3-float-tag{position:absolute;display:flex;align-items:center;gap:10px;padding:10px 13px;background:rgba(14,36,44,.82);border:1px solid rgba(129,205,199,.17);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.14);backdrop-filter:blur(12px);animation:nova-v3-float 6s ease-in-out infinite}.nova-v3-tag-one{left:0;top:18%}.nova-v3-tag-two{right:0;top:34%;animation-delay:-2s}.nova-v3-tag-three{left:20%;bottom:0;animation-delay:-4s}.nova-v3-tag-icon{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:rgba(82,218,197,.1);color:#79e2d2;font-size:9px;font-weight:800}.nova-v3-float-tag b,.nova-v3-float-tag small{display:block;white-space:nowrap}.nova-v3-float-tag b{font-size:9px;letter-spacing:.1em}.nova-v3-float-tag small{font-size:9px;color:#7f9da5;margin-top:4px}
+.nova-v3-bottom-note{display:flex;align-items:center;gap:12px;padding-top:20px;border-top:1px solid rgba(180,218,218,.13);max-width:440px}.nova-v3-bottom-icon{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:#78ddcf;background:rgba(85,216,198,.08);border:1px solid rgba(85,216,198,.2)}.nova-v3-bottom-icon svg{width:16px;height:16px}.nova-v3-bottom-note b,.nova-v3-bottom-note small{display:block}.nova-v3-bottom-note b{font-size:11px;font-weight:650}.nova-v3-bottom-note small{font-size:10px;color:#829ba5;margin-top:4px}.nova-v3-bottom-arrow{margin-left:auto;color:#6faaa9;font-size:20px}
+.nova-v3-auth{width:100%;max-width:440px;justify-self:end;position:relative;padding:clamp(26px,3vw,43px);background:linear-gradient(145deg,rgba(20,43,52,.94),rgba(10,27,36,.92));border:1px solid rgba(156,219,214,.17);border-radius:24px;box-shadow:0 30px 100px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.05);backdrop-filter:blur(22px);overflow:hidden}
+.nova-v3-auth:before{content:"";position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,#70e1d0,transparent);opacity:.75}.nova-v3-auth-top{display:flex;align-items:center;justify-content:space-between}.nova-v3-auth-symbol{width:45px;height:45px;border-radius:15px;display:grid;place-items:center;color:#77e1d0;background:rgba(78,211,193,.09);border:1px solid rgba(106,222,209,.24)}.nova-v3-auth-symbol svg{width:23px;height:23px}.nova-v3-auth-step{font-size:9px;letter-spacing:.18em;color:#7d9aa4}.nova-v3-auth-step b{color:#70ddce;font-weight:700}
+.nova-v3-auth-heading{margin:32px 0 27px}.nova-v3-auth-heading>span{font-size:9px;font-weight:800;letter-spacing:.2em;color:#71dfcf}.nova-v3-auth-heading h2{font-size:clamp(32px,3vw,43px);line-height:1.05;letter-spacing:-.055em;font-weight:730;color:#f2f8f7;margin:13px 0 11px}.nova-v3-auth-heading p{font-size:12px;line-height:1.7;color:#92aab3;margin:0}
+.nova-v3-form{display:flex;flex-direction:column;gap:20px}.nova-v3-field label{display:block;font-size:9px;font-weight:750;letter-spacing:.13em;color:#b8cbd0;margin-bottom:9px}.nova-v3-input-wrap{display:flex;align-items:center;gap:12px;min-height:54px;padding:0 15px;border-radius:12px;background:rgba(3,15,22,.44);border:1px solid rgba(149,190,195,.18);transition:border-color .2s,box-shadow .2s,background .2s}.nova-v3-input-wrap:focus-within{border-color:#65d9c8;background:rgba(3,15,22,.65);box-shadow:0 0 0 3px rgba(79,211,191,.09)}.nova-v3-input-wrap>svg{width:17px;height:17px;flex-shrink:0;color:#7c9ba5}.nova-v3-input-wrap input{width:100%;min-width:0;outline:none;border:0;background:transparent;color:#f1f8f8;font-size:12px;padding:16px 0}.nova-v3-input-wrap input::placeholder{color:#617e89}.nova-v3-eye{border:0;background:transparent;color:#82a3ad;cursor:pointer;padding:6px;display:grid;place-items:center}.nova-v3-eye svg{width:17px;height:17px}.nova-v3-form-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:-4px}.nova-v3-remember{display:flex;align-items:center;gap:8px;font-size:10px;color:#91aab3;cursor:pointer}.nova-v3-remember input{position:absolute;opacity:0;width:1px;height:1px}.nova-v3-remember span{width:14px;height:14px;border:1px solid #587782;border-radius:4px;display:inline-block;position:relative}.nova-v3-remember input:checked+span{background:#52cbb9;border-color:#52cbb9}.nova-v3-remember input:checked+span:after{content:"✓";position:absolute;left:2px;top:-2px;color:#08202a;font-size:11px;font-weight:900}.nova-v3-forgot{border:0;background:transparent;color:#70ddce;font-size:10px;font-weight:650;cursor:pointer;padding:4px 0}.nova-v3-forgot:hover{color:#b1fff1}
+.nova-v3-error{font-size:12px;color:#ffb7bc;background:rgba(190,40,61,.13);border:1px solid rgba(255,111,127,.28);border-radius:10px;padding:10px 12px}.nova-v3-submit{width:100%;min-height:54px;border:1px solid rgba(132,246,226,.28);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 8px 7px 18px;background:#59d6c1;color:#07252b;font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 10px 30px rgba(39,190,169,.15);transition:transform .2s,filter .2s,box-shadow .2s}.nova-v3-submit:hover{transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 14px 35px rgba(39,190,169,.23)}.nova-v3-submit:active{transform:translateY(0)}.nova-v3-submit-icon{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;background:rgba(4,48,53,.1)}.nova-v3-submit-icon svg{width:18px;height:18px}
+.nova-v3-auth-foot{display:flex;align-items:center;gap:10px;border-top:1px solid rgba(160,202,205,.12);margin-top:25px;padding-top:18px}.nova-v3-lock{width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(133,194,197,.16);border-radius:9px;color:#85b9bb}.nova-v3-lock svg{width:14px;height:14px}.nova-v3-auth-foot b,.nova-v3-auth-foot small{display:block}.nova-v3-auth-foot b{font-size:10px;color:#c5d8da;font-weight:650}.nova-v3-auth-foot small{font-size:9px;color:#78939e;margin-top:4px}.nova-v3-live{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:8px;letter-spacing:.12em;color:#83c4b8}.nova-v3-live i{width:5px;height:5px}
+.nova-v3-footer{width:min(1440px,100%);margin:0 auto;padding:15px clamp(22px,5vw,78px) 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;color:#5e7b86;font-size:8px;letter-spacing:.14em}.nova-v3-footer-mark{color:#a2bdc1;font-weight:850;letter-spacing:.1em}.nova-v3-footer-mark span{color:#55d6c2;padding:0 5px}
+@keyframes nova-v3-spin{to{transform:translate(-50%,-50%) rotate(342deg)}}@keyframes nova-v3-spin-reverse{to{transform:translate(-50%,-50%) rotate(-308deg)}}@keyframes nova-v3-float{0%,100%{translate:0 0}50%{translate:0 -8px}}@keyframes nova-v3-pulse{0%{transform:scale(.88);opacity:.75}100%{transform:scale(1.25);opacity:0}}@keyframes nova-v3-drift{to{transform:translate3d(40px,-25px,0) scale(1.12)}}
+@media(max-width:900px){.nova-v3-main{grid-template-columns:minmax(0,1fr) minmax(330px,.85fr);gap:28px;padding-left:28px;padding-right:28px}.nova-v3-intro h1{font-size:clamp(40px,6vw,58px)}.nova-v3-orbit-scene{transform:scale(.9);transform-origin:left center;margin-right:-35px}.nova-v3-auth{padding:28px}.nova-v3-coordinate{display:none}}
+@media(max-width:700px){.nova-v3-topbar{padding:18px 20px}.nova-v3-top-status{font-size:8px}.nova-v3-main{display:flex;flex-direction:column;align-items:stretch;gap:28px;padding:30px 20px 35px}.nova-v3-intro h1{font-size:48px;margin-top:20px}.nova-v3-description{font-size:13px}.nova-v3-orbit-scene{height:205px;max-width:100%;transform:scale(.85);transform-origin:center top;margin:12px 0 -10px}.nova-v3-orbit{left:50%}.nova-v3-core{left:50%}.nova-v3-tag-one{left:0}.nova-v3-tag-two{right:0}.nova-v3-tag-three{left:14%}.nova-v3-auth{max-width:none;padding:26px 22px;border-radius:20px}.nova-v3-auth-heading{margin:25px 0 23px}.nova-v3-footer{padding:15px 20px 20px;flex-wrap:wrap}.nova-v3-footer span:nth-child(2){display:none}}
+@media(max-width:380px){.nova-v3-top-status{letter-spacing:.08em}.nova-v3-intro h1{font-size:42px}.nova-v3-orbit-scene{transform:scale(.74);transform-origin:left top;width:130%;margin-bottom:-35px}.nova-v3-form-meta{align-items:flex-start;flex-direction:column}.nova-v3-auth{padding:23px 18px}}
+@media(prefers-reduced-motion:reduce){.nova-v3-orb,.nova-v3-orbit-outer,.nova-v3-orbit-middle,.nova-v3-core,.nova-v3-core-pulse,.nova-v3-float-tag{animation:none!important;transition:none!important}}
+
 </style>
 </head>
 
@@ -604,117 +642,62 @@ body.theme-dark .login-shell{background:rgba(10,22,39,.78)!important}
         class="fixed right-4 top-4 z-[200] w-full max-w-md space-y-3 px-4"
     ></div>
 
-    <!-- LOGIN MODERNO E INTERACTIVO -->
-    <div id="login-overlay" class="login-overlay-modern">
-        <div class="login-grid-bg" aria-hidden="true"></div>
-        <div class="login-glow login-glow-red" aria-hidden="true"></div>
-        <div class="login-glow login-glow-blue" aria-hidden="true"></div>
+    <!-- NOVA V3: PORTAL RRHH DISEÑADO DESDE CERO -->
+    <div id="login-overlay" class="nova-v3-overlay">
+      <div class="nova-v3-atmosphere" aria-hidden="true">
+        <span class="nova-v3-orb nova-v3-orb-a"></span>
+        <span class="nova-v3-orb nova-v3-orb-b"></span>
+        <span class="nova-v3-grid"></span>
+        <span class="nova-v3-cross nova-v3-cross-a">+</span>
+        <span class="nova-v3-cross nova-v3-cross-b">+</span>
+        <span class="nova-v3-coordinate">RRHH / CL · 2026</span>
+      </div>
 
-        <div class="login-shell">
-            <section class="login-hero" aria-label="Bienvenida a Recursos Humanos">
-                <div class="login-brand">
-                    <div class="login-brand-mark"><img class="login-brand-logo" src="/doctor-simi-logo.jpg" alt="Logo Doctor Simi"></div>
-                    <div>
-                        <div class="login-brand-name">DOCTOR SIMI</div>
-                        <div class="login-brand-sub">Recursos Humanos · Chile</div>
-                    </div>
-                </div>
+      <header class="nova-v3-topbar">
+        <a class="nova-v3-brand" href="#" aria-label="Doctor Simi Recursos Humanos">
+          <span class="nova-v3-brand-image"><img src="/doctor-simi-logo.jpg" alt="Doctor Simi"></span>
+          <span class="nova-v3-brand-copy"><strong>DOCTOR SIMI</strong><small>PEOPLE & OPERATIONS</small></span>
+        </a>
+        <div class="nova-v3-top-status"><span></span> PORTAL INTERNO <i></i> CHILE</div>
+      </header>
 
-                <div class="login-hero-copy">
-                    <div class="login-eyebrow"><span class="login-eyebrow-dot"></span> PLATAFORMA INTERNA RRHH</div>
-                    <h2>Tu equipo de RRHH,<br><span>siempre en movimiento.</span></h2>
-                    <p>Asistencia, ausentismo, tareas y gestión diaria en un solo lugar. Entra y pongamos todo en orden.</p>
-                    <div class="login-proof">
-                        <span class="login-proof-icon"><i data-lucide="shield-check" style="width:17px;height:17px"></i></span>
-                        <span>Acceso protegido para usuarios autorizados</span>
-                    </div>
-                </div>
+      <main class="nova-v3-main">
+        <section class="nova-v3-intro" aria-label="Portal de Recursos Humanos">
+          <div class="nova-v3-kicker"><span class="nova-v3-kicker-line"></span> PLATAFORMA DE OPERACIONES HUMANAS</div>
+          <h1>Las personas<br>mueven <em>todo.</em></h1>
+          <p class="nova-v3-description">Un centro de control para asistencia, turnos y equipos. Todo conectado. Todo en orden.</p>
 
-                <div class="login-simi-stage" aria-hidden="true">
-                    <div class="login-track-line"></div>
-                    <div class="login-runner runner-one">
-                        <svg viewBox="0 0 100 145" role="img" aria-label="Mascota médica corriendo">
-                            <g class="simi-leg-left"><path d="M44 104 L35 121 L22 130" stroke="#243b53" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M12 131 Q24 124 34 132 L32 138 L11 138Z" fill="#e31837"/></g>
-                            <g class="simi-leg-right"><path d="M58 103 L65 119 L78 124" stroke="#243b53" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M74 122 Q86 117 92 126 L90 132 L72 130Z" fill="#e31837"/></g>
-                            <path d="M34 61 Q50 53 67 62 L73 104 Q50 113 29 103Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
-                            <path d="M45 63 L51 75 L57 63 L54 92 L49 92Z" fill="#e31837"/>
-                            <path d="M36 65 L45 72 L40 87 L31 78Z" fill="#ffffff" stroke="#d7dee7" stroke-width="1.5"/>
-                            <path d="M65 65 L57 72 L63 87 L72 77Z" fill="#ffffff" stroke="#d7dee7" stroke-width="1.5"/>
-                            <g class="simi-arm-left"><path d="M34 67 L22 78 L16 67" stroke="#f0c6a6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M32 63 L23 72 L18 66" stroke="#ffffff" stroke-width="12" stroke-linecap="round" fill="none"/></g>
-                            <g class="simi-arm-right"><path d="M68 66 L80 54 L88 62" stroke="#f0c6a6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M68 63 L79 51 L85 58" stroke="#ffffff" stroke-width="12" stroke-linecap="round" fill="none"/></g>
-                            <path d="M25 32 Q20 11 43 8 Q62 -1 76 16 Q88 28 77 47 L70 56 L30 52Z" fill="#f4f6f8" stroke="#cbd5e1" stroke-width="2"/>
-                            <ellipse cx="51" cy="35" rx="25" ry="27" fill="#f1c7a6"/>
-                            <path d="M26 31 Q27 10 47 10 Q66 5 77 25 L68 24 Q59 17 46 22 Q37 25 26 31Z" fill="#f7f8fa" stroke="#d4dbe3" stroke-width="2"/>
-                            <path d="M32 35 L44 35 M57 35 L69 35" stroke="#263746" stroke-width="2.5" stroke-linecap="round"/>
-                            <ellipse cx="39" cy="38" rx="3" ry="4" fill="#263746"/><ellipse cx="62" cy="38" rx="3" ry="4" fill="#263746"/>
-                            <path d="M49 38 L46 46 L51 47" stroke="#d79c7a" stroke-width="2" stroke-linecap="round" fill="none"/>
-                            <path d="M30 47 Q39 42 49 48 Q59 42 72 47 Q65 60 52 53 Q40 60 30 47Z" fill="#4b342b"/>
-                            <path d="M41 59 Q51 64 61 58" stroke="#bd806a" stroke-width="2" fill="none" stroke-linecap="round"/>
-                            <circle cx="69" cy="72" r="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/><path d="M67 72 L71 72 M69 70 L69 74" stroke="#E31837" stroke-width="1.3"/>
-                        </svg>
-                    </div>
-                    <div class="login-runner runner-two">
-                        <svg viewBox="0 0 100 145" role="img" aria-label="Mascota médica saltando">
-                            <g class="simi-leg-left"><path d="M44 104 L35 121 L22 130" stroke="#243b53" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M12 131 Q24 124 34 132 L32 138 L11 138Z" fill="#f4b942"/></g>
-                            <g class="simi-leg-right"><path d="M58 103 L65 119 L78 124" stroke="#243b53" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M74 122 Q86 117 92 126 L90 132 L72 130Z" fill="#f4b942"/></g>
-                            <path d="M34 61 Q50 53 67 62 L73 104 Q50 113 29 103Z" fill="#fff" stroke="#cbd5e1" stroke-width="2"/><path d="M45 63 L51 75 L57 63 L54 92 L49 92Z" fill="#002B49"/>
-                            <g class="simi-arm-left"><path d="M34 67 L22 78 L16 67" stroke="#f0c6a6" stroke-width="9" stroke-linecap="round" fill="none"/><path d="M32 63 L23 72 L18 66" stroke="#fff" stroke-width="12" stroke-linecap="round" fill="none"/></g>
-                            <g class="simi-arm-right"><path d="M68 66 L80 54 L88 62" stroke="#f0c6a6" stroke-width="9" stroke-linecap="round" fill="none"/><path d="M68 63 L79 51 L85 58" stroke="#fff" stroke-width="12" stroke-linecap="round" fill="none"/></g>
-                            <path d="M25 32 Q20 11 43 8 Q62 -1 76 16 Q88 28 77 47 L70 56 L30 52Z" fill="#f4f6f8" stroke="#cbd5e1" stroke-width="2"/><ellipse cx="51" cy="35" rx="25" ry="27" fill="#f1c7a6"/><path d="M26 31 Q27 10 47 10 Q66 5 77 25 L68 24 Q59 17 46 22 Q37 25 26 31Z" fill="#f7f8fa" stroke="#d4dbe3" stroke-width="2"/><path d="M32 35 L44 35 M57 35 L69 35" stroke="#263746" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="39" cy="38" rx="3" ry="4" fill="#263746"/><ellipse cx="62" cy="38" rx="3" ry="4" fill="#263746"/><path d="M49 38 L46 46 L51 47" stroke="#d79c7a" stroke-width="2" fill="none"/><path d="M30 47 Q39 42 49 48 Q59 42 72 47 Q65 60 52 53 Q40 60 30 47Z" fill="#4b342b"/><path d="M41 59 Q51 64 61 58" stroke="#bd806a" stroke-width="2" fill="none"/><circle cx="69" cy="72" r="5" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
-                        </svg>
-                    </div>
-                    <div class="login-runner runner-three">
-                        <svg viewBox="0 0 100 145" role="img" aria-label="Mascota médica corriendo">
-                            <g class="simi-leg-left"><path d="M44 104 L35 121 L22 130" stroke="#243b53" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M12 131 Q24 124 34 132 L32 138 L11 138Z" fill="#E31837"/></g><g class="simi-leg-right"><path d="M58 103 L65 119 L78 124" stroke="#243b53" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M74 122 Q86 117 92 126 L90 132 L72 130Z" fill="#E31837"/></g><path d="M34 61 Q50 53 67 62 L73 104 Q50 113 29 103Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/><path d="M45 63 L51 75 L57 63 L54 92 L49 92Z" fill="#e31837"/><g class="simi-arm-left"><path d="M34 67 L22 78 L16 67" stroke="#f0c6a6" stroke-width="9" stroke-linecap="round" fill="none"/><path d="M32 63 L23 72 L18 66" stroke="#fff" stroke-width="12" stroke-linecap="round" fill="none"/></g><g class="simi-arm-right"><path d="M68 66 L80 54 L88 62" stroke="#f0c6a6" stroke-width="9" stroke-linecap="round" fill="none"/><path d="M68 63 L79 51 L85 58" stroke="#fff" stroke-width="12" stroke-linecap="round" fill="none"/></g><path d="M25 32 Q20 11 43 8 Q62 -1 76 16 Q88 28 77 47 L70 56 L30 52Z" fill="#f4f6f8" stroke="#cbd5e1" stroke-width="2"/><ellipse cx="51" cy="35" rx="25" ry="27" fill="#f1c7a6"/><path d="M26 31 Q27 10 47 10 Q66 5 77 25 L68 24 Q59 17 46 22 Q37 25 26 31Z" fill="#f7f8fa" stroke="#d4dbe3" stroke-width="2"/><path d="M32 35 L44 35 M57 35 L69 35" stroke="#263746" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="39" cy="38" rx="3" ry="4" fill="#263746"/><ellipse cx="62" cy="38" rx="3" ry="4" fill="#263746"/><path d="M49 38 L46 46 L51 47" stroke="#d79c7a" stroke-width="2" fill="none"/><path d="M30 47 Q39 42 49 48 Q59 42 72 47 Q65 60 52 53 Q40 60 30 47Z" fill="#4b342b"/>
-                        </svg>
-                    </div>
-                </div>
-            </section>
+          <div class="nova-v3-orbit-scene" aria-hidden="true">
+            <div class="nova-v3-orbit nova-v3-orbit-outer"></div>
+            <div class="nova-v3-orbit nova-v3-orbit-middle"></div>
+            <div class="nova-v3-orbit nova-v3-orbit-inner"></div>
+            <span class="nova-v3-orbit-dot nova-v3-dot-one"></span>
+            <span class="nova-v3-orbit-dot nova-v3-dot-two"></span>
+            <span class="nova-v3-orbit-dot nova-v3-dot-three"></span>
+            <div class="nova-v3-core"><img src="/doctor-simi-logo.jpg" alt=""><span class="nova-v3-core-pulse"></span></div>
+            <div class="nova-v3-float-tag nova-v3-tag-one"><span class="nova-v3-tag-icon">01</span><span><b>ASISTENCIA</b><small>Control diario</small></span></div>
+            <div class="nova-v3-float-tag nova-v3-tag-two"><span class="nova-v3-tag-icon">02</span><span><b>PERSONAS</b><small>Equipos conectados</small></span></div>
+            <div class="nova-v3-float-tag nova-v3-tag-three"><span class="nova-v3-tag-icon">03</span><span><b>OPERACIONES</b><small>Todo bajo control</small></span></div>
+          </div>
 
-            <section class="login-form-panel" aria-label="Inicio de sesión">
-                <div class="login-form-inner">
-                    <div class="login-form-logo-wrap"><img class="login-form-logo" src="/doctor-simi-logo.jpg" alt="Logo Doctor Simi"></div>
-                    <div class="login-kicker">Bienvenido de vuelta</div>
-                    <h1 class="login-title">Inicia sesión</h1>
-                    <p class="login-description">Ingresa con tu cuenta autorizada para acceder al panel de gestión de Recursos Humanos.</p>
+          <div class="nova-v3-bottom-note"><span class="nova-v3-bottom-icon"><i data-lucide="shield-check"></i></span><span><b>Un espacio de trabajo protegido</b><small>Acceso exclusivo para personal autorizado</small></span><span class="nova-v3-bottom-arrow">↗</span></div>
+        </section>
 
-                    <form id="form-login" class="space-y-4" onsubmit="iniciarSesion(event)">
-                        <div class="login-field">
-                            <label for="login-email">Correo electrónico</label>
-                            <div class="login-input-wrap">
-                                <i data-lucide="mail" class="login-input-icon"></i>
-                                <input id="login-email" type="email" autocomplete="username" required class="login-input" placeholder="nombre@farmaciasdoctorsimi.cl" aria-label="Correo electrónico">
-                            </div>
-                        </div>
+        <section class="nova-v3-auth" aria-label="Inicio de sesión">
+          <div class="nova-v3-auth-top"><span class="nova-v3-auth-symbol"><i data-lucide="fingerprint"></i></span><span class="nova-v3-auth-step">ACCESO <b> / 01</b></span></div>
+          <div class="nova-v3-auth-heading"><span>BIENVENIDO/A DE VUELTA</span><h2>Entra a tu<br>espacio.</h2><p>Usa tus credenciales corporativas para continuar.</p></div>
 
-                        <div class="login-field">
-                            <label for="login-pass">Contraseña</label>
-                            <div class="login-input-wrap">
-                                <i data-lucide="lock-keyhole" class="login-input-icon"></i>
-                                <input id="login-pass" type="password" autocomplete="current-password" required class="login-input" placeholder="Ingresa tu contraseña" aria-label="Contraseña">
-                                <button type="button" class="login-eye" id="btn-toggle-password" onclick="togglePasswordVisibility()" aria-label="Mostrar contraseña" title="Mostrar contraseña"><i data-lucide="eye" id="password-eye-icon" style="width:17px;height:17px"></i></button>
-                            </div>
-                        </div>
-
-                        <div class="login-form-meta">
-                            <label class="login-remember"><input id="login-remember" type="checkbox"> Recordar correo en este equipo</label>
-                            <button type="button" class="login-link" onclick="recuperarContrasena()">¿Olvidaste tu contraseña?</button>
-                        </div>
-
-                        <div id="login-error" class="login-error hidden" role="alert" aria-live="polite"></div>
-
-                        <button id="btn-login" type="submit" class="login-submit">
-                            <i data-lucide="log-in" style="width:18px;height:18px"></i>
-                            <span>Ingresar al sistema</span>
-                            <i data-lucide="arrow-up-right" style="width:16px;height:16px;margin-left:auto"></i>
-                        </button>
-                    </form>
-
-                    <div class="login-security-note"><i data-lucide="shield-check" style="width:14px;height:14px"></i> Sesión segura · Solo personal autorizado</div>
-                    <div class="login-footer">Doctor Simi Chile · Recursos Humanos</div>
-                </div>
-            </section>
-        </div>
+          <form id="form-login" class="nova-v3-form" onsubmit="iniciarSesion(event)">
+            <div class="nova-v3-field"><label for="login-email">CORREO CORPORATIVO</label><div class="nova-v3-input-wrap"><i data-lucide="at-sign"></i><input id="login-email" type="email" autocomplete="username" required placeholder="nombre@farmaciasdoctorsimi.cl" aria-label="Correo electrónico"></div></div>
+            <div class="nova-v3-field"><label for="login-pass">CONTRASEÑA</label><div class="nova-v3-input-wrap"><i data-lucide="key-round"></i><input id="login-pass" type="password" autocomplete="current-password" required placeholder="Introduce tu contraseña" aria-label="Contraseña"><button type="button" class="nova-v3-eye" id="btn-toggle-password" onclick="togglePasswordVisibility()" aria-label="Mostrar contraseña" title="Mostrar contraseña"><i data-lucide="eye" id="password-eye-icon"></i></button></div></div>
+            <div class="nova-v3-form-meta"><label class="nova-v3-remember"><input id="login-remember" type="checkbox"><span></span> Recordar correo</label><button type="button" class="nova-v3-forgot" onclick="recuperarContrasena()">¿Olvidaste tu contraseña?</button></div>
+            <div id="login-error" class="nova-v3-error hidden" role="alert" aria-live="polite"></div>
+            <button id="btn-login" type="submit" class="nova-v3-submit"><span class="nova-v3-submit-label">Acceder al portal</span><span class="nova-v3-submit-icon"><i data-lucide="arrow-up-right"></i></span></button>
+          </form>
+          <div class="nova-v3-auth-foot"><span class="nova-v3-lock"><i data-lucide="lock-keyhole"></i></span><span><b>Conexión privada</b><small>Doctor Simi Chile · Recursos Humanos</small></span><span class="nova-v3-live"><i></i> SEGURO</span></div>
+        </section>
+      </main>
+      <footer class="nova-v3-footer"><span>© FARMACIAS DE SIMILARES CHILE S.A.</span><span>PERSONAS · PROCESOS · PROPÓSITO</span><span class="nova-v3-footer-mark">DS<span>—</span>RH</span></footer>
     </div>
 
     <!-- APP -->
