@@ -133,7 +133,10 @@ def iniciar_sesion_talana(page, rut, clave):
 
 
 def descargar_ausentismo_historico(page):
-    click_texto(page, "Reportes")
+    # El login de Talana en nube puede aterrizar directamente en /remuneraciones/reportes.
+    # No volver a pulsar "Reportes": hay muchas etiquetas duplicadas en el menú y provoca timeout.
+    if "/es/remuneraciones/reportes" not in (page.url or "").lower():
+        click_texto(page, "Reportes")
     click_texto(page, "AUSENTISMOS")
     page.wait_for_timeout(700)
     report = "Detalle Ausentismos histórico"
@@ -166,6 +169,9 @@ def seleccionar_desde(page, fecha):
 
 
 def descargar_solicitudes_vacaciones(page, fecha_desde):
+    # El reporte histórico está dentro de la categoría VACACIONES; primero abrirla.
+    click_texto(page, "VACACIONES")
+    page.wait_for_timeout(700)
     click_texto(page, "Detalle solicitudes de vacaciones históricas")
     page.wait_for_timeout(500)
     seleccionar_desde(page, fecha_desde)
