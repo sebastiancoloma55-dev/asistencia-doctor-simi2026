@@ -507,7 +507,7 @@ def descargar_reporte_jornadas(page, eventos):
                 for i in range(min(loc.count(), 120)):
                     el = loc.nth(i)
                     if el.is_visible():
-                        label = (el.inner_text(timeout=300) or "").strip().replace("\\n", " ")
+                        label = (el.inner_text(timeout=300) or "").strip().replace("\n", " ")
                         aria = el.get_attribute("aria-label") or ""
                         title = el.get_attribute("title") or ""
                         data_cy = el.get_attribute("data-cy") or ""
