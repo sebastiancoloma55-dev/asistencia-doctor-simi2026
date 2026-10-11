@@ -1604,6 +1604,7 @@ body{overflow-x:hidden}
                         <div id="chat-mensajes" class="flex-1 space-y-3 overflow-y-auto bg-white p-4"><p class="text-sm text-slate-500">Elige una conversación para ver los mensajes.</p></div>
                         <form id="chat-form-mensaje" class="flex gap-2 border-t border-slate-200 bg-slate-50 p-3" onsubmit="enviarMensajeChat(event)">
                             <input id="chat-mensaje-input" class="form-field min-w-0 flex-1" maxlength="5000" placeholder="Escribe un mensaje…" autocomplete="off" disabled>
+                            <label class="flex cursor-pointer items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-50" title="Adjuntar PDF, Word, Excel, imagen o texto (máximo 10 MB)">Adjuntar<input id="chat-archivo" type="file" class="hidden" accept=".pdf,.docx,.xlsx,.xls,.csv,.txt,.jpg,.jpeg,.png,.webp" disabled></label>
                             <button id="chat-enviar" class="corp-button" disabled>Enviar</button>
                         </form>
                         <p id="chat-estado" class="px-4 pb-3 text-xs text-slate-500" aria-live="polite">Conectando con el chat seguro…</p>
