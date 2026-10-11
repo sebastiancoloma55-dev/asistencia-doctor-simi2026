@@ -663,6 +663,8 @@
             }
 
             try {
+                if (modulo === 'chat' && window.cargarChatInterno) await window.cargarChatInterno();
+                if (modulo === 'traslados' && window.iniciarModuloTraslados) await window.iniciarModuloTraslados();
                 if (modulo === 'reportes') await prepararFiltrosReportesRRHH();
                 if (modulo === 'colaboradores') {
                     await cargarTablaColaboradores();
