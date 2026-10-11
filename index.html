@@ -2065,17 +2065,25 @@ body.search-open{overflow:hidden}
     if(nav)nav.style.visibility='visible';
   }
   async function loadPermissions(){
-    var sessionResult=await _supabase.auth.getSession();var user=sessionResult.data&&sessionResult.data.session&&sessionResult.data.session.user;
-    if(!user){allowed=new Set(['dashboard']);finishPermissionLoad();return;}
-    // El administrador principal no debe quedar bloqueado por una consulta de perfil o por una columna faltante.
-    if(String(user.email||'').trim().toLowerCase()===adminEmail){
-      allowed=new Set(allModulePermissions);finishPermissionLoad();return;
-    }
     try{
+      // La sesión también puede fallar; todo el flujo debe terminar en un estado seguro.
+      var sessionResult=await _supabase.auth.getSession();
+      if(sessionResult&&sessionResult.error)throw sessionResult.error;
+      var user=sessionResult&&sessionResult.data&&sessionResult.data.session&&sessionResult.data.session.user;
+      if(!user){allowed=new Set(['dashboard']);finishPermissionLoad();return;}
+      // El administrador principal no debe quedar bloqueado por una consulta de perfil.
+      if(String(user.email||'').trim().toLowerCase()===adminEmail){
+        allowed=new Set(allModulePermissions);finishPermissionLoad();return;
+      }
       var result=await _supabase.from('usuarios_roles').select('email,permisos,activo,acceso_global,rol').eq('email',String(user.email||'').trim().toLowerCase()).maybeSingle();
       if(result.error)throw result.error;
       var profile=result.data;
-      if(!profile||profile.activo===false){allowed=new Set(['dashboard']);finishPermissionLoad();if(window.mostrarToast)mostrarToast('Tu usuario no tiene un perfil activo. Contacta al administrador.','warning',10000);return;}
+      if(!profile||profile.activo===false){
+        allowed=new Set(['dashboard']);
+        finishPermissionLoad();
+        if(window.mostrarToast)mostrarToast('Tu usuario no tiene un perfil activo. Contacta al administrador.','warning',10000);
+        return;
+      }
       if(isGlobalAdmin(profile,user)){
         allowed=new Set(allModulePermissions);
       }else{
@@ -2083,7 +2091,12 @@ body.search-open{overflow:hidden}
         allowed.add('dashboard');
       }
       finishPermissionLoad();
-    }catch(e){allowed=new Set(['dashboard']);finishPermissionLoad();if(window.mostrarToast)mostrarToast('No se pudieron verificar tus permisos. Por seguridad, solo queda habilitado el Dashboard.','error',12000);}
+    }catch(e){
+      // Fallo seguro: no conceder módulos cuando no se pueden verificar los permisos.
+      allowed=new Set(['dashboard']);
+      finishPermissionLoad();
+      if(window.mostrarToast)mostrarToast('No se pudieron verificar tus permisos. Por seguridad, solo queda habilitado el Dashboard.','error',12000);
+    }
   }
   var originalChange=window.cambiarModulo;
   if(typeof originalChange==='function'){
