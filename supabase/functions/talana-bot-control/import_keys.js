@@ -7,11 +7,12 @@ export const IMPORT_KEY_FIELDS = Object.freeze({
   ausentismos_historico: Object.freeze(["rut", "fecha_inicio", "tipo_ausencia"]),
   solicitudes_vacaciones_historicas: Object.freeze(["rut", "fecha_inicio", "tipo_vacaciones"]),
   maestro_empleado: Object.freeze(["rut"]),
-  reporte_jornadas_asistencia: Object.freeze(["rut", "fecha"]),
+  reporte_jornadas_asistencia: Object.freeze(["rut", "fecha", "entrada", "salida", "tipo_ausentismo"]),
 });
 
 export function normalizeImportValue(value) {
   let normalized = String(value ?? "").trim().toLowerCase();
+  if (["-", "—", "–", "n/a", "na"].includes(normalized)) return "";
   // PostgreSQL text columns may contain ISO timestamps while XLSX has a date.
   const iso = normalized.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[t\s].*)?$/);
   if (iso) {
@@ -41,12 +42,17 @@ export function importKeyFields(reportType) {
 export function importStableKey(reportType, row) {
   const fields = importKeyFields(reportType);
   if (!fields || !row || typeof row !== "object") return null;
-  const values = [];
-  for (const field of fields) {
+  // Attendance exports can contain separate entry and exit rows for the same
+  // employee/day. RUT and date are required; marks/type are optional discriminators.
+  const requiredFields = reportType === "reporte_jornadas_asistencia" ? ["rut", "fecha"] : fields;
+  for (const field of requiredFields) {
     const value = row[field];
-    if (value === null || value === undefined || String(value).trim() === "") return null;
-    values.push(field === "rut" ? normalizeImportRut(value) : normalizeImportValue(value));
+    if (value === null || value === undefined || String(value).trim() === "" || normalizeImportValue(value) === "") return null;
   }
-  if (values.some((value) => !value)) return null;
+  const values = fields.map((field) => {
+    const value = row[field];
+    if (field === "rut") return normalizeImportRut(value);
+    return normalizeImportValue(value);
+  });
   return values.join("|");
 }
