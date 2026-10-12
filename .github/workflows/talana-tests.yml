@@ -33,4 +33,4 @@ jobs:
         with:
           node-version: "22"
       - name: Validar sintaxis de la Edge Function
-        run: npx --yes esbuild@0.25.0 supabase/functions/talana-bot-control/index.ts --loader:.ts=ts --format=esm --external:https://* --external:jsr:* --outfile=/tmp/talana-bot-control.js
+        run: npx --yes esbuild@0.25.0 supabase/functions/talana-bot-control/index.ts --loader:.ts=ts --bundle --format=esm --external:https://* --external:jsr:* --outfile=/tmp/talana-bot-control.js
