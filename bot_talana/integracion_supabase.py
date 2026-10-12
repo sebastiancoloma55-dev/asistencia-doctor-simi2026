@@ -31,7 +31,7 @@ class TalanaBotCloud:
   totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True}
   for offset in range(0,len(rows),100):
    batch=rows[offset:offset+100]
-   result=self.call("bot_import",run_id=run_id,report_type=report_type,file_name=p.name,rows=batch,parse_errors=parse_errors if offset==0 else [])
+   result=self.call("bot_import",run_id=run_id,report_type=report_type,file_name=p.name,rows=batch,parse_errors=parse_errors if offset==0 else [],final_batch=(offset+len(batch)>=len(rows)))
    for key in ("inserted","updated","skipped","failed"):
     totals[key]+=int(result.get(key,0) or 0)
    totals["tracking_registered"]=totals["tracking_registered"] and bool(result.get("tracking_registered",True))
