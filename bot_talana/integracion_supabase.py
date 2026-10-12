@@ -36,6 +36,9 @@ class TalanaBotCloud:
     totals[key]+=int(result.get(key,0) or 0)
    totals["tracking_registered"]=totals["tracking_registered"] and bool(result.get("tracking_registered",True))
    totals["errors"].extend(result.get("errors") or [])
+   if offset==0 or (offset//100+1)%10==0 or offset+len(batch)>=len(rows):
+    import logging
+    logging.getLogger("talana-cloud").info("Importación %s: procesadas %s/%s; insertadas=%s actualizadas=%s duplicadas=%s fallidas=%s",report_type,min(offset+len(batch),len(rows)),len(rows),totals["inserted"],totals["updated"],totals["skipped"],totals["failed"])
   return totals
  def finish_run(self,run_id,status,downloaded=0,errors=None,details=None):
   return self.call("bot_finish",run_id=run_id,status=status,reports_downloaded=downloaded,error_summary="; ".join(map(str,errors or []))[:4000] or None,details=details or {})
