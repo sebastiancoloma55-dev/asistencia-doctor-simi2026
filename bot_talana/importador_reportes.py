@@ -17,6 +17,7 @@ ALIASES = {
     "apellido_materno": ["apellido materno", "segundo apellido"],
     "apellidos": ["apellidos", "apellido", "apellidos colaborador"],
     "empresa": ["empresa", "razon social", "sociedad"],
+    "razon_social": ["razon social", "empresa"],
     "cargo": ["cargo", "puesto", "cargo colaborador"],
     "sucursal": ["sucursal", "local", "centro de trabajo", "centro costo", "centro de costo"],
     "estado": ["estado", "estado colaborador", "situacion", "estatus", "vigente"],
@@ -29,6 +30,11 @@ ALIASES = {
     "fecha_solicitud": ["fecha solicitud", "fecha de solicitud", "fecha hora solicitud", "solicitado el", "fecha creacion solicitud"],
     "fecha_aprobacion": ["fecha aprobacion", "fecha de aprobacion", "fecha hora aprobacion rechazo", "aprobado el"],
     "fecha_retorno": ["fecha retorno", "fecha de retorno", "regreso", "fecha regreso"],
+    "fecha_creacion": ["fecha creacion", "fecha de creacion"],
+    "hora_inicio": ["hora inicio", "hora de inicio"],
+    "hora_fin": ["hora fin", "hora de fin"],
+    "numero_horas": ["numero horas", "numero de horas"],
+    "numero_minutos": ["numero minutos", "numero de minutos"],
     "aprobado_por": ["aprobado por", "aprobada rechazada por", "autorizado por", "jefatura aprobadora"],
     "dias": ["dias", "dias solicitados", "cantidad dias", "dias habiles"],
     "jornada": ["jornada", "tipo jornada"],
@@ -41,6 +47,16 @@ ALIASES = {
     "salida": ["salida", "hora salida", "marcacion salida", "marcación salida", "ultima marca"],
     "atraso": ["atraso", "atrasos", "tiempo atraso", "minutos atraso", "horas de atraso"],
     "salida_temprana": ["salida temprana", "retiro anticipado"],
+    "horas_trabajadas": ["horas trabajadas", "total horas trabajadas"],
+    "colacion": ["colacion", "tiempo colacion"],
+    "horas_extra": ["horas extra", "horas extras"],
+    "estado_edicion": ["estado edicion", "estado de edicion"],
+    "comentario_empleado": ["comentario empleado", "comentario del empleado"],
+    "editada": ["editada", "fue editada"],
+    "editado_por": ["editado por"],
+    "observacion": ["observacion", "observacion asistencia"],
+    "unidad_organizacional": ["unidad organizacional"],
+    "jefe": ["jefe", "supervisor"],
     "turno": ["turno", "jornada asignada", "horario"],
     "tipo_ausentismo": ["tipo ausentismo", "tipo de ausentismo", "ausentismo"],
     "sin_marca": ["sin marca", "sin marcacion", "sin marcación"],
@@ -50,10 +66,10 @@ ALIASES = {
 }
 
 REPORT_FIELDS = {
-    "ausentismos_historico": ["rut", "nombre", "empresa", "cargo", "sucursal", "tipo_ausencia", "motivo_ausencia", "dias_ausencia", "fecha_inicio", "fecha_fin", "observaciones"],
+    "ausentismos_historico": ["rut", "nombre", "empresa", "cargo", "gerencia", "sucursal", "centro_costo", "tipo_ausencia", "motivo_ausencia", "dias_ausencia", "fecha_inicio", "fecha_fin", "hora_inicio", "hora_fin", "numero_horas", "numero_minutos", "fecha_creacion", "observaciones"],
     "solicitudes_vacaciones_historicas": ["rut", "nombre", "empresa", "cargo", "gerencia", "sucursal", "centro_costo", "fecha_solicitud", "fecha_aprobacion", "aprobado_por", "estado", "fecha_inicio", "fecha_fin", "fecha_retorno", "dias", "jornada", "tipo_vacaciones", "observaciones"],
     "maestro_empleado": ["rut", "nombres", "apellidos", "cargo", "sucursal", "fecha_ingreso", "estado"],
-    "reporte_jornadas_asistencia": ["rut", "nombre", "sucursal", "fecha", "entrada", "salida", "atraso", "estado", "turno", "tipo_ausentismo", "salida_temprana", "sin_marca", "marca_incompleta", "tiene_atraso", "sin_turno_marcas"],
+    "reporte_jornadas_asistencia": ["rut", "nombre", "sucursal", "fecha", "razon_social", "entrada", "salida", "horas_trabajadas", "colacion", "horas_extra", "atraso", "estado", "estado_edicion", "comentario_empleado", "editada", "editado_por", "observacion", "unidad_organizacional", "jefe", "turno", "tipo_ausentismo", "salida_temprana", "sin_marca", "marca_incompleta", "tiene_atraso", "sin_turno_marcas"],
 }
 
 
