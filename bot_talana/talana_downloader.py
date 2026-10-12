@@ -151,6 +151,21 @@ def texto_visible(page, texto):
             pass
     return False
 
+def volver_a_reportes(page, timeout_ms=60000):
+    """Recupera la ruta de reportes tras cambios de módulo o frames desmontados."""
+    url = (page.url or "").lower()
+    if "/es/remuneraciones/reportes" not in url:
+        page.goto("https://talana.com/es/remuneraciones/reportes",
+                  wait_until="domcontentloaded", timeout=90000)
+    deadline = time.monotonic() + timeout_ms / 1000
+    while time.monotonic() < deadline:
+        if "/es/remuneraciones/reportes" in (page.url or "").lower():
+            page.wait_for_timeout(1200)
+            cerrar_popups(page)
+            return
+        page.wait_for_timeout(300)
+    raise RuntimeError(f"No se pudo volver a Reportes de Talana. URL actual: {page.url}")
+
 
 def registrar_descargas(context, page):
     eventos, registradas = [], set()
@@ -253,14 +268,15 @@ def esperar_descarga_evento(page, eventos, cantidad_inicial, nombre_base, timeou
 
 def descargar_ausentismo_historico(page, eventos):
     report = "Detalle Ausentismos histórico"
+    volver_a_reportes(page)
     if not texto_visible(page, report):
-        if "/es/remuneraciones/reportes" not in (page.url or "").lower():
-            click_texto(page, "Reportes")
-        if not texto_visible(page, report):
-            click_texto(page, "AUSENTISMOS")
-        page.wait_for_timeout(700)
+        click_texto(page, "Ausentismos")
+        page.wait_for_timeout(900)
     if not texto_visible(page, report):
-        raise RuntimeError("No aparece «Detalle Ausentismos histórico» en la lista de reportes.")
+        raise RuntimeError(
+            "No aparece «Detalle Ausentismos histórico» en Reportes. "
+            f"URL actual: {page.url}; compruebe permisos del usuario en Talana."
+        )
     n = len(eventos)
     click_texto(page, report)
     return esperar_descarga_evento(page, eventos, n, "detalle_ausentismos_historico")
@@ -290,11 +306,23 @@ def seleccionar_desde(page, fecha):
 
 def descargar_solicitudes_vacaciones(page, fecha_desde, eventos):
     report = "Detalle solicitudes de vacaciones históricas"
+    volver_a_reportes(page)
     if not texto_visible(page, report):
-        click_texto(page, "VACACIONES")
-        page.wait_for_timeout(500)
-    if not texto_visible(page, report):
-        raise RuntimeError("No aparece «Detalle solicitudes de vacaciones históricas» dentro de VACACIONES.")
+        categoria_encontrada = False
+        for categoria in ("Vacaciones", "Solicitudes de vacaciones", "VACACIONES"):
+            try:
+                click_texto(page, categoria, timeout=8000)
+                page.wait_for_timeout(800)
+                if texto_visible(page, report):
+                    categoria_encontrada = True
+                    break
+            except Exception:
+                continue
+        if not categoria_encontrada and not texto_visible(page, report):
+            raise RuntimeError(
+                "No se encontró el reporte histórico de vacaciones ni su categoría en Reportes. "
+                f"URL actual: {page.url}; compruebe permisos y nombre de la categoría en Talana."
+            )
     # Usa el identificador estable de Talana cuando está presente; el texto
     # visible queda como alternativa para cambios menores de interfaz.
     enlace = page.locator('a[data-cy="gdp-employees-report-detail-historical-vacation-requests"]')
