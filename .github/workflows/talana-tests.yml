@@ -1,0 +1,36 @@
+name: Validar bot Talana (sin ejecutar descargas)
+on:
+  push:
+    paths:
+      - "bot_talana/**"
+      - "supabase/functions/talana-bot-control/**"
+      - ".github/workflows/talana-tests.yml"
+  pull_request:
+    paths:
+      - "bot_talana/**"
+      - "supabase/functions/talana-bot-control/**"
+      - ".github/workflows/talana-tests.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: pip install -r bot_talana/requirements.txt
+      - name: Validar sintaxis Python
+        run: python -m compileall -q bot_talana
+      - name: Ejecutar pruebas unitarias del importador
+        working-directory: bot_talana
+        run: python -m unittest discover -s . -p 'test_*.py' -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validar sintaxis de la Edge Function
+        run: npx --yes esbuild@0.25.0 supabase/functions/talana-bot-control/index.ts --loader:.ts=ts --format=esm --external:https://* --external:jsr:* --outfile=/tmp/talana-bot-control.js
