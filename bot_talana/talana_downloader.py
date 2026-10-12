@@ -434,7 +434,7 @@ def cambiar_a_asistencia_y_turnos(page):
     limite = time.monotonic() + 90
     while time.monotonic() < limite:
         url_actual = (page.url or "").lower()
-        ruta_jornadas = "/attendance/workdays/calendar" in url_actual
+        ruta_jornadas = "/attendance/workingdays/calendar" in url_actual
         cargando = "/attendance/loading" in url_actual
         if ruta_jornadas and not cargando:
             page.wait_for_timeout(1500)
@@ -452,7 +452,7 @@ def descargar_reporte_jornadas(page, eventos):
     # En distintas versiones de Talana el control puede ser botón, enlace,
     # acción con aria-label o texto dentro de un componente de React.
     url_actual = (page.url or "").lower()
-    if "/attendance/workdays/calendar" not in url_actual:
+    if "/attendance/workingdays/calendar" not in url_actual:
         click_texto(page, "Jornadas")
     else:
         limite_carga = time.monotonic() + 60
