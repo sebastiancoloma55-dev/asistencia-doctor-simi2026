@@ -22,7 +22,7 @@ ALIASES = {
     "tipo_ausencia": ["tipo ausencia", "tipo de ausencia", "tipo ausentismo", "tipo de ausentismo", "tipo licencia"],
     "motivo_ausencia": ["motivo ausencia", "motivo de ausencia", "motivo", "causal"],
     "dias_ausencia": ["dias ausencia", "dias de ausencia", "duracion", "dias licencia", "cantidad de dias"],
-    "fecha_inicio": ["fecha inicio", "inicio", "desde", "fecha desde", "fecha inicial", "inicio vacaciones", "fecha inicio vacaciones"],
+    "fecha_inicio": ["fecha inicio", "fecha de inicio", "fecha de inicio de ausencia", "fecha inicio de ausencia", "inicio ausencia", "inicio de ausencia", "desde", "fecha desde", "fecha inicial", "inicio vacaciones", "fecha inicio vacaciones", "fecha de inicio vacaciones"],
     "fecha_fin": ["fecha fin", "fin", "hasta", "fecha hasta", "fecha termino", "fecha término", "termino vacaciones", "fecha fin vacaciones"],
     "fecha_solicitud": ["fecha solicitud", "fecha de solicitud", "solicitado el", "fecha creacion solicitud"],
     "fecha_aprobacion": ["fecha aprobacion", "fecha de aprobacion", "aprobado el"],
