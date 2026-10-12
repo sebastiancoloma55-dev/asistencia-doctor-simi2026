@@ -31,7 +31,7 @@ class ImportadorTalanaTests(unittest.TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["rut"], "12.345.678-5")
-        self.assertEqual(rows[0]["fecha"], "12/10/2026")
+        self.assertEqual(rows[0]["fecha"], "2026-10-12")
         self.assertTrue(rows[0]["marca_incompleta"])
         self.assertTrue(rows[0]["tiene_atraso"])
         self.assertEqual(meta["rows_found"], 1)
