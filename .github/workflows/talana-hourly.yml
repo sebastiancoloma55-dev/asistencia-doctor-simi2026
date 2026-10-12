@@ -1,7 +1,7 @@
 name: Bot Talana - horario Chile
 
 on:
-  # PAUSA TEMPORAL: se deshabilitó la ejecución automática mientras se recupera y valida la última versión.
+  # PAUSA TEMPORAL: ejecución automática deshabilitada durante la recuperación de la plataforma.
   workflow_dispatch:
   pull_request:
     paths:
