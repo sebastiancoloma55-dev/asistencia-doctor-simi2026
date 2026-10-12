@@ -39,13 +39,14 @@ if(a==="bot_import"){
  const keyOf=(r:any)=>importStableKey(reportType,r);
  const clean=(r:any)=>Object.fromEntries(allowed.filter((k:string)=>r[k]!==undefined&&r[k]!==null&&r[k]!=="").map((k:string)=>[k,r[k]]));
  const errors:string[]=[...parseErrors.map((x:any)=>String(x).slice(0,250))], valid:any[]=[];
+ const missingKeyFieldCounts:Record<string,number>={};
  let inserted=0,updated=0,skipped=0,failed=parseErrors.length;
  for(let i=0;i<rows.length;i++){const row=clean(rows[i]);if(!row.rut){errors.push("lote fila "+(i+1)+": falta RUT");failed++;continue;}
   if(table==="vacaciones_historico"&&(!row.fecha_inicio||!row.fecha_fin||!row.tipo_vacaciones)){errors.push("lote fila "+(i+1)+": faltan campos obligatorios de vacaciones");failed++;continue;}
   if(table==="registros_asistencia"&&!row.fecha){errors.push("lote fila "+(i+1)+": falta fecha de asistencia");failed++;continue;}
   if(table==="colaboradores"&&(!row.nombres||!row.apellidos)){errors.push("lote fila "+(i+1)+": faltan nombres/apellidos");failed++;continue;}
   const missingKeyFields=(importKeyFields(reportType)||[]).filter((field:string)=>row[field]===undefined||row[field]===null||String(row[field]).trim()==="");
-  if(missingKeyFields.length){errors.push("lote fila "+(i+1)+": faltan campos de identificación para evitar duplicados ("+missingKeyFields.join(", ")+")");failed++;continue;}
+  if(missingKeyFields.length){for(const field of missingKeyFields)missingKeyFieldCounts[field]=(missingKeyFieldCounts[field]||0)+1;errors.push("lote fila "+(i+1)+": faltan campos de identificación para evitar duplicados ("+missingKeyFields.join(", ")+")");failed++;continue;}
   if(table==="registros_asistencia"){row.sin_marca=Boolean(row.sin_marca);row.marca_incompleta=Boolean(row.marca_incompleta);row.tiene_atraso=Boolean(row.tiene_atraso);row.sin_turno_marcas=Boolean(row.sin_turno_marcas);}
   valid.push(row);
  }
@@ -113,7 +114,7 @@ if(a==="bot_import"){
  const moduleNames=reportType==="ausentismos_historico"?["talana_bot","licencias","talana_ausentismos"]:reportType==="solicitudes_vacaciones_historicas"?["talana_bot","vacaciones","talana_vacaciones"]:reportType==="maestro_empleado"?["talana_bot","colaboradores"]:["talana_bot","asistencia","talana_asistencia"];
  let trackingRegistered=true;
  for(const moduleName of moduleNames){const {error}=await admin.from("actualizaciones_fuentes").upsert({modulo:moduleName,actualizado_en:new Date().toISOString(),archivo:String(b.file_name||"Talana"),origen:"bot",usuario_email:"Bot Talana",registros:inserted+updated,detalles:{report_type:reportType,run_id:b.run_id||null,inserted,updated,skipped,failed}},{onConflict:"modulo"});if(error){trackingRegistered=false;console.error("Tracking de importación:",error.message);}}
- return json({report_type:reportType,table,received:rows.length,inserted,updated,skipped,failed,errors:errors.slice(0,100),tracking_registered:trackingRegistered});
+ return json({report_type:reportType,table,received:rows.length,inserted,updated,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts},tracking_registered:trackingRegistered});
 }
 if(a==="bot_finish"){const runId=String(b.run_id||""),status=["success","partial","failed"].includes(b.status)?b.status:"success";const {count,error:ce}=await admin.from("talana_bot_files").select("id",{count:"exact",head:true}).eq("run_id",runId);if(ce)return json({error:ce.message},500);const {data,error}=await admin.from("talana_bot_runs").update({status,finished_at:new Date().toISOString(),reports_downloaded:Number(b.reports_downloaded||0),reports_uploaded:count||0,error_summary:b.error_summary?String(b.error_summary).slice(0,4000):null,details:b.details&&typeof b.details==="object"?b.details:{}}).eq("id",runId).select("*").single();if(error)return json({error:error.message},500);return json({run:data});}
 return json({error:"Acción desconocida"},400);
