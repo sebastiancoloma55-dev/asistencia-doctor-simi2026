@@ -40,6 +40,10 @@ insert into public.licencias_medicas_importacion_cuarentena
 select moved.*, 'Importación anterior incompleta: faltan fecha de inicio, fecha de fin y días', now()
 from moved;
 
+alter table public.licencias_medicas_importacion_cuarentena enable row level security;
+revoke all on table public.licencias_medicas_importacion_cuarentena from anon, authenticated;
+grant all on table public.licencias_medicas_importacion_cuarentena to service_role;
+
 -- Guard against duplicate valid source identities after malformed legacy rows
 -- have been preserved in the quarantine table above.
 create unique index if not exists ux_licencias_medicas_talana_identity
