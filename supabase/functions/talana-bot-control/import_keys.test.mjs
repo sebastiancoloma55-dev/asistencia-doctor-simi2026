@@ -29,3 +29,15 @@ test("attendance identity ignores shift changes and normalizes RUT punctuation",
 test("incomplete identity keys are rejected rather than matched ambiguously", () => {
   assert.equal(importStableKey("ausentismos_historico", { rut: "12.345.678-5", fecha_inicio: "2026-10-01" }), null);
 });
+
+test("normalizes PostgreSQL ISO timestamps to XLSX dates", () => {
+  const fromExcel = { rut: "12.345.678-5", fecha: "01/10/2026", turno: "Apertura" };
+  const fromDatabase = { rut: "12345678-5", fecha: "2026-10-01T00:00:00+00:00", turno: "Cierre" };
+  assert.equal(importStableKey("reporte_jornadas_asistencia", fromExcel), importStableKey("reporte_jornadas_asistencia", fromDatabase));
+});
+
+test("normalizes accents in natural-key text fields", () => {
+  const a = { rut: "12.345.678-5", fecha_inicio: "2026-10-01", tipo_ausencia: "Licencia Médica" };
+  const b = { rut: "12345678-5", fecha_inicio: "2026-10-01T00:00:00Z", tipo_ausencia: "Licencia Medica" };
+  assert.equal(importStableKey("ausentismos_historico", a), importStableKey("ausentismos_historico", b));
+});
