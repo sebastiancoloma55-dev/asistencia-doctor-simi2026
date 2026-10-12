@@ -1,0 +1,28 @@
+name: Desplegar función Talana en Supabase
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/talana-bot-control/**"
+      - ".github/workflows/deploy-talana-function.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Comprobar credencial de despliegue
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "::error::Falta el secreto SUPABASE_ACCESS_TOKEN en GitHub. La función no se ha desplegado."
+            exit 1
+          fi
+      - name: Desplegar función corregida
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: npx --yes supabase@latest functions deploy talana-bot-control --project-ref zcfbglbhqhysnptkfwba --no-verify-jwt
