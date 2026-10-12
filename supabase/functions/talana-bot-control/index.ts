@@ -44,7 +44,8 @@ if(a==="bot_import"){
  for(let i=0;i<rows.length;i++){const row=clean(rows[i]);if(!row.rut){errors.push("lote fila "+(i+1)+": falta RUT");failed++;continue;}
   if(table==="vacaciones_historico"&&(!row.fecha_inicio||!row.fecha_fin||!row.tipo_vacaciones)){errors.push("lote fila "+(i+1)+": faltan campos obligatorios de vacaciones");failed++;continue;}
   if(table==="registros_asistencia"&&!row.fecha){errors.push("lote fila "+(i+1)+": falta fecha de asistencia");failed++;continue;}
-  if(table==="colaboradores"&&(!row.nombres||!row.apellidos)){errors.push("lote fila "+(i+1)+": faltan nombres/apellidos");failed++;continue;}
+  // Existing employees may have incomplete name cells in historical exports.
+  // Their stored names are reconciled below; new employees still require both fields.
   const missingKeyFields=(importKeyFields(reportType)||[]).filter((field:string)=>row[field]===undefined||row[field]===null||String(row[field]).trim()==="");
   if(missingKeyFields.length){for(const field of missingKeyFields)missingKeyFieldCounts[field]=(missingKeyFieldCounts[field]||0)+1;errors.push("lote fila "+(i+1)+": faltan campos de identificación para evitar duplicados ("+missingKeyFields.join(", ")+")");failed++;continue;}
   if(table==="registros_asistencia"){row.sin_marca=Boolean(row.sin_marca);row.marca_incompleta=Boolean(row.marca_incompleta);row.tiene_atraso=Boolean(row.tiene_atraso);row.sin_turno_marcas=Boolean(row.sin_turno_marcas);}
@@ -53,14 +54,17 @@ if(a==="bot_import"){
  if(table==="colaboradores"){
   const unique=new Map<string,any>();for(const row of valid)unique.set(normRut(row.rut),row);
   const rutList=[...new Set([...unique.values()].flatMap((r:any)=>[String(r.rut),normRut(r.rut)]))];
-  const {data:existing,error:lookupError}=await admin.from(table).select("rut,estado").in("rut",rutList);
+  const {data:existing,error:lookupError}=await admin.from(table).select("rut,estado,nombres,apellidos").in("rut",rutList);
   if(lookupError)return json({error:lookupError.message},500);
   const existingMap=new Map((existing||[]).map((r:any)=>[normRut(r.rut),r]));
   const toUpsert:any[]=[];
   for(const row of unique.values()){
    const old=existingMap.get(normRut(row.rut));
+   const nombres=row.nombres||old?.nombres||null;
+   const apellidos=row.apellidos||old?.apellidos||null;
+   if(!nombres||!apellidos){errors.push("Colaborador "+row.rut+": no se importó porque faltan nombres/apellidos y no existe un nombre previo para completar el registro.");failed++;continue;}
    if(!row.estado&&!old){errors.push("Colaborador "+row.rut+": no se importó porque el Excel no incluye estado para un nuevo registro.");failed++;continue;}
-   toUpsert.push({...row,rut:old?.rut||row.rut,estado:row.estado||old?.estado||"activo"});
+   toUpsert.push({...row,nombres,apellidos,rut:old?.rut||row.rut,estado:row.estado||old?.estado||"activo"});
   }
   if(toUpsert.length){const {data,error}=await admin.from(table).upsert(toUpsert,{onConflict:"rut"}).select("rut");if(error){return json({error:"No se pudieron actualizar colaboradores: "+error.message,inserted,updated,skipped,failed:failed+toUpsert.length,errors:errors.slice(0,100)},500);}
    for(const r of data||[]){if(existingMap.has(normRut(r.rut)))updated++;else inserted++;}
