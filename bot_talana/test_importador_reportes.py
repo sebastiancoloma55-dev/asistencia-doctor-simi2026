@@ -143,6 +143,35 @@ class ReportParserTests(unittest.TestCase):
         self.assertTrue(rows[0]["sin_marca"])
         self.assertEqual(errors, [])
 
+    def test_duplicate_absence_rows_merge_non_empty_fields(self):
+        path = self.make_xlsx(
+            ["Rut", "Nombre", "Tipo de Ausencia", "Motivo de Ausencia",
+             "Número de días de Ausencia", "Fecha Inicio Ausencia", "Fecha Fin Ausencia"],
+            [["10826263-K", "MARJORIE DINAMARCA", "licencia medica", None, 15,
+              "2026-03-30 00:00:00", "2026-04-13 00:00:00"],
+             ["10826263-K", "MARJORIE DINAMARCA", "licencia medica", "enfermedad común", 15,
+              "2026-03-30 00:00:00", "2026-04-13 00:00:00"]],
+        )
+        rows, errors, metadata = parse_report(path, "ausentismos_historico")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["motivo_ausencia"], "enfermedad común")
+        self.assertEqual(metadata["rows_deduplicated"], 1)
+        self.assertEqual(errors, [])
+
+    def test_attendance_entry_and_exit_rows_are_not_collapsed(self):
+        path = self.make_xlsx(
+            ["Fecha", "Rut", "Nombre", "Sucursal", "Turno", "Entrada", "Salida", "Estado"],
+            [["02/10/2026", "11131144-7", "RAFAEL LEON", "DISTRIBUCION", "CENTRAL 2026",
+              "07:32:14", "-", "Invalida"],
+             ["02/10/2026", "11131144-7", "RAFAEL LEON", "DISTRIBUCION", "-", "-",
+              "22:36:04", "Invalida"]],
+        )
+        rows, errors, metadata = parse_report(path, "reporte_jornadas_asistencia")
+        self.assertEqual(len(rows), 2)
+        self.assertEqual({row["entrada"] for row in rows}, {"07:32:14", None})
+        self.assertEqual({row["salida"] for row in rows}, {None, "22:36:04"})
+        self.assertEqual(errors, [])
+
     def test_unrecognized_headers_fail_closed(self):
         path = self.make_xlsx(["Columna A", "Columna B"], [["x", "y"]])
         with self.assertRaises(ValueError):
