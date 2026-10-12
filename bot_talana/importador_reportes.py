@@ -174,6 +174,34 @@ def _find_header(rows, report_type):
     return best[1], best[2]
 
 
+def _dedupe_rows(report_type, rows):
+    """Merge duplicate source rows without discarding non-empty information."""
+    identity_fields = {
+        "ausentismos_historico": ("rut", "fecha_inicio", "tipo_ausencia"),
+        "solicitudes_vacaciones_historicas": ("rut", "fecha_inicio", "tipo_vacaciones"),
+        "maestro_empleado": ("rut",),
+        # Separate entry/exit marks for one person/day are distinct records.
+        "reporte_jornadas_asistencia": ("rut", "fecha", "entrada", "salida", "tipo_ausentismo"),
+    }[report_type]
+    merged, by_key = [], {}
+    for row in rows:
+        parts = []
+        for field in identity_fields:
+            value = row.get(field)
+            parts.append(_norm(value) if value not in (None, "") else "")
+        key = tuple(parts)
+        if key not in by_key:
+            copy = dict(row)
+            by_key[key] = copy
+            merged.append(copy)
+            continue
+        existing = by_key[key]
+        for field, value in row.items():
+            if existing.get(field) in (None, "") and value not in (None, ""):
+                existing[field] = value
+    return merged
+
+
 def parse_report(path, report_type):
     if report_type not in REPORT_FIELDS:
         raise ValueError(f"Tipo de reporte no reconocido: {report_type}")
@@ -256,8 +284,10 @@ def parse_report(path, report_type):
                 item["tiene_atraso"] = item.get("tiene_atraso") if item.get("tiene_atraso") is not None else bool(item.get("atraso") and _norm(item.get("atraso")) not in ("0", "no", "sin atraso", "00 00"))
                 item["sin_turno_marcas"] = item.get("sin_turno_marcas") if item.get("sin_turno_marcas") is not None else bool((item.get("entrada") or item.get("salida")) and not item.get("turno"))
             output.append(item)
+        source_rows = len(output)
+        output = _dedupe_rows(report_type, output)
         if not output:
             raise ValueError(f"No se encontraron filas importables en {path.name}. Encabezados detectados: {', '.join(mapping.keys())}")
-        return output, row_errors, {"sheet": sheet.title, "header_row": header_row + 1, "rows_found": len(output), "row_errors": row_errors[:100]}
+        return output, row_errors, {"sheet": sheet.title, "header_row": header_row + 1, "rows_source": source_rows, "rows_found": len(output), "rows_deduplicated": source_rows - len(output), "row_errors": row_errors[:100]}
     finally:
         workbook.close()
