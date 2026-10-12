@@ -74,7 +74,7 @@ if(a==="bot_import"){
    seenIncoming.add(k);
    const old=existingByKey.get(k);
    if(old){
-    if(table==="vacaciones_historico"||table==="registros_asistencia")pendingUpdates.push({id:old.id,row});
+    if(table==="licencias_medicas"||table==="vacaciones_historico"||table==="registros_asistencia")pendingUpdates.push({id:old.id,row});
     else skipped++;
    }else pending.push(row);
   }
