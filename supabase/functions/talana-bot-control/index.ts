@@ -103,7 +103,8 @@ if(a==="bot_import"){
       // RUT punctuation or date serialization differs between XLSX and PostgreSQL.
       const rutVariants=[...new Set([String(row.rut),normRut(row.rut)])];
       const {data:candidates,error:lookupError}=await admin.from(table).select(selectCols).in("rut",rutVariants).order("id",{ascending:false}).limit(500);
-      const existing=(candidates||[]).find((candidate:any)=>keyOf(candidate)===k);
+      const rowKey=keyOf(row);
+      const existing=(candidates||[]).find((candidate:any)=>keyOf(candidate)===rowKey);
       if(!lookupError&&existing){
        const updateRow={...row};
        for(const field of importKeyFields(reportType)||[]){updateRow[field]=existing[field]??updateRow[field];}
