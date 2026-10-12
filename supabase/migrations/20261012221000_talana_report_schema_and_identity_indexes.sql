@@ -22,6 +22,24 @@ alter table public.registros_asistencia
   add column if not exists unidad_organizacional text,
   add column if not exists jefe text;
 
+-- Preserve malformed rows from the previous importer outside the operational table.
+-- Only quarantine rows missing all three essential absence fields.
+create table if not exists public.licencias_medicas_importacion_cuarentena as
+  select l.*, null::text as cuarentena_motivo, null::timestamptz as cuarentena_en
+  from public.licencias_medicas l
+  where false;
+
+with moved as (
+  delete from public.licencias_medicas
+  where nullif(trim(fecha_inicio), '') is null
+    and nullif(trim(fecha_fin), '') is null
+    and dias_ausencia is null
+  returning *
+)
+insert into public.licencias_medicas_importacion_cuarentena
+select moved.*, 'Importación anterior incompleta: faltan fecha de inicio, fecha de fin y días', now()
+from moved;
+
 -- Guard against duplicate valid source identities while leaving legacy rows with
 -- incomplete identity fields untouched for later review.
 create unique index if not exists ux_licencias_medicas_talana_identity
