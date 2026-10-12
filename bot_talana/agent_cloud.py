@@ -119,6 +119,10 @@ def main():
                     imported.get("skipped", 0), imported.get("failed", 0),
                 )
                 if int(imported.get("failed", 0)) > 0:
+                    diagnostics = imported.get("diagnostics") or {}
+                    if diagnostics:
+                        errors.append(f"Diagnóstico {title}: {diagnostics}")
+                        LOG.error("Diagnóstico de importación %s: %s", title, diagnostics)
                     error_sample = "; ".join(map(str, imported.get("errors", [])[:8]))
                     LOG.error(
                         "Importación %s: %s fila(s) con errores. Muestra: %s",
