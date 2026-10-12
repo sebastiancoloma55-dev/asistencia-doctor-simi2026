@@ -75,7 +75,8 @@ if(a==="bot_import"){
   const ruts=[...new Set(valid.flatMap((r:any)=>[String(r.rut),normRut(r.rut)]))];
   const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia":table==="vacaciones_historico"?"id,rut,fecha_inicio,fecha_fin,tipo_vacaciones":"id,rut,fecha,entrada,salida,tipo_ausentismo";
   let existingRows:any[]=[];
-  if(ruts.length){const {data,error}=await admin.from(table).select(selectCols).in("rut",ruts).order("id",{ascending:false}).limit(20000);if(error)return json({error:error.message},500);existingRows=data||[];}
+  // Read complete rows so batch upserts preserve fields absent from this export.
+  if(ruts.length){const {data,error}=await admin.from(table).select("*").in("rut",ruts).order("id",{ascending:false}).limit(20000);if(error)return json({error:error.message},500);existingRows=data||[];}
   const existingByKey=new Map<string,any>(); for(const old of existingRows){const oldKey=keyOf(old);if(oldKey&&!existingByKey.has(oldKey))existingByKey.set(oldKey,old);} const seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
   for(const row of valid){
    const k=keyOf(row);
@@ -86,12 +87,20 @@ if(a==="bot_import"){
    if(old){pendingUpdates.push({id:old.id,row,old});}
    else pending.push(row);
   }
-  for(const item of pendingUpdates){
-   const updateRow={...item.row};
-   for(const field of importKeyFields(reportType)||[]){updateRow[field]=item.old[field]??updateRow[field];}
-   const {error}=await admin.from(table).update(updateRow).eq("id",item.id);
-   if(error){failed++;errors.push(table+" RUT "+item.row.rut+": "+error.message.slice(0,180));}
-   else updated++;
+  // One database request updates the whole batch instead of one request per row.
+  // Merge incoming non-empty values into the stored row to avoid erasing fields
+  // that are not present in this particular Talana export.
+  if(pendingUpdates.length){
+   const updatesToUpsert=pendingUpdates.map((item:any)=>{
+    const merged={...item.old};
+    for(const [field,value] of Object.entries(item.row)){if(value!==undefined&&value!==null&&value!=="")merged[field]=value;}
+    merged.id=item.id;
+    for(const field of importKeyFields(reportType)||[]){merged[field]=item.old[field]??merged[field];}
+    return merged;
+   });
+   const {error}=await admin.from(table).upsert(updatesToUpsert,{onConflict:"id"});
+   if(error){failed+=pendingUpdates.length;errors.push(table+": falló la actualización por lote ("+error.message.slice(0,180)+").");}
+   else updated+=pendingUpdates.length;
   }
   if(pending.length){const {data,error}=await admin.from(table).insert(pending).select("id");if(error){
     for(const row of pending){
@@ -121,7 +130,9 @@ if(a==="bot_import"){
  }
  const moduleNames=reportType==="ausentismos_historico"?["talana_bot","licencias","talana_ausentismos"]:reportType==="solicitudes_vacaciones_historicas"?["talana_bot","vacaciones","talana_vacaciones"]:reportType==="maestro_empleado"?["talana_bot","colaboradores"]:["talana_bot","asistencia","talana_asistencia"];
  let trackingRegistered=true;
- for(const moduleName of moduleNames){const {error}=await admin.from("actualizaciones_fuentes").upsert({modulo:moduleName,actualizado_en:new Date().toISOString(),archivo:String(b.file_name||"Talana"),origen:"bot",usuario_email:"Bot Talana",registros:inserted+updated,detalles:{report_type:reportType,run_id:b.run_id||null,inserted,updated,skipped,failed}},{onConflict:"modulo"});if(error){trackingRegistered=false;console.error("Tracking de importación:",error.message);}}
+ if(b.final_batch!==false){
+  for(const moduleName of moduleNames){const {error}=await admin.from("actualizaciones_fuentes").upsert({modulo:moduleName,actualizado_en:new Date().toISOString(),archivo:String(b.file_name||"Talana"),origen:"bot",usuario_email:"Bot Talana",registros:inserted+updated,detalles:{report_type:reportType,run_id:b.run_id||null,inserted,updated,skipped,failed}},{onConflict:"modulo"});if(error){trackingRegistered=false;console.error("Tracking de importación:",error.message);}}
+ }
  return json({report_type:reportType,table,received:rows.length,inserted,updated,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts},tracking_registered:trackingRegistered});
 }
 if(a==="bot_finish"){const runId=String(b.run_id||""),status=["success","partial","failed"].includes(b.status)?b.status:"success";const {count,error:ce}=await admin.from("talana_bot_files").select("id",{count:"exact",head:true}).eq("run_id",runId);if(ce)return json({error:ce.message},500);const {data,error}=await admin.from("talana_bot_runs").update({status,finished_at:new Date().toISOString(),reports_downloaded:Number(b.reports_downloaded||0),reports_uploaded:count||0,error_summary:b.error_summary?String(b.error_summary).slice(0,4000):null,details:b.details&&typeof b.details==="object"?b.details:{}}).eq("id",runId).select("*").single();if(error)return json({error:error.message},500);return json({run:data});}
