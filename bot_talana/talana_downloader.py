@@ -510,7 +510,7 @@ def descargar_reporte_jornadas(page, eventos):
             # Respaldo textual: únicamente buscar el botón exacto dentro del calendario.
             for frame in frames:
                 try:
-                    text_loc = frame.get_by_text(re.compile(r"^\\s*Descargar\\s+reporte\\s*$", re.I))
+                    text_loc = frame.get_by_text(re.compile(r"^\s*Descargar\s+reporte\s*$", re.I))
                     for i in range(min(text_loc.count(), 10)):
                         try:
                             item = text_loc.nth(i)
