@@ -35,7 +35,7 @@ if(a==="bot_import"){
   registros_asistencia:["rut","nombre","sucursal","fecha","entrada","salida","atraso","estado","turno","tipo_ausentismo","salida_temprana","sin_marca","marca_incompleta","tiene_atraso","sin_turno_marcas"]
  }[table];
  const norm=(v:unknown)=>{let s=String(v??"").trim().toLowerCase();const d=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);if(d)s=d[3]+"-"+d[2].padStart(2,"0")+"-"+d[1].padStart(2,"0");return s.replace(/\s+/g," ");}; const normRut=(v:unknown)=>String(v??"").toUpperCase().replace(/[.\s]/g,"");
- const keyOf=(r:any)=>reportType==="ausentismos_historico"?["rut","fecha_inicio","fecha_fin","tipo_ausencia","motivo_ausencia"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):reportType==="solicitudes_vacaciones_historicas"?["rut","fecha_solicitud","fecha_inicio","fecha_fin"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):reportType==="reporte_jornadas_asistencia"?["rut","fecha","turno"].map(k=>k==="rut"?normRut(r[k]):norm(r[k])).join("|"):normRut(r.rut);
+ const keyOf=(r:any)=>reportType==="ausentismos_historico"?[normRut(r.rut),norm(r.fecha_inicio),norm(r.tipo_ausencia),norm(r.motivo_ausencia)].join("|"):reportType==="solicitudes_vacaciones_historicas"?[normRut(r.rut),norm(r.fecha_solicitud||r.fecha_inicio),norm(r.tipo_vacaciones||"vacaciones")].join("|"):reportType==="reporte_jornadas_asistencia"?[normRut(r.rut),norm(r.fecha)].join("|"):normRut(r.rut);
  const clean=(r:any)=>Object.fromEntries(allowed.filter((k:string)=>r[k]!==undefined&&r[k]!==null&&r[k]!=="").map((k:string)=>[k,r[k]]));
  const errors:string[]=[...parseErrors.map((x:any)=>String(x).slice(0,250))], valid:any[]=[];
  let inserted=0,updated=0,skipped=0,failed=parseErrors.length;
@@ -67,11 +67,10 @@ if(a==="bot_import"){
   let existingRows:any[]=[];
   if(ruts.length){const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia,motivo_ausencia":table==="vacaciones_historico"?"id,rut,fecha_solicitud,fecha_inicio,fecha_fin,tipo_vacaciones":"id,rut,fecha,entrada,salida,turno";
    const {data,error}=await admin.from(table).select(selectCols).in("rut",ruts).limit(20000);if(error)return json({error:error.message},500);existingRows=data||[];}
-  const existingByKey=new Map(existingRows.map((r:any)=>[keyOf(r),r])), seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
-  for(const row of valid){
-   const k=keyOf(row);
-   if(seenIncoming.has(k)){skipped++;continue;}
-   seenIncoming.add(k);
+  const existingByKey=new Map(existingRows.map((r:any)=>[keyOf(r),r])), latestIncoming=new Map<string,any>(), pending:any[]=[], pendingUpdates:any[]=[];
+  // Conserva la última fila de cada registro repetido dentro del Excel.
+  for(const row of valid){const k=keyOf(row);if(latestIncoming.has(k))skipped++;latestIncoming.set(k,row);}
+  for(const [k,row] of latestIncoming){
    const old=existingByKey.get(k);
    if(old){
     if(table==="licencias_medicas"||table==="vacaciones_historico"||table==="registros_asistencia")pendingUpdates.push({id:old.id,row});
