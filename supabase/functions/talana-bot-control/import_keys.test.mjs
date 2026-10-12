@@ -41,3 +41,9 @@ test("normalizes accents in natural-key text fields", () => {
   const b = { rut: "12345678-5", fecha_inicio: "2026-10-01T00:00:00Z", tipo_ausencia: "Licencia Medica" };
   assert.equal(importStableKey("ausentismos_historico", a), importStableKey("ausentismos_historico", b));
 });
+
+test("attendance distinguishes entry and exit marks on the same date", () => {
+  const entry = { rut: "11131144-7", fecha: "02/10/2026", entrada: "07:32:14", salida: null };
+  const exit = { rut: "11131144-7", fecha: "2026-10-02", entrada: null, salida: "22:36:04" };
+  assert.notEqual(importStableKey("reporte_jornadas_asistencia", entry), importStableKey("reporte_jornadas_asistencia", exit));
+});
