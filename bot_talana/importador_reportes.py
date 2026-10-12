@@ -12,22 +12,24 @@ from openpyxl import load_workbook
 ALIASES = {
     "rut": ["rut", "rut colaborador", "rut trabajador", "rut empleado", "documento", "identificacion", "identificador"],
     "nombre": ["nombre", "nombre completo", "colaborador", "trabajador", "empleado", "nombre colaborador", "nombre trabajador"],
-    "nombres": ["nombres", "primer nombre", "nombre(s)"],
+    "nombres": ["nombres", "primer nombre", "nombre(s)", "nombre"],
+    "apellido_paterno": ["apellido paterno", "primer apellido"],
+    "apellido_materno": ["apellido materno", "segundo apellido"],
     "apellidos": ["apellidos", "apellido", "apellidos colaborador"],
     "empresa": ["empresa", "razon social", "sociedad"],
     "cargo": ["cargo", "puesto", "cargo colaborador"],
     "sucursal": ["sucursal", "local", "centro de trabajo", "centro costo", "centro de costo"],
-    "estado": ["estado", "estado colaborador", "situacion", "estatus"],
+    "estado": ["estado", "estado colaborador", "situacion", "estatus", "vigente"],
     "fecha_ingreso": ["fecha ingreso", "fecha de ingreso", "fecha contratacion", "fecha de contratacion"],
     "tipo_ausencia": ["tipo ausencia", "tipo de ausencia", "tipo ausentismo", "tipo de ausentismo", "tipo licencia"],
     "motivo_ausencia": ["motivo ausencia", "motivo de ausencia", "motivo", "causal"],
     "dias_ausencia": ["dias ausencia", "dias de ausencia", "duracion", "dias licencia", "cantidad de dias"],
     "fecha_inicio": ["fecha inicio", "fecha de inicio", "fecha de inicio de ausencia", "fecha inicio de ausencia", "inicio ausencia", "inicio de ausencia", "desde", "fecha desde", "fecha inicial", "inicio vacaciones", "fecha inicio vacaciones", "fecha de inicio vacaciones"],
-    "fecha_fin": ["fecha fin", "fin", "hasta", "fecha hasta", "fecha termino", "fecha término", "termino vacaciones", "fecha fin vacaciones"],
-    "fecha_solicitud": ["fecha solicitud", "fecha de solicitud", "solicitado el", "fecha creacion solicitud"],
-    "fecha_aprobacion": ["fecha aprobacion", "fecha de aprobacion", "aprobado el"],
+    "fecha_fin": ["fecha fin", "fecha fin ausencia", "fecha de fin de ausencia", "fin ausencia", "fin", "hasta", "fecha hasta", "fecha termino", "fecha término", "termino vacaciones", "fecha fin vacaciones", "fecha de fin vacaciones"],
+    "fecha_solicitud": ["fecha solicitud", "fecha de solicitud", "fecha hora solicitud", "solicitado el", "fecha creacion solicitud"],
+    "fecha_aprobacion": ["fecha aprobacion", "fecha de aprobacion", "fecha hora aprobacion rechazo", "aprobado el"],
     "fecha_retorno": ["fecha retorno", "fecha de retorno", "regreso", "fecha regreso"],
-    "aprobado_por": ["aprobado por", "autorizado por", "jefatura aprobadora"],
+    "aprobado_por": ["aprobado por", "aprobada rechazada por", "autorizado por", "jefatura aprobadora"],
     "dias": ["dias", "dias solicitados", "cantidad dias", "dias habiles"],
     "jornada": ["jornada", "tipo jornada"],
     "tipo_vacaciones": ["tipo vacaciones", "tipo de vacaciones", "tipo solicitud", "tipo"],
@@ -37,7 +39,7 @@ ALIASES = {
     "fecha": ["fecha", "dia", "día", "fecha asistencia", "fecha jornada"],
     "entrada": ["entrada", "hora entrada", "marcacion entrada", "marcación entrada", "primera marca"],
     "salida": ["salida", "hora salida", "marcacion salida", "marcación salida", "ultima marca"],
-    "atraso": ["atraso", "atrasos", "tiempo atraso", "minutos atraso"],
+    "atraso": ["atraso", "atrasos", "tiempo atraso", "minutos atraso", "horas de atraso"],
     "salida_temprana": ["salida temprana", "retiro anticipado"],
     "turno": ["turno", "jornada asignada", "horario"],
     "tipo_ausentismo": ["tipo ausentismo", "tipo de ausentismo", "ausentismo"],
@@ -71,7 +73,9 @@ def _clean(value):
     if isinstance(value, float) and value.is_integer():
         return int(value)
     text = str(value).strip()
-    return text if text else None
+    if not text or text in {"-", "—", "–", "N/A", "NA"}:
+        return None
+    return text
 
 
 def _boolean(value):
@@ -160,8 +164,18 @@ def parse_report(path, report_type):
                 continue
             item["rut"] = re.sub(r"\s+", "", str(item["rut"])).upper()
             if report_type == "maestro_empleado":
+                # Talana's Maestro Empleado export separates given names and both surnames.
                 if "nombre" in mapping:
                     item["nombre"] = _clean(values[mapping["nombre"]])
+                    item["nombres"] = item.get("nombre")
+                surname_parts = []
+                for surname_field in ("apellido_paterno", "apellido_materno"):
+                    pos = mapping.get(surname_field)
+                    surname = _clean(values[pos]) if pos is not None and pos < len(values) else None
+                    if surname:
+                        surname_parts.append(str(surname).strip())
+                if surname_parts:
+                    item["apellidos"] = " ".join(surname_parts)
                 if not item.get("nombres") or not item.get("apellidos"):
                     full_name = item.get("nombre")
                     if full_name:
