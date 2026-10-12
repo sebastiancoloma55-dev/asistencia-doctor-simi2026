@@ -40,9 +40,47 @@ def main():
     group.add_argument("--once", action="store_true", help="Ejecuta una sola descarga y termina")
     group.add_argument("--check", action="store_true", help="Comprueba si el panel permite ejecutar, sin descargar")
     group.add_argument("--maintenance", action="store_true", help="Genera tareas recurrentes aprobadas, sin iniciar sesión en Talana")
+    group.add_argument("--validate-only", action="store_true", help="Descarga y valida los cuatro XLSX sin subirlos ni modificar Supabase")
     args = parser.parse_args()
 
     cloud = TalanaBotCloud()
+    if args.validate_only:
+        user = os.getenv("TALANA_USER", "").strip()
+        password = os.getenv("TALANA_PASSWORD", "")
+        if not user or not password:
+            raise RuntimeError("Faltan los secretos TALANA_USER o TALANA_PASSWORD.")
+        from talana_downloader import ejecutar_descargas
+        from importador_reportes import parse_report
+        results, errors = ejecutar_descargas(user, password, headless=True)
+        validated = 0
+        for title, path in results:
+            if str(path).startswith("__TALANA_ACTION_OK__:"):
+                LOG.info("Acción completada sin archivo: %s", title)
+                continue
+            file_path = Path(path)
+            if not file_path.is_file():
+                errors.append(f"No existe el archivo descargado para {title}: {file_path}")
+                continue
+            normalized = title.lower()
+            report_type = (
+                "ausentismos_historico" if "ausentismo" in normalized
+                else "solicitudes_vacaciones_historicas" if "vacaciones" in normalized
+                else "maestro_empleado" if "maestro" in normalized
+                else "reporte_jornadas_asistencia" if "jornadas" in normalized
+                else "reporte_talana"
+            )
+            rows, parse_errors, metadata = parse_report(file_path, report_type)
+            LOG.info("VALIDACIÓN SIN ESCRITURA: %s | tipo=%s | filas=%s | errores_parseo=%s | columnas=%s",
+                     title, report_type, len(rows), len(parse_errors), metadata)
+            if not rows or parse_errors:
+                errors.append(f"{title}: filas válidas={len(rows)}, errores de parseo={len(parse_errors)}")
+            else:
+                validated += 1
+        LOG.info("Resultado validación segura: reportes válidos=%s/4, errores=%s. No se subieron archivos ni se modificó la base de datos.",
+                 validated, len(errors))
+        if validated != 4 or errors:
+            raise SystemExit(1)
+        return
     if args.maintenance:
         result = cloud.call("bot_generate_recurring_tasks")
         LOG.info("Mantenimiento de tareas recurrentes: %s tarea(s) nueva(s).", result.get("created", 0))
