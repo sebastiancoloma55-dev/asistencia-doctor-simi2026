@@ -72,9 +72,20 @@ def main():
             rows, parse_errors, metadata = parse_report(file_path, report_type)
             LOG.info("VALIDACIÓN SIN ESCRITURA: %s | tipo=%s | filas=%s | errores_parseo=%s | columnas=%s",
                      title, report_type, len(rows), len(parse_errors), metadata)
+            expected_sheet_terms = {
+                "solicitudes_vacaciones_historicas": ("vacacion", "solicitud"),
+                "ausentismos_historico": ("ausentismo", "licencia"),
+                "maestro_empleado": ("empleado", "trabajador"),
+                "reporte_jornadas_asistencia": ("jornada", "asistencia", "turno"),
+            }.get(report_type, ())
+            sheet_name = str(metadata.get("sheet", "")).lower()
+            wrong_sheet = bool(expected_sheet_terms) and not any(term in sheet_name for term in expected_sheet_terms)
+            if wrong_sheet:
+                errors.append(f"{title}: hoja inesperada «{metadata.get('sheet', '')}» para el tipo {report_type}; archivo no se considera válido.")
+                LOG.error("VALIDACIÓN RECHAZADA: %s tiene hoja inesperada: %s", title, metadata.get("sheet", ""))
             if not rows or parse_errors:
                 errors.append(f"{title}: filas válidas={len(rows)}, errores de parseo={len(parse_errors)}")
-            else:
+            elif not wrong_sheet:
                 validated += 1
         LOG.info("Resultado validación segura: reportes válidos=%s/4, errores=%s. No se subieron archivos ni se modificó la base de datos.",
                  validated, len(errors))
