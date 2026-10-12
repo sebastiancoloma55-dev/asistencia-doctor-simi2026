@@ -541,6 +541,7 @@
                         document.getElementById('login-overlay').classList.add('hidden');
                         await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
                         await inicializarDashboard();
+                        if (window.cargarResumenEspacioDashboard) await window.cargarResumenEspacioDashboard();
                         await actualizarContadorNotificacionesTopbar();
                     }catch(perfilError){
                         await _supabase.auth.signOut();
@@ -556,14 +557,60 @@
 
         function togglePasswordVisibility(){const i=document.getElementById('login-pass'),e=document.getElementById('password-eye-icon');if(!i)return;const v=i.type==='text';i.type=v?'password':'text';if(e)e.setAttribute('data-lucide',v?'eye':'eye-off');lucide.createIcons();}
         async function recuperarContrasena(){const email=document.getElementById('login-email')?.value.trim(),box=document.getElementById('login-error');box.classList.remove('hidden');if(!email){box.textContent='Ingresa tu correo corporativo.';return}const{error}=await _supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});box.textContent=error?error.message:'Revisa tu correo para continuar con la recuperación.';}
+        const LOGIN_REMEMBER_EMAIL_KEY = 'doctor-simi-rrhh-login-email';
+
+        function syncRememberedLoginEmail() {
+            const emailInput = document.getElementById('login-email');
+            const remember = document.getElementById('login-remember');
+            if (!emailInput || !remember) return;
+            try {
+                if (remember.checked && emailInput.value.trim()) {
+                    localStorage.setItem(LOGIN_REMEMBER_EMAIL_KEY, emailInput.value.trim());
+                } else {
+                    localStorage.removeItem(LOGIN_REMEMBER_EMAIL_KEY);
+                }
+            } catch (_) { /* El almacenamiento puede estar deshabilitado por el navegador. */ }
+        }
+
+        function initRememberedLoginEmail() {
+            const emailInput = document.getElementById('login-email');
+            const remember = document.getElementById('login-remember');
+            if (!emailInput || !remember) return;
+            try {
+                const savedEmail = localStorage.getItem(LOGIN_REMEMBER_EMAIL_KEY);
+                if (savedEmail && !emailInput.value) {
+                    emailInput.value = savedEmail;
+                    remember.checked = true;
+                }
+                remember.addEventListener('change', syncRememberedLoginEmail);
+                emailInput.addEventListener('change', syncRememberedLoginEmail);
+            } catch (_) { /* No bloquear el acceso si el almacenamiento está restringido. */ }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initRememberedLoginEmail, { once: true });
+        } else {
+            initRememberedLoginEmail();
+        }
+
         async function iniciarSesion(event) {
             event.preventDefault();
 
             const boton = document.getElementById('btn-login');
             const errorBox = document.getElementById('login-error');
+            const label = boton?.querySelector('.nova-v3-submit-label');
+            const icon = boton?.querySelector('.nova-v3-submit-icon');
 
-            boton.disabled = true;
-            boton.textContent = 'Autenticando...';
+            syncRememberedLoginEmail();
+            if (boton) {
+                boton.disabled = true;
+                boton.setAttribute('aria-busy', 'true');
+                boton.classList.add('is-loading');
+                if (label) label.textContent = 'Verificando acceso…';
+                else boton.textContent = 'Verificando acceso…';
+                if (icon) icon.innerHTML = '<i data-lucide="loader-circle"></i>';
+                if (window.lucide?.createIcons) window.lucide.createIcons();
+            }
             errorBox.classList.add('hidden');
 
             try {
@@ -572,25 +619,32 @@
                     password: document.getElementById('login-pass').value
                 });
 
-                if (error) {
-                    throw error;
-                }
+                if (error) throw error;
 
                 await cargarPerfilPermisosActual(data.user);
                 actualizarBienvenidaUsuario(data.user);
-                document.getElementById('user-email-display').innerText=data.user.email;
+                document.getElementById('user-email-display').innerText = data.user.email;
                 document.getElementById('login-overlay').classList.add('hidden');
-                await cambiarModulo(tienePermisoModulo('dashboard')?'dashboard':modulosPermitidosActuales[0],false);
+                await cambiarModulo(tienePermisoModulo('dashboard') ? 'dashboard' : modulosPermitidosActuales[0], false);
                 await inicializarDashboard();
+                if (window.cargarResumenEspacioDashboard) await window.cargarResumenEspacioDashboard();
                 await actualizarContadorNotificacionesTopbar();
             } catch (error) {
-                try{await _supabase.auth.signOut();}catch(_){}
-                perfilActualSistema=null;modulosPermitidosActuales=[];
+                try { await _supabase.auth.signOut(); } catch (_) {}
+                perfilActualSistema = null;
+                modulosPermitidosActuales = [];
                 errorBox.textContent = error.message || 'Credenciales incorrectas.';
                 errorBox.classList.remove('hidden');
             } finally {
-                boton.disabled = false;
-                boton.textContent = 'Ingresar al sistema';
+                if (boton) {
+                    boton.disabled = false;
+                    boton.removeAttribute('aria-busy');
+                    boton.classList.remove('is-loading');
+                    if (label) label.textContent = 'Acceder al portal';
+                    else boton.textContent = 'Acceder al portal';
+                    if (icon) icon.innerHTML = '<i data-lucide="arrow-up-right"></i>';
+                    if (window.lucide?.createIcons) window.lucide.createIcons();
+                }
             }
         }
 
@@ -618,19 +672,33 @@
         // ============================================================
         // NAVEGACIÓN
         // ============================================================
+        let secuenciaCambioModulo = 0;
+        let ultimaConsultaActualizacionesFuente = 0;
         async function cambiarModulo(modulo, cargar = true) {
-            if (window.cargarActualizacionesFuentes) cargarActualizacionesFuentes().catch(error => console.warn('Trazabilidad de archivos:', error));
+            const secuenciaActual = ++secuenciaCambioModulo;
+            // No repetir una consulta a Supabase por cada clic de navegación.
+            if (window.cargarActualizacionesFuentes && Date.now() - ultimaConsultaActualizacionesFuente > 30000) {
+                ultimaConsultaActualizacionesFuente = Date.now();
+                cargarActualizacionesFuentes().catch(error => {
+                    ultimaConsultaActualizacionesFuente = 0;
+                    console.warn('Trazabilidad de archivos:', error);
+                });
+            }
             if(perfilActualSistema&&!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para acceder a este apartado.','warning');const primero=modulos.find(nombre=>tienePermisoModulo(nombre));if(primero&&primero!==modulo)return cambiarModulo(primero,cargar);return;}
             modulos.forEach(nombre => {
                 const boton = document.getElementById(`btn-${nombre}`);
 
                 if (boton) {
-                    boton.className = `menu-btn ui-button flex w-full items-center gap-3 rounded-lg px-3 py-2.5 ${nombre === modulo ? 'bg-simiRed font-semibold text-white' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'}`;
+                    const ocultoPorPermiso = boton.classList.contains('hidden');
+                    boton.className = `menu-btn ui-button flex w-full items-center gap-3 rounded-lg px-3 py-2.5 ${nombre === modulo ? 'active font-semibold text-white' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'}${ocultoPorPermiso ? ' hidden' : ''}`;
+                    if (nombre === modulo) boton.setAttribute('aria-current', 'page');
+                    else boton.removeAttribute('aria-current');
                 }
 
                 const vista = document.getElementById(`view-${nombre}`);
 
                 if (vista) {
+                    vista.classList.remove('rrhh-view-enter');
                     vista.classList.add('hidden');
                 }
             });
@@ -647,12 +715,22 @@
 
             if (vista) {
                 vista.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    if (secuenciaActual === secuenciaCambioModulo && !vista.classList.contains('hidden')) {
+                        vista.classList.add('rrhh-view-enter');
+                    }
+                });
+                vista.addEventListener('animationend', () => vista.classList.remove('rrhh-view-enter'), { once: true });
+                if (window.actualizarContextoModulo) window.actualizarContextoModulo(modulo);
             } else {
-                document
-                    .getElementById('view-generic')
-                    .classList
-                    .remove('hidden');
-
+                const generic = document.getElementById('view-generic');
+                generic.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    if (secuenciaActual === secuenciaCambioModulo && !generic.classList.contains('hidden')) {
+                        generic.classList.add('rrhh-view-enter');
+                    }
+                });
+                generic.addEventListener('animationend', () => generic.classList.remove('rrhh-view-enter'), { once: true });
                 document.getElementById('generic-title').innerText =
                     `${titulos[modulo]} - Módulo en desarrollo`;
             }
@@ -665,6 +743,14 @@
             }
 
             try {
+                if (modulo === 'espacio' && window.cargarEspacioTrabajo) await window.cargarEspacioTrabajo();
+                if (modulo === 'dashboard') {
+                    if (window.cargarResumenEspacioDashboard) {
+                        Promise.resolve(window.cargarResumenEspacioDashboard())
+                            .catch(error => console.warn('Resumen de Mi espacio:', error));
+                    }
+                    if (window.cargarResumenOperativoRRHH) window.cargarResumenOperativoRRHH();
+                }
                 if (modulo === 'chat' && window.cargarChatInterno) await window.cargarChatInterno();
                 if (modulo === 'traslados' && window.iniciarModuloTraslados) await window.iniciarModuloTraslados();
                 if (modulo === 'reportes') await prepararFiltrosReportesRRHH();
@@ -710,7 +796,8 @@
                 if (modulo === 'usuarios') await cargarUsuariosRoles();
                 if (modulo === 'auditoria') await cargarAuditoria();
             } catch (error) {
-                mostrarToast(error.message, 'error', 15000);
+                if (secuenciaActual === secuenciaCambioModulo) mostrarToast(error.message, 'error', 15000);
+                else console.debug('Carga de módulo anterior omitida tras cambiar de vista:', modulo);
             }
         }
 
@@ -722,6 +809,7 @@
         // ============================================================
         const etiquetasBusquedaGlobal={
             dashboard:['inicio','resumen','indicadores','kpi'],
+            espacio:['notas','posit','post it','bitácora','recordatorios','mi espacio'],
             colaboradores:['personas','empleados','trabajadores','rut'],
             sucursales:['locales','farmacias','directorio','direcciones'],
             asistencia:['marcas','atrasos','entrada','salida','turnos'],

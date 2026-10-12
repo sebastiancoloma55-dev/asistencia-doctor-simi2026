@@ -62,7 +62,7 @@ for (const endpoint of ['api/gemini.js', 'api/geocodificar.js']) {
   const source = readFileSync(path.join(root, endpoint), 'utf8');
   if (!source.includes('req.method')) fail(`Falta validar el método HTTP en ${endpoint}.`);
 }
-const requiredModules = ['dashboard','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
+const requiredModules = ['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
 for (const moduleName of requiredModules) {
   if (!buttons.has(moduleName)) fail(`El módulo ${moduleName} no tiene botón de navegación.`);
   if (!views.has(moduleName)) fail(`El módulo ${moduleName} no tiene vista registrada.`);
@@ -73,6 +73,64 @@ for (const file of frontendFiles) {
   const content = readFileSync(path.join(root, file), 'utf8');
   if (content.includes('SUPABASE_SERVICE_ROLE_KEY')) fail(`Posible clave privilegiada en frontend: ${file}`);
 }
+
+const loginRequiredIds = ['login-overlay', 'login-email', 'login-pass', 'login-remember', 'login-error', 'btn-login'];
+for (const id of loginRequiredIds) {
+  if (!html.includes(`id="${id}"`)) fail(`El login NOVA V3 no contiene el elemento requerido #${id}.`);
+}
+for (const marker of ['nova-v3-overlay', 'nova-v3-orbit-scene', 'nova-v3-auth', 'prefers-reduced-motion']) {
+  if (!html.includes(marker)) fail(`Falta el componente visual/accessibilidad ${marker} del login NOVA V3.`);
+}
+if (!existsSync(path.join(root, 'doctor-simi-logo.jpg'))) fail('No existe el recurso local doctor-simi-logo.jpg del login.');
+const appCore = readFileSync(path.join(root, 'js/app-core.js'), 'utf8');
+for (const marker of ['syncRememberedLoginEmail', 'Verificando acceso', 'signInWithPassword']) {
+  if (!appCore.includes(marker)) fail(`Falta la integración de autenticación esperada: ${marker}.`);
+}
+
+
+const workspaceCode = readFileSync(path.join(root, 'js/workspace.js'), 'utf8');
+if (!workspaceCode.includes('rrhh_notas') || !workspaceCode.includes('rrhh_bitacora')) fail('Mi espacio debe guardar notas y bitácora en Supabase.');
+if (!workspaceCode.includes('guardarNotaRRHH') || !workspaceCode.includes('guardarRegistroBitacoraRRHH')) fail('Mi espacio no expone los formularios de guardado.');
+const organizationCode = readFileSync(path.join(root, 'js/module-organization.js'), 'utf8');
+if (!organizationCode.includes('actualizarContextoModulo') || !organizationCode.includes('organizarNavegacionPermisos')) fail('La organización de módulos debe incluir contexto y agrupación por permisos.');
+const mapCode = readFileSync(path.join(root, 'js/maps-communications.js'), 'utf8');
+if (!mapCode.includes('router.project-osrm.org/route/v1/driving/') || !mapCode.includes('function restaurarMapa14')) fail('El mapa debe calcular rutas viales y permitir restaurar todas las farmacias.');
+if (!html.includes('id="mapa14-mostrar-todas"') || !html.includes('id="mapa14-estadisticas"')) fail('Faltan los controles de limpiar filtro y resumen de distancia del mapa.');
+if (!html.includes('id="col-filtro-estado"') || !html.includes('id="colab-kpi-grid"')) fail('El directorio de colaboradores necesita KPI y filtro de estado.');
+
+
+const operationalSummary = readFileSync(path.join(root, 'js/operational-summary.js'), 'utf8');
+for (const marker of ['dashboard-ops-cards', 'cargarResumenOperativoRRHH', 'talana-bot-control', 'solicitudes_dotacion', 'Promise.all']) {
+  if (!operationalSummary.includes(marker)) fail("El resumen operativo no contiene la integración esperada: " + marker + ".");
+}
+for (const marker of [
+  'id="dashboard-ops-cards"',
+  'id="talana-bot-health"',
+  'id="dotacion-filtro-buscar"',
+  'id="dotacion-filtro-estado"',
+  'id="dotacion-filtro-desde"',
+  'id="dotacion-filtro-hasta"',
+  'src="/js/operational-summary.js"',
+  'rrhhModuleEnter',
+  'prefers-reduced-motion'
+]) {
+  if (!html.includes(marker)) fail("Falta el componente operativo/responsive requerido: " + marker + ".");
+}
+const botCode = readFileSync(path.join(root, 'js/talana-bot.js'), 'utf8');
+for (const marker of ['renderHealth', 'error_summary', 'reports_downloaded', 'reports_uploaded', 'admin_manual_run']) {
+  if (!botCode.includes(marker)) fail("El panel del bot Talana no contiene diagnóstico esperado: " + marker + ".");
+}
+const coverageCode = readFileSync(path.join(root, 'js/chat-transfers.js'), 'utf8');
+for (const marker of ['function renderSolicitudesDotacion', 'function filtrarSolicitudesDotacion', 'function limpiarFiltrosSolicitudesDotacion', 'solicitudesDotacionCache']) {
+  if (!coverageCode.includes(marker)) fail("La vista de dotación no contiene filtro esperado: " + marker + ".");
+}
+const migrationDir = path.join(root, 'supabase/migrations');
+const migrationNames = readdirSync(migrationDir);
+for (const redundantMigration of ['20261011120000_talana_importer_privileges_and_key_contract.sql', '20261011080000_talana_importer_service_role_grants.sql']) {
+  if (migrationNames.includes(redundantMigration)) fail('La migración Talana redundante sigue en el proyecto: ' + redundantMigration);
+}
+if (!migrationNames.includes('20261011073437_talana_importer_privileges_and_key_contract_20261011.sql')) fail('Falta alinear la migración del importador con la versión aplicada en Supabase.');
+if (!migrationNames.includes('20261011181841_talana_four_reports_config_20261011.sql')) fail('Falta versionar la configuración del bot con los cuatro reportes activos.');
 
 if (process.exitCode) process.exit(process.exitCode);
 console.log(`Validación correcta: ${localScripts.length} scripts locales, ${jsFiles.length} archivos JS, ${buttons.size} módulos navegables y APIs protegidas.`);
