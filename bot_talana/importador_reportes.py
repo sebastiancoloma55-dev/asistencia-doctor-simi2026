@@ -117,6 +117,14 @@ def _find_header(rows, report_type):
         score = len(expected.intersection(mapping))
         if best is None or score > best[0]:
             best = (score, idx, mapping)
+    # Talana exports sometimes label the absence category simply as "Tipo".
+    # The generic alias maps that header to tipo_vacaciones; in an absence report
+    # it must instead become tipo_ausencia so the deduplication key is complete.
+    if report_type == "ausentismos_historico" and best:
+        mapping = best[2]
+        if "tipo_ausencia" not in mapping and "tipo_vacaciones" in mapping:
+            mapping["tipo_ausencia"] = mapping["tipo_vacaciones"]
+            best = (best[0] + 1, best[1], mapping)
     minimum = 2 if report_type == "maestro_empleado" else 3
     if not best or best[0] < minimum:
         raise ValueError(
