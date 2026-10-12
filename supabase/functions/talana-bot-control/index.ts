@@ -46,7 +46,8 @@ if(a==="bot_import"){
   if(table==="registros_asistencia"&&!row.fecha){errors.push("lote fila "+(i+1)+": falta fecha de asistencia");failed++;continue;}
   // Existing employees may have incomplete name cells in historical exports.
   // Their stored names are reconciled below; new employees still require both fields.
-  const missingKeyFields=(importKeyFields(reportType)||[]).filter((field:string)=>row[field]===undefined||row[field]===null||String(row[field]).trim()==="");
+  const requiredKeyFields=reportType==="reporte_jornadas_asistencia"?["rut","fecha"]:(importKeyFields(reportType)||[]);
+  const missingKeyFields=requiredKeyFields.filter((field:string)=>row[field]===undefined||row[field]===null||String(row[field]).trim()===""||norm(row[field])==="");
   if(missingKeyFields.length){for(const field of missingKeyFields)missingKeyFieldCounts[field]=(missingKeyFieldCounts[field]||0)+1;errors.push("lote fila "+(i+1)+": faltan campos de identificación para evitar duplicados ("+missingKeyFields.join(", ")+")");failed++;continue;}
   if(table==="registros_asistencia"){row.sin_marca=Boolean(row.sin_marca);row.marca_incompleta=Boolean(row.marca_incompleta);row.tiene_atraso=Boolean(row.tiene_atraso);row.sin_turno_marcas=Boolean(row.sin_turno_marcas);}
   valid.push(row);
@@ -72,7 +73,7 @@ if(a==="bot_import"){
   skipped+=valid.length-toUpsert.length;
  }else{
   const ruts=[...new Set(valid.flatMap((r:any)=>[String(r.rut),normRut(r.rut)]))];
-  const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia":table==="vacaciones_historico"?"id,rut,fecha_inicio,fecha_fin,tipo_vacaciones":"id,rut,fecha";
+  const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia":table==="vacaciones_historico"?"id,rut,fecha_inicio,fecha_fin,tipo_vacaciones":"id,rut,fecha,entrada,salida,tipo_ausentismo";
   let existingRows:any[]=[];
   if(ruts.length){const {data,error}=await admin.from(table).select(selectCols).in("rut",ruts).order("id",{ascending:false}).limit(20000);if(error)return json({error:error.message},500);existingRows=data||[];}
   const existingByKey=new Map<string,any>(); for(const old of existingRows){const oldKey=keyOf(old);if(oldKey&&!existingByKey.has(oldKey))existingByKey.set(oldKey,old);} const seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
