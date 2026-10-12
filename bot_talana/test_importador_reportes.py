@@ -75,6 +75,74 @@ class ReportParserTests(unittest.TestCase):
         self.assertEqual(rows[0]["tipo_ausencia"], "Licencia médica")
         self.assertEqual(errors, [])
 
+    def test_exact_talana_absence_headers(self):
+        path = self.make_xlsx(
+            ["Rut", "Nombre", "Empresa", "Cargo", "Gerencia", "Sucursal", "Centro de Costo",
+             "Tipo de Ausencia", "Motivo de Ausencia", "Número de días de Ausencia",
+             "Fecha Inicio Ausencia", "Fecha Fin Ausencia", "Hora Inicio", "Hora Fin",
+             "Número Horas", "Número Minutos", "Fecha de Creación", "Observaciones"],
+            [["15539483-8", "EDUARDO ANDRES GREZ", "Farmacias", "Auxiliar", "Ventas", "Cumming",
+              "Cumming", "licencia medica", "Enfermedad", 11, "2019-01-09 00:00:00",
+              "2019-01-19 00:00:00", "-", "-", "-", "-", "2026-03-26 00:00:00", ""]],
+        )
+        rows, errors, _ = parse_report(path, "ausentismos_historico")
+        self.assertEqual(rows[0]["fecha_inicio"], "2019-01-09")
+        self.assertEqual(rows[0]["fecha_fin"], "2019-01-19")
+        self.assertEqual(rows[0]["tipo_ausencia"], "licencia medica")
+        self.assertEqual(rows[0]["gerencia"], "Ventas")
+        self.assertEqual(errors, [])
+
+    def test_exact_talana_vacation_headers(self):
+        path = self.make_xlsx(
+            ["Rut", "Nombre", "Empresa", "Cargo", "Gerencia", "Sucursal", "Centro de Costo",
+             "Fecha/Hora Solicitud", "Fecha/Hora Aprobación/Rechazo", "Aprobada/Rechazada por",
+             "Estado", "Fecha Inicio Vacaciones", "Fecha Fin Vacaciones", "Fecha Retorno",
+             "Número de días de Vacaciones", "Jornada", "Tipo de Vacaciones", "Observaciones"],
+            [["13851330-0", "RODRIGO HUGO BALCAZAR", "Farmacias", "Auxiliar", "Farmacia",
+              "Villa Alemana 3", "Villa Alemana 3", "01/09/2026 - 09:40:09",
+              "01/09/2026 - 09:40:28", "JAVIERA PAZ SAAVEDRA", "Aprobada",
+              "2026-09-01 00:00:00", "2026-10-02 00:00:00", "2026-10-05 00:00:00",
+              23, "-", "Vacaciones Proporcionales", ""]],
+        )
+        rows, errors, _ = parse_report(path, "solicitudes_vacaciones_historicas")
+        self.assertEqual(rows[0]["fecha_solicitud"], "2026-09-01 09:40:09")
+        self.assertEqual(rows[0]["fecha_inicio"], "2026-09-01")
+        self.assertEqual(rows[0]["fecha_fin"], "2026-10-02")
+        self.assertEqual(rows[0]["tipo_vacaciones"], "Vacaciones Proporcionales")
+        self.assertEqual(errors, [])
+
+    def test_exact_talana_employee_headers(self):
+        path = self.make_xlsx(
+            ["RUT", "Nombre", "Apellido Paterno", "Apellido Materno", "Cargo",
+             "Sucursal", "Fecha de Ingreso", "Vigente"],
+            [["11834733-1", "Ada Paola", "Pino", "Vasquez", "AUXILIAR DE FARMACIA",
+              "PUENTE ALTO 2", "2022-03-22 00:00:00", "Si"]],
+        )
+        rows, errors, _ = parse_report(path, "maestro_empleado")
+        self.assertEqual(rows[0]["nombres"], "Ada Paola")
+        self.assertEqual(rows[0]["apellidos"], "Pino Vasquez")
+        self.assertEqual(rows[0]["estado"], "activo")
+        self.assertEqual(errors, [])
+
+    def test_exact_talana_attendance_headers_and_dash_placeholders(self):
+        path = self.make_xlsx(
+            ["Fecha", "Estado", "Rut", "Nombre", "Sucursal", "Centro de Costo", "Razón Social",
+             "Turno", "Entrada", "Salida", "Horas Trabajadas", "Colación", "Horas Extra",
+             "Horas de Atraso", "Estado de edición", "Comentario del empleado", "Editada",
+             "Editado Por", "Observación", "Unidad Organizacional", "Jefe", "Tipo de Ausentismo"],
+            [["01/10/2026", "Justificada", "14186582-K", "DANIELA ANDREA ABARCA", "LAS REJAS",
+              "LAS REJAS", "Farmacias", "08:30-17:30 (00:30)", "-", "-", "00:00", "-", "00:00",
+              "00:00", "Solicitada", "", "No", "", "", "FARMACIA", "", "Día vacaciones"]],
+        )
+        rows, errors, _ = parse_report(path, "reporte_jornadas_asistencia")
+        self.assertEqual(rows[0]["fecha"], "2026-10-01")
+        self.assertIsNone(rows[0]["entrada"])
+        self.assertIsNone(rows[0]["salida"])
+        self.assertEqual(rows[0]["horas_trabajadas"], "00:00")
+        self.assertEqual(rows[0]["tipo_ausentismo"], "Día vacaciones")
+        self.assertTrue(rows[0]["sin_marca"])
+        self.assertEqual(errors, [])
+
     def test_unrecognized_headers_fail_closed(self):
         path = self.make_xlsx(["Columna A", "Columna B"], [["x", "y"]])
         with self.assertRaises(ValueError):
