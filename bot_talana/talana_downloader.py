@@ -449,90 +449,108 @@ def cambiar_a_asistencia_y_turnos(page):
 
 
 def descargar_reporte_jornadas(page, eventos):
-    # En distintas versiones de Talana el control puede ser botón, enlace,
-    # acción con aria-label o texto dentro de un componente de React.
-    url_actual = (page.url or "").lower()
-    if "/attendance/workingdays/calendar" not in url_actual:
-        click_texto(page, "Jornadas")
-    else:
-        limite_carga = time.monotonic() + 60
-        while time.monotonic() < limite_carga and "/attendance/loading" in (page.url or "").lower():
-            page.wait_for_timeout(500)
-        page.wait_for_timeout(1200)
+    """Descarga Jornadas usando el selector estable de Talana y tolera frames que se desmontan."""
+    selector_real = '[data-cy="ayt-calendar-download-report"]'
+    deadline = time.monotonic() + 180
+    last_error = None
 
-    patron = re.compile(r"(descargar|exportar).*(reporte|excel|jornada)?|(reporte|excel|jornada).*(descargar|exportar)", re.I)
-    selectores = (
-        'button:has-text("Descargar reporte")',
-        'a:has-text("Descargar reporte")',
-        '[role="button"]:has-text("Descargar reporte")',
-        '[data-cy*="download" i]',
-        '[data-testid*="download" i]',
-        '[aria-label*="descargar" i]',
-        '[title*="descargar" i]',
-        'button:has-text("Exportar")',
-        'a:has-text("Exportar")',
-        'button:has-text("Descargar")',
-        'a:has-text("Descargar")',
-    )
-    boton, limite = None, time.monotonic() + 60
-    while time.monotonic() < limite and boton is None:
-        for frame in list(page.frames):
-            try:
-                for getter in (
-                    lambda: frame.get_by_role("button", name=patron),
-                    lambda: frame.get_by_role("link", name=patron),
-                    lambda: frame.get_by_text(patron),
-                ):
-                    loc = getter()
-                    for i in range(min(loc.count(), 30)):
-                        el = loc.nth(i)
-                        if el.is_visible() and el.is_enabled():
-                            boton = el
-                            break
-                    if boton is not None:
-                        break
-                if boton is None:
-                    for selector in selectores:
-                        loc = frame.locator(selector)
-                        for i in range(min(loc.count(), 20)):
-                            el = loc.nth(i)
-                            if el.is_visible() and el.is_enabled():
-                                boton = el
-                                break
-                        if boton is not None:
-                            break
-            except Exception:
-                # Los frames pueden desmontarse mientras Talana navega.
-                continue
-            if boton is not None:
-                break
-        if boton is None:
-            page.wait_for_timeout(500)
+    while time.monotonic() < deadline:
+        # Talana puede abrir una pestaña o desmontar el frame durante la navegación.
+        try:
+            paginas = list(page.context.pages)
+        except Exception:
+            paginas = [page]
+        if page not in paginas:
+            paginas.append(page)
 
-    if boton is None:
-        controles = []
-        for frame in list(page.frames):
-            try:
-                loc = frame.locator("button, a, [role='button']")
-                for i in range(min(loc.count(), 80)):
-                    el = loc.nth(i)
-                    if el.is_visible():
-                        label = (el.inner_text(timeout=300) or "").strip().replace("\n", " ")
-                        aria = el.get_attribute("aria-label") or ""
-                        title = el.get_attribute("title") or ""
-                        candidate = " ".join(x for x in (label, aria, title) if x)
-                        if candidate:
-                            controles.append(candidate[:100])
-            except Exception:
-                continue
-        resumen = " | ".join(controles[:35])
-        raise RuntimeError(
-            "No se encontró el control de descarga en Jornadas. "
-            f"URL actual: {page.url}. Controles visibles: {resumen or 'ninguno detectado'}"
+        paginas.sort(
+            key=lambda p: 0 if "attendance/workingdays/calendar" in (getattr(p, "url", "") or "").lower() else 1
         )
-    n = len(eventos)
-    boton.click(timeout=20000)
-    return esperar_descarga_evento(page, eventos, n, "reporte_jornadas_asistencia")
+        calendar_pages = [
+            p for p in paginas
+            if "attendance/workingdays/calendar" in (getattr(p, "url", "") or "").lower()
+        ]
+        candidates = calendar_pages or paginas
+
+        for candidata in candidates:
+            try:
+                if modal_progreso_visible(candidata):
+                    esperar_fin_modal_progreso(candidata, timeout_segundos=600)
+            except Exception as exc:
+                last_error = exc
+
+            try:
+                frames = list(candidata.frames)
+            except Exception as exc:
+                last_error = exc
+                continue
+
+            for frame in frames:
+                # El data-cy es el selector que funcionaba en la versión local anterior.
+                try:
+                    loc = frame.locator(selector_real)
+                    total = min(loc.count(), 10)
+                    for i in range(total):
+                        try:
+                            button = loc.nth(i)
+                            if button.is_visible() and button.is_enabled():
+                                count_before = len(eventos)
+                                button.click(timeout=12000)
+                                return esperar_descarga_evento(
+                                    candidata, eventos, count_before,
+                                    "reporte_jornadas_asistencia", timeout_segundos=600
+                                )
+                        except Exception as exc:
+                            last_error = exc
+                            # Si el frame fue reemplazado, volver a enumerar páginas/frames.
+                            continue
+                except Exception as exc:
+                    last_error = exc
+
+            # Respaldo textual: únicamente buscar el botón exacto dentro del calendario.
+            for frame in frames:
+                try:
+                    text_loc = frame.get_by_text(re.compile(r"^\\s*Descargar\\s+reporte\\s*$", re.I))
+                    for i in range(min(text_loc.count(), 10)):
+                        try:
+                            item = text_loc.nth(i)
+                            if not item.is_visible():
+                                continue
+                            button = item.locator("xpath=ancestor::button[1]")
+                            if button.count() and button.first.is_visible() and button.first.is_enabled():
+                                count_before = len(eventos)
+                                button.first.click(timeout=12000)
+                                return esperar_descarga_evento(
+                                    candidata, eventos, count_before,
+                                    "reporte_jornadas_asistencia", timeout_segundos=600
+                                )
+                        except Exception as exc:
+                            last_error = exc
+                            continue
+                except Exception as exc:
+                    last_error = exc
+
+        try:
+            page.wait_for_timeout(500)
+        except Exception:
+            time.sleep(0.5)
+
+    try:
+        page.screenshot(
+            path=str(DOWNLOAD_DIR / "boton_descargar_reporte_jornadas_no_encontrado.png"),
+            full_page=True
+        )
+    except Exception:
+        pass
+    urls = []
+    try:
+        urls = [p.url for p in page.context.pages]
+    except Exception:
+        urls = [getattr(page, "url", "desconocida")]
+    raise RuntimeError(
+        "No se pudo pulsar «Descargar reporte» en Jornadas tras 180 segundos. "
+        f"Páginas abiertas: {urls}. Último detalle: {last_error or 'control no visible'}"
+    )
 
 def ejecutar_descargas(rut, clave, headless=True):
     resultados, errores = [], []
@@ -573,6 +591,9 @@ def ejecutar_descargas(rut, clave, headless=True):
                     print(f"ERROR {titulo}: {exc}")
                     try: page.screenshot(path=str(DOWNLOAD_DIR / (nombre_seguro(titulo) + "_error.png")), full_page=True)
                     except Exception: pass
+                    # No continuar tras un reporte fallido: evita confundir descargas
+                    # y hace que la validación falle de forma segura y explícita.
+                    break
             return resultados, errores
         finally:
             context.close()
