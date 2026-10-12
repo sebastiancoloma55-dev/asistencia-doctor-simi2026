@@ -30,10 +30,10 @@ if(a==="bot_import"){
  if(rows.length>150)return json({error:"Máximo 150 filas por lote."},413);
  const table=reportType==="ausentismos_historico"?"licencias_medicas":reportType==="solicitudes_vacaciones_historicas"?"vacaciones_historico":reportType==="maestro_empleado"?"colaboradores":"registros_asistencia";
  const allowed={
-  licencias_medicas:["rut","nombre","empresa","cargo","sucursal","tipo_ausencia","motivo_ausencia","dias_ausencia","fecha_inicio","fecha_fin","observaciones"],
+  licencias_medicas:["rut","nombre","empresa","cargo","gerencia","sucursal","centro_costo","tipo_ausencia","motivo_ausencia","dias_ausencia","fecha_inicio","fecha_fin","hora_inicio","hora_fin","numero_horas","numero_minutos","fecha_creacion","observaciones"],
   vacaciones_historico:["rut","nombre","empresa","cargo","gerencia","sucursal","centro_costo","fecha_solicitud","fecha_aprobacion","aprobado_por","estado","fecha_inicio","fecha_fin","fecha_retorno","dias","jornada","tipo_vacaciones","observaciones"],
   colaboradores:["rut","nombres","apellidos","cargo","sucursal","fecha_ingreso","estado"],
-  registros_asistencia:["rut","nombre","sucursal","fecha","entrada","salida","atraso","estado","turno","tipo_ausentismo","salida_temprana","sin_marca","marca_incompleta","tiene_atraso","sin_turno_marcas"]
+  registros_asistencia:["rut","nombre","sucursal","fecha","razon_social","entrada","salida","horas_trabajadas","colacion","horas_extra","atraso","estado","estado_edicion","comentario_empleado","editada","editado_por","observacion","unidad_organizacional","jefe","turno","tipo_ausentismo","salida_temprana","sin_marca","marca_incompleta","tiene_atraso","sin_turno_marcas"]
  }[table];
  const norm=normalizeImportValue; const normRut=normalizeImportRut;
  const keyOf=(r:any)=>importStableKey(reportType,r);
