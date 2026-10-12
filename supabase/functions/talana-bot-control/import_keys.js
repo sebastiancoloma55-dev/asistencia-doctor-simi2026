@@ -2,14 +2,17 @@
  * Natural keys for Talana imports.
  *
  * These keys intentionally match the unique indexes in Supabase:
- * - licencias_medicas: (rut, fecha_inicio, fecha_fin, tipo_ausencia)
- * - vacaciones_historico: (rut, fecha_inicio, fecha_fin, tipo_vacaciones)
+ * Matching keys identify a continuing record, not every mutable field.
+ * - licencias_medicas: (rut, fecha_inicio, tipo_ausencia)
+ * - vacaciones_historico: (rut, fecha_inicio, tipo_vacaciones)
+ * - registros_asistencia: (rut, fecha)
+ * Database unique indexes remain stricter and are still respected on insert.
  * - registros_asistencia: (rut, fecha)
  * - colaboradores: (rut)
  */
 export const IMPORT_KEY_FIELDS = Object.freeze({
-  ausentismos_historico: Object.freeze(["rut", "fecha_inicio", "fecha_fin", "tipo_ausencia"]),
-  solicitudes_vacaciones_historicas: Object.freeze(["rut", "fecha_inicio", "fecha_fin", "tipo_vacaciones"]),
+  ausentismos_historico: Object.freeze(["rut", "fecha_inicio", "tipo_ausencia"]),
+  solicitudes_vacaciones_historicas: Object.freeze(["rut", "fecha_inicio", "tipo_vacaciones"]),
   maestro_empleado: Object.freeze(["rut"]),
   reporte_jornadas_asistencia: Object.freeze(["rut", "fecha"]),
 });
