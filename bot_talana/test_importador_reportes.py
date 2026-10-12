@@ -56,6 +56,15 @@ class ReportParserTests(unittest.TestCase):
         self.assertFalse(rows[0]["sin_marca"])
         self.assertEqual(errors, [])
 
+    def test_absence_report_maps_generic_tipo_column_to_absence_type(self):
+        path = self.make_xlsx(
+            ["RUT", "Nombre", "Tipo", "Fecha inicio", "Fecha fin"],
+            [["12.345.678-5", "Ana Pérez", "Licencia médica", "2026-10-01", "2026-10-10"]],
+        )
+        rows, errors, _ = parse_report(path, "ausentismos_historico")
+        self.assertEqual(rows[0]["tipo_ausencia"], "Licencia médica")
+        self.assertEqual(errors, [])
+
     def test_unrecognized_headers_fail_closed(self):
         path = self.make_xlsx(["Columna A", "Columna B"], [["x", "y"]])
         with self.assertRaises(ValueError):
