@@ -40,7 +40,7 @@ jobs:
         with:
           node-version: "22"
       - name: Verificar sintaxis de la función de Supabase
-        run: npx --yes esbuild@0.25.0 supabase/functions/talana-bot-control/index.ts --loader:.ts=ts --format=esm --outfile=/tmp/talana-bot-control.js
+        run: npx --yes esbuild@0.25.0 supabase/functions/talana-bot-control/index.ts --loader:.ts=ts --bundle --format=esm --outfile=/tmp/talana-bot-control.js
 
   run-talana:
     if: github.event_name != 'pull_request'
