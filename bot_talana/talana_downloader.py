@@ -413,37 +413,93 @@ def descargar_maestro_empleado(page, eventos):
 
 
 def cambiar_a_asistencia_y_turnos(page):
+    """Abre el módulo correcto y recupera la ruta SPA del calendario si Talana cae en /es/asistencia/."""
     candidatos = []
     for frame in list(page.frames):
         try:
             loc = frame.get_by_text("Remuneraciones", exact=True)
             for i in range(min(loc.count(), 60)):
                 el = loc.nth(i)
-                if not el.is_visible(): continue
-                rect = el.evaluate("e => {const r=e.getBoundingClientRect();return {x:r.x,y:r.y,vw:innerWidth};}")
+                if not el.is_visible():
+                    continue
+                rect = el.evaluate(
+                    "e => {const r=e.getBoundingClientRect();return {x:r.x,y:r.y,vw:innerWidth};}"
+                )
                 if rect and rect["y"] < 150 and rect["x"] > rect["vw"] * 0.55:
                     candidatos.append((rect["y"], -rect["x"], el))
-        except Exception: pass
-    if not candidatos: raise RuntimeError("No se encontró el selector superior del módulo Remuneraciones.")
-    candidatos.sort(key=lambda x: (x[0], x[1]))
+        except Exception:
+            continue
+
+    if not candidatos:
+        raise RuntimeError(
+            "No se encontró el selector superior del módulo Remuneraciones. "
+            f"URL actual: {page.url}"
+        )
+
+    candidatos.sort(key=lambda item: (item[0], item[1]))
     candidatos[0][2].click(timeout=12000)
     page.wait_for_timeout(500)
-    click_texto(page, "Asistencia y Turnos")
-    # Talana puede redirigir primero a /attendance/loading?next=... y
-    # no mostrar la etiqueta "Jornadas" aunque el calendario ya sea la vista activa.
-    limite = time.monotonic() + 90
+    click_texto(page, "Asistencia y Turnos", timeout=20000)
+
+    def encontrar_calendario():
+        try:
+            paginas = [p for p in page.context.pages if not p.is_closed()]
+        except Exception:
+            paginas = [page]
+        if page not in paginas:
+            paginas.append(page)
+        for candidata in paginas:
+            url = (candidata.url or "").lower()
+            if "attendance/workingdays/calendar" in url and "attendance/loading" not in url:
+                return candidata
+        return None
+
+    # Dar tiempo al cambio de módulo SPA y a la redirección intermedia de Talana.
+    limite = time.monotonic() + 45
     while time.monotonic() < limite:
-        url_actual = (page.url or "").lower()
-        ruta_jornadas = "/attendance/workingdays/calendar" in url_actual
-        cargando = "/attendance/loading" in url_actual
-        if ruta_jornadas and not cargando:
-            page.wait_for_timeout(1500)
+        calendario = encontrar_calendario()
+        if calendario is not None:
+            calendario.wait_for_timeout(1500)
             return
-        if texto_visible(page, "Jornadas") and not cargando:
+        if texto_visible(page, "Jornadas") and "/es/asistencia/" not in (page.url or "").lower():
             return
         page.wait_for_timeout(500)
+
+    # Algunas sesiones terminan en la página pública /es/asistencia/ y no llegan
+    # a montar la SPA. Reutilizar la sesión autenticada y abrir la ruta conocida.
+    try:
+        print(
+            "Talana no abrió el calendario tras seleccionar Asistencia y Turnos; "
+            f"ruta actual={page.url}. Intentando ruta autenticada del calendario."
+        )
+        page.goto(
+            "https://talana.com/app/#/attendance/workingdays/calendar",
+            wait_until="domcontentloaded",
+            timeout=90000,
+        )
+    except Exception as exc:
+        print(f"Redirección directa a Jornadas: {exc}")
+
+    limite = time.monotonic() + 60
+    while time.monotonic() < limite:
+        calendario = encontrar_calendario()
+        if calendario is not None:
+            calendario.wait_for_timeout(1500)
+            return
+        if texto_visible(page, "Jornadas") and "auth/login" not in (page.url or "").lower():
+            return
+        page.wait_for_timeout(500)
+
+    try:
+        page.screenshot(
+            path=str(DOWNLOAD_DIR / "navegacion_jornadas_fallida.png"),
+            full_page=True,
+        )
+    except Exception:
+        pass
     raise RuntimeError(
-        "No se confirmó la vista Jornadas en Asistencia y Turnos. "
+        "No se confirmó la ruta del calendario de Jornadas tras seleccionar Asistencia y Turnos "
+        "ni tras intentar la ruta autenticada directa. "
         f"URL actual: {page.url}"
     )
 
