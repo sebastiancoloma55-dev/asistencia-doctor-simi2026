@@ -94,6 +94,26 @@ def _clean(value):
     return text
 
 
+def _normalize_date_text(value):
+    """Normalize Talana date strings to ISO without changing empty/placeholder values."""
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text or text in {"-", "—", "–", "N/A", "NA"}:
+        return None
+    for fmt in ("%d/%m/%Y - %H:%M:%S", "%d/%m/%Y %H:%M:%S"):
+        try:
+            return datetime.strptime(text, fmt).strftime("%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            pass
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(text[:10], fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            pass
+    return text
+
+
 def _boolean(value):
     if isinstance(value, bool):
         return value
@@ -175,6 +195,9 @@ def parse_report(path, report_type):
             for field in REPORT_FIELDS[report_type]:
                 pos = mapping.get(field)
                 item[field] = _clean(values[pos]) if pos is not None and pos < len(values) else None
+            for date_field in ("fecha", "fecha_inicio", "fecha_fin", "fecha_retorno", "fecha_solicitud", "fecha_aprobacion", "fecha_ingreso", "fecha_creacion"):
+                if item.get(date_field):
+                    item[date_field] = _normalize_date_text(item[date_field])
             if not item.get("rut"):
                 row_errors.append(f"fila {line_number}: falta RUT")
                 continue
@@ -206,9 +229,9 @@ def parse_report(path, report_type):
                     continue
                 if item.get("estado"):
                     status = _norm(item["estado"])
-                    if any(x in status for x in ("inactivo", "cesado", "finiquitado", "desvinculado", "terminado", "retirado")):
+                    if status in ("no", "false", "0") or any(x in status for x in ("inactivo", "cesado", "finiquitado", "desvinculado", "terminado", "retirado")):
                         item["estado"] = "inactivo"
-                    elif any(x in status for x in ("activo", "vigente", "contratado", "active")):
+                    elif status in ("si", "sí", "true", "1") or any(x in status for x in ("activo", "vigente", "contratado", "active")):
                         item["estado"] = "activo"
                     else:
                         row_errors.append(f"fila {line_number}: estado no reconocido ({item['estado']})")
