@@ -40,8 +40,8 @@ insert into public.licencias_medicas_importacion_cuarentena
 select moved.*, 'Importación anterior incompleta: faltan fecha de inicio, fecha de fin y días', now()
 from moved;
 
--- Guard against duplicate valid source identities while leaving legacy rows with
--- incomplete identity fields untouched for later review.
+-- Guard against duplicate valid source identities after malformed legacy rows
+-- have been preserved in the quarantine table above.
 create unique index if not exists ux_licencias_medicas_talana_identity
   on public.licencias_medicas (
     (regexp_replace(upper(trim(rut)), '[.[:space:]]', '', 'g')),
