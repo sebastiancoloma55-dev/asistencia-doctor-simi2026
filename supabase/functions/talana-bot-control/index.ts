@@ -94,9 +94,11 @@ if(a==="bot_import"){
      if(!oneError){inserted++;continue;}
      const duplicateConflict=(oneError as any).code==="23505"||(oneError as any).status===409;
      if(duplicateConflict){
-      let lookup=admin.from(table).select(selectCols).order("id",{ascending:false}).limit(1);
-      for(const field of importKeyFields(reportType)||[]){lookup=lookup.eq(field,row[field]);}
-      const {data:existing,error:lookupError}=await lookup.maybeSingle();
+      // Match using the normalized natural key; exact SQL equality fails when
+      // RUT punctuation or date serialization differs between XLSX and PostgreSQL.
+      const rutVariants=[...new Set([String(row.rut),normRut(row.rut)])];
+      const {data:candidates,error:lookupError}=await admin.from(table).select(selectCols).in("rut",rutVariants).order("id",{ascending:false}).limit(500);
+      const existing=(candidates||[]).find((candidate:any)=>keyOf(candidate)===k);
       if(!lookupError&&existing){
        const updateRow={...row};
        for(const field of importKeyFields(reportType)||[]){updateRow[field]=existing[field]??updateRow[field];}
