@@ -5,7 +5,57 @@
   const dateOnly = value => value ? new Date(value+"T12:00:00").toLocaleDateString("es-CL",{timeZone:"America/Santiago"}) : "—";
   const setStatus = (id, message, error=false) => { const node=$(id); if(node){node.textContent=message;node.className="mt-3 text-xs "+(error?"text-rose-700":"text-slate-500");} };
   const norm = value => String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLocaleLowerCase("es-CL");
-  let currentRoleId = null, chatUsers = [], activeConversation = null, chatChannel = null, chatBusy = false;
+  let currentRoleId = null, chatUsers = [], activeConversation = null, chatChannel = null, chatInboxChannel = null, chatBusy = false;
+  const notifiedMessageIds = new Set();
+  let chatAudioContext = null;
+
+  function reproducirAvisoChat() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!chatAudioContext) chatAudioContext = new AudioCtx();
+      if (chatAudioContext.state === "suspended") chatAudioContext.resume().catch(() => {});
+      const ctx = chatAudioContext, osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.type = "sine"; osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(660, ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.28);
+      osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.3);
+    } catch (e) { console.debug("Aviso sonoro no disponible:", e); }
+  }
+
+  function notificarMensajeEntrante(msg, conversations) {
+    if (!msg || Number(msg.remitente_id) === Number(currentRoleId) || notifiedMessageIds.has(String(msg.id))) return;
+    notifiedMessageIds.add(String(msg.id));
+    if (notifiedMessageIds.size > 300) notifiedMessageIds.delete(notifiedMessageIds.values().next().value);
+    reproducirAvisoChat();
+    const conversation = (conversations || []).find(item => String(item.id) === String(msg.conversacion_id));
+    if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
+      const sender = chatUsers.find(user => Number(user.id) === Number(msg.remitente_id));
+      const body = msg.adjunto_nombre ? "Adjunto: " + msg.adjunto_nombre : String(msg.contenido || "Nuevo mensaje").slice(0, 140);
+      try {
+        const notice = new Notification((sender?.nombre || sender?.email || "Nuevo mensaje") + " · " + (conversation?.titulo || "Chat interno"), { body, tag: "chat-" + msg.conversacion_id, icon: "/favicon.ico" });
+        notice.onclick = () => { window.focus(); if (conversation) abrirConversacionChat(conversation.id); notice.close(); };
+      } catch (e) { console.debug("Notificación de escritorio no disponible:", e); }
+    }
+  }
+
+  async function iniciarAvisosChat() {
+    if ("Notification" in window && Notification.permission === "default" && !window.__chatNotificationPermissionAsked) {
+      window.__chatNotificationPermissionAsked = true;
+      try { await Notification.requestPermission(); } catch (_) {}
+    }
+  }
+
+  async function suscribirAvisosChat(conversations) {
+    if (chatInboxChannel) { try { await _supabase.removeChannel(chatInboxChannel); } catch (_) {} chatInboxChannel = null; }
+    chatInboxChannel = _supabase.channel("chat-inbox-" + currentRoleId)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_mensajes" }, payload => {
+        const msg = payload.new;
+        if (msg && (conversations || []).some(item => String(item.id) === String(msg.conversacion_id))) notificarMensajeEntrante(msg, conversations);
+      }).subscribe();
+  }
   let collaborators = [], branches = [], canApproveTransfers = false;
   let solicitudesDotacionCache = [], solicitudesDotacionError = null;
 
@@ -40,9 +90,11 @@
     if(status) status.textContent="Conectando con el chat seguro…";
     try {
       await currentUserId();
+      await iniciarAvisosChat();
       await loadChatUsers();
       const {data,error}=await _supabase.rpc("chat_listar_conversaciones");
       if(error) throw error;
+      await suscribirAvisosChat(data||[]);
       renderConversations(data||[]);
       if(status) status.textContent="Conectado · mensajes protegidos por participante · hora de Chile";
       if(activeConversation && !(data||[]).some(c=>c.id===activeConversation)) activeConversation=null;
@@ -477,6 +529,7 @@
       currentRoleId=null;activeConversation=null;chatUsers=[];collaborators=[];branches=[];canApproveTransfers=false;
       if(chatChannel){_supabase.removeChannel(chatChannel);chatChannel=null;}
       ["chat-conversaciones-list","chat-mensajes"].forEach(id=>{const node=$(id);if(node)node.replaceChildren();});
+      if(chatInboxChannel){_supabase.removeChannel(chatInboxChannel);chatInboxChannel=null;}
       if($("chat-mensaje-input"))$("chat-mensaje-input").disabled=true;
       if($("chat-archivo"))$("chat-archivo").disabled=true;
       if($("chat-enviar"))$("chat-enviar").disabled=true;
