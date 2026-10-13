@@ -1,7 +1,9 @@
 name: Bot Talana - horario Chile
 
 on:
-  # PAUSA TEMPORAL: ejecución automática deshabilitada durante la recuperación de la plataforma.
+  # GitHub cron usa UTC; holiday_schedule_guard.py aplica la hora local de Chile y omite fines de semana/feriados.
+  schedule:
+    - cron: "0 11-22 * * 1-5"
   workflow_dispatch:
     inputs:
       mode:
