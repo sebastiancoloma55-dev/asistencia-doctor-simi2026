@@ -280,27 +280,92 @@
             XLSX.writeFile(wb, 'Plantilla_correos_sucursales.xlsx');
         }
         async function importarCorreosSucursales(event) {
+            const input = event?.target;
+            const archivo = input?.files?.[0];
+            if (!archivo) return;
+            const normalizarClaveSucursal = valor => String(valor ?? '')
+                .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+                .trim().replace(/\\s+/g, ' ').toLocaleLowerCase('es-CL');
+            const normalizarCorreo = valor => String(valor ?? '').trim().replace(/^mailto:/i, '').toLowerCase();
+            const emailValido = valor => /^[^\\s@,;<>]+@[^\\s@,;<>]+\\.[^\\s@,;<>]+$/.test(valor);
+            const obtenerCorreoCopia = valor => String(valor ?? '')
+                .split(/[;,\\n]+/).map(normalizarCorreo).filter(Boolean);
             try {
-                const filas = await leerExcel(event.target.files[0]);
-                for (const f of filas) {
-                    const nombre = texto(obtenerCampo(f, ['nombre', 'Sucursal', 'Nombre Sucursal']));
-                    if (!nombre) continue;
-                    const cambios = {
-                        supervisor: texto(obtenerCampo(f, ['supervisor', 'Supervisor'])),
-                        correo_sucursal: texto(obtenerCampo(f, ['correo_sucursal', 'Correo Sucursal'])),
-                        correo_copia: texto(obtenerCampo(f, ['correo_copia', 'Correo Copia', 'CC'])),
-                        horario_apertura: texto(obtenerCampo(f, ['horario_apertura', 'Horario Apertura'])),
-                        horario_cierre: texto(obtenerCampo(f, ['horario_cierre', 'Horario Cierre'])),
-                        firma_correo: texto(obtenerCampo(f, ['firma_correo', 'Firma Correo']))
+                const filas = await leerExcel(archivo);
+                if (!Array.isArray(filas) || !filas.length) {
+                    throw new Error('El Excel no contiene filas de datos. Descarga la plantilla oficial y vuelve a intentarlo.');
+                }
+                const { data: sucursales, error: errorSucursales } = await _supabase
+                    .from('sucursales').select('id,nombre,supervisor,correo_sucursal,correo_copia,horario_apertura,horario_cierre,firma_correo');
+                if (errorSucursales) {
+                    if (/firma_correo|schema cache|column/i.test(errorSucursales.message || '')) {
+                        throw new Error('La base de datos no reconoce la columna firma_correo. Primero debe aplicarse la migración SQL de la plataforma; no se modificó ninguna sucursal.');
+                    }
+                    throw errorSucursales;
+                }
+                const porNombre = new Map((sucursales || []).map(s => [normalizarClaveSucursal(s.nombre), s]));
+                const preparadas = [];
+                const errores = [];
+                const nombresVistos = new Set();
+                let filasVacias = 0;
+                for (let i = 0; i < filas.length; i++) {
+                    const f = filas[i];
+                    const nombre = texto(obtenerCampo(f, ['nombre', 'Sucursal', 'Nombre Sucursal', 'Nombre exacto de la sucursal']));
+                    if (!nombre || /^nombre exacto de la sucursal$/i.test(nombre)) { filasVacias++; continue; }
+                    const clave = normalizarClaveSucursal(nombre);
+                    if (nombresVistos.has(clave)) { errores.push('Fila ' + (i + 2) + ': sucursal duplicada en el Excel: ' + nombre); continue; }
+                    nombresVistos.add(clave);
+                    const sucursal = porNombre.get(clave);
+                    if (!sucursal) { errores.push('Fila ' + (i + 2) + ': no existe una sucursal con el nombre "' + nombre + '".'); continue; }
+                    const leer = (nombres, actual) => {
+                        const raw = obtenerCampo(f, nombres, undefined);
+                        return raw === undefined || raw === null || String(raw).trim() === '' ? actual : String(raw).trim();
                     };
-                    const { error } = await _supabase.from('sucursales').update(cambios).eq('nombre', nombre);
-                    if (error) throw error;
+                    const cambios = {
+                        supervisor: leer(['supervisor', 'Supervisor'], sucursal.supervisor || ''),
+                        correo_sucursal: normalizarCorreo(leer(['correo_sucursal', 'Correo Sucursal', 'Correo principal'], sucursal.correo_sucursal || '')),
+                        correo_copia: obtenerCorreoCopia(leer(['correo_copia', 'Correo Copia', 'CC'], sucursal.correo_copia || '')).join(';'),
+                        horario_apertura: leer(['horario_apertura', 'Horario Apertura', 'Hora de apertura'], sucursal.horario_apertura || ''),
+                        horario_cierre: leer(['horario_cierre', 'Horario Cierre', 'Hora de cierre'], sucursal.horario_cierre || ''),
+                        firma_correo: leer(['firma_correo', 'Firma Correo', 'Firma institucional'], sucursal.firma_correo || '')
+                    };
+                    if (cambios.correo_sucursal && !emailValido(cambios.correo_sucursal)) {
+                        errores.push('Fila ' + (i + 2) + ' (' + nombre + '): correo principal inválido: "' + cambios.correo_sucursal + '".');
+                    }
+                    const copiasInvalidas = obtenerCorreoCopia(cambios.correo_copia).filter(email => !emailValido(email));
+                    if (copiasInvalidas.length) {
+                        errores.push('Fila ' + (i + 2) + ' (' + nombre + '): correo(s) en copia inválido(s): ' + copiasInvalidas.join(', ') + '.');
+                    }
+                    if (cambios.horario_apertura && !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(cambios.horario_apertura)) {
+                        errores.push('Fila ' + (i + 2) + ' (' + nombre + '): hora de apertura debe usar HH:MM.');
+                    }
+                    if (cambios.horario_cierre && !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(cambios.horario_cierre)) {
+                        errores.push('Fila ' + (i + 2) + ' (' + nombre + '): hora de cierre debe usar HH:MM.');
+                    }
+                    preparadas.push({ id: sucursal.id, nombre: sucursal.nombre, cambios });
+                }
+                if (!preparadas.length) throw new Error('No se encontró ninguna sucursal válida para importar. Revisa la columna nombre.');
+                if (errores.length) {
+                    const resumen = errores.slice(0, 8).join('\\n') + (errores.length > 8 ? '\\nY ' + (errores.length - 8) + ' error(es) adicional(es).' : '');
+                    throw new Error('Importación cancelada: se encontraron ' + errores.length + ' problema(s). No se modificó ninguna sucursal.\\n' + resumen);
+                }
+                let actualizadas = 0;
+                for (const fila of preparadas) {
+                    const { error } = await _supabase.from('sucursales').update(fila.cambios).eq('id', fila.id);
+                    if (error) {
+                        throw new Error('La importación se detuvo al actualizar "' + fila.nombre + '" (' + (actualizadas) + ' actualizadas antes del error): ' + error.message + '. Revisa la columna firma_correo y los permisos de Supabase.');
+                    }
+                    actualizadas++;
                 }
                 await prepararConfiguracionCorreos();
-                await registrarActualizacionFuente('config_correos', event.target.files?.[0]?.name || 'Plantilla de correos', filas.length, 'manual');
-                mostrarToast('Plantilla de correos cargada.', 'success');
-            } catch (e) { mostrarToast(e.message, 'error'); }
-            finally { event.target.value = ''; }
+                await registrarActualizacionFuente('config_correos', archivo.name || 'Plantilla de correos', actualizadas, 'manual');
+                mostrarToast('Importación finalizada: ' + actualizadas + ' sucursal(es) actualizadas. Las celdas vacías conservaron los valores existentes.', 'success', 8000);
+            } catch (e) {
+                console.error('Importación de correos de sucursales:', e);
+                mostrarToast(e.message || 'No se pudo importar el Excel.', 'error', 12000);
+            } finally {
+                if (input) input.value = '';
+            }
         }
         window.filtrarSucursalesMapa14 = function(tipo) {
             const input = document.getElementById(tipo === 'origen' ? 'map14-buscar-origen' : 'map14-buscar-destino');
