@@ -11,10 +11,10 @@ create unique index ux_licencias_medicas_talana_identity
   on public.licencias_medicas (
     (regexp_replace(upper(trim(rut)), '[.[:space:]]', '', 'g')),
     (trim(fecha_inicio)),
-    (translate(regexp_replace(lower(trim(coalesce(tipo_ausencia, ''))), '\s+', ' ', 'g'), 'áéíóúüñ', 'aeiouun')),
+    (translate(regexp_replace(lower(trim(coalesce(tipo_ausencia, ''))), '[[:space:]]+', ' ', 'g'), 'áéíóúüñ', 'aeiouun')),
     (coalesce(trim(fecha_creacion), '')),
-    (coalesce(regexp_replace(lower(trim(coalesce(hora_inicio, ''))), '\s+', ' ', 'g'), '')),
-    (coalesce(regexp_replace(lower(trim(coalesce(hora_fin, ''))), '\s+', ' ', 'g'), ''))
+    (coalesce(regexp_replace(lower(trim(coalesce(hora_inicio, ''))), '[[:space:]]+', ' ', 'g'), '')),
+    (coalesce(regexp_replace(lower(trim(coalesce(hora_fin, ''))), '[[:space:]]+', ' ', 'g'), ''))
   )
   where nullif(trim(rut), '') is not null
     and nullif(trim(fecha_inicio), '') is not null
@@ -24,9 +24,9 @@ create unique index ux_vacaciones_historico_talana_identity
   on public.vacaciones_historico (
     (regexp_replace(upper(trim(rut)), '[.[:space:]]', '', 'g')),
     (trim(fecha_inicio)),
-    (translate(regexp_replace(lower(trim(coalesce(tipo_vacaciones, ''))), '\s+', ' ', 'g'), 'áéíóúüñ', 'aeiouun')),
+    (translate(regexp_replace(lower(trim(coalesce(tipo_vacaciones, ''))), '[[:space:]]+', ' ', 'g'), 'áéíóúüñ', 'aeiouun')),
     (coalesce(trim(fecha_solicitud), '')),
-    (coalesce(translate(regexp_replace(lower(trim(coalesce(jornada, ''))), '\s+', ' ', 'g'), 'áéíóúüñ', 'aeiouun'), ''))
+    (coalesce(translate(regexp_replace(lower(trim(coalesce(jornada, ''))), '[[:space:]]+', ' ', 'g'), 'áéíóúüñ', 'aeiouun'), ''))
   )
   where nullif(trim(rut), '') is not null
     and nullif(trim(fecha_inicio), '') is not null
@@ -40,9 +40,9 @@ create unique index ux_registros_asistencia_talana_identity
   on public.registros_asistencia (
     (regexp_replace(upper(trim(rut)), '[.[:space:]]', '', 'g')),
     (trim(fecha)),
-    (coalesce(regexp_replace(lower(trim(coalesce(entrada, ''))), '\s+', ' ', 'g'), '')),
-    (coalesce(regexp_replace(lower(trim(coalesce(salida, ''))), '\s+', ' ', 'g'), '')),
-    (translate(regexp_replace(lower(trim(coalesce(tipo_ausentismo, ''))), '\s+', ' ', 'g'), 'áéíóúüñ', 'aeiouun'))
+    (coalesce(regexp_replace(lower(trim(coalesce(entrada, ''))), '[[:space:]]+', ' ', 'g'), '')),
+    (coalesce(regexp_replace(lower(trim(coalesce(salida, ''))), '[[:space:]]+', ' ', 'g'), '')),
+    (translate(regexp_replace(lower(trim(coalesce(tipo_ausentismo, ''))), '[[:space:]]+', ' ', 'g'), 'áéíóúüñ', 'aeiouun'))
   )
   where nullif(trim(rut), '') is not null
     and nullif(trim(fecha), '') is not null;
