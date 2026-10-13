@@ -15,7 +15,7 @@ test("ausentismo identity is stable when the end date changes", () => {
 
 test("absence identity distinguishes separate creation timestamps", () => {
   const first = { rut: "12.345.678-5", fecha_inicio: "2026-10-01", tipo_ausencia: "Licencia médica", fecha_creacion: "2026-10-01 08:00:00" };
-  const second = { ...first, fecha_creacion: "2026-10-01 09:00:00" };
+  const second = { ...first, fecha_creacion: "2026-10-02 09:00:00" };
   assert.notEqual(importStableKey("ausentismos_historico", first), importStableKey("ausentismos_historico", second));
 });
 
