@@ -28,7 +28,13 @@ class TalanaBotCloud:
   from importador_reportes import parse_report
   p=Path(path)
   rows,parse_errors,metadata=parse_report(p,report_type)
-  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"planned_inserted":0,"planned_updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True}
+  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"planned_inserted":0,"planned_updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True,"diagnostics":{"missing_key_fields":{},"attendance":{"incoming_by_date":{},"planned_new_by_date":{}}}}
+  attendance_employee_ids=set()
+  if report_type=="reporte_jornadas_asistencia":
+   import re
+   for row in rows:
+    rut=row.get("rut")
+    if rut is not None and str(rut).strip(): attendance_employee_ids.add(re.sub(r"[^0-9Kk]","",str(rut)).upper())
   for offset in range(0,len(rows),100):
    batch=rows[offset:offset+100]
    result=self.call("bot_import",run_id=run_id,report_type=report_type,file_name=p.name,rows=batch,parse_errors=parse_errors if offset==0 else [],final_batch=(offset+len(batch)>=len(rows)),dry_run=dry_run)
@@ -36,11 +42,26 @@ class TalanaBotCloud:
    for key in keys:
     totals[key]+=int(result.get(key,0) or 0)
    totals["tracking_registered"]=totals["tracking_registered"] and bool(result.get("tracking_registered",True))
+   diag=result.get("diagnostics") or {}
+   for field,count in (diag.get("missing_key_fields") or {}).items():
+    totals["diagnostics"]["missing_key_fields"][field]=totals["diagnostics"]["missing_key_fields"].get(field,0)+int(count or 0)
+   attendance=diag.get("attendance") or {}
+   for bucket in ("incoming_by_date","planned_new_by_date"):
+    target=totals["diagnostics"]["attendance"][bucket]
+    for day,count in (attendance.get(bucket) or {}).items(): target[day]=target.get(day,0)+int(count or 0)
    totals["errors"].extend(result.get("errors") or [])
    if offset==0 or (offset//100+1)%10==0 or offset+len(batch)>=len(rows):
     import logging
     prefix="Previsualización" if dry_run else "Importación"
     logging.getLogger("talana-cloud").info("%s %s: procesadas %s/%s; altas_estimadas=%s actualizaciones_estimadas=%s insertadas=%s actualizadas=%s duplicadas=%s fallidas=%s",prefix,report_type,min(offset+len(batch),len(rows)),len(rows),totals["planned_inserted"],totals["planned_updated"],totals["inserted"],totals["updated"],totals["skipped"],totals["failed"])
+  if report_type=="reporte_jornadas_asistencia":
+   attendance=totals["diagnostics"]["attendance"]
+   dates=sorted(attendance["incoming_by_date"])
+   attendance["date_min"]=dates[0] if dates else None
+   attendance["date_max"]=dates[-1] if dates else None
+   attendance["unique_dates"]=len(dates)
+   attendance["unique_employee_ids"]=len(attendance_employee_ids)
+   attendance["planned_new_total"]=sum(attendance["planned_new_by_date"].values())
   return totals
  def finish_run(self,run_id,status,downloaded=0,errors=None,details=None):
   return self.call("bot_finish",run_id=run_id,status=status,reports_downloaded=downloaded,error_summary="; ".join(map(str,errors or []))[:4000] or None,details=details or {})
