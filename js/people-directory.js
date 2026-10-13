@@ -198,7 +198,7 @@
                     {icon:'users',label:'Colaboradores cargados',value:registrosTodos.length},
                     {icon:'user-check',label:'Activos',value:totalActivos},
                     {icon:'user-round-x',label:'Inactivos',value:totalInactivos},
-                    {icon:'building-2',label:'Sucursales con nómina',value:totalSucursales}
+                    {icon:'building',label:'Sucursales con nómina',value:totalSucursales}
                 ];
                 kpi.innerHTML = tarjetas.map(x => '<div class="colab-kpi"><span><i data-lucide="'+x.icon+'"></i></span><div><small>'+x.label+'</small><strong>'+Number(x.value).toLocaleString('es-CL')+'</strong></div></div>').join('');
             }
