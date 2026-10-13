@@ -37,6 +37,12 @@ if(a==="bot_import"){
   registros_asistencia:["rut","nombre","sucursal","fecha","razon_social","entrada","salida","horas_trabajadas","colacion","horas_extra","atraso","estado","estado_edicion","comentario_empleado","editada","editado_por","observacion","unidad_organizacional","jefe","turno","tipo_ausentismo","salida_temprana","sin_marca","marca_incompleta","tiene_atraso","sin_turno_marcas"]
  }[table];
  const norm=normalizeImportValue; const normRut=normalizeImportRut;
+ const rutLookupVariants=(value:any)=>{
+  const raw=String(value??"").trim(), normalized=normRut(value);
+  const match=normalized.match(/^(\\d{7,8})-([0-9K])$/i);
+  const dotted=match?match[1].replace(/\\B(?=(\\d{3})+(?!\\d))/g,".")+"-"+match[2]:null;
+  return [...new Set([raw,normalized,normalized.toLowerCase(),normalized.replace(/-/g,""),dotted,dotted?.toLowerCase()].filter(Boolean))];
+ };
  const keyOf=(r:any)=>importStableKey(reportType,r);
  const clean=(r:any)=>Object.fromEntries(allowed.filter((k:string)=>r[k]!==undefined&&r[k]!==null&&r[k]!=="").map((k:string)=>[k,r[k]]));
  const errors:string[]=[...parseErrors.map((x:any)=>String(x).slice(0,250))], valid:any[]=[];
@@ -55,7 +61,7 @@ if(a==="bot_import"){
  }
  if(table==="colaboradores"){
   const unique=new Map<string,any>();for(const row of valid)unique.set(normRut(row.rut),row);
-  const rutList=[...new Set([...unique.values()].flatMap((r:any)=>[String(r.rut),normRut(r.rut)]))];
+  const rutList=[...new Set([...unique.values()].flatMap((r:any)=>rutLookupVariants(r.rut)))];
   const {data:existing,error:lookupError}=await admin.from(table).select("rut,estado,nombres,apellidos").in("rut",rutList);
   if(lookupError)return json({error:lookupError.message},500);
   const existingMap=new Map((existing||[]).map((r:any)=>[normRut(r.rut),r]));
@@ -79,7 +85,7 @@ if(a==="bot_import"){
   }
   skipped+=valid.length-toUpsert.length;
  }else{
-  const ruts=[...new Set(valid.flatMap((r:any)=>[String(r.rut),normRut(r.rut)]))];
+  const ruts=[...new Set(valid.flatMap((r:any)=>rutLookupVariants(r.rut)))];
   const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia":table==="vacaciones_historico"?"id,rut,fecha_inicio,fecha_fin,tipo_vacaciones":"id,rut,fecha,entrada,salida,tipo_ausentismo";
   let existingRows:any[]=[];
   // Read complete rows so batch upserts preserve fields absent from this export.
@@ -162,7 +168,7 @@ if(a==="bot_import"){
      if(duplicateConflict){
       // Match using the normalized natural key; exact SQL equality fails when
       // RUT punctuation or date serialization differs between XLSX and PostgreSQL.
-      const rutVariants=[...new Set([String(row.rut),normRut(row.rut)])];
+      const rutVariants=rutLookupVariants(row.rut);
       const {data:candidates,error:lookupError}=await admin.from(table).select(selectCols).in("rut",rutVariants).order("id",{ascending:false}).limit(500);
       const rowKey=keyOf(row);
       const existing=(candidates||[]).find((candidate:any)=>keyOf(candidate)===rowKey);
