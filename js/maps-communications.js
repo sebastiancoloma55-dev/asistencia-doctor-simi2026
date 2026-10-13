@@ -707,10 +707,15 @@
         async function importarCorreosSucursales(event) {
             const archivo = event.target.files?.[0];
             if (!archivo) return;
-            const limpiarTexto = valor => String(valor ?? '').replace(/\u00a0/g, ' ').trim();
-            const normalizar = valor => limpiarTexto(valor).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').toLocaleLowerCase('es-CL');
-            const limpiarCorreo = valor => limpiarTexto(valor).replace(/[;,\s]+$/g, '').replace(/^[;,\s]+/g, '');
-            const correoValido = valor => /^[A-Z0-9.!#$%&'*+/=?^_\x60{|}~-]+@[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?)+$/i.test(valor);
+            // Normaliza espacios invisibles y caracteres de formato que Excel puede conservar al copiar/pegar.
+            const limpiarTexto = valor => String(valor ?? '').replace(/\\u00a0/g, ' ').replace(/[\\u200B-\\u200D\\u2060\\uFEFF]/g, '').trim();
+            const normalizar = valor => limpiarTexto(valor).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/\\s+/g, ' ').toLocaleLowerCase('es-CL');
+            const limpiarCorreo = valor => limpiarTexto(valor).normalize('NFKC').replace(/[\\u200B-\\u200D\\u2060\\uFEFF]/g, '').replace(/^[;,\\s]+|[;,\\s]+$/g, '').trim();
+            const correoValido = valor => {
+                const correo = limpiarCorreo(valor);
+                // Validación compatible con direcciones habituales corporativas, sin rechazar por mayúsculas.
+                return !!correo && /^[^\\s@<>(),;:"\\[\\]]+@[^\\s@<>(),;:"\\[\\]]+\\.[^\\s@<>(),;:"\\[\\].]{2,}$/.test(correo);
+            };
             try {
                 const filas = await leerExcel(archivo);
                 if (!filas.length) throw new Error('El Excel no contiene filas para importar.');
