@@ -6,7 +6,7 @@ const fail = (res, status, error) => res.status(status).json({ error });
 
 export default async function handler(req, res) {
   if (!['GET', 'POST'].includes(req.method)) return fail(res, 405, 'Método no permitido.');
-  const token = String(req.headers.authorization || '').replace(/^Bearer\\s+/i, '').trim();
+  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
   if (!token) return fail(res, 401, 'Sesión requerida.');
 
   const url = process.env.SUPABASE_URL;
