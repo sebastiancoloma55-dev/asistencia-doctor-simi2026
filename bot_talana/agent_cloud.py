@@ -1,5 +1,6 @@
 """Ejecutor de una sola corrida para GitHub Actions; no mantiene un proceso residente."""
 import argparse
+import json
 import logging
 import os
 from pathlib import Path
