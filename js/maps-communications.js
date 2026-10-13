@@ -75,6 +75,26 @@
             return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
         }
 
+        function sincronizarPresetCorreo() {
+            const desde = document.getElementById('correo-desde')?.value || '';
+            const hasta = document.getElementById('correo-hasta')?.value || '';
+            const hoy = fechaActualChileISO();
+            const rangos = {
+                0: [hoy, hoy],
+                7: [sumarDiasISOChile(hoy, -6), hoy],
+                30: [sumarDiasISOChile(hoy, -29), hoy]
+            };
+            document.querySelectorAll('[data-periodo-correo]').forEach(button => {
+                const rango = rangos[Number(button.dataset.periodoCorreo)];
+                const activo = !!rango && desde === rango[0] && hasta === rango[1];
+                button.setAttribute('aria-pressed', activo ? 'true' : 'false');
+                button.classList.toggle('bg-sky-100', activo);
+                button.classList.toggle('border-sky-400', activo);
+                button.classList.toggle('text-sky-900', activo);
+            });
+        }
+        window.sincronizarPresetCorreo = sincronizarPresetCorreo;
+
         function establecerPeriodoCorreos(dias) {
             const periodo = Number(dias);
             if (![0, 7, 30].includes(periodo)) {
@@ -91,13 +111,7 @@
             }
             campoDesde.value = desde;
             campoHasta.value = hasta;
-            document.querySelectorAll('[data-periodo-correo]').forEach(button => {
-                const activo = Number(button.dataset.periodoCorreo) === periodo;
-                button.setAttribute('aria-pressed', activo ? 'true' : 'false');
-                button.classList.toggle('bg-sky-100', activo);
-                button.classList.toggle('border-sky-400', activo);
-                button.classList.toggle('text-sky-900', activo);
-            });
+            sincronizarPresetCorreo();
         }
         window.establecerPeriodoCorreos = establecerPeriodoCorreos;
 
@@ -108,6 +122,7 @@
             const hoy = fechaActualChileISO();
             document.getElementById('correo-hasta').value ||= hoy;
             document.getElementById('correo-desde').value ||= hoy;
+            sincronizarPresetCorreo();
             document.getElementById('correo-sucursales').innerHTML = sucursalesConfiguracionGlobal.map(x => `<option value="${escaparHTML(x.nombre)}">${escaparHTML(x.nombre)}</option>`).join('');
             const supervisores = [...new Set(sucursalesConfiguracionGlobal.map(x => texto(x.supervisor)).filter(Boolean))].sort();
             document.getElementById('correo-supervisores').innerHTML = supervisores.map(x => `<option value="${escaparHTML(x)}">${escaparHTML(x)}</option>`).join('');
