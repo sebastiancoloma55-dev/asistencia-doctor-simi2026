@@ -120,8 +120,11 @@
             sucursalesConfiguracionGlobal = await obtenerSucursalesConfig();
             if(!sucursalesConfiguracionGlobal.length)throw new Error('No se cargaron sucursales desde Supabase. Revisa los permisos del usuario y vuelve a intentar.');
             const hoy = fechaActualChileISO();
+            const fechaInicioSugerida = new Date(hoy + 'T12:00:00');
+            fechaInicioSugerida.setDate(fechaInicioSugerida.getDate() - 7);
+            const desdeSugerido = [fechaInicioSugerida.getFullYear(), String(fechaInicioSugerida.getMonth() + 1).padStart(2, '0'), String(fechaInicioSugerida.getDate()).padStart(2, '0')].join('-');
             document.getElementById('correo-hasta').value ||= hoy;
-            document.getElementById('correo-desde').value ||= hoy;
+            document.getElementById('correo-desde').value ||= desdeSugerido;
             sincronizarPresetCorreo();
             document.getElementById('correo-sucursales').innerHTML = sucursalesConfiguracionGlobal.map(x => `<option value="${escaparHTML(x.nombre)}">${escaparHTML(x.nombre)}</option>`).join('');
             const supervisores = [...new Set(sucursalesConfiguracionGlobal.map(x => texto(x.supervisor)).filter(Boolean))].sort();
@@ -168,7 +171,7 @@
             const {data:sesion,error:errSesion}=await _supabase.auth.getUser();
             if(errSesion||!sesion?.user?.email){cont.innerHTML='<p class="text-sm text-rose-700">No se pudo verificar la sesión.</p>';return;}
             const {data,error}=await _supabase.from('borradores_correo_usuario').select('id,fecha_desde,fecha_hasta,agrupacion,total_borradores,total_casos,created_at').order('created_at',{ascending:false}).limit(10);
-            if(error){cont.innerHTML='<p class="text-sm text-amber-700">No se pudo cargar el historial en la nube. Revisa permisos o conexión.</p>';if(notificar)mostrarToast('No se pudo cargar el historial de borradores.','warning');return;}
+            if(error){cont.innerHTML='<p class="text-sm text-amber-700">No se pudo cargar el historial en la nube.</p><p class="mt-1 text-xs text-slate-500">Detalle técnico: '+escaparHTML(error.message||'Error desconocido')+'</p>';if(notificar)mostrarToast('No se pudo cargar el historial de borradores: '+(error.message||'error desconocido'),'warning');return;}
             if(!data?.length){cont.innerHTML='<p class="text-sm text-slate-500">Todavía no tienes generaciones guardadas.</p>';return;}
             cont.innerHTML=data.map(x=>{const fecha=x.created_at?new Date(x.created_at).toLocaleString('es-CL'):'Fecha no disponible';return `<div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-3"><div><b class="text-sm">${escaparHTML(x.fecha_desde)} a ${escaparHTML(x.fecha_hasta)}</b><p class="text-xs text-slate-500">${escaparHTML(fecha)} · ${Number(x.total_borradores||0)} borradores · ${Number(x.total_casos||0)} casos · agrupado por ${escaparHTML(x.agrupacion||'sucursal')}</p></div><button type="button" onclick="restaurarBorradoresNube('${x.id}')" class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white">Restaurar</button></div>`;}).join('');
             if(notificar)mostrarToast('Historial actualizado desde la nube.','success');
