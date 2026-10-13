@@ -24,7 +24,7 @@
             );
 
             const fecha = fechaISODesdeExcel(
-                obtenerCampo(fila, ['Fecha', 'Fecha Asistencia', 'Fecha de Asistencia', 'Fecha Registro', 'Fecha Jornada', 'Día', 'Dia', 'Día de trabajo', 'Dia de trabajo'])
+                obtenerCampo(fila, ['Fecha', 'Fecha Asistencia', 'Fecha de Asistencia', 'Fecha Registro', 'Fecha de Registro', 'Fecha Jornada', 'Fecha de marcación', 'Fecha de marcacion', 'Fecha (dd/mm/aaaa)', 'Día', 'Dia', 'Día de trabajo', 'Dia de trabajo'])
             );
 
             const rut = normalizarRut(
