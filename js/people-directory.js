@@ -5,7 +5,7 @@
             if (valor === undefined || valor === null) return null;
             const raw = String(valor).trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[._-]+/g, ' ').replace(/\s+/g, ' ').trim();
             if (!raw) return null;
-            if (['no','n','false','0','inactivo','inactiva','no vigente','baja','cesado','cesada','desvinculado','desvinculada','finiquitado','finiquitada','terminado','terminada'].includes(raw) || raw.startsWith('no vigente')) return 'inactivo';
+            if (['no','n','false','0','inactivo','inactiva','no vigente','no activo','no activa','baja','cesado','cesada','desvinculado','desvinculada','finiquitado','finiquitada','terminado','terminada','retirado','retirada','cesante','jubilado','jubilada','fin contrato','termino contrato'].includes(raw) || raw.startsWith('no vigente')) return 'inactivo';
             if (['si','s','true','1','vigente','activo','activa','active','yes'].includes(raw)) return 'activo';
             return null;
         }
