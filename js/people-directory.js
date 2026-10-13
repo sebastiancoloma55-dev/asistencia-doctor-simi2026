@@ -69,20 +69,46 @@
                         .filter(registro => registro.nombre);
                 }
 
-                // Separar por filas con/sin estado, para que PostgREST reciba claves homogéneas
-                // y no borre la vigencia ya existente cuando un Excel no incluya esa columna.
-                const lotesDatos = tabla === 'colaboradores'
-                    ? [
+                if (tabla === 'sucursales') {
+                    // La unidad identifica la sucursal. Evitar duplicados tanto dentro del Excel
+                    // como en Supabase, sin depender de que exista un índice UNIQUE en la tabla.
+                    const porUnidad = new Map();
+                    for (const registro of datos) {
+                        const unidad = texto(registro.unidad).toUpperCase().replace(/\\s+/g, '');
+                        if (!unidad) continue;
+                        porUnidad.set(unidad, { ...registro, unidad });
+                    }
+                    datos = [...porUnidad.values()];
+                    for (const registro of datos) {
+                        const { data: existentes, error: buscarError } = await _supabase
+                            .from('sucursales')
+                            .select('id')
+                            .eq('unidad', registro.unidad)
+                            .order('id')
+                            .limit(1);
+                        if (buscarError) throw errorSupabase('No se pudo comprobar la sucursal ' + registro.unidad, buscarError);
+
+                        let guardado;
+                        if (existentes?.length) {
+                            guardado = await _supabase.from('sucursales')
+                                .update(registro).eq('id', existentes[0].id);
+                        } else {
+                            guardado = await _supabase.from('sucursales').insert(registro);
+                        }
+                        if (guardado.error) throw errorSupabase('No se pudo guardar la sucursal ' + registro.unidad, guardado.error);
+                    }
+                } else {
+                    // Separar por filas con/sin estado para no borrar la vigencia existente
+                    // cuando un Excel no incluya esa columna.
+                    const lotesDatos = [
                         datos.filter(registro => Object.prototype.hasOwnProperty.call(registro, 'estado')),
                         datos.filter(registro => !Object.prototype.hasOwnProperty.call(registro, 'estado'))
-                    ].filter(lote => lote.length)
-                    : [datos];
-                for (const lote of lotesDatos) {
-                    const { error } = await _supabase
-                        .from(tabla)
-                        .upsert(lote, tabla === 'colaboradores' ? { onConflict: 'rut' } : {});
-                    if (error) {
-                        throw errorSupabase(`No se pudo guardar ${tabla}`, error);
+                    ].filter(lote => lote.length);
+                    for (const lote of lotesDatos) {
+                        const { error } = await _supabase
+                            .from(tabla)
+                            .upsert(lote, tabla === 'colaboradores' ? { onConflict: 'rut' } : {});
+                        if (error) throw errorSupabase(`No se pudo guardar ${tabla}`, error);
                     }
                 }
 
