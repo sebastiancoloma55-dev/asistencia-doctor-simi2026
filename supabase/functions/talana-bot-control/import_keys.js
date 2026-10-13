@@ -64,7 +64,7 @@ export function importStableKey(reportType, row) {
   const values = fields.map((field) => {
     const value = row[field];
     if (field === "rut") return normalizeImportRut(value);
-    return normalizeImportValue(value);
+    return normalizeIdentityValue(field, value);
   });
   return values.join("|");
 }
