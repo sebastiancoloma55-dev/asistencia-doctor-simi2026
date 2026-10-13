@@ -203,15 +203,9 @@
         function crearEmlOutlook(b){const safe=v=>String(v||'').replace(/[\r\n]+/g,' ').trim(),subject=textoMimeBase64(safe(b.asunto)),boundary='----=_DoctorSimi_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2),plain=textoMimeBase64(String(b.cuerpo||'')),html=textoMimeBase64(b.cuerpoHtml||('<html><body><pre>'+escaparHTML(b.cuerpo||'')+'</pre></body></html>'));return 'To: '+safe(b.para)+'\r\n'+(safe(b.cc)?'Cc: '+safe(b.cc)+'\r\n':'')+'Subject: =?UTF-8?B?'+subject+'?=\r\nMIME-Version: 1.0\r\nX-Unsent: 1\r\nContent-Type: multipart/alternative; boundary=\"'+boundary+'\"\r\n\r\n--'+boundary+'\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+plain+'\r\n--'+boundary+'\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+html+'\r\n--'+boundary+'--\r\n';}
         async function descargarBorradoresOutlookZip(){const ids=[...document.querySelectorAll('.borrador-check:checked')].map(x=>x.value),list=borradoresGeneradosGlobal.filter(x=>ids.includes(x.id));if(!list.length)return mostrarToast('Selecciona uno o más borradores antes de descargar el ZIP.','warning');if(!window.JSZip)return mostrarToast('No se pudo cargar el generador ZIP. Recarga la página.','error');const zip=new JSZip(),folder=zip.folder('Borradores_Outlook');list.forEach((b,i)=>{const slug=String(b.nombre||'Borrador_'+(i+1)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').slice(0,60)||'Borrador_'+(i+1);folder.file(String(i+1).padStart(3,'0')+'_'+slug+'.eml',crearEmlOutlook(b));});zip.file('LEEME.txt','Borradores para Outlook de escritorio. Extrae el ZIP, abre los archivos .eml con Outlook, revisa destinatarios y contenido y pulsa Enviar. No se envían automáticamente.');const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Borradores_Outlook_'+new Date().toISOString().slice(0,10)+'.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);mostrarToast('ZIP descargado con '+list.length+' borradores .eml para revisar y enviar desde Outlook.','success',10000);}
         async function abrirBorradoresMasivos() {
-            if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para abrir borradores.','warning');
-            const ids = [...document.querySelectorAll('.borrador-check:checked')].map(x => x.value);
-            const seleccionados = borradoresGeneradosGlobal.filter(x => ids.includes(x.id));
-            if (!seleccionados.length) return mostrarToast('Selecciona al menos un borrador.', 'warning');
-            for (let i = 0; i < seleccionados.length; i++) {
-                window.open(urlOutlookBorrador(seleccionados[i]), '_blank', 'noopener');
-                await new Promise(r => setTimeout(r, 500));
-            }
-            mostrarToast(`Se solicitaron ${seleccionados.length} borradores. Si falta alguno, permite ventanas emergentes.`, 'success', 12000);
+            if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para descargar borradores.','warning');
+            // mailto no admite HTML; descargar EML en ZIP conserva la tabla corporativa en Outlook.
+            return descargarBorradoresOutlookZip();
         }
 
 
