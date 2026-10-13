@@ -11,12 +11,14 @@ export default async function handler(req, res) {
 
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
-  if (!url || !service) return fail(res, 500, 'Falta configurar SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en Vercel.');
+  const publicKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !service || !publicKey) return fail(res, 500, 'Falta configurar la URL, la clave pública o SUPABASE_SERVICE_ROLE_KEY en las variables de Vercel.');
 
   try {
-    // El JWT se valida en Supabase Auth; el cliente de servicio solo se usa en servidor.
+    // Validar el JWT con la clave pública del proyecto y reservar la clave de servicio para operaciones de servidor.
+    const authClient = createClient(url, publicKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data: authData, error: authError } = await authClient.auth.getUser(token);
     const admin = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data: authData, error: authError } = await admin.auth.getUser(token);
     if (authError || !authData?.user) return fail(res, 401, 'La sesión no es válida o ha expirado.');
 
     const email = String(authData.user.email || '').trim().toLowerCase();
@@ -53,6 +55,9 @@ export default async function handler(req, res) {
     return res.status(200).json({ nonce: data.nonce, updated_at: data.updated_at });
   } catch (error) {
     console.error('Control de sesión global:', error);
-    return fail(res, 500, 'Falló el servidor al consultar el control de sesiones. Revisa los registros de ejecución de Vercel.');
+    const message = String(error?.message || 'Error interno');
+    if (/fetch failed|network|timeout|ENOTFOUND|ECONN/i.test(message)) return fail(res, 502, 'Vercel no pudo conectar con Supabase. Revisa la URL del proyecto y la conectividad.');
+    if (/invalid api key|apikey|JWT|secret|key/i.test(message)) return fail(res, 500, 'Supabase rechazó una clave de servidor. Verifica que SUPABASE_SERVICE_ROLE_KEY y la clave pública pertenezcan al mismo proyecto.');
+    return fail(res, 500, 'Error interno en el control de sesiones. Revisa el registro de la función sesion-global en Vercel.');
   }
 }
