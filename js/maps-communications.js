@@ -476,6 +476,7 @@
                 fuentes_consultadas: proteccionAusencias.filasConsultadas
             };
             const esCasoSinMarca = caso => (caso.detalles || []).some(d => /no registra marcas durante la jornada/i.test(String(d)));
+            let contadorBorradoresSeparados = 0;
             borradoresGeneradosGlobal = [...grupos].flatMap(([nombreGrupo, casosGrupo]) => {
                 const particiones = [
                     { tipoCorreo: 'SIN_MARCAS', etiqueta: 'SOLO INEXISTENTES SIN MARCAS', casos: casosGrupo.filter(esCasoSinMarca) },
@@ -489,7 +490,7 @@
                     const firma = configs.map(x => x.firma_correo).find(Boolean) || '';
                     const nombre = nombreGrupo + ' · ' + particion.etiqueta;
                     const grupo = { tipo: agrupar, nombre, firma };
-                    const indice = borradoresGeneradosGlobal.length;
+                    const indice = contadorBorradoresSeparados++;
                     return { id: 'borrador-' + indice + '-' + particion.tipoCorreo.toLowerCase(), tipoCorreo: particion.tipoCorreo, nombre, para, cc, asunto: `Importancia alta - ${particion.etiqueta} - ${nombreGrupo} - ${desde} a ${hasta}`, cuerpo: crearCuerpoCorreo(grupo, casos, desde, hasta), cuerpoHtml: crearCuerpoCorreoHTML(grupo, casos, desde, hasta), cantidad: casos.length, proteccionAusenciasVerificada: true, periodoDesde: desde, periodoHasta: hasta, grupoCorreo: grupo, casosDetalle: casos.map(x => ({ fecha: x.fecha, rut: x.rut, nombre: x.nombre, sucursal: x.sucursal, detalles: x.detalles, turno: x.turno, turno_asignado: x.turno_asignado, jornada: x.jornada, horario: x.horario, entrada: x.entrada, salida: x.salida })) };
                 });
             });
