@@ -28,17 +28,19 @@ class TalanaBotCloud:
   from importador_reportes import parse_report
   p=Path(path)
   rows,parse_errors,metadata=parse_report(p,report_type)
-  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True}
+  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"planned_inserted":0,"planned_updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True}
   for offset in range(0,len(rows),100):
    batch=rows[offset:offset+100]
    result=self.call("bot_import",run_id=run_id,report_type=report_type,file_name=p.name,rows=batch,parse_errors=parse_errors if offset==0 else [],final_batch=(offset+len(batch)>=len(rows)),dry_run=dry_run)
-   for key in ("inserted","updated","skipped","failed"):
+   keys=("planned_inserted","planned_updated","skipped","failed") if dry_run else ("inserted","updated","skipped","failed")
+   for key in keys:
     totals[key]+=int(result.get(key,0) or 0)
    totals["tracking_registered"]=totals["tracking_registered"] and bool(result.get("tracking_registered",True))
    totals["errors"].extend(result.get("errors") or [])
    if offset==0 or (offset//100+1)%10==0 or offset+len(batch)>=len(rows):
     import logging
-    logging.getLogger("talana-cloud").info("Importación %s: procesadas %s/%s; insertadas=%s actualizadas=%s duplicadas=%s fallidas=%s",report_type,min(offset+len(batch),len(rows)),len(rows),totals["inserted"],totals["updated"],totals["skipped"],totals["failed"])
+    prefix="Previsualización" if dry_run else "Importación"
+    logging.getLogger("talana-cloud").info("%s %s: procesadas %s/%s; altas_estimadas=%s actualizaciones_estimadas=%s insertadas=%s actualizadas=%s duplicadas=%s fallidas=%s",prefix,report_type,min(offset+len(batch),len(rows)),len(rows),totals["planned_inserted"],totals["planned_updated"],totals["inserted"],totals["updated"],totals["skipped"],totals["failed"])
   return totals
  def finish_run(self,run_id,status,downloaded=0,errors=None,details=None):
   return self.call("bot_finish",run_id=run_id,status=status,reports_downloaded=downloaded,error_summary="; ".join(map(str,errors or []))[:4000] or None,details=details or {})
