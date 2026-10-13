@@ -908,12 +908,12 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
   <button id="btn-tareas" class="menu-btn" onclick="cambiarModulo('tareas')"><i data-lucide="list-checks" class="h-4 w-4"></i><span>Tareas diarias</span></button>
   <div class="nova-nav-divider" data-nav-group><span>PERSONAS Y ESTRUCTURA</span></div>
   <button id="btn-colaboradores" class="menu-btn" onclick="cambiarModulo('colaboradores')"><i data-lucide="users" class="h-4 w-4"></i><span>Colaboradores</span></button>
-  <button id="btn-sucursales" class="menu-btn" onclick="cambiarModulo('sucursales')"><i data-lucide="building-2" class="h-4 w-4"></i><span>Sucursales</span></button>
+  <button id="btn-sucursales" class="menu-btn" onclick="cambiarModulo('sucursales')"><i data-lucide="building" class="h-4 w-4"></i><span>Sucursales</span></button>
   <button id="btn-usuarios" class="menu-btn" onclick="cambiarModulo('usuarios')"><i data-lucide="shield-check" class="h-4 w-4"></i><span>Usuarios y roles</span></button>
   <div class="nova-nav-divider" data-nav-group><span>ASISTENCIA Y BENEFICIOS</span></div>
   <button id="btn-asistencia" class="menu-btn" onclick="cambiarModulo('asistencia')"><i data-lucide="clock" class="h-4 w-4"></i><span>Asistencia y atrasos</span></button>
   <button id="btn-licencias" class="menu-btn" onclick="cambiarModulo('licencias')"><i data-lucide="file-heart" class="h-4 w-4"></i><span>Licencias y ausentismo</span></button>
-  <button id="btn-vacaciones" class="menu-btn" onclick="cambiarModulo('vacaciones')"><i data-lucide="palmtree" class="h-4 w-4"></i><span>Vacaciones</span></button>
+  <button id="btn-vacaciones" class="menu-btn" onclick="cambiarModulo('vacaciones')"><i data-lucide="tree-palm" class="h-4 w-4"></i><span>Vacaciones</span></button>
   <button id="btn-papeletas" class="menu-btn" onclick="cambiarModulo('papeletas')"><i data-lucide="file-text" class="h-4 w-4"></i><span>Papeletas y permisos</span></button>
   <div class="nova-nav-divider" data-nav-group><span>COBERTURAS Y COMUNICACIÓN</span></div>
   <button id="btn-amonestaciones" class="menu-btn" onclick="cambiarModulo('amonestaciones')"><i data-lucide="calendar-check" class="h-4 w-4"></i><span>Coberturas</span></button>
@@ -928,7 +928,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
   <button id="btn-calidad" class="menu-btn" onclick="cambiarModulo('calidad')"><i data-lucide="shield-check" class="h-4 w-4"></i><span>Calidad de datos</span></button>
   <button id="btn-notificaciones" class="menu-btn" onclick="cambiarModulo('notificaciones')"><i data-lucide="bell-ring" class="h-4 w-4"></i><span>Notificaciones</span><span id="nav-notif-count" class="nav-count hidden">0</span></button>
   <button id="btn-integraciones" class="menu-btn" onclick="cambiarModulo('integraciones')"><i data-lucide="plug-zap" class="h-4 w-4"></i><span>Integraciones y monitoreo</span></button>
-  <button id="btn-auditoria" class="menu-btn" onclick="cambiarModulo('auditoria')"><i data-lucide="history" class="h-4 w-4"></i><span>Bitácora y auditoría</span></button>
+  <button id="btn-auditoria" class="menu-btn" onclick="cambiarModulo('auditoria')"><i data-lucide="clock-arrow-down" class="h-4 w-4"></i><span>Bitácora y auditoría</span></button>
 </nav>
             <div class="sidebar-credit" aria-label="Gestionado por el equipo de Asistencia" title="Gestionado por el equipo de Asistencia">
                 <span class="sidebar-credit-icon"><i data-lucide="shield-check" class="h-4 w-4"></i></span>
@@ -997,7 +997,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 </div>
                 <div id="dashboard-space-summary" class="dash-space-card" aria-live="polite">
                     <div class="dash-space-intro"><div><span class="dash-space-kicker">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo('espacio')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div>
-                    <div class="dash-space-stat-grid"><div><span class="dash-space-stat-icon"><i data-lucide="sticky-note"></i></span><span><b>0</b><small>Notas activas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="pin"></i></span><span><b>0</b><small>Notas fijadas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-alert"></i></span><span><b>0</b><small>Fuera de plazo</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="history"></i></span><span><b>0</b><small>Gestiones recientes</small></span></div></div>
+                    <div class="dash-space-stat-grid"><div><span class="dash-space-stat-icon"><i data-lucide="sticky-note"></i></span><span><b>0</b><small>Notas activas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="pin"></i></span><span><b>0</b><small>Notas fijadas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-alert"></i></span><span><b>0</b><small>Fuera de plazo</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-arrow-down"></i></span><span><b>0</b><small>Gestiones recientes</small></span></div></div>
                 </div>
                 <div id="dashboard-ops-summary" class="ui-card dashboard-ops-summary p-4 sm:p-5" aria-live="polite">
                     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -1042,7 +1042,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                             </h3>
                         </div>
 
-                        <i data-lucide="building-2" class="h-6 w-6 text-simiNavy"></i>
+                        <i data-lucide="building" class="h-6 w-6 text-simiNavy"></i>
                     </div>
 
                     <div class="ui-card flex items-start justify-between p-5">
@@ -1185,11 +1185,11 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
             <section id="view-espacio" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="space-hero">
                     <div class="space-hero-orb" aria-hidden="true"></div>
-                    <div class="space-hero-copy"><span class="space-hero-kicker"><i data-lucide="notebook-pen"></i> MI CENTRO DE SEGUIMIENTO</span><h3>Todo lo que no quieres olvidar.</h3><p>Notas adhesivas, fechas límite y una bitácora ordenada de las gestiones de RR. HH. Guardado en la nube con acceso protegido.</p><div class="space-hero-pills"><span><i data-lucide="cloud"></i> Guardado en Supabase</span><span><i data-lucide="shield-check"></i> Acceso protegido</span><span><i data-lucide="history"></i> Historial cronológico</span></div></div>
-                    <div class="space-hero-graphic" aria-hidden="true"><div class="space-hero-ring ring-one"></div><div class="space-hero-ring ring-two"></div><div class="space-hero-sticky sticky-one">RECORDAR</div><div class="space-hero-sticky sticky-two">SEGUIR</div><div class="space-hero-center"><i data-lucide="layers-3"></i></div></div>
+                    <div class="space-hero-copy"><span class="space-hero-kicker"><i data-lucide="notebook-pen"></i> MI CENTRO DE SEGUIMIENTO</span><h3>Todo lo que no quieres olvidar.</h3><p>Notas adhesivas, fechas límite y una bitácora ordenada de las gestiones de RR. HH. Guardado en la nube con acceso protegido.</p><div class="space-hero-pills"><span><i data-lucide="cloud"></i> Guardado en Supabase</span><span><i data-lucide="shield-check"></i> Acceso protegido</span><span><i data-lucide="clock-arrow-down"></i> Historial cronológico</span></div></div>
+                    <div class="space-hero-graphic" aria-hidden="true"><div class="space-hero-ring ring-one"></div><div class="space-hero-ring ring-two"></div><div class="space-hero-sticky sticky-one">RECORDAR</div><div class="space-hero-sticky sticky-two">SEGUIR</div><div class="space-hero-center"><i data-lucide="layers"></i></div></div>
                 </div>
-                <div id="space-metrics" class="space-metrics-grid"><div class="space-metric"><span class="space-metric-icon"><i data-lucide="sticky-note"></i></span><span class="space-metric-copy"><small>Notas activas</small><strong>0</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="pin"></i></span><span class="space-metric-copy"><small>Fijadas</small><strong>0</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="clock-alert"></i></span><span class="space-metric-copy"><small>Por revisar</small><strong>0</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="history"></i></span><span class="space-metric-copy"><small>Gestiones · 7 días</small><strong>0</strong></span></div></div>
-                <div class="space-tabbar" role="tablist" aria-label="Mi espacio de trabajo"><button type="button" data-space-tab="notas" class="space-tab is-active" aria-selected="true"><i data-lucide="sticky-note"></i> Notas adhesivas <span>01</span></button><button type="button" data-space-tab="bitacora" class="space-tab" aria-selected="false"><i data-lucide="history"></i> Bitácora de gestión <span>02</span></button></div>
+                <div id="space-metrics" class="space-metrics-grid"><div class="space-metric"><span class="space-metric-icon"><i data-lucide="sticky-note"></i></span><span class="space-metric-copy"><small>Notas activas</small><strong>0</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="pin"></i></span><span class="space-metric-copy"><small>Fijadas</small><strong>0</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="clock-alert"></i></span><span class="space-metric-copy"><small>Por revisar</small><strong>0</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="clock-arrow-down"></i></span><span class="space-metric-copy"><small>Gestiones · 7 días</small><strong>0</strong></span></div></div>
+                <div class="space-tabbar" role="tablist" aria-label="Mi espacio de trabajo"><button type="button" data-space-tab="notas" class="space-tab is-active" aria-selected="true"><i data-lucide="sticky-note"></i> Notas adhesivas <span>01</span></button><button type="button" data-space-tab="bitacora" class="space-tab" aria-selected="false"><i data-lucide="clock-arrow-down"></i> Bitácora de gestión <span>02</span></button></div>
                 <div id="rrhh-space-panel-notas" class="space-panel">
                     <div class="space-panel-heading"><div><span class="space-section-kicker">CAPTURA RÁPIDA</span><h3>El tablero de tus ideas</h3><p>Fija recordatorios, ponles color y conviértelos en acciones.</p></div><span id="rrhh-notas-count" class="space-count-chip">Cargando notas…</span></div>
                     <div class="space-notes-layout">
@@ -1267,7 +1267,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     </div>
                 </div>
 
-                <div id="colab-kpi-grid" class="colab-kpi-grid" aria-live="polite"><div class="colab-kpi"><span><i data-lucide="users"></i></span><div><small>Colaboradores en nómina</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="user-check"></i></span><div><small>Activos</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="user-round-x"></i></span><div><small>Inactivos</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="building-2"></i></span><div><small>Sucursales cubiertas</small><strong>—</strong></div></div></div>
+                <div id="colab-kpi-grid" class="colab-kpi-grid" aria-live="polite"><div class="colab-kpi"><span><i data-lucide="users"></i></span><div><small>Colaboradores en nómina</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="user-check"></i></span><div><small>Activos</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="user-round-x"></i></span><div><small>Inactivos</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="building"></i></span><div><small>Sucursales cubiertas</small><strong>—</strong></div></div></div>
                 <div class="module-section-caption"><span><i data-lucide="contact-round"></i></span><div><b>Directorio maestro</b><small>Busca por RUT, cargo o sucursal; abre la ficha para consultar el historial.</small></div></div>
                 <div class="ui-card grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-[1.35fr_1fr_.8fr_auto]">
                     <div><label for="col-filtro-busqueda" class="mb-1 block text-xs font-bold text-slate-600">Buscar colaborador</label><input id="col-filtro-busqueda" type="search" class="form-field" placeholder="Nombre, apellido, RUT o cargo" oninput="filtrarTablaColaboradores()"></div>
@@ -1378,7 +1378,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                         id="btn-upload-container"
                         class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white"
                     >
-                        <i data-lucide="upload-cloud" class="h-4 w-4"></i>
+                        <i data-lucide="cloud-upload" class="h-4 w-4"></i>
                         Cargar reporte
 
                         <input
@@ -1517,7 +1517,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                         id="btn-upload-licencias"
                         class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white"
                     >
-                        <i data-lucide="upload-cloud" class="h-4 w-4"></i>
+                        <i data-lucide="cloud-upload" class="h-4 w-4"></i>
                         Cargar histórico
 
                         <input
@@ -1627,7 +1627,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
                     <div><h3 class="section-title">Histórico de vacaciones</h3><p class="mt-1 text-xs text-slate-500">Carga, persistencia, vigencia y cruce automático con marcas de asistencia.</p></div>
                     <label id="btn-upload-vacaciones" class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-cyan-700 px-4 py-2.5 text-xs font-semibold text-white">
-                        <i data-lucide="upload-cloud" class="h-4 w-4"></i> Cargar histórico
+                        <i data-lucide="cloud-upload" class="h-4 w-4"></i> Cargar histórico
                         <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarHistorialVacaciones(event)">
                     </label>
                     <span data-update-stamp="vacaciones" class="self-center text-[11px] text-slate-500">Consultando última carga…</span>
@@ -1833,7 +1833,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 
             <!-- USUARIOS -->
             <section id="view-usuarios" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="users-hero"><div class="users-hero-copy"><span class="users-hero-kicker"><i data-lucide="shield-check"></i> GOBIERNO DE ACCESOS · RR. HH.</span><h3>Usuarios, roles y alcance</h3><p>Administra quién entra, qué módulos puede consultar, en qué sucursales opera y qué capacidades tiene habilitadas cada perfil.</p><div class="users-hero-tags"><span><i data-lucide="layers-3"></i> Recursos por módulo</span><span><i data-lucide="map-pin"></i> Alcance por sucursal</span><span><i data-lucide="eye"></i> Perfil visualizador</span></div></div><div class="users-hero-art" aria-hidden="true"><div class="users-art-ring"></div><div class="users-art-core"><i data-lucide="shield-check"></i></div><span class="users-art-dot"></span></div></div>
+                <div class="users-hero"><div class="users-hero-copy"><span class="users-hero-kicker"><i data-lucide="shield-check"></i> GOBIERNO DE ACCESOS · RR. HH.</span><h3>Usuarios, roles y alcance</h3><p>Administra quién entra, qué módulos puede consultar, en qué sucursales opera y qué capacidades tiene habilitadas cada perfil.</p><div class="users-hero-tags"><span><i data-lucide="layers"></i> Recursos por módulo</span><span><i data-lucide="map-pin"></i> Alcance por sucursal</span><span><i data-lucide="eye"></i> Perfil visualizador</span></div></div><div class="users-hero-art" aria-hidden="true"><div class="users-art-ring"></div><div class="users-art-core"><i data-lucide="shield-check"></i></div><span class="users-art-dot"></span></div></div>
                 <div class="ui-card grid grid-cols-1 gap-4 p-5 sm:grid-cols-3">
                     <div><label class="text-xs font-semibold">Correo</label><input id="usr-email" type="email" class="form-field" placeholder="usuario@empresa.cl"></div>
                     <div><label class="text-xs font-semibold">Nombre</label><input id="usr-nombre" class="form-field" placeholder="Nombre visible"></div>
@@ -3070,16 +3070,16 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   const moduleIcons={
     dashboard:"layout-dashboard",
     colaboradores:"users-round",
-    sucursales:"building-2",
+    sucursales:"building",
     asistencia:"clock",
     licencias:"file-heart",
-    vacaciones:"palmtree",
+    vacaciones:"tree-palm",
     papeletas:"file-text",
     correos:"mail",
     amonestaciones:"calendar-check",
-    reportes:"bar-chart-3",
+    reportes:"chart-no-axes-column",
     usuarios:"shield-check",
-    auditoria:"history",
+    auditoria:"clock-arrow-down",
     configcorreos:"mail-check",
     mapas:"map-pinned",
     tareas:"list-checks",
