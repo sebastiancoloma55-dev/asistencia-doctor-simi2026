@@ -10,31 +10,19 @@ export default async function handler(req, res) {
   if (!token) return fail(res, 401, 'Sesión requerida.');
 
   const url = process.env.SUPABASE_URL;
-  const anon = process.env.SUPABASE_ANON_KEY;
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !anon || !service) return fail(res, 500, 'La autenticación del servidor no está configurada.');
+  if (!url || !service) return fail(res, 500, 'Falta configurar SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en Vercel.');
 
   try {
-    const authClient = createClient(url, anon, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data: authData, error: authError } = await authClient.auth.getUser(token);
+    // El JWT se valida en Supabase Auth; el cliente de servicio solo se usa en servidor.
+    const admin = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data: authData, error: authError } = await admin.auth.getUser(token);
     if (authError || !authData?.user) return fail(res, 401, 'La sesión no es válida o ha expirado.');
 
-    const user = authData.user;
-    const email = String(user.email || '').trim().toLowerCase();
-    const admin = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data: profile, error: profileError } = await admin
-      .from('usuarios_roles')
-      .select('email,rol,activo,auth_user_id')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (profileError) throw profileError;
-    if (!profile || profile.activo === false || (profile.auth_user_id && profile.auth_user_id !== user.id)) {
-      return fail(res, 403, 'El usuario no tiene un perfil activo.');
-    }
+    const email = String(authData.user.email || '').trim().toLowerCase();
 
     if (req.method === 'POST') {
-      if (email !== ADMIN_PRINCIPAL || String(profile.rol || '').toUpperCase() !== 'ADMIN') {
+      if (email !== ADMIN_PRINCIPAL) {
         return fail(res, 403, 'Solo el administrador principal puede cerrar las sesiones globalmente.');
       }
       const nonce = randomUUID();
@@ -50,6 +38,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ nonce: data.nonce, updated_at: data.updated_at });
   } catch (error) {
     console.error('Control de sesión global:', error);
-    return fail(res, 500, 'No se pudo consultar el control de sesiones.');
+    return fail(res, 500, 'No se pudo consultar el control de sesiones. Revisa las variables de Supabase y la tabla control_sesion_global.');
   }
 }
