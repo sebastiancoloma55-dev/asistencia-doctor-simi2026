@@ -132,15 +132,23 @@
                 ].join('-');
             }
 
+                        // Conservar la fecha escrita en cadenas ISO aunque incluyan hora y zona horaria.
+            // Evita que medianoche UTC se convierta en el día anterior en Chile.
             match = cadena.match(
-                /^(\d{4})-(\d{1,2})-(\d{1,2})$/
+                /^(\d{4})-(\d{1,2})-(\d{1,2})(?:T|\s|$)/
             );
 
             if (match) {
+                const anio = Number(match[1]);
+                const mes = Number(match[2]);
+                const dia = Number(match[3]);
+                const valida = mes >= 1 && mes <= 12 && dia >= 1 && dia <= new Date(anio, mes, 0).getDate();
+                if (!valida) return null;
+
                 return [
-                    match[1],
-                    match[2].padStart(2, '0'),
-                    match[3].padStart(2, '0')
+                    String(anio).padStart(4, '0'),
+                    String(mes).padStart(2, '0'),
+                    String(dia).padStart(2, '0')
                 ].join('-');
             }
 
