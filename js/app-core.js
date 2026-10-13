@@ -1091,16 +1091,19 @@
                     return;
                 }
             }
+            const errorBox = document.getElementById('dashboard-indicadores-error');
+            if (errorBox) { errorBox.classList.add('hidden'); errorBox.textContent = ''; }
             return actualizarIndicadoresAsistencia();
         }
         window.cambiarPeriodoDashboard = cambiarPeriodoDashboard;
 
         function obtenerRangoDashboard() {
-            const hoy = new Date();
-            const iso = fecha => {
-                const d = new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60000);
-                return d.toISOString().slice(0, 10);
-            };
+            const partes = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit'
+            }).formatToParts(new Date());
+            const parte = tipo => partes.find(x => x.type === tipo)?.value || '';
+            const hoy = new Date(Number(parte('year')), Number(parte('month')) - 1, Number(parte('day')), 12, 0, 0, 0);
+            const iso = fecha => [String(fecha.getFullYear()).padStart(4, '0'), String(fecha.getMonth() + 1).padStart(2, '0'), String(fecha.getDate()).padStart(2, '0')].join('-');
             const periodo = document.getElementById('dashboard-periodo')?.value || 'mes';
             let desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
             let hasta = new Date(hoy);
