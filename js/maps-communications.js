@@ -156,7 +156,7 @@
         async function guardarLoteBorradoresNube(desde,hasta,agrupar,filtroSuc,filtroSup,minimo) {
             const {data:sesion,error:errSesion}=await _supabase.auth.getUser();
             if(errSesion||!sesion?.user?.email)throw new Error('No se pudo verificar la sesión para guardar en la nube.');
-            const borradores=(borradoresGeneradosGlobal||[]).map(b=>({id:b.id,nombre:b.nombre,para:b.para,cc:b.cc,asunto:b.asunto,cuerpo:b.cuerpo,cuerpoHtml:b.cuerpoHtml||'',cantidad:Number(b.cantidad||0),proteccionAusenciasVerificada:b.proteccionAusenciasVerificada===true,periodoDesde:b.periodoDesde||desde,periodoHasta:b.periodoHasta||hasta,grupoCorreo:b.grupoCorreo||null,casosDetalle:Array.isArray(b.casosDetalle)?b.casosDetalle:[]}));
+            const borradores=(borradoresGeneradosGlobal||[]).map(b=>({id:b.id,nombre:b.nombre,tipoCorreo:b.tipoCorreo||((b.casosDetalle||[]).some(c=>(c.detalles||[]).some(d=>/no registra marcas durante la jornada/i.test(String(d))))?'SIN_MARCAS':'OTRAS_INCIDENCIAS'),para:b.para,cc:b.cc,asunto:b.asunto,cuerpo:b.cuerpo,cuerpoHtml:b.cuerpoHtml||'',cantidad:Number(b.cantidad||0),proteccionAusenciasVerificada:b.proteccionAusenciasVerificada===true,periodoDesde:b.periodoDesde||desde,periodoHasta:b.periodoHasta||hasta,grupoCorreo:b.grupoCorreo||null,casosDetalle:Array.isArray(b.casosDetalle)?b.casosDetalle:[]}));
             const totalCasos=borradores.reduce((n,b)=>n+b.cantidad,0);
             const fila={usuario_email:String(sesion.user.email).trim().toLowerCase(),usuario_rol_id:perfilActualSistema?.id||null,fecha_desde:desde,fecha_hasta:hasta,agrupacion:agrupar,filtros:{sucursales:filtroSuc,supervisores:filtroSup,minimo_atraso:minimo,tipos:{atraso:!!document.getElementById('correo-t-atraso')?.checked,salida_temprana:!!document.getElementById('correo-t-temprana')?.checked,sin_turno:!!document.getElementById('correo-t-sinturno')?.checked,sin_marca:!!document.getElementById('correo-t-sinmarca')?.checked},proteccionAusencias:resumenExclusionesCorreoGlobal},borradores,total_borradores:borradores.length,total_casos:totalCasos};
             const {error}=await _supabase.from('borradores_correo_usuario').insert([fila]);
@@ -177,7 +177,7 @@
             if(!id)return;
             const {data,error}=await _supabase.from('borradores_correo_usuario').select('borradores,filtros,fecha_desde,fecha_hasta').eq('id',id).maybeSingle();
             if(error||!data){mostrarToast('No se pudo restaurar ese historial o no tienes acceso.','error');return;}
-            borradoresGeneradosGlobal=Array.isArray(data.borradores)?data.borradores.map(b=>({...b,cuerpoHtml:b.cuerpoHtml||'',proteccionAusenciasVerificada:b.proteccionAusenciasVerificada===true&&Array.isArray(b.casosDetalle)&&b.casosDetalle.length>0&&!!b.grupoCorreo&&!!b.periodoDesde&&!!b.periodoHasta})):[];
+            borradoresGeneradosGlobal=Array.isArray(data.borradores)?data.borradores.map(b=>({...b,tipoCorreo:b.tipoCorreo||((b.casosDetalle||[]).some(c=>(c.detalles||[]).some(d=>/no registra marcas durante la jornada/i.test(String(d))))?'SIN_MARCAS':'OTRAS_INCIDENCIAS'),cuerpoHtml:b.cuerpoHtml||'',proteccionAusenciasVerificada:b.proteccionAusenciasVerificada===true&&Array.isArray(b.casosDetalle)&&b.casosDetalle.length>0&&!!b.grupoCorreo&&!!b.periodoDesde&&!!b.periodoHasta})):[];
             casosExcluidosCorreoGlobal=[];
             resumenExclusionesCorreoGlobal=data.filtros?.proteccionAusencias?.verificada===true?{...data.filtros.proteccionAusencias}:null;
             renderizarBorradoresMasivos();
@@ -475,13 +475,23 @@
                 por_tipo: conteoExclusiones,
                 fuentes_consultadas: proteccionAusencias.filasConsultadas
             };
-            borradoresGeneradosGlobal = [...grupos].map(([nombre, casos], indice) => {
-                const configs = [...new Set(casos.map(x => x.sucursal))].map(s => config.get(texto(s).toLowerCase()) || {});
-                const para = [...new Set(configs.map(x => x.correo_sucursal).filter(Boolean))].join(';');
-                const cc = [...new Set(configs.flatMap(x => texto(x.correo_copia).split(/[;,]/)).filter(Boolean))].join(';');
-                const firma = configs.map(x => x.firma_correo).find(Boolean) || '';
-                const grupo = { tipo: agrupar, nombre, firma };
-                return { id: `borrador-${indice}`, nombre, para, cc, asunto: `Importancia alta - Incumplimientos de asistencia - ${nombre} - ${desde} a ${hasta}`, cuerpo: crearCuerpoCorreo(grupo, casos, desde, hasta), cuerpoHtml: crearCuerpoCorreoHTML(grupo, casos, desde, hasta), cantidad: casos.length, proteccionAusenciasVerificada: true, periodoDesde: desde, periodoHasta: hasta, grupoCorreo: grupo, casosDetalle: casos.map(x => ({ fecha: x.fecha, rut: x.rut, nombre: x.nombre, sucursal: x.sucursal, detalles: x.detalles, turno: x.turno, turno_asignado: x.turno_asignado, jornada: x.jornada, horario: x.horario, entrada: x.entrada, salida: x.salida })) };
+            const esCasoSinMarca = caso => (caso.detalles || []).some(d => /no registra marcas durante la jornada/i.test(String(d)));
+            borradoresGeneradosGlobal = [...grupos].flatMap(([nombreGrupo, casosGrupo]) => {
+                const particiones = [
+                    { tipoCorreo: 'SIN_MARCAS', etiqueta: 'SOLO INEXISTENTES SIN MARCAS', casos: casosGrupo.filter(esCasoSinMarca) },
+                    { tipoCorreo: 'OTRAS_INCIDENCIAS', etiqueta: 'OTRAS INCIDENCIAS DE ASISTENCIA', casos: casosGrupo.filter(x => !esCasoSinMarca(x)) }
+                ].filter(p => p.casos.length);
+                return particiones.map((particion, indiceParticion) => {
+                    const casos = particion.casos;
+                    const configs = [...new Set(casos.map(x => x.sucursal))].map(s => config.get(texto(s).toLowerCase()) || {});
+                    const para = [...new Set(configs.map(x => x.correo_sucursal).filter(Boolean))].join(';');
+                    const cc = [...new Set(configs.flatMap(x => texto(x.correo_copia).split(/[;,]/)).filter(Boolean))].join(';');
+                    const firma = configs.map(x => x.firma_correo).find(Boolean) || '';
+                    const nombre = nombreGrupo + ' · ' + particion.etiqueta;
+                    const grupo = { tipo: agrupar, nombre, firma };
+                    const indice = borradoresGeneradosGlobal.length;
+                    return { id: 'borrador-' + indice + '-' + particion.tipoCorreo.toLowerCase(), tipoCorreo: particion.tipoCorreo, nombre, para, cc, asunto: `Importancia alta - ${particion.etiqueta} - ${nombreGrupo} - ${desde} a ${hasta}`, cuerpo: crearCuerpoCorreo(grupo, casos, desde, hasta), cuerpoHtml: crearCuerpoCorreoHTML(grupo, casos, desde, hasta), cantidad: casos.length, proteccionAusenciasVerificada: true, periodoDesde: desde, periodoHasta: hasta, grupoCorreo: grupo, casosDetalle: casos.map(x => ({ fecha: x.fecha, rut: x.rut, nombre: x.nombre, sucursal: x.sucursal, detalles: x.detalles, turno: x.turno, turno_asignado: x.turno_asignado, jornada: x.jornada, horario: x.horario, entrada: x.entrada, salida: x.salida })) };
+                });
             });
             renderizarBorradoresMasivos();
             actualizarResumenExclusionesCorreo();
@@ -507,8 +517,36 @@
             document.getElementById('correo-resumen-sin-destino').textContent=borradoresGeneradosGlobal.filter(b=>!b.para).length.toLocaleString('es-CL');
             actualizarResumenExclusionesCorreo();
             if (!borradoresGeneradosGlobal.length) { cont.innerHTML = '<div class="ui-card p-6 text-center text-slate-500"><i data-lucide="circle-check" class="mx-auto mb-2 h-8 w-8 text-emerald-600"></i><b>No se encontraron casos</b><p class="mt-1 text-sm">Prueba ampliar el período o revisar los filtros de sucursal y tipo de incidencia.</p></div>';if(window.lucide)lucide.createIcons();return; }
-            cont.innerHTML = borradoresGeneradosGlobal.map(b => `<div class="ui-card mail-card p-5"><div class="flex flex-wrap items-start justify-between gap-3"><label class="flex items-start gap-3"><input type="checkbox" class="borrador-check mt-1" value="${b.id}" checked><span><b class="text-base">${escaparHTML(b.nombre)}</b><br><span class="text-xs text-slate-500">${b.cantidad} caso(s)</span>${b.proteccionAusenciasVerificada ? '<span class="mt-1 block text-xs font-bold text-emerald-700">Ausencias verificadas</span>' : '<span class="mt-1 block text-xs font-bold text-rose-700">HISTÓRICO SIN VALIDAR · vuelve a generar</span>'}<span class="mt-2 block text-xs ${b.para?'text-emerald-700':'font-bold text-rose-700'}">${b.para?'Para: '+escaparHTML(b.para):'Falta configurar correo destinatario'}${b.cc?' · CC: '+escaparHTML(b.cc):''}</span></span></label><button onclick="descargarUnBorradorOutlook('${b.id}')" ${b.proteccionAusenciasVerificada ? '' : 'disabled aria-disabled="true" title="Vuelve a generar este borrador para validar las ausencias"'} class="corp-button"><i data-lucide="mail" class="mr-1 inline h-4 w-4"></i>Descargar correo HTML para Outlook</button></div><div class="mt-3 rounded-lg bg-slate-50 p-3 text-xs"><b>Asunto:</b> ${escaparHTML(b.asunto)}</div><details class="mt-3"><summary class="cursor-pointer text-xs font-bold text-slate-600">Ver contenido completo del correo</summary><div class="mt-2 overflow-auto rounded-lg border bg-white p-3">${b.cuerpoHtml || `<pre style="white-space:pre-wrap;font-size:12px;">${escaparHTML(b.cuerpo)}</pre>`}</div></details></div>`).join('');
+            const renderTarjeta = b => `<div class="ui-card mail-card p-5"><div class="flex flex-wrap items-start justify-between gap-3"><label class="flex items-start gap-3"><input type="checkbox" class="borrador-check mt-1" data-tipo-correo="${b.tipoCorreo||'OTRAS_INCIDENCIAS'}" value="${b.id}" checked><span><b class="text-base">${escaparHTML(b.nombre)}</b><br><span class="text-xs text-slate-500">${b.cantidad} caso(s)</span>${b.proteccionAusenciasVerificada ? '<span class="mt-1 block text-xs font-bold text-emerald-700">Ausencias verificadas</span>' : '<span class="mt-1 block text-xs font-bold text-rose-700">HISTÓRICO SIN VALIDAR · vuelve a generar</span>'}<span class="mt-2 block text-xs ${b.para?'text-emerald-700':'font-bold text-rose-700'}">${b.para?'Para: '+escaparHTML(b.para):'Falta configurar correo destinatario'}${b.cc?' · CC: '+escaparHTML(b.cc):''}</span></span></label><button onclick="descargarUnBorradorOutlook('${b.id}')" ${b.proteccionAusenciasVerificada ? '' : 'disabled aria-disabled="true" title="Vuelve a generar este borrador para validar las ausencias"'} class="corp-button"><i data-lucide="mail" class="mr-1 inline h-4 w-4"></i>Preparar correo separado</button></div><div class="mt-3 rounded-lg bg-slate-50 p-3 text-xs"><b>Asunto:</b> ${escaparHTML(b.asunto)}</div><details class="mt-3"><summary class="cursor-pointer text-xs font-bold text-slate-600">Ver contenido completo del correo</summary><div class="mt-2 overflow-auto rounded-lg border bg-white p-3">${b.cuerpoHtml || `<pre style="white-space:pre-wrap;font-size:12px;">${escaparHTML(b.cuerpo)}</pre>`}</div></details></div>`;
+            const sinMarcas=borradoresGeneradosGlobal.filter(b=>b.tipoCorreo==='SIN_MARCAS');
+            const otras=borradoresGeneradosGlobal.filter(b=>b.tipoCorreo!=='SIN_MARCAS');
+            const bloque=(titulo,desc,lista,tipo,color)=>`<section class="space-y-3 rounded-xl border ${color} p-4"><div class="flex flex-wrap items-start justify-between gap-3"><div><h3 class="font-extrabold text-slate-900">${titulo}</h3><p class="mt-1 text-xs text-slate-600">${desc}</p><p class="mt-1 text-xs font-bold">${lista.reduce((n,b)=>n+Number(b.cantidad||0),0)} caso(s) · ${lista.length} correo(s)</p></div><div class="flex flex-wrap gap-2"><button type="button" onclick="seleccionarTipoBorradores('${tipo}',true)" class="rounded-lg border bg-white px-3 py-2 text-xs font-bold">Seleccionar sección</button><button type="button" onclick="descargarTipoBorradores('${tipo}')" class="corp-button">${tipo==='SIN_MARCAS'?'Descargar ZIP solo sin marcas':'Descargar ZIP otras incidencias'}</button></div></div>${lista.length?lista.map(renderTarjeta).join(''):'<div class="rounded-lg border border-dashed bg-white p-5 text-center text-sm text-slate-500">No hay casos para esta sección en el período seleccionado.</div>'}</section>`;
+            cont.innerHTML=bloque('1. Inexistentes / sin marcas','Correo exclusivo para colaboradores que no registran ninguna marca durante la jornada. No mezcla atrasos ni otras incidencias.',sinMarcas,'SIN_MARCAS','border-rose-200 bg-rose-50/40')+bloque('2. Otras incidencias de asistencia','Correos independientes para atrasos, salidas anticipadas y marcas sin turno. Los casos sin marcas no se incluyen aquí.',otras,'OTRAS_INCIDENCIAS','border-sky-200 bg-sky-50/40');
             if(window.lucide)lucide.createIcons();
+        }
+        function seleccionarTipoBorradores(tipo, valor) {
+            document.querySelectorAll('.borrador-check[data-tipo-correo]').forEach(x => { if (x.dataset.tipoCorreo === tipo) x.checked = valor; });
+        }
+        async function descargarTipoBorradores(tipo) {
+            if (!puedePrepararCorreosActual()) return mostrarToast('No tienes autorización para descargar borradores.', 'warning');
+            const elegidos = borradoresGeneradosGlobal.filter(b => (b.tipoCorreo || 'OTRAS_INCIDENCIAS') === tipo);
+            if (!elegidos.length) return mostrarToast('No hay correos para descargar en esta sección.', 'warning');
+            try {
+                const list = await revalidarBorradoresAntesDeExportar(elegidos);
+                if (!list.length) return;
+                if (!window.JSZip) return mostrarToast('No se pudo cargar el generador ZIP. Recarga la página.', 'error');
+                const zip = new JSZip(), folder = zip.folder(tipo === 'SIN_MARCAS' ? 'Correos_Solo_Sin_Marcas' : 'Correos_Otras_Incidencias');
+                list.forEach((b, i) => {
+                    const slug = String(b.nombre || 'Correo_' + (i + 1)).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 60) || 'Correo_' + (i + 1);
+                    folder.file(String(i + 1).padStart(3, '0') + '_' + slug + '.eml', crearEmlOutlook(b));
+                });
+                zip.file('LEEME.txt', 'Correos separados por categoría. Son borradores EML para Outlook; no se envían automáticamente. Revise destinatarios y contenido antes de pulsar Enviar.');
+                const blob = await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+                const url = URL.createObjectURL(blob), a = document.createElement('a');
+                a.href=url; a.download=(tipo === 'SIN_MARCAS' ? 'Correos_Solo_Sin_Marcas_' : 'Correos_Otras_Incidencias_')+fechaActualChileISO()+'.zip';
+                document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),2000);
+                mostrarToast('Se descargaron '+list.length+' correos separados para esta sección. No se enviaron automáticamente.','success',10000);
+            } catch(error) { mostrarToast(error.message || 'No se pudo preparar el ZIP de esta sección.','error',14000); }
         }
         function seleccionarTodosBorradores(valor) {
             document.querySelectorAll('.borrador-check').forEach(x => x.checked = valor);
