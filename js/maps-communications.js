@@ -59,11 +59,53 @@
             return [...document.getElementById(id).selectedOptions].map(x => x.value);
         }
         function seleccionarFiltroCorreo(id,seleccionar) { const sel=document.getElementById(id);if(!sel)return;Array.from(sel.options).forEach(o=>o.selected=!!seleccionar);if(sel._uxUpdate2026)sel._uxUpdate2026();sel.dispatchEvent(new Event('change',{bubbles:true})); }
+        function fechaActualChileISO() {
+            const parts = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit'
+            }).formatToParts(new Date());
+            const get = type => parts.find(part => part.type === type)?.value || '';
+            return get('year') + '-' + get('month') + '-' + get('day');
+        }
+
+        function sumarDiasISOChile(iso, delta) {
+            const match = String(iso || '').match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+            if (!match) return '';
+            const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12, 0, 0);
+            date.setDate(date.getDate() + Number(delta || 0));
+            return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+        }
+
+        function establecerPeriodoCorreos(dias) {
+            const periodo = Number(dias);
+            if (![0, 7, 30].includes(periodo)) {
+                mostrarToast('Selecciona un rango de Hoy, 7 días o 30 días.', 'warning');
+                return;
+            }
+            const hasta = fechaActualChileISO();
+            const desde = sumarDiasISOChile(hasta, periodo === 0 ? 0 : -(periodo - 1));
+            const campoDesde = document.getElementById('correo-desde');
+            const campoHasta = document.getElementById('correo-hasta');
+            if (!campoDesde || !campoHasta) {
+                mostrarToast('No se encontraron los campos de fecha del módulo de correos.', 'error');
+                return;
+            }
+            campoDesde.value = desde;
+            campoHasta.value = hasta;
+            document.querySelectorAll('[data-periodo-correo]').forEach(button => {
+                const activo = Number(button.dataset.periodoCorreo) === periodo;
+                button.setAttribute('aria-pressed', activo ? 'true' : 'false');
+                button.classList.toggle('bg-sky-100', activo);
+                button.classList.toggle('border-sky-400', activo);
+                button.classList.toggle('text-sky-900', activo);
+            });
+        }
+        window.establecerPeriodoCorreos = establecerPeriodoCorreos;
+
         async function prepararModuloCorreos() {
             if (!asistenciaCargada) await cargarAsistenciaDesdeNube();
             sucursalesConfiguracionGlobal = await obtenerSucursalesConfig();
             if(!sucursalesConfiguracionGlobal.length)throw new Error('No se cargaron sucursales desde Supabase. Revisa los permisos del usuario y vuelve a intentar.');
-            const hoy = new Date().toISOString().slice(0, 10);
+            const hoy = fechaActualChileISO();
             document.getElementById('correo-hasta').value ||= hoy;
             document.getElementById('correo-desde').value ||= hoy;
             document.getElementById('correo-sucursales').innerHTML = sucursalesConfiguracionGlobal.map(x => `<option value="${escaparHTML(x.nombre)}">${escaparHTML(x.nombre)}</option>`).join('');
