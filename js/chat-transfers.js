@@ -8,13 +8,31 @@
   let currentRoleId = null, chatUsers = [], activeConversation = null, chatChannel = null, chatInboxChannel = null, chatBusy = false;
   const notifiedMessageIds = new Set();
   let chatAudioContext = null;
+  let chatAudioUnlocked = false;
+
+  async function desbloquearSonidoChat() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return false;
+      if (!chatAudioContext) chatAudioContext = new AudioCtx();
+      if (chatAudioContext.state === "suspended") await chatAudioContext.resume();
+      chatAudioUnlocked = chatAudioContext.state === "running";
+      return chatAudioUnlocked;
+    } catch (e) { console.debug("No se pudo activar el sonido del chat:", e); return false; }
+  }
+
+  // El navegador exige una interacción real para habilitar audio. Se intenta
+  // desbloquearlo en el primer clic/tecla del usuario, no después de un await.
+  document.addEventListener("pointerdown", () => { if (!chatAudioUnlocked) desbloquearSonidoChat(); }, { passive: true });
+  document.addEventListener("keydown", () => { if (!chatAudioUnlocked) desbloquearSonidoChat(); }, { passive: true });
 
   function reproducirAvisoChat() {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
       if (!chatAudioContext) chatAudioContext = new AudioCtx();
-      if (chatAudioContext.state === "suspended") chatAudioContext.resume().catch(() => {});
+      if (chatAudioContext.state === "suspended") { chatAudioContext.resume().catch(() => {}); return; }
+      if (!chatAudioUnlocked) return;
       const ctx = chatAudioContext, osc = ctx.createOscillator(), gain = ctx.createGain();
       osc.type = "sine"; osc.frequency.setValueAtTime(880, ctx.currentTime);
       osc.frequency.setValueAtTime(660, ctx.currentTime + 0.12);
@@ -42,11 +60,8 @@
   }
 
   async function iniciarAvisosChat() {
-    try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx && !chatAudioContext) chatAudioContext = new AudioCtx();
-      if (chatAudioContext?.state === "suspended") chatAudioContext.resume().catch(() => {});
-    } catch (_) {}
+    // No crear/reanudar audio aquí: esta función se ejecuta tras awaits y el navegador
+    // puede rechazarlo. El primer clic/tecla real desbloquea el sonido.
     if ("Notification" in window && Notification.permission === "default" && !window.__chatNotificationPermissionAsked) {
       window.__chatNotificationPermissionAsked = true;
       try { await Notification.requestPermission(); } catch (_) {}
@@ -176,7 +191,12 @@
           if(current && !current.querySelector('[data-chat-msg="'+msg.id+'"]')) appendMessage(msg);
           _supabase.rpc("chat_marcar_leido",{p_conversacion:id});
         }
-      }).subscribe();
+      }).subscribe((status, err) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.warn("Canal de mensajes del chat:", status, err || "");
+          if ($("chat-estado")) $("chat-estado").textContent = "Conexión de mensajes interrumpida · revisa tu conexión";
+        }
+      });
       if($("chat-estado"))$("chat-estado").textContent="Conversación conectada · mensajes en tiempo real";
       const {data:list}=await _supabase.rpc("chat_listar_conversaciones");
       renderConversations(list||[]);
