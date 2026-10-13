@@ -10,6 +10,10 @@
             return null;
         }
 
+        function colaboradorEstaInactivo(estado) {
+            return estadoColaboradorDesdeExcel(estado) === 'inactivo';
+        }
+
         async function procesarExcelGenerico(event, tabla) {
             const input = event.target;
             const file = input.files?.[0];
@@ -185,7 +189,7 @@
                 texto(sucursal.nombre).toLowerCase(),
                 sucursal.supervisor
             ]));
-            const totalActivos = registrosTodos.filter(x => String(x.estado || 'activo').trim().toLowerCase() !== 'inactivo').length;
+            const totalActivos = registrosTodos.filter(x => !colaboradorEstaInactivo(x.estado)).length;
             const totalInactivos = registrosTodos.length - totalActivos;
             const totalSucursales = new Set(registrosTodos.map(x => texto(x.sucursal)).filter(Boolean).map(x => x.toLowerCase())).size;
             const kpi = document.getElementById('colab-kpi-grid');
@@ -216,8 +220,8 @@
             const visible = registrosTodos.filter(registro => {
                 const nombre = (registro.nombres || '') + ' ' + (registro.apellidos || '');
                 const textoBusqueda = (nombre + ' ' + (registro.rut || '') + ' ' + (registro.cargo || '') + ' ' + (registro.sucursal || '')).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-                const estadoRegistro = String(registro.estado || 'activo').trim().toLowerCase();
-                const coincideEstado = !statusFilter || (statusFilter === 'activos' ? estadoRegistro !== 'inactivo' : estadoRegistro === 'inactivo');
+                const inactivo = colaboradorEstaInactivo(registro.estado);
+                const coincideEstado = !statusFilter || (statusFilter === 'activos' ? !inactivo : inactivo);
                 return (!search || textoBusqueda.includes(search)) && (!branchFilter || texto(registro.sucursal) === branchFilter) && coincideEstado;
             });
 
@@ -243,7 +247,7 @@
             tbody.innerHTML = pageRows.map(registro => {
                 const nombre = ((registro.nombres || '') + ' ' + (registro.apellidos || '')).trim();
                 const supervisor = mapa.get(texto(registro.sucursal).toLowerCase()) || 'No asignado';
-                const esActivo = String(registro.estado || 'activo').trim().toLowerCase() !== 'inactivo';
+                const esActivo = !colaboradorEstaInactivo(registro.estado);
                 return '<tr>' +
                     '<td class="p-4 font-mono">' + escaparHTML(registro.rut) + '</td>' +
                     '<td class="p-4"><b class="block">' + escaparHTML(nombre) + '</b><button type="button" onclick="verFichaColaborador(\'' + escaparHTML(registro.rut).replace(/'/g, '&#39;') + '\')" class="mt-1 rounded-lg bg-gradient-to-r from-indigo-50 to-cyan-50 px-2.5 py-1.5 text-[10px] font-extrabold text-indigo-800 ring-1 ring-indigo-100 hover:from-indigo-100 hover:to-cyan-100">Ver ficha RR. HH.</button></td>' +
