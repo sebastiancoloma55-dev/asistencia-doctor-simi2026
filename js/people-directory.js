@@ -1,6 +1,15 @@
         // ============================================================
         // COLABORADORES Y SUCURSALES
         // ============================================================
+        function estadoColaboradorDesdeExcel(valor) {
+            if (valor === undefined || valor === null) return null;
+            const raw = String(valor).trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[._-]+/g, ' ').replace(/\s+/g, ' ').trim();
+            if (!raw) return null;
+            if (['no','n','false','0','inactivo','inactiva','no vigente','baja','cesado','cesada','desvinculado','desvinculada','finiquitado','finiquitada','terminado','terminada'].includes(raw) || raw.startsWith('no vigente')) return 'inactivo';
+            if (['si','s','true','1','vigente','activo','activa','active','yes'].includes(raw)) return 'activo';
+            return null;
+        }
+
         async function procesarExcelGenerico(event, tabla) {
             const input = event.target;
             const file = input.files?.[0];
@@ -13,16 +22,34 @@
                 const filas = await leerExcel(file);
                 let datos = [];
 
+                let resumenEstadoColaboradores = null;
                 if (tabla === 'colaboradores') {
                     datos = filas
-                        .map(fila => ({
-                            rut: normalizarRut(obtenerCampo(fila, ['RUT', 'Rut'])),
-                            nombres: texto(obtenerCampo(fila, ['Nombre', 'Nombres'])),
-                            apellidos: `${texto(obtenerCampo(fila, ['Apellido Paterno']))} ${texto(obtenerCampo(fila, ['Apellido Materno']))}`.trim(),
-                            cargo: texto(obtenerCampo(fila, ['Cargo'])),
-                            sucursal: texto(obtenerCampo(fila, ['Sucursal']))
-                        }))
+                        .map(fila => {
+                            const registro = {
+                                rut: normalizarRut(obtenerCampo(fila, ['RUT', 'Rut'])),
+                                nombres: texto(obtenerCampo(fila, ['Nombre', 'Nombres'])),
+                                apellidos: `${texto(obtenerCampo(fila, ['Apellido Paterno']))} ${texto(obtenerCampo(fila, ['Apellido Materno']))}`.trim(),
+                                cargo: texto(obtenerCampo(fila, ['Cargo'])),
+                                sucursal: texto(obtenerCampo(fila, ['Sucursal']))
+                            };
+                            // "Vigente" es la columna del maestro de empleados: No => inactivo, Sí => activo.
+                            // Si el archivo no trae una vigencia reconocible, no alterar el estado que ya existe en la nube.
+                            const estadoExcel = estadoColaboradorDesdeExcel(obtenerCampo(fila, [
+                                'Vigente', 'Estado Laboral', 'Situación Laboral', 'Situacion Laboral',
+                                'Estado Colaborador', 'Estado', 'Estatus', 'Activo'
+                            ], null));
+                            if (estadoExcel) registro.estado = estadoExcel;
+                            return registro;
+                        })
                         .filter(registro => registro.rut);
+
+                    const conEstado = datos.filter(registro => Object.prototype.hasOwnProperty.call(registro, 'estado'));
+                    resumenEstadoColaboradores = {
+                        activos: conEstado.filter(registro => registro.estado === 'activo').length,
+                        inactivos: conEstado.filter(registro => registro.estado === 'inactivo').length,
+                        sinEstado: datos.length - conEstado.length
+                    };
                 }
 
                 if (tabla === 'sucursales') {
@@ -38,18 +65,33 @@
                         .filter(registro => registro.nombre);
                 }
 
-                const { error } = await _supabase
-                    .from(tabla)
-                    .upsert(datos, tabla === 'colaboradores' ? { onConflict: 'rut' } : {});
-
-                if (error) {
-                    throw errorSupabase(`No se pudo guardar ${tabla}`, error);
+                // Separar por filas con/sin estado, para que PostgREST reciba claves homogéneas
+                // y no borre la vigencia ya existente cuando un Excel no incluya esa columna.
+                const lotesDatos = tabla === 'colaboradores'
+                    ? [
+                        datos.filter(registro => Object.prototype.hasOwnProperty.call(registro, 'estado')),
+                        datos.filter(registro => !Object.prototype.hasOwnProperty.call(registro, 'estado'))
+                    ].filter(lote => lote.length)
+                    : [datos];
+                for (const lote of lotesDatos) {
+                    const { error } = await _supabase
+                        .from(tabla)
+                        .upsert(lote, tabla === 'colaboradores' ? { onConflict: 'rut' } : {});
+                    if (error) {
+                        throw errorSupabase(`No se pudo guardar ${tabla}`, error);
+                    }
                 }
 
                 await registrarActualizacionFuente(tabla, file.name, datos.length, 'manual');
+                const mensajeEstado = resumenEstadoColaboradores
+                    ? (resumenEstadoColaboradores.activos + resumenEstadoColaboradores.inactivos > 0
+                        ? ` Estado leído desde Excel: ${resumenEstadoColaboradores.activos} activos y ${resumenEstadoColaboradores.inactivos} inactivos.`
+                        : ' No se encontró una columna de vigencia con valores reconocibles; se conservaron los estados anteriores.')
+                    : '';
                 mostrarToast(
-                    `Se guardaron ${datos.length} registros en ${tabla}.`,
-                    'success'
+                    `Se guardaron ${datos.length} registros en ${tabla}.${mensajeEstado}`,
+                    'success',
+                    14000
                 );
 
                 await inicializarDashboard();
