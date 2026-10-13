@@ -250,6 +250,50 @@
             return raw;
         }
 
+        function obtenerModalFichaColaborador() {
+            let modal = document.getElementById('modal-ficha-colaborador');
+            if (modal) return modal;
+            modal = document.createElement('div');
+            modal.id = 'modal-ficha-colaborador';
+            modal.className = 'hidden fixed inset-0 z-[120] items-center justify-center bg-slate-950/60 p-3 sm:p-6';
+            modal.setAttribute('role', 'dialog');
+            modal.setAttribute('aria-modal', 'true');
+            modal.setAttribute('aria-labelledby', 'ficha-colaborador-title');
+            modal.innerHTML = '<div class="relative flex max-h-[92vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-slate-100 shadow-2xl">' +
+                '<header class="flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4 sm:px-7">' +
+                '<div><p class="text-xs font-extrabold uppercase tracking-widest text-cyan-700">Historial laboral</p><h2 id="ficha-colaborador-title" class="mt-1 text-xl font-black text-slate-900">Ficha RR. HH.</h2><p id="ficha-colaborador-subtitle" class="mt-1 text-sm text-slate-500"></p></div>' +
+                '<button type="button" id="ficha-colaborador-close" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50" aria-label="Cerrar ficha">Cerrar ✕</button></header>' +
+                '<div id="ficha-colaborador-body" class="overflow-y-auto p-4 sm:p-6"></div></div>';
+            document.body.appendChild(modal);
+            const close = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+            modal.querySelector('#ficha-colaborador-close')?.addEventListener('click', close);
+            modal.addEventListener('click', event => { if (event.target === modal) close(); });
+            modal.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
+            return modal;
+        }
+
+        async function leerRegistrosColaborador(tabla, rut, campoFecha) {
+            const normalizar = valor => String(valor ?? '').trim();
+            const base = normalizar(rut);
+            const sinPuntos = base.replace(/\./g, '');
+            const sinGuion = sinPuntos.replace(/-/g, '');
+            const conGuion = sinPuntos.includes('-') ? sinPuntos : (sinPuntos.match(/^(\d{7,8})([0-9kK])$/) || []).slice(1).join('-');
+            const variantes = [...new Set([base, sinPuntos, sinGuion, conGuion, conGuion.toUpperCase(), conGuion.toLowerCase()].filter(Boolean))];
+            let errorFinal = null;
+            const acumulados = new Map();
+            for (const variante of variantes) {
+                const result = await _supabase.from(tabla).select('*').eq('rut', variante).limit(1000);
+                if (result.error) { errorFinal = result.error; continue; }
+                for (const row of (result.data || [])) {
+                    const key = row.id ?? [row.rut, row.fecha_inicio || row.fecha || '', row.fecha_fin || '', row.tipo_ausencia || row.tipo_permiso || row.tipo || '', row.created_at || ''].join('|');
+                    acumulados.set(String(key), row);
+                }
+            }
+            const data = [...acumulados.values()];
+            if (campoFecha) data.sort((a,b) => String(b[campoFecha] || b.created_at || '').localeCompare(String(a[campoFecha] || a.created_at || '')));
+            return { data, error: data.length ? null : errorFinal };
+        }
+
         async function verFichaColaborador(rut) {
             const modal = obtenerModalFichaColaborador();
             const body = document.getElementById('ficha-colaborador-body');
@@ -368,6 +412,8 @@
                 body.innerHTML = '<p class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">No se pudo cargar la ficha: ' + escaparHTML(error.message || error) + '</p>';
             }
         }
+
+        window.verFichaColaborador = verFichaColaborador;
 
         async function cargarTablaSucursales() {
             const tbody = document.getElementById('tabla-sucursales-body');
