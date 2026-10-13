@@ -40,7 +40,7 @@
 
                 const { error } = await _supabase
                     .from(tabla)
-                    .upsert(datos);
+                    .upsert(datos, { onConflict: 'rut' });
 
                 if (error) {
                     throw errorSupabase(`No se pudo guardar ${tabla}`, error);
@@ -450,7 +450,7 @@
 
             const { error } = await _supabase
                 .from('colaboradores')
-                .insert([registro]);
+                .upsert([registro], { onConflict: 'rut' });
 
             if (error) {
                 mostrarToast(error.message, 'error');
