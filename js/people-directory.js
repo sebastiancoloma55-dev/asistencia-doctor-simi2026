@@ -74,7 +74,7 @@
                     // como en Supabase, sin depender de que exista un índice UNIQUE en la tabla.
                     const porUnidad = new Map();
                     for (const registro of datos) {
-                        const unidad = texto(registro.unidad).toUpperCase().replace(/\\s+/g, '');
+                        const unidad = texto(registro.unidad).toUpperCase().replace(/\s+/g, '');
                         if (!unidad) continue;
                         porUnidad.set(unidad, { ...registro, unidad });
                     }
