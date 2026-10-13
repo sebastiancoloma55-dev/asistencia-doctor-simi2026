@@ -50,7 +50,7 @@
                 await registrarActualizacionFuente('vacaciones', file.name, consolidado.registros.length, 'manual');
                 mostrarToast(`Vacaciones guardadas. ${resultado.confirmados} registros confirmados; ${consolidado.duplicados.length} duplicados consolidados.`,'success',15000);
             } catch(error) { mostrarToast(`No se pudieron guardar vacaciones. ${error.message}`,'error',18000); }
-            finally { boton.innerHTML='<i data-lucide="upload-cloud" class="h-4 w-4"></i> Cargar histórico<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarHistorialVacaciones(event)">'; input.value=''; lucide.createIcons(); }
+            finally { boton.innerHTML='<i data-lucide="cloud-upload" class="h-4 w-4"></i> Cargar histórico<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="procesarHistorialVacaciones(event)">'; input.value=''; lucide.createIcons(); }
         }
 
         function fechaEnRango(fecha,inicio,fin) { return fecha && inicio && fin && fecha>=inicio && fecha<=fin; }
