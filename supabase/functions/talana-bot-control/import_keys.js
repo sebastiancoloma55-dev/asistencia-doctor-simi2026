@@ -40,7 +40,7 @@ export function importKeyFields(reportType) {
 }
 
 function normalizeIdentityValue(field, value) {
-  if (field !== "fecha_creacion" && field !== "fecha_solicitud") return normalizeImportValue(value);
+  if (field !== "fecha_solicitud") return normalizeImportValue(value);
   let normalized = String(value ?? "").trim().toLowerCase();
   if (!normalized || ["-", "—", "–", "n/a", "na"].includes(normalized)) return "";
   const iso = normalized.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[t\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
