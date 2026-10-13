@@ -96,13 +96,29 @@ if(a==="bot_import"){
     if(offset>=100000){return json({error:"La consulta de existentes superó el límite de seguridad de 100.000 filas por lote; se detuvo para evitar una comparación incompleta."},413);}
    }
   }
-  const existingByKey=new Map<string,any>(); for(const old of existingRows){const oldKey=keyOf(old);if(oldKey&&!existingByKey.has(oldKey))existingByKey.set(oldKey,old);} const seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
+  const existingByKey=new Map<string,any>();
+  const legacyFields=reportType==="ausentismos_historico"?["rut","fecha_inicio","tipo_ausencia"]:reportType==="solicitudes_vacaciones_historicas"?["rut","fecha_inicio","tipo_vacaciones"]:null;
+  const legacyDiscriminators=reportType==="ausentismos_historico"?["fecha_creacion","hora_inicio","hora_fin"]:reportType==="solicitudes_vacaciones_historicas"?["fecha_solicitud","jornada"]:null;
+  const legacyCandidates=new Map<string,any[]>();
+  const legacyKey=(r:any)=>legacyFields?legacyFields.map((field:string)=>field==="rut"?normRut(r[field]):norm(r[field])).join("|"):null;
+  for(const old of existingRows){
+   const oldKey=keyOf(old);if(oldKey&&!existingByKey.has(oldKey))existingByKey.set(oldKey,old);
+   if(legacyFields&&legacyDiscriminators&&legacyDiscriminators.some((field:string)=>old[field]===null||old[field]===undefined||String(old[field]).trim()==="")){
+    const lk=legacyKey(old);if(lk){const list=legacyCandidates.get(lk)||[];list.push(old);legacyCandidates.set(lk,list);}
+   }
+  }
+  const seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
   for(const row of valid){
    const k=keyOf(row);
    if(!k){failed++;errors.push(table+" RUT "+row.rut+": clave natural incompleta; fila rechazada para no generar duplicados.");continue;}
    if(seenIncoming.has(k)){skipped++;continue;}
    seenIncoming.add(k);
-   const old=existingByKey.get(k);
+   let old=existingByKey.get(k);
+   if(!old&&legacyFields){
+    const candidates=legacyCandidates.get(legacyKey(row))||[];
+    if(candidates.length===1)old=candidates[0];
+    else if(candidates.length>1){failed++;errors.push(table+" RUT "+row.rut+": hay "+candidates.length+" registros históricos con identificadores incompletos para la misma fecha/tipo; se requiere revisión manual y no se insertó.");continue;}
+   }
    if(old){pendingUpdates.push({id:old.id,row,old});}
    else pending.push(row);
   }
