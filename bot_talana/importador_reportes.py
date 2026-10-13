@@ -114,6 +114,20 @@ def _normalize_date_text(value):
     return text
 
 
+def _normalize_datetime_text(value):
+    """Normalize creation/request timestamps while preserving time as an identity discriminator."""
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text or text in {"-", "—", "–", "N/A", "NA"}:
+        return None
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%S%z"):
+        try:
+            return datetime.strptime(text, fmt).strftime("%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            pass
+    return _normalize_date_text(value)
+
 def _boolean(value):
     if isinstance(value, bool):
         return value
@@ -225,7 +239,8 @@ def parse_report(path, report_type):
                 item[field] = _clean(values[pos]) if pos is not None and pos < len(values) else None
             for date_field in ("fecha", "fecha_inicio", "fecha_fin", "fecha_retorno", "fecha_solicitud", "fecha_aprobacion", "fecha_ingreso", "fecha_creacion"):
                 if item.get(date_field):
-                    item[date_field] = _normalize_date_text(item[date_field])
+                    normalizer = _normalize_datetime_text if date_field in ("fecha_solicitud", "fecha_creacion") else _normalize_date_text
+                    item[date_field] = normalizer(item[date_field])
             if not item.get("rut"):
                 row_errors.append(f"fila {line_number}: falta RUT")
                 continue
