@@ -20,6 +20,12 @@ on:
           - NO
           - CONFIRMO_IMPORTACION
         default: NO
+  push:
+    branches:
+      - main
+    paths:
+      - "bot_talana/**"
+      - ".github/workflows/talana-hourly.yml"
   pull_request:
     paths:
       - "bot_talana/**"
@@ -57,7 +63,7 @@ jobs:
 
   run-talana:
     needs: validate-python
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
