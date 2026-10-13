@@ -172,6 +172,32 @@ class ReportParserTests(unittest.TestCase):
         self.assertEqual({row["salida"] for row in rows}, {None, "22:36:04"})
         self.assertEqual(errors, [])
 
+    def test_same_absence_identity_with_different_creation_date_is_preserved(self):
+        path = self.make_xlsx(
+            ["Rut", "Nombre", "Tipo de Ausencia", "Fecha Inicio Ausencia",
+             "Fecha Fin Ausencia", "Fecha de Creación", "Hora Inicio", "Hora Fin"],
+            [["10826263-K", "MARJORIE DINAMARCA", "licencia medica", "2026-03-30",
+              "2026-04-13", "2026-03-30 08:00:00", "08:00", "17:00"],
+             ["10826263-K", "MARJORIE DINAMARCA", "licencia medica", "2026-03-30",
+              "2026-04-13", "2026-03-31 09:00:00", "08:00", "17:00"]],
+        )
+        rows, errors, _ = parse_report(path, "ausentismos_historico")
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(errors, [])
+
+    def test_same_vacation_start_with_distinct_request_timestamps_is_preserved(self):
+        path = self.make_xlsx(
+            ["Rut", "Nombre", "Fecha/Hora Solicitud", "Fecha Inicio Vacaciones",
+             "Fecha Fin Vacaciones", "Tipo de Vacaciones", "Jornada"],
+            [["12345678-5", "ANA PEREZ", "01/09/2026 - 09:40:09", "2026-11-02",
+              "2026-11-06", "Vacaciones", "Completa"],
+             ["12345678-5", "ANA PEREZ", "02/09/2026 - 10:15:22", "2026-11-02",
+              "2026-11-06", "Vacaciones", "Completa"]],
+        )
+        rows, errors, _ = parse_report(path, "solicitudes_vacaciones_historicas")
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(errors, [])
+
     def test_unrecognized_headers_fail_closed(self):
         path = self.make_xlsx(["Columna A", "Columna B"], [["x", "y"]])
         with self.assertRaises(ValueError):
