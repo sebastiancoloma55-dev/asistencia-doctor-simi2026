@@ -95,3 +95,41 @@ BEGIN
   RETURN jsonb_build_object('success',true,'estado',p_estado,'maestro_actualizado',applied,'tipo_movimiento',coalesce(item.tipo_movimiento,'TRASLADO'),'cobertura_temporal',is_coverage);
 END;
 $function$;
+
+-- Scope the privileged employee-history search to the caller's branch assignments.
+CREATE OR REPLACE FUNCTION public.historial_colaborador_buscar(p_rut text)
+RETURNS TABLE(id bigint, rut text, accion text, antes jsonb, despues jsonb, actor_email text, created_at timestamptz)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO ''
+AS $f$
+DECLARE normalized_rut text;
+BEGIN
+ IF NOT (public.usuario_es_admin_principal_2026() OR public.usuario_tiene_permiso('colaboradores')) THEN
+  RAISE EXCEPTION 'No tienes permiso para consultar el historial de colaboradores';
+ END IF;
+ normalized_rut := regexp_replace(upper(coalesce(p_rut,'')), '[^0-9K]', '', 'g');
+ IF normalized_rut !~ '^[0-9]{6,9}[0-9K]$' THEN RAISE EXCEPTION 'RUT no válido'; END IF;
+ IF NOT (
+  public.usuario_es_admin_principal_2026()
+  OR private.usuario_puede_ver_sucursal(NULL::uuid,NULL::text)
+  OR EXISTS (
+   SELECT 1 FROM public.colaboradores c
+   WHERE regexp_replace(upper(coalesce(c.rut,'')), '[^0-9K]', '', 'g')=normalized_rut
+    AND private.usuario_puede_ver_sucursal(c.sucursal_id,c.sucursal)
+  )
+ ) THEN RAISE EXCEPTION 'No tienes acceso al historial de este colaborador o su sucursal'; END IF;
+ RETURN QUERY
+ SELECT h.id,h.rut,h.accion,h.antes,h.despues,h.actor_email,h.created_at
+ FROM public.historial_colaborador h
+ WHERE regexp_replace(upper(coalesce(h.rut,'')), '[^0-9K]', '', 'g')=normalized_rut
+  AND (
+   public.usuario_es_admin_principal_2026()
+   OR private.usuario_puede_ver_sucursal(NULL::uuid,NULL::text)
+   OR EXISTS (
+    SELECT 1 FROM public.colaboradores c
+    WHERE regexp_replace(upper(coalesce(c.rut,'')), '[^0-9K]', '', 'g')=normalized_rut
+     AND private.usuario_puede_ver_sucursal(c.sucursal_id,c.sucursal)
+   )
+  )
+ ORDER BY h.created_at DESC LIMIT 100;
+END;
+$f$;
