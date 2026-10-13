@@ -127,10 +127,14 @@
             );
 
             if (match) {
+                const dia = Number(match[1]);
+                const mes = Number(match[2]);
+                const anio = Number(match[3]);
+                if (mes < 1 || mes > 12 || dia < 1 || dia > new Date(anio, mes, 0).getDate()) return null;
                 return [
-                    match[3],
-                    match[2].padStart(2, '0'),
-                    match[1].padStart(2, '0')
+                    String(anio).padStart(4, '0'),
+                    String(mes).padStart(2, '0'),
+                    String(dia).padStart(2, '0')
                 ].join('-');
             }
 
