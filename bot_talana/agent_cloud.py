@@ -41,9 +41,73 @@ def main():
     group.add_argument("--check", action="store_true", help="Comprueba si el panel permite ejecutar, sin descargar")
     group.add_argument("--maintenance", action="store_true", help="Genera tareas recurrentes aprobadas, sin iniciar sesión en Talana")
     group.add_argument("--validate-only", action="store_true", help="Descarga y valida los cuatro XLSX sin subirlos ni modificar Supabase")
+    group.add_argument("--preview-import", action="store_true", help="Descarga los cuatro XLSX y calcula altas/actualizaciones/duplicados sin escribir datos")
     args = parser.parse_args()
 
     cloud = TalanaBotCloud()
+    if args.preview_import:
+        user = os.getenv("TALANA_USER", "").strip()
+        password = os.getenv("TALANA_PASSWORD", "")
+        if not user or not password:
+            raise RuntimeError("Faltan los secretos TALANA_USER o TALANA_PASSWORD.")
+        from talana_downloader import ejecutar_descargas
+        from importador_reportes import parse_report
+        results, errors = ejecutar_descargas(user, password, headless=True)
+        previewed = 0
+        planned = {"planned_inserted": 0, "planned_updated": 0, "skipped": 0, "failed": 0}
+        expected_sheet_terms = {
+            "solicitudes_vacaciones_historicas": ("vacacion", "solicitud"),
+            "ausentismos_historico": ("ausentismo", "licencia"),
+            "maestro_empleado": ("empleado", "trabajador"),
+            "reporte_jornadas_asistencia": ("jornada", "asistencia", "turno"),
+        }
+        for title, path in results:
+            if str(path).startswith("__TALANA_ACTION_OK__:"):
+                errors.append(f"{title}: se completó una acción sin archivo; no se puede previsualizar su importación.")
+                continue
+            file_path = Path(path)
+            if not file_path.is_file():
+                errors.append(f"No existe el archivo descargado para {title}: {file_path}")
+                continue
+            normalized = title.lower()
+            report_type = (
+                "ausentismos_historico" if "ausentismo" in normalized
+                else "solicitudes_vacaciones_historicas" if "vacaciones" in normalized
+                else "maestro_empleado" if "maestro" in normalized
+                else "reporte_jornadas_asistencia" if "jornadas" in normalized
+                else "reporte_talana"
+            )
+            if report_type not in expected_sheet_terms:
+                errors.append(f"{title}: tipo de reporte no reconocido.")
+                continue
+            rows, parse_errors, metadata = parse_report(file_path, report_type)
+            sheet_name = str(metadata.get("sheet", "")).lower()
+            if not any(term in sheet_name for term in expected_sheet_terms[report_type]):
+                errors.append(f"{title}: hoja inesperada «{metadata.get('sheet', '')}».")
+                continue
+            if not rows or parse_errors:
+                errors.append(f"{title}: filas={len(rows)}, errores de lectura={len(parse_errors)}")
+            try:
+                result = cloud.import_report("preview-no-write", report_type, file_path, dry_run=True)
+                previewed += 1
+                for key in planned:
+                    planned[key] += int(result.get(key, 0) or 0)
+                LOG.info(
+                    "PREVISUALIZACIÓN SIN ESCRITURA: %s | tipo=%s | recibidas=%s | altas_estimadas=%s | actualizaciones_estimadas=%s | duplicadas=%s | rechazadas=%s",
+                    title, report_type, result.get("rows_found", len(rows)),
+                    result.get("planned_inserted", 0), result.get("planned_updated", 0),
+                    result.get("skipped", 0), result.get("failed", 0),
+                )
+                if int(result.get("failed", 0) or 0):
+                    errors.append(f"{title}: {result.get('failed')} fila(s) rechazadas durante la previsualización.")
+            except Exception as exc:
+                errors.append(f"{title}: no se pudo previsualizar: {exc}")
+                LOG.exception("Falló la previsualización de %s", title)
+        LOG.info("PREVISUALIZACIÓN FINALIZADA: reportes=%s/4 altas_estimadas=%s actualizaciones_estimadas=%s duplicadas=%s rechazadas=%s errores=%s. No se escribieron datos de negocio.",
+                 previewed, planned["planned_inserted"], planned["planned_updated"], planned["skipped"], planned["failed"], len(errors))
+        if previewed != 4 or errors or planned["failed"]:
+            raise SystemExit(1)
+        return
     if args.validate_only:
         user = os.getenv("TALANA_USER", "").strip()
         password = os.getenv("TALANA_PASSWORD", "")
