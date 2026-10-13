@@ -156,7 +156,7 @@
         async function guardarLoteBorradoresNube(desde,hasta,agrupar,filtroSuc,filtroSup,minimo) {
             const {data:sesion,error:errSesion}=await _supabase.auth.getUser();
             if(errSesion||!sesion?.user?.email)throw new Error('No se pudo verificar la sesión para guardar en la nube.');
-            const borradores=(borradoresGeneradosGlobal||[]).map(b=>({id:b.id,nombre:b.nombre,para:b.para,cc:b.cc,asunto:b.asunto,cuerpo:b.cuerpo,cuerpoHtml:b.cuerpoHtml||'',cantidad:Number(b.cantidad||0),proteccionAusenciasVerificada:b.proteccionAusenciasVerificada===true}));
+            const borradores=(borradoresGeneradosGlobal||[]).map(b=>({id:b.id,nombre:b.nombre,para:b.para,cc:b.cc,asunto:b.asunto,cuerpo:b.cuerpo,cuerpoHtml:b.cuerpoHtml||'',cantidad:Number(b.cantidad||0),proteccionAusenciasVerificada:b.proteccionAusenciasVerificada===true,periodoDesde:b.periodoDesde||desde,periodoHasta:b.periodoHasta||hasta,grupoCorreo:b.grupoCorreo||null,casosDetalle:Array.isArray(b.casosDetalle)?b.casosDetalle:[]}));
             const totalCasos=borradores.reduce((n,b)=>n+b.cantidad,0);
             const fila={usuario_email:String(sesion.user.email).trim().toLowerCase(),usuario_rol_id:perfilActualSistema?.id||null,fecha_desde:desde,fecha_hasta:hasta,agrupacion:agrupar,filtros:{sucursales:filtroSuc,supervisores:filtroSup,minimo_atraso:minimo,tipos:{atraso:!!document.getElementById('correo-t-atraso')?.checked,salida_temprana:!!document.getElementById('correo-t-temprana')?.checked,sin_turno:!!document.getElementById('correo-t-sinturno')?.checked,sin_marca:!!document.getElementById('correo-t-sinmarca')?.checked},proteccionAusencias:resumenExclusionesCorreoGlobal},borradores,total_borradores:borradores.length,total_casos:totalCasos};
             const {error}=await _supabase.from('borradores_correo_usuario').insert([fila]);
@@ -177,8 +177,9 @@
             if(!id)return;
             const {data,error}=await _supabase.from('borradores_correo_usuario').select('borradores,filtros,fecha_desde,fecha_hasta').eq('id',id).maybeSingle();
             if(error||!data){mostrarToast('No se pudo restaurar ese historial o no tienes acceso.','error');return;}
-            borradoresGeneradosGlobal=Array.isArray(data.borradores)?data.borradores.map(b=>({...b,cuerpoHtml:b.cuerpoHtml||'',proteccionAusenciasVerificada:b.proteccionAusenciasVerificada===true})):[];
-            resumenExclusionesCorreoGlobal=data.filtros?.proteccionAusencias?.verificada===true?data.filtros.proteccionAusencias:null;
+            borradoresGeneradosGlobal=Array.isArray(data.borradores)?data.borradores.map(b=>({...b,cuerpoHtml:b.cuerpoHtml||'',proteccionAusenciasVerificada:b.proteccionAusenciasVerificada===true&&Array.isArray(b.casosDetalle)&&b.casosDetalle.length>0&&!!b.grupoCorreo&&!!b.periodoDesde&&!!b.periodoHasta})):[];
+            casosExcluidosCorreoGlobal=[];
+            resumenExclusionesCorreoGlobal=data.filtros?.proteccionAusencias?.verificada===true?{...data.filtros.proteccionAusencias}:null;
             renderizarBorradoresMasivos();
             mostrarToast('Historial restaurado. Solo los borradores con protección de ausencias verificada podrán abrirse o descargarse; los antiguos deben regenerarse.','warning',12000);
         }
@@ -342,9 +343,78 @@
         }
 
         function borradorTieneProteccionAusencias(borrador) {
-            if (borrador?.proteccionAusenciasVerificada === true) return true;
-            mostrarToast('Este borrador no tiene validación de licencias, vacaciones y permisos. No se permite abrirlo para envío; vuelve a generar el correo.', 'warning', 12000);
+            const completo = borrador?.proteccionAusenciasVerificada === true &&
+                Array.isArray(borrador.casosDetalle) && borrador.casosDetalle.length > 0 &&
+                !!borrador.grupoCorreo && !!borrador.periodoDesde && !!borrador.periodoHasta;
+            if (completo) return true;
+            mostrarToast('Este borrador no tiene los casos fuente para volver a validar licencias, vacaciones y permisos. No se permite abrirlo; vuelve a generarlo.', 'warning', 12000);
             return false;
+        }
+
+        async function revalidarBorradoresAntesDeExportar(lista) {
+            if (!Array.isArray(lista) || !lista.length) return [];
+            if (lista.some(b => !borradorTieneProteccionAusencias(b))) {
+                throw new Error('Uno o más borradores antiguos no tienen datos para volver a validar las ausencias. Regénéralos antes de descargar.');
+            }
+            const desde = lista.map(b => b.periodoDesde).sort()[0];
+            const hasta = lista.map(b => b.periodoHasta).sort().slice(-1)[0];
+            const proteccion = await cargarProteccionAusenciasCorreos(desde, hasta);
+            const remociones = [];
+            const conservados = [];
+
+            for (const borrador of lista) {
+                const casosOriginales = borrador.casosDetalle || [];
+                const casosValidos = [];
+                for (const caso of casosOriginales) {
+                    const fechaCaso = normalizarFechaProteccionCorreo(caso.fecha);
+                    const exclusion = !fechaCaso
+                        ? { categoria: 'fecha_no_verificable', mensaje: 'La fecha de asistencia no se pudo validar.' }
+                        : buscarExclusionAusenciaCorreo(caso, fechaCaso, proteccion);
+                    if (exclusion) {
+                        remociones.push({ rut: normalizarRutProteccionCorreo(caso.rut), nombre: caso.nombre || '', fecha: fechaCaso || '', categoria: exclusion.categoria, mensaje: exclusion.mensaje });
+                    } else {
+                        casosValidos.push({ ...caso, fecha: fechaCaso });
+                    }
+                }
+
+                borrador.casosDetalle = casosValidos;
+                borrador.cantidad = casosValidos.length;
+                if (!casosValidos.length) {
+                    borrador.proteccionAusenciasVerificada = false;
+                    borrador.cuerpo = '';
+                    borrador.cuerpoHtml = '';
+                    continue;
+                }
+                borrador.cuerpo = crearCuerpoCorreo(borrador.grupoCorreo, casosValidos, borrador.periodoDesde, borrador.periodoHasta);
+                borrador.cuerpoHtml = crearCuerpoCorreoHTML(borrador.grupoCorreo, casosValidos, borrador.periodoDesde, borrador.periodoHasta);
+                borrador.proteccionAusenciasVerificada = true;
+                conservados.push(borrador);
+            }
+
+            if (remociones.length) {
+                casosExcluidosCorreoGlobal.push(...remociones);
+                const porTipo = { vacaciones: 0, permisos: 0, licencias: 0, fecha_no_verificable: 0 };
+                casosExcluidosCorreoGlobal.forEach(caso => porTipo[caso.categoria] = (porTipo[caso.categoria] || 0) + 1);
+                const anteriores = resumenExclusionesCorreoGlobal?.verificada ? resumenExclusionesCorreoGlobal : {
+                    verificada: true, version: VERSION_PROTECCION_AUSENCIAS_CORREO,
+                    periodo_desde: desde, periodo_hasta: hasta, casos_excluidos: 0,
+                    colaboradores_excluidos: 0, por_tipo: { vacaciones: 0, permisos: 0, licencias: 0, fecha_no_verificable: 0 }
+                };
+                resumenExclusionesCorreoGlobal = {
+                    ...anteriores,
+                    verificada: true,
+                    version: VERSION_PROTECCION_AUSENCIAS_CORREO,
+                    casos_excluidos: Number(anteriores.casos_excluidos || 0) + remociones.length,
+                    colaboradores_excluidos: Number(anteriores.colaboradores_excluidos || 0) + new Set(remociones.map(x => x.rut).filter(Boolean)).size,
+                    por_tipo: Object.fromEntries(Object.keys(porTipo).map(tipo => [tipo, Number(anteriores.por_tipo?.[tipo] || 0) + remociones.filter(x => x.categoria === tipo).length])),
+                    ultima_revalidacion: new Date().toISOString()
+                };
+            }
+            renderizarBorradoresMasivos();
+            if (!conservados.length) {
+                throw new Error('No se descargó ningún correo: todos los casos del borrador coinciden ahora con vacaciones, permisos o licencias, o tienen fechas no verificables. El borrador quedó bloqueado.');
+            }
+            return conservados;
         }
 
         async function prepararCorreosAsistencia() {
@@ -411,7 +481,7 @@
                 const cc = [...new Set(configs.flatMap(x => texto(x.correo_copia).split(/[;,]/)).filter(Boolean))].join(';');
                 const firma = configs.map(x => x.firma_correo).find(Boolean) || '';
                 const grupo = { tipo: agrupar, nombre, firma };
-                return { id: `borrador-${indice}`, nombre, para, cc, asunto: `Importancia alta - Incumplimientos de asistencia - ${nombre} - ${desde} a ${hasta}`, cuerpo: crearCuerpoCorreo(grupo, casos, desde, hasta), cuerpoHtml: crearCuerpoCorreoHTML(grupo, casos, desde, hasta), cantidad: casos.length, proteccionAusenciasVerificada: true };
+                return { id: `borrador-${indice}`, nombre, para, cc, asunto: `Importancia alta - Incumplimientos de asistencia - ${nombre} - ${desde} a ${hasta}`, cuerpo: crearCuerpoCorreo(grupo, casos, desde, hasta), cuerpoHtml: crearCuerpoCorreoHTML(grupo, casos, desde, hasta), cantidad: casos.length, proteccionAusenciasVerificada: true, periodoDesde: desde, periodoHasta: hasta, grupoCorreo: grupo, casosDetalle: casos.map(x => ({ fecha: x.fecha, rut: x.rut, nombre: x.nombre, sucursal: x.sucursal, detalles: x.detalles, turno: x.turno, turno_asignado: x.turno_asignado, jornada: x.jornada, horario: x.horario, entrada: x.entrada, salida: x.salida })) };
             });
             renderizarBorradoresMasivos();
             actualizarResumenExclusionesCorreo();
@@ -448,13 +518,36 @@
             // Si Outlook escritorio está configurado como aplicación predeterminada, se abrirá allí.
             return `mailto:${encodeURIComponent(b.para||'')}?cc=${encodeURIComponent(b.cc||'')}&subject=${encodeURIComponent(b.asunto||'')}&body=${encodeURIComponent(b.cuerpo||'')}`;
         }
-        function abrirUnBorrador(id) {
+        async function abrirUnBorrador(id) {
+            if (!puedePrepararCorreosActual()) return mostrarToast('No tienes autorización para preparar correos.', 'warning');
             const b = borradoresGeneradosGlobal.find(x => x.id === id);
-            if (!b || !puedePrepararCorreosActual()) return;
-            if (!borradorTieneProteccionAusencias(b)) return;
-            window.open(urlOutlookBorrador(b), '_blank', 'noopener');
+            if (!b || !borradorTieneProteccionAusencias(b)) return;
+            try {
+                const listos = await revalidarBorradoresAntesDeExportar([b]);
+                const actualizado = listos.find(x => x.id === id);
+                if (actualizado) window.open(urlOutlookBorrador(actualizado), '_blank', 'noopener');
+            } catch (error) {
+                mostrarToast(error.message || 'No se pudo volver a validar el borrador.', 'error', 14000);
+            }
         }
-        function descargarUnBorradorOutlook(id){if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para descargar borradores.','warning');const b=borradoresGeneradosGlobal.find(x=>x.id===id);if(!b||!borradorTieneProteccionAusencias(b))return;const blob=new Blob([crearEmlOutlook(b)],{type:'message/rfc822;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a'),slug=String(b.nombre||'Borrador').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').slice(0,60)||'Borrador';a.href=url;a.download='Correo_Asistencia_'+slug+'.eml';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);mostrarToast('Correo HTML descargado. Ábrelo con Outlook para conservar la tabla y revisa el destinatario antes de enviarlo.','success',10000);}
+        async function descargarUnBorradorOutlook(id) {
+            if (!puedePrepararCorreosActual()) return mostrarToast('No tienes autorización para descargar borradores.', 'warning');
+            const b = borradoresGeneradosGlobal.find(x => x.id === id);
+            if (!b || !borradorTieneProteccionAusencias(b)) return;
+            try {
+                const listos = await revalidarBorradoresAntesDeExportar([b]);
+                const actualizado = listos.find(x => x.id === id);
+                if (!actualizado) return;
+                const blob = new Blob([crearEmlOutlook(actualizado)], { type: 'message/rfc822;charset=utf-8' });
+                const url = URL.createObjectURL(blob), a = document.createElement('a');
+                const slug = String(actualizado.nombre || 'Borrador').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 60) || 'Borrador';
+                a.href = url; a.download = 'Correo_Asistencia_' + slug + '.eml';
+                document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 3000);
+                mostrarToast('Borrador revalidado contra las ausencias actuales y descargado. Revisa el destinatario antes de enviarlo.', 'success', 10000);
+            } catch (error) {
+                mostrarToast(error.message || 'No se pudo volver a validar el borrador.', 'error', 14000);
+            }
+        }
 
         function textoMimeBase64(value) {
             const bytes = new TextEncoder().encode(String(value || ''));
@@ -491,7 +584,30 @@
                 '--' + boundary + '\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n' + html + '\r\n' +
                 '--' + boundary + '--\r\n';
         }
-        async function descargarBorradoresOutlookZip(){if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para descargar borradores.','warning');const ids=[...document.querySelectorAll('.borrador-check:checked')].map(x=>x.value),list=borradoresGeneradosGlobal.filter(x=>ids.includes(x.id));if(!list.length)return mostrarToast('Selecciona uno o más borradores antes de descargar el ZIP.','warning');if(list.some(b=>b.proteccionAusenciasVerificada!==true))return mostrarToast('El ZIP contiene borradores antiguos sin validación de ausencias. Quita esos borradores y vuelve a generarlos antes de enviar.','warning',12000);if(!window.JSZip)return mostrarToast('No se pudo cargar el generador ZIP. Recarga la página.','error');const zip=new JSZip(),folder=zip.folder('Borradores_Outlook');list.forEach((b,i)=>{const slug=String(b.nombre||'Borrador_'+(i+1)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').slice(0,60)||'Borrador_'+(i+1);folder.file(String(i+1).padStart(3,'0')+'_'+slug+'.eml',crearEmlOutlook(b));});zip.file('LEEME.txt','Borradores para Outlook de escritorio. Extrae el ZIP, abre los archivos .eml con Outlook, revisa destinatarios y contenido y pulsa Enviar. No se envían automáticamente.');const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Borradores_Outlook_'+fechaActualChileISO()+'.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);mostrarToast('ZIP descargado con '+list.length+' borradores .eml para revisar y enviar desde Outlook.','success',10000);}
+        async function descargarBorradoresOutlookZip() {
+            if (!puedePrepararCorreosActual()) return mostrarToast('No tienes autorización para descargar borradores.', 'warning');
+            const ids = [...document.querySelectorAll('.borrador-check:checked')].map(x => x.value);
+            const elegidos = borradoresGeneradosGlobal.filter(x => ids.includes(x.id));
+            if (!elegidos.length) return mostrarToast('Selecciona uno o más borradores antes de descargar el ZIP.', 'warning');
+            try {
+                const list = await revalidarBorradoresAntesDeExportar(elegidos);
+                if (!list.length) return;
+                if (!window.JSZip) return mostrarToast('No se pudo cargar el generador ZIP. Recarga la página.', 'error');
+                const zip = new JSZip(), folder = zip.folder('Borradores_Outlook');
+                list.forEach((b, i) => {
+                    const slug = String(b.nombre || 'Borrador_' + (i + 1)).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 60) || 'Borrador_' + (i + 1);
+                    folder.file(String(i + 1).padStart(3, '0') + '_' + slug + '.eml', crearEmlOutlook(b));
+                });
+                zip.file('LEEME.txt', 'Borradores para Outlook de escritorio. Extrae el ZIP, abre los archivos .eml con Outlook, revisa destinatarios y contenido y pulsa Enviar. No se envían automáticamente. Los casos se revalidaron contra las ausencias actuales antes de crear este paquete.');
+                const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+                const url = URL.createObjectURL(blob), a = document.createElement('a');
+                a.href = url; a.download = 'Borradores_Outlook_' + fechaActualChileISO() + '.zip';
+                document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+                mostrarToast('ZIP revalidado: ' + list.length + ' borrador(es) descargados después de excluir ausencias actuales.', 'success', 10000);
+            } catch (error) {
+                mostrarToast(error.message || 'No se pudo volver a validar el paquete de correos.', 'error', 14000);
+            }
+        }
         async function abrirBorradoresMasivos() {
             if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para descargar borradores.','warning');
             // mailto no admite HTML; descargar EML en ZIP conserva la tabla corporativa en Outlook.
