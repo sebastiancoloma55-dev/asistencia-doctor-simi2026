@@ -197,8 +197,19 @@ def modal_progreso_visible(page):
                     if not el.is_visible():
                         continue
                     txt = (el.inner_text(timeout=500) or "").lower()
-                    if el.locator(".percent").count() or any(
-                        word in txt for word in ("generando", "procesando", "importando", "descargando", "cargando")
+                    # Talana Jornadas muestra «0% de progreso...» en el modal real.
+                    # Reconocer «progreso» evita ignorar el overlay que bloquea los clics.
+                    if (
+                        el.locator(".percent").count()
+                        or el.locator("[role='progressbar']").count()
+                        or el.locator(".progress, .progress-bar, [class*='progress']").count()
+                        or any(
+                            word in txt
+                            for word in (
+                                "generando", "procesando", "importando", "descargando",
+                                "cargando", "progreso", "porcentaje"
+                            )
+                        )
                     ):
                         return True
             except Exception:
