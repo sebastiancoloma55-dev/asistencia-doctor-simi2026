@@ -284,12 +284,12 @@
             const archivo = input?.files?.[0];
             if (!archivo) return;
             const normalizarClaveSucursal = valor => String(valor ?? '')
-                .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
-                .trim().replace(/\\s+/g, ' ').toLocaleLowerCase('es-CL');
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .trim().replace(/\s+/g, ' ').toLocaleLowerCase('es-CL');
             const normalizarCorreo = valor => String(valor ?? '').trim().replace(/^mailto:/i, '').toLowerCase();
-            const emailValido = valor => /^[^\\s@,;<>]+@[^\\s@,;<>]+\\.[^\\s@,;<>]+$/.test(valor);
+            const emailValido = valor => /^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(valor);
             const obtenerCorreoCopia = valor => String(valor ?? '')
-                .split(/[;,\\n]+/).map(normalizarCorreo).filter(Boolean);
+                .split(/[;,\n]+/).map(normalizarCorreo).filter(Boolean);
             try {
                 const filas = await leerExcel(archivo);
                 if (!Array.isArray(filas) || !filas.length) {
@@ -336,18 +336,18 @@
                     if (copiasInvalidas.length) {
                         errores.push('Fila ' + (i + 2) + ' (' + nombre + '): correo(s) en copia inválido(s): ' + copiasInvalidas.join(', ') + '.');
                     }
-                    if (cambios.horario_apertura && !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(cambios.horario_apertura)) {
+                    if (cambios.horario_apertura && !/^([01]\d|2[0-3]):[0-5]\d$/.test(cambios.horario_apertura)) {
                         errores.push('Fila ' + (i + 2) + ' (' + nombre + '): hora de apertura debe usar HH:MM.');
                     }
-                    if (cambios.horario_cierre && !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(cambios.horario_cierre)) {
+                    if (cambios.horario_cierre && !/^([01]\d|2[0-3]):[0-5]\d$/.test(cambios.horario_cierre)) {
                         errores.push('Fila ' + (i + 2) + ' (' + nombre + '): hora de cierre debe usar HH:MM.');
                     }
                     preparadas.push({ id: sucursal.id, nombre: sucursal.nombre, cambios });
                 }
                 if (!preparadas.length) throw new Error('No se encontró ninguna sucursal válida para importar. Revisa la columna nombre.');
                 if (errores.length) {
-                    const resumen = errores.slice(0, 8).join('\\n') + (errores.length > 8 ? '\\nY ' + (errores.length - 8) + ' error(es) adicional(es).' : '');
-                    throw new Error('Importación cancelada: se encontraron ' + errores.length + ' problema(s). No se modificó ninguna sucursal.\\n' + resumen);
+                    const resumen = errores.slice(0, 8).join('\n') + (errores.length > 8 ? '\nY ' + (errores.length - 8) + ' error(es) adicional(es).' : '');
+                    throw new Error('Importación cancelada: se encontraron ' + errores.length + ' problema(s). No se modificó ninguna sucursal.\n' + resumen);
                 }
                 let actualizadas = 0;
                 for (const fila of preparadas) {
