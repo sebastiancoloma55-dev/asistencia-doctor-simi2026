@@ -972,6 +972,9 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     <span id="user-email-display" class="topbar-user-email hidden text-sm font-semibold text-slate-600 sm:inline">Cargando...</span>
 
                     <button type="button" id="btn-theme-settings" onclick="openThemeSettings()" title="Personalizar colores y apariencia" aria-label="Personalizar colores y apariencia"><i data-lucide="palette" class="h-4 w-4"></i><span class="theme-button-label">Personalizar</span></button>
+                    <button type="button" id="btn-cerrar-sesiones-global" class="hidden rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100" onclick="cerrarSesionesDeTodos()" title="Cerrar las sesiones de todos los usuarios">
+                        <i data-lucide="log-out" class="mr-1 inline h-4 w-4"></i><span>Cerrar sesiones de todos</span>
+                    </button>
                     <button
                         onclick="cerrarSesion()"
                         class="text-xs font-bold text-simiRed hover:underline"
