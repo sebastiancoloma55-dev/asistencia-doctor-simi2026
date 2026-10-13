@@ -4,8 +4,8 @@
  * so XLSX strings and PostgreSQL text/date serializations compare consistently.
  */
 export const IMPORT_KEY_FIELDS = Object.freeze({
-  ausentismos_historico: Object.freeze(["rut", "fecha_inicio", "tipo_ausencia"]),
-  solicitudes_vacaciones_historicas: Object.freeze(["rut", "fecha_inicio", "tipo_vacaciones"]),
+  ausentismos_historico: Object.freeze(["rut", "fecha_inicio", "tipo_ausencia", "fecha_creacion", "hora_inicio", "hora_fin"]),
+  solicitudes_vacaciones_historicas: Object.freeze(["rut", "fecha_inicio", "tipo_vacaciones", "fecha_solicitud", "jornada"]),
   maestro_empleado: Object.freeze(["rut"]),
   reporte_jornadas_asistencia: Object.freeze(["rut", "fecha", "entrada", "salida", "tipo_ausentismo"]),
 });
@@ -44,7 +44,7 @@ export function importStableKey(reportType, row) {
   if (!fields || !row || typeof row !== "object") return null;
   // Attendance exports can contain separate entry and exit rows for the same
   // employee/day. RUT and date are required; marks/type are optional discriminators.
-  const requiredFields = reportType === "reporte_jornadas_asistencia" ? ["rut", "fecha"] : fields;
+  const requiredFields = reportType === "reporte_jornadas_asistencia" ? ["rut", "fecha"] : reportType === "ausentismos_historico" ? ["rut", "fecha_inicio", "tipo_ausencia"] : reportType === "solicitudes_vacaciones_historicas" ? ["rut", "fecha_inicio", "tipo_vacaciones"] : fields;
   for (const field of requiredFields) {
     const value = row[field];
     if (value === null || value === undefined || String(value).trim() === "" || normalizeImportValue(value) === "") return null;
