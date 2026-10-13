@@ -729,7 +729,7 @@
                         horario_cierre: texto(obtenerCampo(f, ['horario_cierre', 'Horario Cierre'])) || sucursal.horario_cierre || '',
                         firma_correo: texto(obtenerCampo(f, ['firma_correo', 'Firma Correo', 'Firma institucional'])) || sucursal.firma_correo || 'Saludos cordiales,\\nDepartamento de Recursos Humanos\\nFarmacias de Similares Chile S.A.\\nRUT: 59.111.330-5'
                     };
-                    if (cambios.correo_sucursal && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(cambios.correo_sucursal)) {
+                    if (cambios.correo_sucursal && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/i.test(cambios.correo_sucursal)) {
                         throw new Error('Correo principal no válido para "' + nombre + '": ' + cambios.correo_sucursal);
                     }
                     pendientes.push({ id: sucursal.id, nombre: sucursal.nombre, cambios });
