@@ -12,7 +12,7 @@ create unique index ux_licencias_medicas_talana_identity
     (regexp_replace(upper(trim(rut)), '[.[:space:]]', '', 'g')),
     (trim(fecha_inicio)),
     (translate(regexp_replace(lower(trim(coalesce(tipo_ausencia, ''))), '[[:space:]]+', ' ', 'g'), 'áéíóúüñ', 'aeiouun')),
-    (coalesce(trim(fecha_creacion), '')),
+    (coalesce(left(trim(fecha_creacion), 10), '')),
     (coalesce(regexp_replace(lower(trim(coalesce(hora_inicio, ''))), '[[:space:]]+', ' ', 'g'), '')),
     (coalesce(regexp_replace(lower(trim(coalesce(hora_fin, ''))), '[[:space:]]+', ' ', 'g'), ''))
   )
