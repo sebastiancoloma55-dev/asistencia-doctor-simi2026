@@ -578,7 +578,6 @@
                 const body = await response.json().catch(() => ({}));
                 if (!response.ok) throw new Error(body.error || 'No se pudieron cerrar las sesiones.');
                 mostrarToast('Cierre global solicitado. Los demás usuarios saldrán en un máximo aproximado de 15 segundos; tu sesión también se cerrará.', 'success', 10000);
-                try { localStorage.setItem(CLAVE_NONCE_SESION_GLOBAL, ''); } catch (_) {}
                 setTimeout(() => void cerrarSesion(), 900);
             } catch (error) {
                 mostrarToast(error.message || 'No se pudo cerrar las sesiones.', 'error', 10000);
