@@ -239,7 +239,7 @@ def parse_report(path, report_type):
                 item[field] = _clean(values[pos]) if pos is not None and pos < len(values) else None
             for date_field in ("fecha", "fecha_inicio", "fecha_fin", "fecha_retorno", "fecha_solicitud", "fecha_aprobacion", "fecha_ingreso", "fecha_creacion"):
                 if item.get(date_field):
-                    normalizer = _normalize_datetime_text if date_field in ("fecha_solicitud", "fecha_creacion") else _normalize_date_text
+                    normalizer = _normalize_datetime_text if date_field == "fecha_solicitud" else _normalize_date_text
                     item[date_field] = normalizer(item[date_field])
             if not item.get("rut"):
                 row_errors.append(f"fila {line_number}: falta RUT")
