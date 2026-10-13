@@ -37,16 +37,6 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - name: Bloquear importación sin confirmación explícita
-        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'full_import'
-        env:
-          CONFIRM_WRITE: ${{ inputs.confirm_write }}
-        run: |
-          if [ "$CONFIRM_WRITE" != "CONFIRMO_IMPORTACION" ]; then
-            echo "::error::Importación detenida: selecciona CONFIRMO_IMPORTACION para autorizar escrituras en producción."
-            exit 1
-          fi
-          echo "Confirmación explícita recibida. Se mantiene la verificación de configuración del bot."
       - name: Descargar código
         uses: actions/checkout@v4
       - name: Preparar Python
@@ -71,6 +61,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Bloquear importación sin confirmación explícita
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'full_import'
+        env:
+          CONFIRM_WRITE: ${{ inputs.confirm_write }}
+        run: |
+          if [ "$CONFIRM_WRITE" != "CONFIRMO_IMPORTACION" ]; then
+            echo "::error::Importación detenida: selecciona CONFIRMO_IMPORTACION para autorizar escrituras en producción."
+            exit 1
+          fi
+          echo "Confirmación explícita recibida; se verificará además que el bot esté habilitado en Supabase."
+
       - name: Descargar código
         uses: actions/checkout@v4
 
@@ -99,6 +100,15 @@ jobs:
           TALANA_BOT_URL: ${{ secrets.TALANA_BOT_URL }}
           TALANA_BOT_SECRET: ${{ secrets.TALANA_BOT_SECRET }}
         run: python bot_talana/agent_cloud.py --check
+
+      - name: Detener importación si el panel mantiene el bot pausado
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'full_import' && steps.bot_check.outputs.run_bot != 'true'
+        env:
+          SKIP_REASON: ${{ steps.bot_check.outputs.skip_reason }}
+        run: |
+          echo "::error::Importación no iniciada: el panel de Supabase mantiene el bot deshabilitado o el modo no autoriza la ejecución."
+          echo "Motivo: $SKIP_REASON"
+          exit 1
 
       - name: Validar reportes sin escribir en Supabase
         if: github.event_name == 'workflow_dispatch' && inputs.mode == 'validate_only'
