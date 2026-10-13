@@ -1132,7 +1132,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                         </div>
                         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:min-w-[520px]">
                             <label class="text-xs font-semibold text-slate-600">Período
-                                <select id="dashboard-periodo" class="form-field mt-1" onchange="mostrarFechasPersonalizadas()">
+                                <select id="dashboard-periodo" class="form-field mt-1" onchange="cambiarPeriodoDashboard()">
                                     <option value="mes">Mes actual</option>
                                     <option value="7">Últimos 7 días</option>
                                     <option value="30">Últimos 30 días</option>
@@ -1141,15 +1141,15 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                                 </select>
                             </label>
                             <label class="text-xs font-semibold text-slate-600">Sucursal
-                                <select id="dashboard-sucursal" class="form-field mt-1">
+                                <select id="dashboard-sucursal" class="form-field mt-1" onchange="cambiarPeriodoDashboard()">
                                     <option value="">Todas las sucursales</option>
                                 </select>
                             </label>
                             <label id="dashboard-fecha-desde-wrap" class="hidden text-xs font-semibold text-slate-600">Desde
-                                <input id="dashboard-fecha-desde" type="date" class="form-field mt-1">
+                                <input id="dashboard-fecha-desde" type="date" class="form-field mt-1" onchange="cambiarPeriodoDashboard()">
                             </label>
                             <label id="dashboard-fecha-hasta-wrap" class="hidden text-xs font-semibold text-slate-600">Hasta
-                                <input id="dashboard-fecha-hasta" type="date" class="form-field mt-1">
+                                <input id="dashboard-fecha-hasta" type="date" class="form-field mt-1" onchange="cambiarPeriodoDashboard()">
                             </label>
                         </div>
                     </div>
