@@ -498,6 +498,95 @@
             return resultado;
         }
 
+        const CLAVE_NONCE_SESION_GLOBAL = 'doctor-simi-global-session-nonce';
+        let temporizadorVigilanciaSesionGlobal = null;
+        let cerrandoSesionPorControlGlobal = false;
+
+        async function consultarNonceSesionGlobal(token) {
+            const response = await fetch('/api/sesion-global', {
+                method: 'GET',
+                headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' },
+                cache: 'no-store'
+            });
+            const body = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(body.error || 'No se pudo comprobar la sesión global.');
+            return String(body.nonce || '');
+        }
+
+        async function comprobarSesionGlobal(esInicioSesionNuevo = false) {
+            const { data } = await _supabase.auth.getSession();
+            const session = data?.session;
+            if (!session?.access_token || cerrandoSesionPorControlGlobal) return;
+            try {
+                const nonceServidor = await consultarNonceSesionGlobal(session.access_token);
+                if (!nonceServidor) return;
+                let nonceLocal = '';
+                try { nonceLocal = localStorage.getItem(CLAVE_NONCE_SESION_GLOBAL) || ''; } catch (_) {}
+                if (esInicioSesionNuevo || !nonceLocal) {
+                    try { localStorage.setItem(CLAVE_NONCE_SESION_GLOBAL, nonceServidor); } catch (_) {}
+                    return;
+                }
+                if (nonceLocal !== nonceServidor) {
+                    cerrandoSesionPorControlGlobal = true;
+                    mostrarToast('El administrador cerró las sesiones para aplicar una actualización. Vuelve a iniciar sesión.', 'warning', 12000);
+                    try { await _supabase.auth.signOut(); } catch (_) {}
+                    perfilActualSistema = null;
+                    modulosPermitidosActuales = [];
+                    document.getElementById('login-overlay')?.classList.remove('hidden');
+                    const errorBox = document.getElementById('login-error');
+                    if (errorBox) {
+                        errorBox.textContent = 'Tu sesión se cerró por una actualización general. Ingresa nuevamente.';
+                        errorBox.classList.remove('hidden');
+                    }
+                    if (temporizadorVigilanciaSesionGlobal) clearInterval(temporizadorVigilanciaSesionGlobal);
+                    temporizadorVigilanciaSesionGlobal = null;
+                }
+            } catch (error) {
+                // Un fallo temporal de red no debe cerrar sesiones por error.
+                console.warn('No se pudo comprobar el control de sesión global:', error.message || error);
+            }
+        }
+
+        function iniciarVigilanciaSesionGlobal(esInicioSesionNuevo = false) {
+            if (temporizadorVigilanciaSesionGlobal) clearInterval(temporizadorVigilanciaSesionGlobal);
+            void comprobarSesionGlobal(esInicioSesionNuevo);
+            temporizadorVigilanciaSesionGlobal = setInterval(() => void comprobarSesionGlobal(false), 15000);
+        }
+
+        async function cerrarSesionesDeTodos() {
+            if (!esAdminPrincipalActual()) {
+                mostrarToast('Solo el administrador principal puede cerrar todas las sesiones.', 'warning');
+                return;
+            }
+            const confirmado = confirm('¿Cerrar las sesiones de TODOS los usuarios de Asistencia Doctor Simi, incluida la tuya? Tendrán que iniciar sesión nuevamente.');
+            if (!confirmado) return;
+            const boton = document.getElementById('btn-cerrar-sesiones-global');
+            if (boton) { boton.disabled = true; boton.classList.add('opacity-60'); }
+            try {
+                const { data, error } = await _supabase.auth.getSession();
+                if (error || !data?.session?.access_token) throw error || new Error('No hay una sesión activa.');
+                const response = await fetch('/api/sesion-global', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: 'Bearer ' + data.session.access_token,
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json'
+                    },
+                    body: JSON.stringify({ accion: 'CERRAR_TODAS' }),
+                    cache: 'no-store'
+                });
+                const body = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(body.error || 'No se pudieron cerrar las sesiones.');
+                mostrarToast('Cierre global solicitado. Los demás usuarios saldrán en un máximo aproximado de 15 segundos; tu sesión también se cerrará.', 'success', 10000);
+                try { localStorage.setItem(CLAVE_NONCE_SESION_GLOBAL, ''); } catch (_) {}
+                setTimeout(() => void cerrarSesion(), 900);
+            } catch (error) {
+                mostrarToast(error.message || 'No se pudo cerrar las sesiones.', 'error', 10000);
+            } finally {
+                if (boton) { boton.disabled = false; boton.classList.remove('opacity-60'); }
+            }
+        }
+
         function actualizarBienvenidaUsuario(user){
             const perfil=typeof perfilActualSistema!=='undefined'&&perfilActualSistema?perfilActualSistema:{};
             const meta=user?.user_metadata||{};
@@ -510,6 +599,8 @@
             if(subtitle)subtitle.textContent=esAdminPrincipalActual()?'Tienes acceso de administrador principal a todos los módulos y herramientas del sistema.':'Tu centro de control para asistencia, ausentismo y operaciones.';
             const role=document.getElementById('dashboard-welcome-role');
             if(role)role.innerHTML='<i data-lucide="shield-check" class="h-4 w-4"></i> '+(esAdminPrincipalActual()?'Administrador principal':'Usuario autorizado');
+            const botonCierreGlobal=document.getElementById('btn-cerrar-sesiones-global');
+            if(botonCierreGlobal)botonCierreGlobal.classList.toggle('hidden',!esAdminPrincipalActual());
             if(window.lucide)lucide.createIcons();
         }
 
@@ -557,6 +648,7 @@
                         await inicializarDashboard();
                         if (window.cargarResumenEspacioDashboard) await window.cargarResumenEspacioDashboard();
                         await actualizarContadorNotificacionesTopbar();
+                        iniciarVigilanciaSesionGlobal(false);
                     }catch(perfilError){
                         await _supabase.auth.signOut();
                         perfilActualSistema=null;modulosPermitidosActuales=[];
@@ -643,6 +735,7 @@
                 await inicializarDashboard();
                 if (window.cargarResumenEspacioDashboard) await window.cargarResumenEspacioDashboard();
                 await actualizarContadorNotificacionesTopbar();
+                iniciarVigilanciaSesionGlobal(true);
             } catch (error) {
                 try { await _supabase.auth.signOut(); } catch (_) {}
                 perfilActualSistema = null;
