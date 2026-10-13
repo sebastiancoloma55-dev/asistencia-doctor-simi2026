@@ -1072,6 +1072,29 @@
             });
         }
 
+        function cambiarPeriodoDashboard() {
+            mostrarFechasPersonalizadas();
+            const periodo = document.getElementById('dashboard-periodo')?.value || 'mes';
+            if (periodo === 'personalizado') {
+                const desde = document.getElementById('dashboard-fecha-desde')?.value || '';
+                const hasta = document.getElementById('dashboard-fecha-hasta')?.value || '';
+                if (!desde || !hasta) {
+                    const label = document.getElementById('dashboard-indicadores-periodo');
+                    const errorBox = document.getElementById('dashboard-indicadores-error');
+                    if (errorBox) { errorBox.classList.add('hidden'); errorBox.textContent = ''; }
+                    if (label) label.textContent = 'Selecciona las fechas Desde y Hasta para actualizar el período personalizado.';
+                    return;
+                }
+                if (desde > hasta) {
+                    const errorBox = document.getElementById('dashboard-indicadores-error');
+                    if (errorBox) { errorBox.textContent = 'La fecha Desde no puede ser posterior a Hasta.'; errorBox.classList.remove('hidden'); }
+                    return;
+                }
+            }
+            return actualizarIndicadoresAsistencia();
+        }
+        window.cambiarPeriodoDashboard = cambiarPeriodoDashboard;
+
         function obtenerRangoDashboard() {
             const hoy = new Date();
             const iso = fecha => {
