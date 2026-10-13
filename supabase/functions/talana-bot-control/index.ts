@@ -26,6 +26,7 @@ if(a==="bot_start"){const {data:config,error:configError}=await admin.from("tala
 if(a==="bot_upload"){const runId=String(b.run_id||""),reportType=String(b.report_type||"reporte").slice(0,80),fileName=safeName(String(b.file_name||"reporte.bin")),mimeType=String(b.mime_type||"application/octet-stream").slice(0,120),base64=String(b.base64||"");if(!runId||!base64)return json({error:"Faltan run_id o base64"},400);if(base64.length>28000000)return json({error:"Archivo supera el máximo aproximado de 20 MB"},413);const bytes=decodeBase64(base64),path=runId+"/"+crypto.randomUUID()+"_"+fileName;const {error:ue}=await admin.storage.from("talana-reportes").upload(path,bytes,{contentType:mimeType,upsert:false});if(ue)return json({error:ue.message},500);const {data,error}=await admin.from("talana_bot_files").insert({run_id:runId,report_type:reportType,file_name:fileName,storage_path:path,mime_type:mimeType,size_bytes:bytes.byteLength,sha256:b.sha256||null}).select("*").single();if(error){await admin.storage.from("talana-reportes").remove([path]);return json({error:error.message},500);}const trackingModules=reportType==="ausentismos_historico"?["talana_bot","talana_ausentismos"]:reportType==="solicitudes_vacaciones_historicas"?["talana_bot","talana_vacaciones"]:["talana_bot"];let trackingRegistered=true;for(const moduleName of trackingModules){const {error:trackingError}=await admin.from("actualizaciones_fuentes").upsert({modulo:moduleName,actualizado_en:new Date().toISOString(),archivo:fileName,origen:"bot",usuario_email:"Bot Talana",registros:null,detalles:{report_type:reportType,run_id:runId}},{onConflict:"modulo"});if(trackingError){trackingRegistered=false;console.error("No se pudo registrar la fecha de actualización del bot:",trackingError.message);}}return json({file:data,tracking_registered:trackingRegistered});}
 if(a==="bot_import"){
  const reportType=String(b.report_type||""), rows=Array.isArray(b.rows)?b.rows:[], parseErrors=Array.isArray(b.parse_errors)?b.parse_errors:[];
+ const dryRun=b.dry_run===true;
  if(!["ausentismos_historico","solicitudes_vacaciones_historicas","maestro_empleado","reporte_jornadas_asistencia"].includes(reportType))return json({error:"Tipo de reporte no permitido para importación."},400);
  if(rows.length>150)return json({error:"Máximo 150 filas por lote."},413);
  const table=reportType==="ausentismos_historico"?"licencias_medicas":reportType==="solicitudes_vacaciones_historicas"?"vacaciones_historico":reportType==="maestro_empleado"?"colaboradores":"registros_asistencia";
@@ -67,6 +68,12 @@ if(a==="bot_import"){
    if(!row.estado&&!old){errors.push("Colaborador "+row.rut+": no se importó porque el Excel no incluye estado para un nuevo registro.");failed++;continue;}
    toUpsert.push({...row,nombres,apellidos,rut:old?.rut||row.rut,estado:row.estado||old?.estado||"activo"});
   }
+  if(dryRun){
+   inserted=toUpsert.filter((row:any)=>!existingMap.has(normRut(row.rut))).length;
+   updated=toUpsert.filter((row:any)=>existingMap.has(normRut(row.rut))).length;
+   skipped+=valid.length-toUpsert.length;
+   return json({dry_run:true,write_performed:false,report_type:reportType,table,received:rows.length,valid:valid.length,planned_inserted:inserted,planned_updated:updated,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts}});
+  }
   if(toUpsert.length){const {data,error}=await admin.from(table).upsert(toUpsert,{onConflict:"rut"}).select("rut");if(error){return json({error:"No se pudieron actualizar colaboradores: "+error.message,inserted,updated,skipped,failed:failed+toUpsert.length,errors:errors.slice(0,100)},500);}
    for(const r of data||[]){if(existingMap.has(normRut(r.rut)))updated++;else inserted++;}
   }
@@ -98,6 +105,9 @@ if(a==="bot_import"){
    const old=existingByKey.get(k);
    if(old){pendingUpdates.push({id:old.id,row,old});}
    else pending.push(row);
+  }
+  if(dryRun){
+   return json({dry_run:true,write_performed:false,report_type:reportType,table,received:rows.length,valid:valid.length,planned_inserted:pending.length,planned_updated:pendingUpdates.length,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts}});
   }
   // One database request updates the whole batch instead of one request per row.
   // Merge incoming non-empty values into the stored row to avoid erasing fields
