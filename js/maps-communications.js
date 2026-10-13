@@ -307,7 +307,7 @@
 
         function buscarExclusionAusenciaCorreo(registroAsistencia, fechaCaso, proteccion) {
             const rut = normalizarRutProteccionCorreo(registroAsistencia.rut);
-            if (!rut) return null;
+            if (!rut) return { categoria: 'fecha_no_verificable', mensaje: 'No se puede comprobar la ausencia porque el registro de asistencia no tiene RUT.' };
             if (proteccion.rutConFechaNoVerificable.has(rut)) {
                 return { categoria: 'fecha_no_verificable', mensaje: 'Tiene un registro de licencia o permiso con fechas no verificables.' };
             }
