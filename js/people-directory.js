@@ -40,7 +40,7 @@
 
                 const { error } = await _supabase
                     .from(tabla)
-                    .upsert(datos, { onConflict: 'rut' });
+                    .upsert(datos, tabla === 'colaboradores' ? { onConflict: 'rut' } : {});
 
                 if (error) {
                     throw errorSupabase(`No se pudo guardar ${tabla}`, error);
