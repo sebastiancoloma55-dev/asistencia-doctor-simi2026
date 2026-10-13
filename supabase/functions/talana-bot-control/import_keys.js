@@ -39,6 +39,18 @@ export function importKeyFields(reportType) {
   return IMPORT_KEY_FIELDS[reportType] ?? null;
 }
 
+function normalizeIdentityValue(field, value) {
+  if (field !== "fecha_creacion" && field !== "fecha_solicitud") return normalizeImportValue(value);
+  let normalized = String(value ?? "").trim().toLowerCase();
+  if (!normalized || ["-", "—", "–", "n/a", "na"].includes(normalized)) return "";
+  const iso = normalized.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[t\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (iso) normalized = iso[1] + "-" + iso[2].padStart(2, "0") + "-" + iso[3].padStart(2, "0") + " " + iso[4].padStart(2, "0") + ":" + iso[5] + ":" + (iso[6] || "00");
+  else {
+    const dmy = normalized.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:\s*-?\s*)(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (dmy) normalized = dmy[3] + "-" + dmy[2].padStart(2, "0") + "-" + dmy[1].padStart(2, "0") + " " + dmy[4].padStart(2, "0") + ":" + dmy[5] + ":" + (dmy[6] || "00");
+  }
+  return normalized.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ");
+}
 export function importStableKey(reportType, row) {
   const fields = importKeyFields(reportType);
   if (!fields || !row || typeof row !== "object") return null;
