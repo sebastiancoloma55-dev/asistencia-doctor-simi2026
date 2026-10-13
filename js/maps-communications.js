@@ -256,8 +256,41 @@
         }
         function descargarUnBorradorOutlook(id){if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para descargar borradores.','warning');const b=borradoresGeneradosGlobal.find(x=>x.id===id);if(!b)return;const blob=new Blob([crearEmlOutlook(b)],{type:'message/rfc822;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a'),slug=String(b.nombre||'Borrador').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').slice(0,60)||'Borrador';a.href=url;a.download='Correo_Asistencia_'+slug+'.eml';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);mostrarToast('Correo HTML descargado. Ábrelo con Outlook para conservar la tabla y revisa el destinatario antes de enviarlo.','success',10000);}
 
-        function textoMimeBase64(value){const bytes=new TextEncoder().encode(String(value||''));let binary='';for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(binary);}
-        function crearEmlOutlook(b){const safe=v=>String(v||'').replace(/[\r\n]+/g,' ').trim(),subject=textoMimeBase64(safe(b.asunto)),boundary='----=_DoctorSimi_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2),plain=textoMimeBase64(String(b.cuerpo||'')),html=textoMimeBase64(b.cuerpoHtml||('<html><body><pre>'+escaparHTML(b.cuerpo||'')+'</pre></body></html>'));return 'To: '+safe(b.para)+'\r\n'+(safe(b.cc)?'Cc: '+safe(b.cc)+'\r\n':'')+'Subject: =?UTF-8?B?'+subject+'?=\r\nMIME-Version: 1.0\r\nX-Unsent: 1\r\nContent-Type: multipart/alternative; boundary=\"'+boundary+'\"\r\n\r\n--'+boundary+'\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+plain+'\r\n--'+boundary+'\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+html+'\r\n--'+boundary+'--\r\n';}
+        function textoMimeBase64(value) {
+            const bytes = new TextEncoder().encode(String(value || ''));
+            let binary = '';
+            for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+            return btoa(binary);
+        }
+        function plegarBase64Mime(value) {
+            return String(value || '').match(/.{1,76}/g)?.join('\r\n') || '';
+        }
+        function asuntoMimeUTF8(value) {
+            const words = []; let part = '';
+            for (const char of String(value || '')) {
+                const candidate = part + char;
+                if (part && 12 + textoMimeBase64(candidate).length > 75) {
+                    words.push('=?UTF-8?B?' + textoMimeBase64(part) + '?='); part = char;
+                } else part = candidate;
+            }
+            if (part) words.push('=?UTF-8?B?' + textoMimeBase64(part) + '?=');
+            return words.join('\r\n ');
+        }
+        function crearEmlOutlook(b) {
+            const safe = v => String(v || '').replace(/[\r\n]+/g, ' ').trim();
+            const subject = asuntoMimeUTF8(safe(b.asunto));
+            const boundary = '----=_DoctorSimi_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2);
+            const plain = plegarBase64Mime(textoMimeBase64(String(b.cuerpo || '')));
+            const html = plegarBase64Mime(textoMimeBase64(b.cuerpoHtml || ('<html><body><pre>' + escaparHTML(b.cuerpo || '') + '</pre></body></html>')));
+            return 'To: ' + safe(b.para) + '\r\n' +
+                (safe(b.cc) ? 'Cc: ' + safe(b.cc) + '\r\n' : '') +
+                'Subject: ' + subject + '\r\n' +
+                'MIME-Version: 1.0\r\nX-Unsent: 1\r\n' +
+                'Content-Type: multipart/alternative; boundary="' + boundary + '"\r\n\r\n' +
+                '--' + boundary + '\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n' + plain + '\r\n' +
+                '--' + boundary + '\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n' + html + '\r\n' +
+                '--' + boundary + '--\r\n';
+        }
         async function descargarBorradoresOutlookZip(){if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para descargar borradores.','warning');const ids=[...document.querySelectorAll('.borrador-check:checked')].map(x=>x.value),list=borradoresGeneradosGlobal.filter(x=>ids.includes(x.id));if(!list.length)return mostrarToast('Selecciona uno o más borradores antes de descargar el ZIP.','warning');if(!window.JSZip)return mostrarToast('No se pudo cargar el generador ZIP. Recarga la página.','error');const zip=new JSZip(),folder=zip.folder('Borradores_Outlook');list.forEach((b,i)=>{const slug=String(b.nombre||'Borrador_'+(i+1)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').slice(0,60)||'Borrador_'+(i+1);folder.file(String(i+1).padStart(3,'0')+'_'+slug+'.eml',crearEmlOutlook(b));});zip.file('LEEME.txt','Borradores para Outlook de escritorio. Extrae el ZIP, abre los archivos .eml con Outlook, revisa destinatarios y contenido y pulsa Enviar. No se envían automáticamente.');const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Borradores_Outlook_'+fechaActualChileISO()+'.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);mostrarToast('ZIP descargado con '+list.length+' borradores .eml para revisar y enviar desde Outlook.','success',10000);}
         async function abrirBorradoresMasivos() {
             if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para descargar borradores.','warning');
