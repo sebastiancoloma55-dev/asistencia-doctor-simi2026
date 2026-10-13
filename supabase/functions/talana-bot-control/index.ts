@@ -86,7 +86,7 @@ if(a==="bot_import"){
   skipped+=valid.length-toUpsert.length;
  }else{
   const ruts=[...new Set(valid.flatMap((r:any)=>rutLookupVariants(r.rut)))];
-  const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia":table==="vacaciones_historico"?"id,rut,fecha_inicio,fecha_fin,tipo_vacaciones":"id,rut,fecha,entrada,salida,tipo_ausentismo";
+  const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia,fecha_creacion,hora_inicio,hora_fin":table==="vacaciones_historico"?"id,rut,fecha_inicio,fecha_fin,tipo_vacaciones,fecha_solicitud,jornada":"id,rut,fecha,entrada,salida,tipo_ausentismo";
   let existingRows:any[]=[];
   // Read complete rows so batch upserts preserve fields absent from this export.
   if(ruts.length){
