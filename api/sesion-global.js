@@ -9,10 +9,10 @@ export default async function handler(req, res) {
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
   if (!token) return fail(res, 401, 'Sesión requerida.');
 
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://zcfbglbhqhysnptkfwba.supabase.co';
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
-  const publicKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !service || !publicKey) return fail(res, 500, 'Falta configurar la URL, la clave pública o SUPABASE_SERVICE_ROLE_KEY en las variables de Vercel.');
+  const publicKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_EoJWhc0HPqIyTNiwU53FDw_prK9gYx2';
+  if (!service) return fail(res, 500, 'Falta SUPABASE_SERVICE_ROLE_KEY (o SUPABASE_SERVICE_KEY) en las variables de Vercel.');
 
   try {
     // Validar el JWT con la clave pública del proyecto y reservar la clave de servicio para operaciones de servidor.
@@ -58,6 +58,6 @@ export default async function handler(req, res) {
     const message = String(error?.message || 'Error interno');
     if (/fetch failed|network|timeout|ENOTFOUND|ECONN/i.test(message)) return fail(res, 502, 'Vercel no pudo conectar con Supabase. Revisa la URL del proyecto y la conectividad.');
     if (/invalid api key|apikey|JWT|secret|key/i.test(message)) return fail(res, 500, 'Supabase rechazó una clave de servidor. Verifica que SUPABASE_SERVICE_ROLE_KEY y la clave pública pertenezcan al mismo proyecto.');
-    return fail(res, 500, 'Error interno en el control de sesiones. Revisa el registro de la función sesion-global en Vercel.');
+    return fail(res, 500, 'Error del control de sesiones (' + String(error?.code || error?.name || 'ERROR') + '): ' + message.slice(0, 180));
   }
 }
