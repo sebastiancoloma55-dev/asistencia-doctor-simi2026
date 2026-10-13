@@ -39,8 +39,8 @@ if(a==="bot_import"){
  const norm=normalizeImportValue; const normRut=normalizeImportRut;
  const rutLookupVariants=(value:any)=>{
   const raw=String(value??"").trim(), normalized=normRut(value);
-  const match=normalized.match(/^(\\d{7,8})-([0-9K])$/i);
-  const dotted=match?match[1].replace(/\\B(?=(\\d{3})+(?!\\d))/g,".")+"-"+match[2]:null;
+  const match=normalized.match(/^(\d{7,8})-([0-9K])$/i);
+  const dotted=match?match[1].replace(/\B(?=(\d{3})+(?!\d))/g,".")+"-"+match[2]:null;
   return [...new Set([raw,normalized,normalized.toLowerCase(),normalized.replace(/-/g,""),dotted,dotted?.toLowerCase()].filter(Boolean))];
  };
  const keyOf=(r:any)=>importStableKey(reportType,r);
