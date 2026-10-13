@@ -132,9 +132,33 @@
         }
 
         async function prepararModuloPapeletas(){
-            document.getElementById('pap-logo-preview').src=logoPapeletaDataUrl;document.getElementById('pap-firma-preview').src=firmaPapeletaDataUrl;
-            const {data,error}=await _supabase.from('colaboradores').select('*').order('nombres');
-            if(error){mostrarToast(`No se pudieron cargar colaboradores: ${error.message}`,'error');return;}colaboradoresPapeleta=data||[];
+            document.getElementById('pap-logo-preview').src=logoPapeletaDataUrl;
+            document.getElementById('pap-firma-preview').src=firmaPapeletaDataUrl;
+            // Cargar toda la nómina por bloques: Supabase limita por defecto el número
+            // de filas devueltas y eso podía ocultar colaboradores en Papeletas.
+            const filas=[];
+            const tamanoBloque=1000;
+            let desde=0;
+            try {
+                while(true){
+                    const {data,error}=await _supabase
+                        .from('colaboradores')
+                        .select('*')
+                        .order('nombres',{ascending:true})
+                        .range(desde,desde+tamanoBloque-1);
+                    if(error) throw error;
+                    const bloque=data||[];
+                    filas.push(...bloque);
+                    if(bloque.length<tamanoBloque) break;
+                    desde+=tamanoBloque;
+                    if(desde>=1000000) throw new Error('La nómina supera el máximo seguro de lectura.');
+                }
+                colaboradoresPapeleta=filas;
+            } catch(error) {
+                colaboradoresPapeleta=[];
+                mostrarToast(`No se pudieron cargar todos los colaboradores para papeletas: ${error.message||error}`,'error',12000);
+                console.error('Error cargando colaboradores para papeletas:',error);
+            }
         }
 
         function buscarColaboradorPapeleta(){
