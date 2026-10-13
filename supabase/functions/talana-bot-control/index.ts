@@ -97,13 +97,19 @@ if(a==="bot_import"){
    }
   }
   const existingByKey=new Map<string,any>();
-  const legacyFields=reportType==="ausentismos_historico"?["rut","fecha_inicio","tipo_ausencia"]:reportType==="solicitudes_vacaciones_historicas"?["rut","fecha_inicio","tipo_vacaciones"]:null;
+  const attendanceFallback=reportType==="reporte_jornadas_asistencia";
+  const legacyFields=reportType==="ausentismos_historico"?["rut","fecha_inicio","tipo_ausencia"]:reportType==="solicitudes_vacaciones_historicas"?["rut","fecha_inicio","tipo_vacaciones"]:attendanceFallback?["rut","fecha"]:null;
   const legacyDiscriminators=reportType==="ausentismos_historico"?["fecha_creacion","hora_inicio","hora_fin"]:reportType==="solicitudes_vacaciones_historicas"?["fecha_solicitud","jornada"]:null;
   const legacyCandidates=new Map<string,any[]>();
   const legacyKey=(r:any)=>legacyFields?legacyFields.map((field:string)=>field==="rut"?normRut(r[field]):norm(r[field])).join("|"):null;
   for(const old of existingRows){
    const oldKey=keyOf(old);if(oldKey&&!existingByKey.has(oldKey))existingByKey.set(oldKey,old);
-   if(legacyFields&&legacyDiscriminators&&legacyDiscriminators.some((field:string)=>old[field]===null||old[field]===undefined||String(old[field]).trim()==="")){
+   // Attendance can change its entry/exit marks between exports. Reconcile by
+   // employee + date only when exactly one stored row exists for that day.
+   // If multiple shifts/records exist, refuse the fallback rather than duplicate or overwrite.
+   const shouldCollectAttendance=attendanceFallback;
+   const shouldCollectLegacy=!!(legacyFields&&legacyDiscriminators&&legacyDiscriminators.some((field:string)=>old[field]===null||old[field]===undefined||String(old[field]).trim()===""));
+   if(shouldCollectAttendance||shouldCollectLegacy){
     const lk=legacyKey(old);if(lk){const list=legacyCandidates.get(lk)||[];list.push(old);legacyCandidates.set(lk,list);}
    }
   }
@@ -117,7 +123,7 @@ if(a==="bot_import"){
    if(!old&&legacyFields){
     const candidates=legacyCandidates.get(legacyKey(row))||[];
     if(candidates.length===1)old=candidates[0];
-    else if(candidates.length>1){failed++;errors.push(table+" RUT "+row.rut+": hay "+candidates.length+" registros históricos con identificadores incompletos para la misma fecha/tipo; se requiere revisión manual y no se insertó.");continue;}
+    else if(candidates.length>1){failed++;errors.push(table+" RUT "+row.rut+": hay "+candidates.length+" registros históricos que coinciden por clave base; se requiere revisión manual y no se insertó.");continue;}
    }
    if(old){pendingUpdates.push({id:old.id,row,old});}
    else pending.push(row);
