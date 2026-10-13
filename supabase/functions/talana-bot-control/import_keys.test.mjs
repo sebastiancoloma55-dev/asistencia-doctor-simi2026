@@ -10,7 +10,19 @@ test("ausentismo identity is stable when the end date changes", () => {
   const before = { rut: "12.345.678-5", fecha_inicio: "2026-10-01", fecha_fin: "2026-10-10", tipo_ausencia: "Licencia médica" };
   const after = { ...before, fecha_fin: "2026-10-12" };
   assert.equal(importStableKey("ausentismos_historico", before), importStableKey("ausentismos_historico", after));
-  assert.deepEqual(importKeyFields("ausentismos_historico"), ["rut", "fecha_inicio", "tipo_ausencia"]);
+  assert.deepEqual(importKeyFields("ausentismos_historico"), ["rut", "fecha_inicio", "tipo_ausencia", "fecha_creacion", "hora_inicio", "hora_fin"]);
+});
+
+test("absence identity distinguishes separate creation timestamps", () => {
+  const first = { rut: "12.345.678-5", fecha_inicio: "2026-10-01", tipo_ausencia: "Licencia médica", fecha_creacion: "2026-10-01 08:00:00" };
+  const second = { ...first, fecha_creacion: "2026-10-01 09:00:00" };
+  assert.notEqual(importStableKey("ausentismos_historico", first), importStableKey("ausentismos_historico", second));
+});
+
+test("vacation identity distinguishes separate request timestamps", () => {
+  const first = { rut: "12.345.678-5", fecha_inicio: "2026-11-02", tipo_vacaciones: "vacaciones", fecha_solicitud: "2026-10-01 08:00:00" };
+  const second = { ...first, fecha_solicitud: "01/10/2026 - 09:00:00" };
+  assert.notEqual(importStableKey("solicitudes_vacaciones_historicas", first), importStableKey("solicitudes_vacaciones_historicas", second));
 });
 
 test("vacation identity is stable when the end date changes", () => {
