@@ -177,8 +177,8 @@ def _find_header(rows, report_type):
 def _dedupe_rows(report_type, rows):
     """Merge duplicate source rows without discarding non-empty information."""
     identity_fields = {
-        "ausentismos_historico": ("rut", "fecha_inicio", "tipo_ausencia"),
-        "solicitudes_vacaciones_historicas": ("rut", "fecha_inicio", "tipo_vacaciones"),
+        "ausentismos_historico": ("rut", "fecha_inicio", "tipo_ausencia", "fecha_creacion", "hora_inicio", "hora_fin"),
+        "solicitudes_vacaciones_historicas": ("rut", "fecha_inicio", "tipo_vacaciones", "fecha_solicitud", "jornada"),
         "maestro_empleado": ("rut",),
         # Separate entry/exit marks for one person/day are distinct records.
         "reporte_jornadas_asistencia": ("rut", "fecha", "entrada", "salida", "tipo_ausentismo"),
