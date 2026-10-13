@@ -208,7 +208,7 @@
                 );
             } finally {
                 boton.innerHTML = `
-                    <i data-lucide="upload-cloud" class="h-4 w-4"></i>
+                    <i data-lucide="cloud-upload" class="h-4 w-4"></i>
                     Cargar reporte
                     <input
                         type="file"
@@ -535,7 +535,7 @@
                 );
             } finally {
                 boton.innerHTML = `
-                    <i data-lucide="upload-cloud" class="h-4 w-4"></i>
+                    <i data-lucide="cloud-upload" class="h-4 w-4"></i>
                     Cargar histórico
                     <input
                         type="file"
