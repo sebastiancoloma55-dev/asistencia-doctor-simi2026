@@ -222,7 +222,7 @@
         function vacacionesAprobadasParaProteccionCorreo(estado) {
             const valor = normalizarTextoProteccionCorreo(estado);
             if (!valor || /rechaz|cancel|anulad|denegad|pendiente|borrador/.test(valor)) return false;
-            return /^(aprobada?|autorizada?|aceptada?|vigente)$/.test(valor);
+            return /^(aprobad[oa]|autorizad[oa]|aceptad[oa]|vigente)$/.test(valor);
         }
 
         function rangoCorreoSeSolapa(inicio, fin, desde, hasta) {
@@ -363,6 +363,8 @@
             } catch (error) {
                 resumenExclusionesCorreoGlobal = null;
                 casosExcluidosCorreoGlobal = [];
+                borradoresGeneradosGlobal = [];
+                renderizarBorradoresMasivos();
                 actualizarResumenExclusionesCorreo();
                 mostrarToast('No se generaron borradores porque no fue posible validar las ausencias. ' + (error.message || error), 'error', 16000);
                 return;
@@ -433,8 +435,9 @@
             document.getElementById('correo-resumen-borradores').textContent=borradoresGeneradosGlobal.length.toLocaleString('es-CL');
             document.getElementById('correo-resumen-casos').textContent=casos.toLocaleString('es-CL');
             document.getElementById('correo-resumen-sin-destino').textContent=borradoresGeneradosGlobal.filter(b=>!b.para).length.toLocaleString('es-CL');
+            actualizarResumenExclusionesCorreo();
             if (!borradoresGeneradosGlobal.length) { cont.innerHTML = '<div class="ui-card p-6 text-center text-slate-500"><i data-lucide="circle-check" class="mx-auto mb-2 h-8 w-8 text-emerald-600"></i><b>No se encontraron casos</b><p class="mt-1 text-sm">Prueba ampliar el período o revisar los filtros de sucursal y tipo de incidencia.</p></div>';if(window.lucide)lucide.createIcons();return; }
-            cont.innerHTML = borradoresGeneradosGlobal.map(b => `<div class="ui-card mail-card p-5"><div class="flex flex-wrap items-start justify-between gap-3"><label class="flex items-start gap-3"><input type="checkbox" class="borrador-check mt-1" value="${b.id}" checked><span><b class="text-base">${escaparHTML(b.nombre)}</b><br><span class="text-xs text-slate-500">${b.cantidad} caso(s)</span><span class="mt-2 block text-xs ${b.para?'text-emerald-700':'font-bold text-rose-700'}">${b.para?'Para: '+escaparHTML(b.para):'Falta configurar correo destinatario'}${b.cc?' · CC: '+escaparHTML(b.cc):''}</span></span></label><button onclick="descargarUnBorradorOutlook('${b.id}')" class="corp-button"><i data-lucide="mail" class="mr-1 inline h-4 w-4"></i>Descargar correo HTML para Outlook</button></div><div class="mt-3 rounded-lg bg-slate-50 p-3 text-xs"><b>Asunto:</b> ${escaparHTML(b.asunto)}</div><details class="mt-3"><summary class="cursor-pointer text-xs font-bold text-slate-600">Ver contenido completo del correo</summary><div class="mt-2 overflow-auto rounded-lg border bg-white p-3">${b.cuerpoHtml || `<pre style="white-space:pre-wrap;font-size:12px;">${escaparHTML(b.cuerpo)}</pre>`}</div></details></div>`).join('');
+            cont.innerHTML = borradoresGeneradosGlobal.map(b => `<div class="ui-card mail-card p-5"><div class="flex flex-wrap items-start justify-between gap-3"><label class="flex items-start gap-3"><input type="checkbox" class="borrador-check mt-1" value="${b.id}" checked><span><b class="text-base">${escaparHTML(b.nombre)}</b><br><span class="text-xs text-slate-500">${b.cantidad} caso(s)</span>${b.proteccionAusenciasVerificada ? '<span class="mt-1 block text-xs font-bold text-emerald-700">Ausencias verificadas</span>' : '<span class="mt-1 block text-xs font-bold text-rose-700">HISTÓRICO SIN VALIDAR · vuelve a generar</span>'}<span class="mt-2 block text-xs ${b.para?'text-emerald-700':'font-bold text-rose-700'}">${b.para?'Para: '+escaparHTML(b.para):'Falta configurar correo destinatario'}${b.cc?' · CC: '+escaparHTML(b.cc):''}</span></span></label><button onclick="descargarUnBorradorOutlook('${b.id}')" ${b.proteccionAusenciasVerificada ? '' : 'disabled aria-disabled="true" title="Vuelve a generar este borrador para validar las ausencias"'} class="corp-button"><i data-lucide="mail" class="mr-1 inline h-4 w-4"></i>Descargar correo HTML para Outlook</button></div><div class="mt-3 rounded-lg bg-slate-50 p-3 text-xs"><b>Asunto:</b> ${escaparHTML(b.asunto)}</div><details class="mt-3"><summary class="cursor-pointer text-xs font-bold text-slate-600">Ver contenido completo del correo</summary><div class="mt-2 overflow-auto rounded-lg border bg-white p-3">${b.cuerpoHtml || `<pre style="white-space:pre-wrap;font-size:12px;">${escaparHTML(b.cuerpo)}</pre>`}</div></details></div>`).join('');
             if(window.lucide)lucide.createIcons();
         }
         function seleccionarTodosBorradores(valor) {
