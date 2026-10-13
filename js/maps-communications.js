@@ -72,12 +72,29 @@
             if(window.actualizarContadoresSelectores2026)window.actualizarContadoresSelectores2026();
         }
         function crearCuerpoCorreo(grupo, casos, desde, hasta) {
-            const nombreGrupo = grupo.tipo === 'SUPERVISOR' ? `sucursales a cargo de ${grupo.nombre}` : `sucursal ${grupo.nombre}`;
-            const filas = casos.map((x, i) => {
-                return `${i + 1}. ${x.fecha} | ${x.rut} | ${x.nombre} | ${x.sucursal}\n   ${x.detalles.join('\n   ')}`;
-            }).join('\n\n');
+            const nombreGrupo = grupo.tipo === 'SUPERVISOR' ? 'sucursales a cargo de ' + grupo.nombre : 'sucursal ' + grupo.nombre;
+            const filas = casos.map((x, i) => (i + 1) + '. ' + x.fecha + ' | ' + x.rut + ' | ' + x.nombre + ' | ' + x.sucursal + '\n   ' + (x.detalles || []).join('\n   ')).join('\n\n');
             const firma = texto(grupo.firma) || 'Saludos cordiales,\nDepartamento de Recursos Humanos\nFarmacias de Similares Chile S.A.\nRUT: 59.111.330-5';
-            return `Estimados/as,\n\nJunto con saludar, se informa el siguiente detalle de incumplimientos detectados en asistencia para ${nombreGrupo}, correspondiente al periodo ${desde} al ${hasta}.\n\n${filas}\n\nFavor revisar y gestionar los casos indicados. Para cada registro, agradeceremos confirmar el motivo y adjuntar el respaldo correspondiente.\n\n${firma}`;
+            return 'Estimados/as equipo de ' + nombreGrupo.toUpperCase() + ':\n\nJunto con saludar, esperamos que se encuentren muy bien.\n\nEste correo tiene como objetivo orientar el cumplimiento de la jornada y el correcto registro de asistencia de su equipo. En la revisión preventiva de asistencia se identificaron registros que requieren revisión para el período ' + desde + ' al ' + hasta + ':\n\n' + filas + '\n\nPara regularizar cada caso, agradeceremos confirmar si corresponde a asistencia normal (olvido de marcar), permiso autorizado o inasistencia justificada/no justificada, indicando el motivo y adjuntando el respaldo cuando corresponda.\n\n' + firma;
+        }
+        function crearCuerpoCorreoHTML(grupo, casos, desde, hasta) {
+            const e = v => escaparHTML(texto(v) || '—');
+            const nombreGrupo = grupo.tipo === 'SUPERVISOR' ? 'sucursales a cargo de ' + grupo.nombre : 'sucursal ' + grupo.nombre;
+            const estadoCaso = x => { const d=(x.detalles||[]).join(' ').toLowerCase(); if(d.includes('no registra marcas'))return 'Inexistente'; if(d.includes('sin turno'))return 'Sin turno'; if(d.includes('salida anticipada'))return 'Salida anticipada'; if(d.includes('atraso'))return 'Atraso'; return 'Revisar'; };
+            const filas = casos.map(x => {
+                const turno=x.turno||x.turno_asignado||x.jornada||x.horario||'—';
+                const entrada=x.entrada&&x.entrada!=='-'?x.entrada:'—'; const salida=x.salida&&x.salida!=='-'?x.salida:'—';
+                const celdas=[e(x.fecha),e(estadoCaso(x)),e(x.rut),e(x.nombre),e(x.sucursal),e(turno),e(entrada),e(salida)];
+                return '<tr>'+celdas.map(v=>'<td style="padding:9px 8px;border:1px solid #c7d8ef;background:#eaf3ff;font-size:12px;">'+v+'</td>').join('')+'</tr><tr><td colspan="8" style="padding:8px 10px;border:1px solid #c7d8ef;background:#fff;font-size:12px;color:#26364b;"><b>Gestión solicitada:</b> '+e((x.detalles||[]).join(' '))+'</td></tr>';
+            }).join('');
+            const firma=texto(grupo.firma)||'Saludos cordiales,<br><b>Departamento de Recursos Humanos</b><br>Farmacias de Similares Chile S.A.<br>RUT: 59.111.330-5';
+            const headers=['Fecha','Estado','RUT','Nombre','Sucursal','Turno','Entrada','Salida'].map(t=>'<th style="padding:10px 8px;background:#1554a6;color:#fff;border:1px solid #8eb1e6;text-align:left;font-size:12px;">'+t+'</th>').join('');
+            return '<div style="background:#f3f5f8;font-family:Arial,Helvetica,sans-serif;color:#202b3c;"><div style="padding:20px;background:#fff;border:1px solid #d5dfeb;">'+
+                '<p>Estimados/as equipo de <b>'+e(nombreGrupo).toUpperCase()+'</b>:</p><p>Junto con saludar, esperamos que se encuentren muy bien.</p>'+
+                '<p style="line-height:1.55;">Este correo tiene como objetivo orientar el cumplimiento de la jornada y el correcto registro de asistencia. En la revisión preventiva se identificaron registros que requieren aclaración, correspondientes al período <b>'+e(desde)+' al '+e(hasta)+'</b>. Para su gestión, dejamos el detalle a continuación:</p>'+
+                '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;border:1px solid #9bb9e3;font-family:Arial,Helvetica,sans-serif;"><thead><tr>'+headers+'</tr></thead><tbody>'+filas+'</tbody></table>'+
+                '<p style="margin-top:16px;">Para regularizar cada caso, agradeceremos confirmar si corresponde a:</p><ul style="line-height:1.6;"><li>Asistencia normal (olvido de marcar).</li><li>Permiso autorizado.</li><li>Inasistencia justificada o no justificada (indicar motivo).</li></ul>'+
+                '<p>Agradecemos su colaboración y respuesta para mantener los registros de asistencia actualizados.</p><p>'+firma+'</p></div></div>';
         }
         async function guardarLoteBorradoresNube(desde,hasta,agrupar,filtroSuc,filtroSup,minimo) {
             const {data:sesion,error:errSesion}=await _supabase.auth.getUser();
