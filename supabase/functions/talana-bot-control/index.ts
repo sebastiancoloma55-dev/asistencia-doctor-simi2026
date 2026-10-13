@@ -129,7 +129,15 @@ if(a==="bot_import"){
    else pending.push(row);
   }
   if(dryRun){
-   return json({dry_run:true,write_performed:false,report_type:reportType,table,received:rows.length,valid:valid.length,planned_inserted:pending.length,planned_updated:pendingUpdates.length,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts}});
+   const diagnostics:any={missing_key_fields:missingKeyFieldCounts};
+   if(attendanceFallback){
+    const countByDate=(items:any[])=>{const counts:Record<string,number>={};for(const item of items){const day=norm(item.fecha);if(day)counts[day]=(counts[day]||0)+1;}return counts;};
+    const incomingByDate=countByDate(valid), plannedByDate=countByDate(pending);
+    const existingByDate=countByDate(existingRows);
+    const dates=Object.keys(incomingByDate).sort();
+    diagnostics.attendance={date_min:dates[0]||null,date_max:dates[dates.length-1]||null,unique_employee_ids:[...new Set(valid.map((r:any)=>normRut(r.rut)))].length,unique_dates:dates.length,incoming_by_date:incomingByDate,planned_new_by_date:plannedByDate,existing_by_date:existingByDate};
+   }
+   return json({dry_run:true,write_performed:false,report_type:reportType,table,received:rows.length,valid:valid.length,planned_inserted:pending.length,planned_updated:pendingUpdates.length,skipped,failed,errors:errors.slice(0,100),diagnostics});
   }
   // One database request updates the whole batch instead of one request per row.
   // Merge incoming non-empty values into the stored row to avoid erasing fields
