@@ -76,7 +76,19 @@ if(a==="bot_import"){
   const selectCols=table==="licencias_medicas"?"id,rut,fecha_inicio,fecha_fin,tipo_ausencia":table==="vacaciones_historico"?"id,rut,fecha_inicio,fecha_fin,tipo_vacaciones":"id,rut,fecha,entrada,salida,tipo_ausentismo";
   let existingRows:any[]=[];
   // Read complete rows so batch upserts preserve fields absent from this export.
-  if(ruts.length){const {data,error}=await admin.from(table).select("*").in("rut",ruts).order("id",{ascending:false}).limit(20000);if(error)return json({error:error.message},500);existingRows=data||[];}
+  if(ruts.length){
+   // Paginar la consulta de existentes: un límite fijo de 20.000 podía truncar
+   // historiales extensos y hacer que una fila ya importada pareciera nueva.
+   const pageSize=1000;let offset=0;
+   while(true){
+    const {data,error}=await admin.from(table).select("*").in("rut",ruts).order("id",{ascending:false}).range(offset,offset+pageSize-1);
+    if(error)return json({error:error.message},500);
+    const page=data||[];existingRows.push(...page);
+    if(page.length<pageSize)break;
+    offset+=page.length;
+    if(offset>=100000){return json({error:"La consulta de existentes superó el límite de seguridad de 100.000 filas por lote; se detuvo para evitar una comparación incompleta."},413);}
+   }
+  }
   const existingByKey=new Map<string,any>(); for(const old of existingRows){const oldKey=keyOf(old);if(oldKey&&!existingByKey.has(oldKey))existingByKey.set(oldKey,old);} const seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
   for(const row of valid){
    const k=keyOf(row);
