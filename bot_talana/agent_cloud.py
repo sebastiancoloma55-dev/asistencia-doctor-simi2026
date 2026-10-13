@@ -98,6 +98,8 @@ def main():
                     result.get("planned_inserted", 0), result.get("planned_updated", 0),
                     result.get("skipped", 0), result.get("failed", 0),
                 )
+                if report_type == "reporte_jornadas_asistencia":
+                    LOG.info("DIAGNÓSTICO DE FECHAS ASISTENCIA: %s", json.dumps((result.get("diagnostics") or {}).get("attendance", {}), ensure_ascii=False, sort_keys=True))
                 if int(result.get("failed", 0) or 0):
                     errors.append(f"{title}: {result.get('failed')} fila(s) rechazadas durante la previsualización.")
             except Exception as exc:
