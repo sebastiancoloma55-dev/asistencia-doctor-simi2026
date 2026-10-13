@@ -708,13 +708,13 @@
             const archivo = event.target.files?.[0];
             if (!archivo) return;
             // Normaliza espacios invisibles y caracteres de formato que Excel puede conservar al copiar/pegar.
-            const limpiarTexto = valor => String(valor ?? '').replace(/\\u00a0/g, ' ').replace(/[\\u200B-\\u200D\\u2060\\uFEFF]/g, '').trim();
-            const normalizar = valor => limpiarTexto(valor).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/\\s+/g, ' ').toLocaleLowerCase('es-CL');
-            const limpiarCorreo = valor => limpiarTexto(valor).normalize('NFKC').replace(/[\\u200B-\\u200D\\u2060\\uFEFF]/g, '').replace(/^[;,\\s]+|[;,\\s]+$/g, '').trim();
+            const limpiarTexto = valor => String(valor ?? '').replace(/\u00a0/g, ' ').replace(/[\u200B-\u200D\u2060\uFEFF]/g, '').trim();
+            const normalizar = valor => limpiarTexto(valor).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').toLocaleLowerCase('es-CL');
+            const limpiarCorreo = valor => limpiarTexto(valor).normalize('NFKC').replace(/[\u200B-\u200D\u2060\uFEFF]/g, '').replace(/^[;,\s]+|[;,\s]+$/g, '').trim();
             const correoValido = valor => {
                 const correo = limpiarCorreo(valor);
                 // Validación compatible con direcciones habituales corporativas, sin rechazar por mayúsculas.
-                return !!correo && /^[^\\s@<>(),;:"\\[\\]]+@[^\\s@<>(),;:"\\[\\]]+\\.[^\\s@<>(),;:"\\[\\].]{2,}$/.test(correo);
+                return !!correo && /^[^\s@<>(),;:"\[\]]+@[^\s@<>(),;:"\[\]]+\.[^\s@<>(),;:"\[\].]{2,}$/.test(correo);
             };
             try {
                 const filas = await leerExcel(archivo);
