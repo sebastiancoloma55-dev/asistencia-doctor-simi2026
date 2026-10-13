@@ -481,7 +481,7 @@
                 const supervisors=(u.usuarios_supervisores||[]).map(x=>String(x.supervisor||'').trim()).filter(Boolean);
                 const branches=nombresSucursalesUsuario(u);
                 const scopeHtml='<div class="usr-scope-list">'+
-                    '<span class="usr-scope-line"><i data-lucide="layers-3"></i><span>'+(global?'Acceso global a módulos':assignedModules.length+' módulo(s) asignado(s)')+'</span></span>'+
+                    '<span class="usr-scope-line"><i data-lucide="layers"></i><span>'+(global?'Acceso global a módulos':assignedModules.length+' módulo(s) asignado(s)')+'</span></span>'+
                     '<span class="usr-scope-line"><i data-lucide="map-pin"></i><span>'+(branches.length?branches.map(escaparHTML).join(', '):'Sin sucursales asignadas explícitamente')+'</span></span>'+
                     '<span class="usr-scope-line"><i data-lucide="users"></i><span>'+(supervisors.length?supervisors.map(escaparHTML).join(', '):'Sin supervisores asignados explícitamente')+'</span></span></div>';
                 const caps=[];
