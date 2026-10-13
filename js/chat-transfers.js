@@ -42,6 +42,11 @@
   }
 
   async function iniciarAvisosChat() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx && !chatAudioContext) chatAudioContext = new AudioCtx();
+      if (chatAudioContext?.state === "suspended") chatAudioContext.resume().catch(() => {});
+    } catch (_) {}
     if ("Notification" in window && Notification.permission === "default" && !window.__chatNotificationPermissionAsked) {
       window.__chatNotificationPermissionAsked = true;
       try { await Notification.requestPermission(); } catch (_) {}
@@ -89,8 +94,8 @@
     const status=$("chat-estado");
     if(status) status.textContent="Conectando con el chat seguro…";
     try {
-      await currentUserId();
       await iniciarAvisosChat();
+      await currentUserId();
       await loadChatUsers();
       const {data,error}=await _supabase.rpc("chat_listar_conversaciones");
       if(error) throw error;
