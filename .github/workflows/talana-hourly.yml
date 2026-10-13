@@ -12,6 +12,14 @@ on:
           - validate_only
           - full_import
         default: validate_only
+      confirm_write:
+        description: "Para autorizar escrituras reales, selecciona CONFIRMO_IMPORTACION"
+        required: true
+        type: choice
+        options:
+          - NO
+          - CONFIRMO_IMPORTACION
+        default: NO
   pull_request:
     paths:
       - "bot_talana/**"
@@ -29,6 +37,16 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
+      - name: Bloquear importación sin confirmación explícita
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'full_import'
+        env:
+          CONFIRM_WRITE: ${{ inputs.confirm_write }}
+        run: |
+          if [ "$CONFIRM_WRITE" != "CONFIRMO_IMPORTACION" ]; then
+            echo "::error::Importación detenida: selecciona CONFIRMO_IMPORTACION para autorizar escrituras en producción."
+            exit 1
+          fi
+          echo "Confirmación explícita recibida. Se mantiene la verificación de configuración del bot."
       - name: Descargar código
         uses: actions/checkout@v4
       - name: Preparar Python
