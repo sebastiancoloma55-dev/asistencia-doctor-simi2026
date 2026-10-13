@@ -120,8 +120,10 @@
 
             const cadena = texto(valor);
 
+            // Admitir fechas chilenas con hora adjunta sin delegar a Date(), que interpreta
+            // fechas con barras según la configuración regional del navegador.
             let match = cadena.match(
-                /^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/
+                /^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:$|[T\s].*)/
             );
 
             if (match) {
