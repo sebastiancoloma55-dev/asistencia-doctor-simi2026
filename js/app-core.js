@@ -412,6 +412,8 @@
             if (!registros.length) {
                 throw new Error(`No hay registros para guardar en ${tabla}.`);
             }
+            // Si un lote falla a mitad de la operación, no reutilizar una lectura anterior.
+            invalidarCacheLecturas(tabla);
 
             let confirmados = 0;
             let lotesProcesados = 0;
@@ -445,18 +447,46 @@
                 lotesProcesados++;
             }
 
+            invalidarCacheLecturas(tabla);
             return {
                 confirmados,
                 lotesProcesados
             };
         }
 
+        // Caché solo en memoria: acelera cambios entre módulos sin persistir datos
+        // personales o licencias en localStorage/sessionStorage.
         const consultasTablaCompletaEnCurso = new Map();
+        const cacheLecturasTablaCompleta = new Map();
+        const TTL_CACHE_LECTURAS_MS = 20000;
+
+        function invalidarCacheLecturas(tabla = null) {
+            if (!tabla) {
+                cacheLecturasTablaCompleta.clear();
+                return;
+            }
+            for (const clave of cacheLecturasTablaCompleta.keys()) {
+                if (clave.startsWith(`${tabla}::`)) cacheLecturasTablaCompleta.delete(clave);
+            }
+        }
+        window.invalidarCacheLecturas = invalidarCacheLecturas;
+        if (_supabase?.auth?.onAuthStateChange) {
+            _supabase.auth.onAuthStateChange(event => {
+                if (event === 'SIGNED_OUT') invalidarCacheLecturas();
+            });
+        }
+
         async function leerTablaCompleta(tabla, columnaOrden = null) {
             const clave = `${tabla}::${columnaOrden || ''}`;
-            // Si dos módulos piden la misma tabla simultáneamente, comparten la consulta
-            // en curso y evitamos duplicar lecturas pesadas a Supabase.
-            if (consultasTablaCompletaEnCurso.has(clave)) return consultasTablaCompletaEnCurso.get(clave);
+            const ahora = Date.now();
+            const cache = cacheLecturasTablaCompleta.get(clave);
+            if (cache && ahora - cache.timestamp < TTL_CACHE_LECTURAS_MS) return cache.data.slice();
+            if (cache) cacheLecturasTablaCompleta.delete(clave);
+
+            // Si dos módulos piden la misma tabla simultáneamente, comparten la consulta.
+            if (consultasTablaCompletaEnCurso.has(clave)) {
+                return consultasTablaCompletaEnCurso.get(clave).then(rows => rows.slice());
+            }
 
             const promesa = (async () => {
                 const resultado = [];
@@ -475,10 +505,11 @@
                     for (const pagina of paginas) resultado.push(...pagina);
                     if (paginas.some(pagina => pagina.length < TAMANO_PAGINA)) break;
                 }
+                cacheLecturasTablaCompleta.set(clave, { timestamp: Date.now(), data: resultado });
                 return resultado;
             })();
             consultasTablaCompletaEnCurso.set(clave, promesa);
-            try { return await promesa; }
+            try { return (await promesa).slice(); }
             finally { consultasTablaCompletaEnCurso.delete(clave); }
         }
 

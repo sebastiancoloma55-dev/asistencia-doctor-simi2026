@@ -59,14 +59,23 @@
         }
 
         async function cargarVacacionesDesdeNube() {
-            // Vacaciones y asistencia se necesitan para el cruce; cargar ambas en paralelo
-            // cuando la asistencia aún no está disponible.
-            const tareas = [leerTablaCompleta('vacaciones_historico', 'fecha_inicio')];
-            if (!asistenciaCargada) tareas.push(cargarAsistenciaDesdeNube());
-            const [vacaciones] = await Promise.all(tareas);
+            // Mostrar vacaciones apenas llega su propia consulta. El cruce con asistencia
+            // se completa en segundo plano para no bloquear la primera vista del módulo.
+            const vacaciones = await leerTablaCompleta('vacaciones_historico', 'fecha_inicio');
             datosVacacionesGlobal = vacaciones;
-            vacacionesCargadas=true;
+            vacacionesCargadas = true;
             poblarFiltroVacaciones();
+
+            if (!asistenciaCargada) {
+                cargarAsistenciaDesdeNube()
+                    .then(() => {
+                        // Recalcular marcas y cruces cuando la asistencia termine de cargar.
+                        if (vacacionesCargadas) renderizarVacaciones();
+                    })
+                    .catch(error => {
+                        console.error('No se pudo completar el cruce de vacaciones con asistencia:', error);
+                    });
+            }
         }
 
         function poblarFiltroVacaciones() {
