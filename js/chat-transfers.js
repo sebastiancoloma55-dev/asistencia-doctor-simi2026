@@ -219,7 +219,7 @@
         }
       }
       const title=$("chat-titulo-nuevo")?.value.trim();
-      const finalTitle=title||(chosenUsers.length===1?(chosenUsers[0].nombre||chosenUsers[0].email):"Grupo de Recursos Humanos");
+      const finalTitle=chosenUsers.length===1?(chosenUsers[0].nombre||chosenUsers[0].email):(title||"Grupo de Recursos Humanos");
       const {data:conversation,error}=await _supabase.from("chat_conversaciones").insert({
         titulo:finalTitle.slice(0,80),tipo:chosenUsers.length===1?"PRIVADA":"GRUPO",creado_por:me
       }).select("id,titulo,tipo,updated_at").single();
