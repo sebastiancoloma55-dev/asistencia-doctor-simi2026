@@ -130,10 +130,9 @@
   function renderConversations(items) {
     const host=$("chat-conversaciones-list"); if(!host)return;
     host.replaceChildren();
-    const query=norm($("chat-buscar-conversacion")?.value||"");
-    const filtered=(items||[]).filter(item=>!query||norm([item.titulo,item.tipo].join(" ")).includes(query));
-    if(!filtered.length){host.append(Object.assign(document.createElement("p"),{className:"rounded-xl border border-dashed border-slate-200 p-4 text-sm text-slate-500",textContent:query?"No hay chats que coincidan con la búsqueda.":"Todavía no tienes conversaciones. Selecciona participantes y crea una."}));return;}
-    filtered.forEach(item=>{
+    const allItems=items||[];
+    if(!allItems.length){host.append(Object.assign(document.createElement("p"),{className:"rounded-xl border border-dashed border-slate-200 p-4 text-sm text-slate-500",textContent:"Todavía no tienes conversaciones. Selecciona participantes y crea una."}));return;}
+    allItems.forEach(item=>{
       const btn=document.createElement("button");
       btn.type="button";
       btn.className="w-full rounded-xl border p-3 text-left transition "+(item.id===activeConversation?"border-blue-300 bg-blue-50":"border-slate-200 bg-white hover:bg-slate-100");
@@ -144,6 +143,7 @@
       else btn.append(title,meta);
       btn.addEventListener("click",()=>abrirConversacionChat(item.id));host.append(btn);
     });
+    filtrarConversacionesChat();
   }
 
   async function crearConversacionChat() {
