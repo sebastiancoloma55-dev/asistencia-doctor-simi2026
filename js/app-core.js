@@ -505,17 +505,6 @@
             try { return (await promesa).slice(); }
             finally { consultasTablaCompletaEnCurso.delete(clave); }
         }
-                    });
-                    const paginas = await Promise.all(consultas);
-                    for (const pagina of paginas) resultado.push(...pagina);
-                    if (paginas.some(pagina => pagina.length < TAMANO_PAGINA)) break;
-                }
-                return resultado;
-            })();
-            consultasTablaCompletaEnCurso.set(clave, promesa);
-            try { return await promesa; }
-            finally { consultasTablaCompletaEnCurso.delete(clave); }
-        }
 
         const CLAVE_NONCE_SESION_GLOBAL = 'doctor-simi-global-session-nonce';
         let temporizadorVigilanciaSesionGlobal = null;
