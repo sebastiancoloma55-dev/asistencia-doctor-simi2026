@@ -858,6 +858,7 @@
             document.querySelectorAll("section[id^='view-']").forEach(vistaSeccion => {
                 vistaSeccion.classList.remove('rrhh-view-enter');
                 vistaSeccion.classList.add('hidden');
+                vistaSeccion.style.display = 'none';
             });
 
             modulos.forEach(nombre => {
@@ -893,6 +894,7 @@
             const vista = document.getElementById(`view-${modulo}`);
 
             if (vista) {
+                vista.style.display = '';
                 vista.classList.remove('hidden');
                 requestAnimationFrame(() => {
                     if (secuenciaActual === secuenciaCambioModulo && !vista.classList.contains('hidden')) {
@@ -903,6 +905,7 @@
                 if (window.actualizarContextoModulo) window.actualizarContextoModulo(modulo);
             } else {
                 const generic = document.getElementById('view-generic');
+                generic.style.display = '';
                 generic.classList.remove('hidden');
                 requestAnimationFrame(() => {
                     if (secuenciaActual === secuenciaCambioModulo && !generic.classList.contains('hidden')) {
