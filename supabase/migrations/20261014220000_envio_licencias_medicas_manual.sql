@@ -42,23 +42,32 @@ create table if not exists public.envio_licencias_medicas_auditoria (
 create index if not exists idx_envio_licencias_auditoria_registro
   on public.envio_licencias_medicas_auditoria(licencia_manual_id, ocurrido_en desc);
 
+create or replace function public.tg_actualizar_envio_licencia_manual()
+returns trigger language plpgsql set search_path=public,pg_temp as $
+begin
+  new.updated_at := now();
+  return new;
+end $;
+drop trigger if exists tg_actualizar_envio_licencia_manual on public.envio_licencias_medicas;
+create trigger tg_actualizar_envio_licencia_manual
+before update on public.envio_licencias_medicas
+for each row execute function public.tg_actualizar_envio_licencia_manual();
+
 create or replace function public.tg_auditar_envio_licencia_manual()
-returns trigger language plpgsql security definer set search_path=public,pg_temp as $$
+returns trigger language plpgsql security definer set search_path=public,pg_temp as $
 begin
   if TG_OP='INSERT' then
-    new.updated_at := now();
     insert into public.envio_licencias_medicas_auditoria(licencia_manual_id,accion,usuario_id,datos_nuevos)
     values(new.id,'INSERT',auth.uid(),to_jsonb(new));
     return new;
   end if;
-  new.updated_at := now();
   insert into public.envio_licencias_medicas_auditoria(licencia_manual_id,accion,usuario_id,datos_anteriores,datos_nuevos)
   values(new.id,'UPDATE',auth.uid(),to_jsonb(old),to_jsonb(new));
   return new;
-end $$;
+end $;
 drop trigger if exists tg_auditar_envio_licencia_manual on public.envio_licencias_medicas;
 create trigger tg_auditar_envio_licencia_manual
-before insert or update on public.envio_licencias_medicas
+after insert or update on public.envio_licencias_medicas
 for each row execute function public.tg_auditar_envio_licencia_manual();
 
 alter table public.envio_licencias_medicas enable row level security;
