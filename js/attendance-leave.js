@@ -544,7 +544,7 @@
                 await registrarActualizacionFuente('licencias', file.name, procesadas.length, 'manual');
 
                 mostrarToast(
-                    `Carga de licencias finalizada. Excel: ${originales.length} filas. Registros únicos: ${procesadas.length}. Duplicados consolidados: ${consolidado.duplicados.length}. Supabase confirmó ${resultado.confirmados} registros en ${resultado.lotesProcesados} lote(s). Las 900 filas anteriores se actualizaron y las restantes se insertaron.`,
+                    `Carga de licencias finalizada. Excel: ${originales.length} filas. Registros únicos: ${procesadas.length}. Duplicados consolidados: ${consolidado.duplicados.length}. Supabase confirmó ${resultado.confirmados} registros en ${resultado.lotesProcesados} lote(s). Los registros existentes se actualizaron y los nuevos se insertaron.`,
                     'success',
                     18000
                 );
