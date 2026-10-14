@@ -913,6 +913,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
   <div class="nova-nav-divider" data-nav-group><span>ASISTENCIA Y BENEFICIOS</span></div>
   <button id="btn-asistencia" class="menu-btn" onclick="cambiarModulo('asistencia')"><i data-lucide="clock" class="h-4 w-4"></i><span>Asistencia y atrasos</span></button>
   <button id="btn-licencias" class="menu-btn" onclick="cambiarModulo('licencias')"><i data-lucide="file-heart" class="h-4 w-4"></i><span>Licencias y ausentismo</span></button>
+  <button id="btn-envio_licencias" class="menu-btn" onclick="cambiarModulo('envio_licencias')"><i data-lucide="mail-plus" class="h-4 w-4"></i><span>Envío de licencias médicas</span></button>
   <button id="btn-vacaciones" class="menu-btn" onclick="cambiarModulo('vacaciones')"><i data-lucide="tree-palm" class="h-4 w-4"></i><span>Vacaciones</span></button>
   <button id="btn-papeletas" class="menu-btn" onclick="cambiarModulo('papeletas')"><i data-lucide="file-text" class="h-4 w-4"></i><span>Papeletas y permisos</span></button>
   <div class="nova-nav-divider" data-nav-group><span>COBERTURAS Y COMUNICACIÓN</span></div>
@@ -1796,22 +1797,39 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 <div class="helper-note">Antes de preparar y justo antes de descargar cada borrador, se cruzan las fechas de las incidencias con licencias, permisos registrados y vacaciones aprobadas. Los casos que coinciden se omiten. Los borradores históricos sin datos para esta validación no se pueden descargar: vuelve a generarlos. La aplicación no envía correos automáticamente; revisa destinatarios, copias y contenido en Outlook.</div>
                 <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 text-xs text-blue-900">Descarga los borradores en formato EML o ZIP para abrirlos en Outlook. Si una licencia, permiso o vacación se registra después de generar el borrador, la descarga vuelve a revisar los casos y quita los que ya no correspondan. La firma configurada en el punto 13 se agrega al cuerpo del mensaje.</div>
             
-                <div class="ui-card overflow-hidden border border-rose-100">
-                    <div class="flex flex-wrap items-start justify-between gap-3 bg-gradient-to-r from-rose-50 to-orange-50 p-5">
-                        <div><span class="text-[10px] font-extrabold uppercase tracking-wider text-rose-700">Nuevo flujo · Licencias médicas</span><h4 class="mt-1 text-lg font-extrabold text-slate-900">Enviar licencia médica</h4><p class="mt-1 max-w-3xl text-xs leading-5 text-slate-600">Consulta registros reales y filtra por el día en que se ingresaron al sistema. Revisa las licencias y sucursales antes de solicitar la apertura de borradores.</p></div>
-                        <div class="rounded-xl border border-rose-100 bg-white px-4 py-3"><div class="text-[10px] font-bold uppercase text-slate-500">Encontradas</div><div id="lic-correo-total" class="text-2xl font-black text-slate-900">—</div><div class="text-[10px] text-slate-500">según fecha de creación</div></div>
-                    </div>
-                    <div class="grid grid-cols-1 gap-3 border-b border-slate-100 p-4 md:grid-cols-3">
-                        <div><label for="lic-correo-periodo" class="mb-1 block text-xs font-bold text-slate-700">Período de ingreso al sistema</label><select id="lic-correo-periodo" class="form-field"><option value="hoy">Ingresadas hoy</option><option value="ayer">Ingresadas ayer</option><option value="3">Últimos 3 días (incluye hoy)</option><option value="7">Últimos 7 días (incluye hoy)</option><option value="30">Últimos 30 días (incluye hoy)</option><option value="custom">Rango personalizado</option></select></div>
-                        <div id="lic-correo-fechas-custom" class="hidden grid grid-cols-2 gap-2 md:col-span-2"><div><label for="lic-correo-desde" class="mb-1 block text-xs font-bold text-slate-700">Desde</label><input id="lic-correo-desde" type="date" class="form-field"></div><div><label for="lic-correo-hasta" class="mb-1 block text-xs font-bold text-slate-700">Hasta</label><input id="lic-correo-hasta" type="date" class="form-field"></div></div>
-                        <div class="flex flex-wrap items-end gap-2"><button id="lic-correo-recargar" type="button" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700">Actualizar datos</button><button id="lic-correo-todos" type="button" class="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700">Seleccionar todas</button><button id="lic-correo-ninguno" type="button" class="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700">Ninguna</button></div>
-                    </div>
-                    <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3"><p id="lic-correo-estado" role="status" class="text-xs text-slate-500">Consultando registros reales…</p><div class="flex gap-4 text-xs"><span><b id="lic-correo-seleccionadas">0</b> seleccionadas</span><span><b id="lic-correo-sucursales-total">0</b> sucursales encontradas</span></div></div>
-                    <div class="table-scroll"><table class="w-full min-w-[1050px] text-left"><thead class="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th class="p-3">Incluir</th><th class="p-3">Colaborador / RUT</th><th class="p-3">Cargo</th><th class="p-3">Sucursal</th><th class="p-3">Período de licencia</th><th class="p-3">Días</th><th class="p-3">Ingresada en sistema</th></tr></thead><tbody id="lic-correo-tabla" class="text-xs"><tr><td colspan="7" class="p-8 text-center text-slate-400">Cargando datos reales…</td></tr></tbody></table></div>
-                    <div class="border-t border-slate-100 p-4"><div class="mb-2 text-xs font-bold text-slate-700">Sucursales incluidas en la selección</div><div id="lic-correo-resumen-sucursales" class="flex flex-wrap gap-2"><span class="text-xs text-slate-500">Cargando…</span></div><p class="mt-3 text-[11px] leading-5 text-slate-500">Se agrupa un borrador por sucursal con correo configurado. El cuerpo no incluye diagnóstico ni motivo médico. Abrir un borrador no equivale a enviarlo; debes revisar y enviar manualmente desde Outlook.</p><div class="mt-4 flex justify-end"><button id="lic-correo-preparar" type="button" class="rounded-lg bg-rose-600 px-4 py-3 text-xs font-extrabold text-white shadow-sm hover:bg-rose-700"><i data-lucide="mail" class="mr-2 inline h-4 w-4"></i>Preparar borradores seleccionados</button></div></div>
-                </div>
-                <div id="lic-correo-borradores-lista" class="space-y-3" aria-live="polite"></div>
 </section>
+
+            <!-- ENVÍO DE LICENCIAS MÉDICAS: registro manual independiente del histórico -->
+            <section id="view-envio_licencias" class="hidden space-y-6 p-4 sm:p-8">
+              <div class="rounded-2xl border border-cyan-100 bg-gradient-to-r from-cyan-50 to-white p-5 sm:p-7">
+                <span class="text-xs font-bold uppercase tracking-wider text-cyan-800">Gestión de asistencia · Registro manual</span>
+                <h3 class="mt-2 text-2xl font-black text-slate-900">Envío de licencias médicas</h3>
+                <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Registra una licencia, valida los datos del colaborador y prepara su información para revisión. Este módulo es independiente del consolidado histórico. No envía correos automáticamente.</p>
+              </div>
+              <div class="grid grid-cols-1 gap-5 xl:grid-cols-5">
+                <div class="ui-card space-y-4 p-5 xl:col-span-2">
+                  <h4 class="font-extrabold text-slate-900">Nueva licencia</h4>
+                  <div><label class="mb-1 block text-xs font-bold text-slate-700" for="eml-fecha-registro">Fecha de registro manual *</label><input id="eml-fecha-registro" type="date" class="form-field" required></div>
+                  <div><label class="mb-1 block text-xs font-bold text-slate-700" for="eml-rut">RUT del colaborador *</label><div class="flex gap-2"><input id="eml-rut" class="form-field" placeholder="12.345.678-9" autocomplete="off"><button id="eml-buscar" type="button" class="corp-button-dark shrink-0">Buscar</button></div><p id="eml-rut-estado" class="mt-1 text-xs text-slate-500" role="status">Ingresa el RUT y busca al colaborador.</p></div>
+                  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2"><div><label class="mb-1 block text-xs font-bold text-slate-700">Nombre</label><input id="eml-nombre" class="form-field bg-slate-50" readonly placeholder="Se completa al buscar"></div><div><label class="mb-1 block text-xs font-bold text-slate-700">Cargo</label><input id="eml-cargo" class="form-field bg-slate-50" readonly placeholder="Se completa al buscar"></div></div>
+                  <div><label class="mb-1 block text-xs font-bold text-slate-700">Sucursal</label><input id="eml-sucursal" class="form-field bg-slate-50" readonly placeholder="Se completa al buscar"></div>
+                  <input id="eml-colaborador-id" type="hidden">
+                  <div><label class="mb-1 block text-xs font-bold text-slate-700" for="eml-inicio">Fecha de inicio de licencia *</label><input id="eml-inicio" type="date" class="form-field"></div>
+                  <div><label class="mb-1 block text-xs font-bold text-slate-700" for="eml-dias">Cantidad de días corridos *</label><input id="eml-dias" type="number" min="1" max="365" step="1" class="form-field" placeholder="Ej. 7"></div>
+                  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2"><div><label class="mb-1 block text-xs font-bold text-slate-700">Fecha de término calculada</label><input id="eml-termino" class="form-field bg-slate-50" readonly placeholder="—"></div><div><label class="mb-1 block text-xs font-bold text-slate-700">Fecha de retorno calculada</label><input id="eml-retorno" class="form-field bg-slate-50" readonly placeholder="—"></div></div>
+                  <div><label class="mb-1 block text-xs font-bold text-slate-700" for="eml-observacion">Observación administrativa (opcional)</label><textarea id="eml-observacion" class="form-field" rows="2" maxlength="500" placeholder="Sin incluir diagnóstico ni información clínica."></textarea></div>
+                  <div id="eml-error" class="hidden rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700" role="alert"></div>
+                  <button id="eml-guardar" type="button" class="corp-button w-full"><i data-lucide="save" class="mr-2 inline h-4 w-4"></i>Guardar registro</button>
+                  <p class="text-[11px] leading-5 text-slate-500">La fecha de retorno es el día calendario siguiente al término, incluso si cae sábado, domingo o festivo. Guardar no envía ningún correo.</p>
+                </div>
+                <div class="ui-card overflow-hidden xl:col-span-3">
+                  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-5"><div><h4 class="font-extrabold text-slate-900">Registros manuales</h4><p class="mt-1 text-xs text-slate-500">Solo muestra los registros de este módulo, no el historial importado.</p></div><button id="eml-recargar" type="button" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold">Actualizar</button></div>
+                  <div id="eml-lista-estado" class="px-5 py-3 text-xs text-slate-500" role="status">Cargando registros…</div>
+                  <div class="table-scroll"><table class="w-full min-w-[760px] text-left text-xs"><thead class="bg-slate-50 text-[10px] uppercase text-slate-500"><tr><th class="p-3">Registro</th><th class="p-3">Colaborador</th><th class="p-3">Sucursal</th><th class="p-3">Licencia</th><th class="p-3">Estado</th><th class="p-3">Acción</th></tr></thead><tbody id="eml-lista"><tr><td colspan="6" class="p-6 text-center text-slate-400">Cargando…</td></tr></tbody></table></div>
+                  <div class="border-t border-slate-100 p-5"><p class="text-xs leading-5 text-slate-500">Estados previstos: guardada, borrador solicitado y correo confirmado manualmente. La apertura de Outlook nunca se considera prueba de envío. La plantilla de correo se incorporará cuando sea proporcionada.</p></div>
+                </div>
+              </div>
+            </section>
 
             <!-- COBERTURAS -->
             <section id="view-amonestaciones" class="hidden space-y-6 p-4 sm:p-8">
@@ -2225,7 +2243,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 <script src="/js/attendance-leave.js"></script>
 <script src="/js/workflows.js"></script>
 <script src="/js/maps-communications.js"></script>
-<script src="/js/medical-leave-email.js"></script>
+<script src="/js/medical-leave-registration.js"></script>
 <script src="/js/people-directory.js"></script>
 <script src="/js/chat-transfers.js"></script>
 <script src="/js/employee-history.js"></script>
@@ -2939,8 +2957,8 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   window.actualizarContadoresSelectores2026=updateSelectorCounts;
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
   var allowed=new Set(['dashboard']);
-  var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
-  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
+  var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
+  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
   function permissionName(m){return m;}
   function hasModulePermission(m){
     if(allowed.has(m))return true;
@@ -3147,7 +3165,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
 
 <script>
 (function(){
- const items=[['colaboradores','users'],['sucursales','store'],['asistencia','clock'],['licencias','file-heart'],['vacaciones','calendar-days'],['reportes','chart-no-axes-combined'],['operaciones','calendar-check'],['mapas','map-pin'],['tareas','check-square'],['notificaciones','bell-ring'],['integraciones','workflow'],['chat','messages-square'],['traslados','arrow-left-right']];
+ const items=[['colaboradores','users'],['sucursales','store'],['asistencia','clock'],['licencias','file-heart'],['envio_licencias','mail-plus'],['vacaciones','calendar-days'],['reportes','chart-no-axes-combined'],['operaciones','calendar-check'],['mapas','map-pin'],['tareas','check-square'],['notificaciones','bell-ring'],['integraciones','workflow'],['chat','messages-square'],['traslados','arrow-left-right']];
  function makeQuickLinks(){const bar=document.getElementById('quick-module-bar');if(!bar||bar.dataset.ready==='1')return;const nav=document.querySelector('#sidebar nav');if(nav&&nav.style.visibility!=='visible'){setTimeout(makeQuickLinks,250);return;}bar.dataset.ready='1';const label=document.createElement('span');label.className='quick-label';label.textContent='Accesos';bar.appendChild(label);items.forEach(([id,icon])=>{const b=document.getElementById('btn-'+id);if(!b||b.classList.contains('permission-hidden-2026'))return;const chip=document.createElement('button');chip.type='button';chip.className='quick-module-chip';chip.dataset.module=id;chip.innerHTML='<i data-lucide="'+icon+'" class="h-4 w-4"></i><span></span>';chip.querySelector('span').textContent=b.textContent.trim().replace(/^\d+\.\s*/,'');chip.addEventListener('click',()=>{if(typeof window.cambiarModulo==='function')window.cambiarModulo(id);});bar.appendChild(chip);});if(window.lucide)lucide.createIcons();}
  window.refreshQuickModuleBar=makeQuickLinks;
  const originalPaint=window.paintPermissions;
