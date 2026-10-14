@@ -227,7 +227,7 @@ language plpgsql
 security definer
 set search_path = public
 as $$
-declare v_usuario bigint; v_row public.solicitudes_dotacion%rowtype;
+declare v_usuario bigint; v_row public.solicitudes_dotacion%rowtype; v_email text; v_tarea record;
 begin
   v_usuario := public.chat_usuario_actual_id();
   if v_usuario is null then raise exception 'Tu usuario no tiene un perfil activo.'; end if;
@@ -246,9 +246,22 @@ begin
     if not found then raise exception 'No se encontró la alerta de cobertura.'; end if;
     if v_row.estado <> 'CUBIERTA' then raise exception 'La alerta está cancelada o rechazada y no se puede resolver.'; end if;
   end if;
+  select email into v_email from public.usuarios_roles where id=v_usuario;
+  for v_tarea in
+    update public.tareas
+      set estado='COMPLETADA_POR_VALIDAR', updated_at=now()
+      where solicitud_dotacion_id=p_solicitud_id
+        and estado in ('PENDIENTE','EN_PROCESO')
+      returning id
+  loop
+    insert into public.tareas_eventos(tarea_id,accion,estado_anterior,estado_nuevo,usuario_email,detalle)
+    values(v_tarea.id,'COBERTURA_RESUELTA','PENDIENTE','COMPLETADA_POR_VALIDAR',
+      coalesce(v_email,'sistema@asistencia-doctor-simi.local'),
+      'La alerta de cobertura se marcó como resuelta; la tarea pasa a revisión.');
+  end loop;
   return v_row;
 end;
-$$;
+$;
 revoke all on function public.resolver_alerta_cobertura(uuid) from public, anon;
 grant execute on function public.resolver_alerta_cobertura(uuid) to authenticated;
 
