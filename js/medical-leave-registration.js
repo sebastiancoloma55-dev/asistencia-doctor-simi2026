@@ -232,7 +232,7 @@
       colaborador=null;
       $('eml-colaborador-id').value='';$('eml-nombre').value='';$('eml-cargo').value='';$('eml-sucursal').value='';
       clearTimeout(sugerenciaTimer);
-      sugerenciaTimer=setTimeout(sugerirColaboradores,250);
+      sugerenciaTimer=setTimeout(()=>{ if(rutValido($('eml-rut').value.trim())) buscarColaborador(); else sugerirColaboradores(); },250);
     });
     document.addEventListener('click',e=>{if(!e.target.closest('#eml-rut')&&!e.target.closest('#eml-rut-sugerencias'))cerrarSugerencias();});
     $('eml-guardar').addEventListener('click',guardar);
