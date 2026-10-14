@@ -1182,57 +1182,23 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     </div>
                     <p class="mt-4 text-xs leading-5 text-slate-500">Nota: estos valores cuentan registros, no personas únicas. Los registros sin marca no equivalen automáticamente a faltas injustificadas; esa categoría se calcula por separado según el campo de ausentismo.</p>
                 </div>
-            <!-- VISTA PREVIA · PANEL INTELIGENTE RR. HH. (datos demostrativos) -->
+            <!-- PANEL INTELIGENTE OPERATIVO · métricas consultadas desde Supabase -->
             <section id="dashboard-panel-inteligente" class="hidden space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <span class="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-cyan-800"><i data-lucide="sparkles" class="h-4 w-4"></i> Vista previa</span>
+                        <span class="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-cyan-800"><i data-lucide="sparkles" class="h-4 w-4"></i> Panel operativo</span>
                         <h3 class="mt-3 text-xl font-black text-slate-900 sm:text-2xl">Panel inteligente de asistencia</h3>
-                        <p class="mt-1 max-w-2xl text-sm text-slate-500">Una vista rápida de las prioridades, calidad de datos e importaciones para que el equipo sepa dónde actuar primero.</p>
+                        <p class="mt-1 max-w-2xl text-sm text-slate-500">Indicadores consultados desde la base de datos. Si una consulta falla, se informa como no disponible; nunca se reemplaza por cifras ficticias.</p>
                     </div>
-                    <span class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">Datos de ejemplo · no operativos</span>
+                    <div class="flex items-center gap-3"><span id="pi-estado" class="text-xs text-slate-500">Consultando datos reales…</span><button type="button" onclick="cargarPanelInteligenteOperativo()" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">Actualizar</button></div>
                 </div>
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    <article class="rounded-xl border border-slate-200 p-4">
-                        <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Por revisar</span><span class="grid h-9 w-9 place-items-center rounded-lg bg-amber-50 text-amber-700"><i data-lucide="clipboard-list" class="h-5 w-5"></i></span></div>
-                        <p class="mt-3 text-3xl font-black text-slate-900">12</p><p class="mt-1 text-xs text-slate-500">Incidencias de ejemplo</p>
-                        <button type="button" onclick="cambiarModulo('asistencia')" class="mt-4 text-sm font-bold text-simiRed hover:underline">Revisar asistencia →</button>
-                    </article>
-                    <article class="rounded-xl border border-slate-200 p-4">
-                        <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Datos por validar</span><span class="grid h-9 w-9 place-items-center rounded-lg bg-rose-50 text-rose-700"><i data-lucide="shield-alert" class="h-5 w-5"></i></span></div>
-                        <p class="mt-3 text-3xl font-black text-slate-900">4</p><p class="mt-1 text-xs text-slate-500">Alertas demostrativas</p>
-                        <button type="button" onclick="cambiarModulo('calidad')" class="mt-4 text-sm font-bold text-simiRed hover:underline">Ver calidad de datos →</button>
-                    </article>
-                    <article class="rounded-xl border border-slate-200 p-4">
-                        <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Importaciones</span><span class="grid h-9 w-9 place-items-center rounded-lg bg-sky-50 text-sky-700"><i data-lucide="file-spreadsheet" class="h-5 w-5"></i></span></div>
-                        <p class="mt-3 text-3xl font-black text-slate-900">2</p><p class="mt-1 text-xs text-slate-500">Archivos de muestra</p>
-                        <div class="mt-4 h-2 overflow-hidden rounded-full bg-slate-100"><div class="h-full w-2/3 rounded-full bg-simiRed"></div></div><p class="mt-2 text-[11px] text-slate-500">Progreso ilustrativo · 67%</p>
-                    </article>
-                    <article class="rounded-xl border border-slate-200 p-4">
-                        <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Cobertura</span><span class="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 text-emerald-700"><i data-lucide="users" class="h-5 w-5"></i></span></div>
-                        <p class="mt-3 text-3xl font-black text-slate-900">3</p><p class="mt-1 text-xs text-slate-500">Necesidades de ejemplo</p>
-                        <button type="button" onclick="cambiarModulo('traslados')" class="mt-4 text-sm font-bold text-simiRed hover:underline">Ver coberturas →</button>
-                    </article>
+                    <article class="rounded-xl border border-slate-200 p-4"><div class="text-xs font-bold uppercase tracking-wide text-slate-500">Registros de asistencia</div><p id="pi-asistencia" class="mt-3 text-3xl font-black text-slate-900">—</p><p class="mt-1 text-xs text-slate-500">Registros guardados en el sistema</p><button type="button" onclick="cambiarModulo('asistencia')" class="mt-4 text-sm font-bold text-simiRed hover:underline">Revisar asistencia →</button></article>
+                    <article class="rounded-xl border border-slate-200 p-4"><div class="text-xs font-bold uppercase tracking-wide text-slate-500">Marcas incompletas</div><p id="pi-incompletas" class="mt-3 text-3xl font-black text-slate-900">—</p><p class="mt-1 text-xs text-slate-500">Según el indicador guardado en asistencia</p><button type="button" onclick="cambiarModulo('asistencia')" class="mt-4 text-sm font-bold text-simiRed hover:underline">Revisar incidencias →</button></article>
+                    <article class="rounded-xl border border-slate-200 p-4"><div class="text-xs font-bold uppercase tracking-wide text-slate-500">Coberturas pendientes</div><p id="pi-coberturas" class="mt-3 text-3xl font-black text-slate-900">—</p><p class="mt-1 text-xs text-slate-500">Solicitudes pendientes de gestión</p><button type="button" onclick="cambiarModulo('amonestaciones')" class="mt-4 text-sm font-bold text-simiRed hover:underline">Gestionar coberturas →</button></article>
+                    <article class="rounded-xl border border-slate-200 p-4"><div class="text-xs font-bold uppercase tracking-wide text-slate-500">Última importación</div><p id="pi-importacion" class="mt-3 text-lg font-black text-slate-900">—</p><p id="pi-importacion-detalle" class="mt-1 text-xs text-slate-500">Consultando historial de cargas</p><button type="button" onclick="cambiarModulo('integraciones')" class="mt-4 text-sm font-bold text-simiRed hover:underline">Ver importaciones →</button></article>
                 </div>
-                <div class="grid grid-cols-1 gap-4 xl:grid-cols-5">
-                    <div class="xl:col-span-3 rounded-xl border border-slate-200 p-4">
-                        <div class="flex flex-wrap items-center justify-between gap-2"><div><h4 class="font-extrabold text-slate-900">Prioridades del día</h4><p class="mt-1 text-xs text-slate-500">Ejemplo de cómo ordenar el trabajo por urgencia.</p></div><span class="text-[11px] font-bold uppercase tracking-wide text-slate-400">Demo visual</span></div>
-                        <div class="mt-4 space-y-3">
-                            <div class="flex items-start gap-3 rounded-lg bg-rose-50 p-3"><span class="mt-0.5 text-rose-700"><i data-lucide="alert-circle" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm text-slate-800">Marcas incompletas</strong><span class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-extrabold text-rose-700">Alta</span></div><p class="mt-1 text-xs text-slate-600">Ejemplo: revisar entradas o salidas faltantes antes del cierre.</p></div><button type="button" onclick="cambiarModulo('asistencia')" aria-label="Abrir asistencia" class="rounded-lg border border-rose-200 bg-white px-3 py-2 text-xs font-bold text-rose-700">Abrir</button></div>
-                            <div class="flex items-start gap-3 rounded-lg bg-amber-50 p-3"><span class="mt-0.5 text-amber-700"><i data-lucide="calendar-clock" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm text-slate-800">Licencias próximas a terminar</strong><span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-extrabold text-amber-800">Atención</span></div><p class="mt-1 text-xs text-slate-600">Ejemplo: anticipar revisión de reincorporación y cobertura.</p></div><button type="button" onclick="cambiarModulo('licencias')" aria-label="Abrir licencias" class="rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs font-bold text-amber-800">Abrir</button></div>
-                            <div class="flex items-start gap-3 rounded-lg bg-sky-50 p-3"><span class="mt-0.5 text-sky-700"><i data-lucide="file-check-2" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm text-slate-800">Validar archivos importados</strong><span class="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-extrabold text-sky-700">Control</span></div><p class="mt-1 text-xs text-slate-600">Ejemplo: confirmar período, filas rechazadas y duplicados reemplazados.</p></div><button type="button" onclick="cambiarModulo('integraciones')" aria-label="Abrir integraciones" class="rounded-lg border border-sky-200 bg-white px-3 py-2 text-xs font-bold text-sky-700">Abrir</button></div>
-                        </div>
-                    </div>
-                    <div class="xl:col-span-2 rounded-xl border border-slate-200 p-4">
-                        <h4 class="font-extrabold text-slate-900">Estado de automatizaciones</h4><p class="mt-1 text-xs text-slate-500">Diseño de referencia; no consulta todavía estados reales del bot.</p>
-                        <div class="mt-4 space-y-3">
-                            <div class="flex items-center gap-3"><span class="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-600"><i data-lucide="bot" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><p class="text-sm font-bold text-slate-800">Bot de reportes Talana</p><p class="text-xs text-slate-500">Conectar estado real en siguiente etapa</p></div><span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">Pendiente</span></div>
-                            <div class="flex items-center gap-3"><span class="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-600"><i data-lucide="database" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><p class="text-sm font-bold text-slate-800">Sincronización de datos</p><p class="text-xs text-slate-500">Mostrar última carga confirmada</p></div><span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">Pendiente</span></div>
-                            <div class="flex items-center gap-3"><span class="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-600"><i data-lucide="activity" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><p class="text-sm font-bold text-slate-800">Calidad de datos</p><p class="text-xs text-slate-500">Conectar con alertas reales del sistema</p></div><span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">Pendiente</span></div>
-                        </div>
-                        <div class="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-xs leading-5 text-slate-600">Los números de esta vista son ficticios para mostrar el diseño. No se guardan ni modifican registros laborales.</div>
-                    </div>
-                </div>
+                <div class="rounded-xl border border-slate-200 p-4"><h4 class="font-extrabold text-slate-900">Prioridades basadas en datos reales</h4><div id="pi-prioridades" class="mt-3 space-y-2 text-sm text-slate-600">Consultando indicadores…</div><p id="pi-actualizado" class="mt-3 text-[11px] text-slate-400"></p></div>
             </section>
             </section>
 
