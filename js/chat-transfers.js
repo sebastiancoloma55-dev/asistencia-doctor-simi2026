@@ -266,7 +266,7 @@
       });
       if($("chat-estado"))$("chat-estado").textContent="Conversación conectada · mensajes en tiempo real";
       const {data:list}=await _supabase.rpc("chat_listar_conversaciones");
-      renderConversations(list||[]);
+      renderConversations(await deduplicatePrivateConversations(list||[]));
     }catch(error){
       console.warn("Abrir conversación:",error);
       if(host)host.innerHTML='<p class="text-sm text-rose-700">No tienes acceso a esta conversación o no se pudo cargar.</p>';
