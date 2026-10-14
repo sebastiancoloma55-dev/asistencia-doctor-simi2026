@@ -222,13 +222,9 @@
         let perfilActualSistema=null, modulosPermitidosActuales=[];
         const EMAIL_ADMIN_PRINCIPAL='scoloma@farmaciasdoctorsimi.cl';
         function esAdminPrincipalActual(){return String(perfilActualSistema?.email||'').trim().toLowerCase()===EMAIL_ADMIN_PRINCIPAL;}
-        function esAdministradorConAccesoGlobal(){
-            const rol=String(perfilActualSistema?.rol||'').trim().toUpperCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[\\s-]+/g,'_');
-            return esAdminPrincipalActual() || perfilActualSistema?.acceso_global===true || ['ADMIN','ADMINISTRADOR','SUPERADMIN','SUPER_ADMIN','ADMIN_PRINCIPAL','ADMINISTRADOR_PRINCIPAL'].includes(rol);
-        }
         function tienePermisoModulo(modulo){
-            // Los perfiles administradores y las cuentas con acceso_global pueden administrar los 19 módulos.
-            if(esAdministradorConAccesoGlobal())return true;
+            // El acceso global define el alcance de sucursales; no sustituye los permisos de cada módulo.
+            if(esAdminPrincipalActual())return true;
             if(modulo==='operaciones')return ['tareas','correos','asistencia','licencias','coberturas','reportes'].some(p=>modulosPermitidosActuales.includes(p));
             if(modulo==='calidad'||modulo==='integraciones')return false;
             if(modulo==='notificaciones')return ['tareas','traslados','amonestaciones'].some(p=>modulosPermitidosActuales.includes(p));
@@ -250,7 +246,6 @@
                 if(!data||data.activo===false)throw new Error('Tu cuenta no tiene un perfil activo. Solicita al administrador que habilite tu acceso.');
                 perfilActualSistema=data;
                 modulosPermitidosActuales=Array.isArray(data.permisos)?data.permisos.filter(x=>modulos.includes(x)):[];
-                if(esAdministradorConAccesoGlobal())modulosPermitidosActuales=[...modulos];
                 if(!modulosPermitidosActuales.length)throw new Error('Tu usuario todavía no tiene módulos autorizados.');
             }
             aplicarPermisosVisuales();

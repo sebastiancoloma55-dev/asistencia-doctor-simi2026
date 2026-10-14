@@ -68,6 +68,16 @@ for (const moduleName of requiredModules) {
   if (!views.has(moduleName)) fail(`El módulo ${moduleName} no tiene vista registrada.`);
 }
 
+const permissionFrontend = readFileSync(path.join(root, 'js/workflows.js'), 'utf8');
+if (permissionFrontend.includes('if(esAdministradorConAccesoGlobal())return true;')) fail('El acceso global de sucursales no debe saltarse los permisos de módulos.');
+if (permissionFrontend.includes('if(esAdministradorConAccesoGlobal())modulosPermitidosActuales=[...modulos];')) fail('El acceso global no debe habilitar todos los módulos en la interfaz.');
+const permissionMigrationPath = path.join(root, 'supabase/migrations/20261014001800_separate_branch_scope_from_module_permissions.sql');
+if (!existsSync(permissionMigrationPath)) fail('Falta la migración que separa alcance global y permisos de módulos.');
+else {
+  const permissionMigration = readFileSync(permissionMigrationPath, 'utf8');
+  if (!permissionMigration.includes('coalesce(u.permisos, \'[]\'::jsonb) ? p_permiso')) fail('La autorización de módulo no comprueba el permiso explícito.');
+  if (permissionMigration.includes('u.acceso_global = true')) fail('La migración vuelve a usar acceso_global como permiso universal de módulos.');
+}
 const frontendFiles = ['index.html', ...jsFiles.map(file => path.relative(root, file)).filter(file => file.startsWith('js/'))];
 for (const file of frontendFiles) {
   const content = readFileSync(path.join(root, file), 'utf8');

@@ -21,30 +21,77 @@
             if(error){select.innerHTML='<option value="">No se pudieron cargar sucursales</option>';const status=document.getElementById('dot-estado');if(status)status.textContent='No se pudo cargar el listado de sucursales: '+error.message;return;}
             select.innerHTML='<option value="">Selecciona una sucursal</option>'+(data||[]).map(x=>'<option value="'+escaparHTML(x.id)+'">'+escaparHTML(x.nombre)+'</option>').join('');
         }
+        async function cargarDestinatariosDotacion(){
+            const select=document.getElementById('dot-destinatario');
+            if(!select)return;
+            select.innerHTML='<option value="" disabled>Cargando usuarios activos…</option>';
+            try{
+                const {data,error}=await _supabase.rpc('listar_destinatarios_cobertura');
+                if(error)throw error;
+                const usuarios=(data||[]).filter(u=>u&&u.id!=null);
+                if(!usuarios.length){
+                    select.innerHTML='<option value="" disabled>No hay usuarios disponibles</option>';
+                    return;
+                }
+                select.innerHTML=usuarios.map(u=>{
+                    const nombre=String(u.nombre||u.email||('Usuario '+u.id));
+                    const detalle=[u.rol,u.email].filter(Boolean).join(' · ');
+                    return '<option value="'+escaparHTML(u.id)+'">'+escaparHTML(nombre)+(detalle?' — '+escaparHTML(detalle):'')+'</option>';
+                }).join('');
+            }catch(error){
+                console.error('Cargar destinatarios de cobertura:',error);
+                select.innerHTML='<option value="" disabled>No fue posible cargar usuarios</option>';
+                mostrarToast('No se pudieron cargar los usuarios destinatarios. Verifica permisos y conexión.','error',8000);
+            }
+        }
         async function crearSolicitudDotacion(event){
             event.preventDefault();
             const status=document.getElementById('dot-estado'),form=document.getElementById('form-alerta-dotacion');
             const sucursalId=document.getElementById('dot-sucursal')?.value,opcion=document.getElementById('dot-sucursal')?.selectedOptions?.[0];
             const inicio=document.getElementById('dot-inicio')?.value,fin=document.getElementById('dot-fin')?.value;
             const turno=document.getElementById('dot-turno')?.value,horaini=document.getElementById('dot-hora-inicio')?.value||null,horafin=document.getElementById('dot-hora-fin')?.value||null;
+            const destinatarios=Array.from(document.getElementById('dot-destinatario')?.selectedOptions||[]).map(o=>Number(o.value)).filter(Number.isInteger);
             if(!sucursalId||!inicio||!fin||fin<inicio)return mostrarToast('Selecciona una sucursal y revisa las fechas de la solicitud.','warning');
+            if(!destinatarios.length)return mostrarToast('Selecciona al menos un usuario que deba recibir la alerta.','warning');
             if(horaini&&horafin&&horafin<=horaini)return mostrarToast('La hora de término debe ser posterior a la hora de inicio.','warning');
             try{
-                if(status)status.textContent='Guardando alerta de cobertura…';
-                const me=await _supabase.rpc('chat_usuario_actual_id');if(me.error||!me.data)throw me.error||new Error('Tu usuario no tiene un perfil activo.');
-                const payload={sucursal_id:sucursalId,sucursal_nombre:opcion?.textContent||'',fecha_inicio:inicio,fecha_fin:fin,cantidad:Number(document.getElementById('dot-cantidad')?.value||1),cargo_requerido:document.getElementById('dot-cargo')?.value||'AF',turno,hora_inicio:horaini,hora_fin:horafin,motivo:document.getElementById('dot-motivo')?.value?.trim(),observaciones:document.getElementById('dot-observaciones')?.value?.trim()||null,solicitada_por:me.data,estado:'PENDIENTE'};
-                const {data,error}=await _supabase.from('solicitudes_dotacion').insert(payload).select('id').single();if(error)throw error;
-                await registrarAuditoria('coberturas','CREA_ALERTA_DOTACION',payload.sucursal_nombre+' · '+payload.cargo_requerido+' · '+payload.turno+' · '+payload.fecha_inicio+' a '+payload.fecha_fin);
-                if(status)status.textContent='Alerta enviada · '+new Date().toLocaleString('es-CL',{timeZone:'America/Santiago'})+'. Solicitud '+data.id.slice(0,8)+'.';
-                form?.reset();document.getElementById('dot-dias').value='';actualizarHorarioDotacion();
-                mostrarToast('Alerta de necesidad de personal enviada a la cola de revisión de Traslados.','success',8000);
+                if(status)status.textContent='Guardando la necesidad y enviando la notificación…';
+                const payload={
+                    p_sucursal_id:sucursalId,
+                    p_sucursal_nombre:opcion?.textContent||'',
+                    p_fecha_inicio:inicio,
+                    p_fecha_fin:fin,
+                    p_cantidad:Number(document.getElementById('dot-cantidad')?.value||1),
+                    p_cargo_requerido:document.getElementById('dot-cargo')?.value||'AF',
+                    p_turno:turno,
+                    p_hora_inicio:horaini,
+                    p_hora_fin:horafin,
+                    p_motivo:document.getElementById('dot-motivo')?.value?.trim(),
+                    p_observaciones:document.getElementById('dot-observaciones')?.value?.trim()||null,
+                    p_destinatarios_ids:destinatarios
+                };
+                const {data,error}=await _supabase.rpc('crear_solicitud_dotacion_con_destinatarios',payload);
+                if(error)throw error;
+                const solicitudId=data;
+                await registrarAuditoria('coberturas','CREA_ALERTA_DOTACION',payload.p_sucursal_nombre+' · '+payload.p_cargo_requerido+' · '+payload.p_turno+' · '+payload.p_fecha_inicio+' a '+payload.p_fecha_fin+' · destinatarios '+destinatarios.join(', '));
+                if(status)status.textContent='Necesidad guardada y notificación enviada. Queda pendiente de encontrar y confirmar a la persona. Solicitud '+String(solicitudId).slice(0,8)+'.';
+                form?.reset();
+                const dias=document.getElementById('dot-dias');if(dias)dias.value='';
+                actualizarHorarioDotacion();
+                await cargarDestinatariosDotacion();
+                mostrarToast('Necesidad guardada y alerta enviada a '+destinatarios.length+' usuario(s). No se creó ningún traslado.','success',9000);
                 if(typeof cargarSolicitudesDotacion==='function')await cargarSolicitudesDotacion();
-            }catch(error){console.error('Crear alerta dotación:',error);if(status)status.textContent='No se pudo enviar: '+(error.message||'Error desconocido');mostrarToast('No se pudo guardar la alerta: '+(error.message||''),'error',10000);}
+            }catch(error){
+                console.error('Crear alerta dotación:',error);
+                if(status)status.textContent='No se pudo guardar la solicitud: '+(error.message||'Error desconocido');
+                mostrarToast('No se pudo guardar la necesidad o notificar al destinatario: '+(error.message||''),'error',10000);
+            }
         }
-        async function prepararMapaYConfiguracionSucursales(){
+                async function prepararMapaYConfiguracionSucursales(){
             const lista=await obtenerSucursalesConfig(), opts='<option value="">Seleccione sucursal</option>'+lista.map(x=>`<option value="${escaparHTML(direccionSucursal(x))}">${escaparHTML(x.nombre)}</option>`).join('');
             document.getElementById('map-origen').innerHTML=opts;document.getElementById('map-destino').innerHTML=opts;
             await cargarSucursalesDotacion();
+            await cargarDestinatariosDotacion();
             document.getElementById('tabla-config-sucursales').innerHTML=lista.map(x=>`<tr><td class="p-3 font-bold">${escaparHTML(x.nombre)}</td><td class="p-3">${escaparHTML(direccionSucursal(x))}</td><td class="p-3">${escaparHTML(x.horario_apertura||'')}</td><td class="p-3">${escaparHTML(x.horario_cierre||'')}</td><td class="p-3">${escaparHTML(x.correo_sucursal||'')}</td><td class="p-3">${escaparHTML(x.correo_copia||'')}</td></tr>`).join('');
         }
         function mostrarRutaSucursales(){const o=document.getElementById('map-origen').value,d=document.getElementById('map-destino').value,m=document.getElementById('map-modo').value;if(!o||!d){mostrarToast('Selecciona origen y destino.','warning');return;}document.getElementById('mapa-sucursales').src=`https://www.google.com/maps?output=embed&saddr=${encodeURIComponent(o)}&daddr=${encodeURIComponent(d)}&dirflg=${m}`;}
@@ -108,6 +155,21 @@
             mostrarToast('Borradores restaurados desde tu historial privado. Revisa los destinatarios antes de abrirlos.','success',9000);
         }
 
+        function personaConAusenciaEnFecha(registro) {
+            const fecha = String(registro?.fecha || '').slice(0, 10);
+            const tipo = String(registro?.tipo_ausentismo || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            if (/licencia|medic|permiso|vacacion|ausencia/.test(tipo)) return true;
+            const rut = typeof normalizarRut === 'function' ? normalizarRut(registro?.rut) : String(registro?.rut || '').replace(/[^0-9k]/gi, '').toUpperCase();
+            if (!fecha || !rut) return false;
+            const cubreFecha = ausencia => {
+                const rutAusencia = typeof normalizarRut === 'function' ? normalizarRut(ausencia?.rut) : String(ausencia?.rut || '').replace(/[^0-9k]/gi, '').toUpperCase();
+                const inicio = String(ausencia?.fecha_inicio || '').slice(0, 10);
+                const fin = String(ausencia?.fecha_fin || ausencia?.fecha_inicio || '').slice(0, 10);
+                return rutAusencia === rut && !!inicio && !!fin && fecha >= inicio && fecha <= fin;
+            };
+            return (datosLicenciasGlobal || []).some(cubreFecha) || (datosVacacionesGlobal || []).some(cubreFecha);
+        }
+
         async function prepararCorreosAsistencia() {
             if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para preparar correos.','warning');
             const desde = document.getElementById('correo-desde').value;
@@ -115,12 +177,21 @@
             const minimo = Number(document.getElementById('correo-min-atraso').value) || 0;
             if (!desde || !hasta) return mostrarToast('Selecciona el período desde y hasta.', 'warning');
             if (desde > hasta) return mostrarToast('La fecha Desde no puede ser posterior a Hasta.', 'warning');
-            const filtroSuc = valoresSeleccionados('correo-sucursales');
-            const filtroSup = valoresSeleccionados('correo-supervisores');
-            const agrupar = document.getElementById('correo-agrupar').value;
-            const config = new Map(sucursalesConfiguracionGlobal.map(x => [texto(x.nombre).toLowerCase(), x]));
-            const grupos = new Map();
-            datosAsistenciaGlobal.filter(x => x.fecha >= desde && x.fecha <= hasta).forEach(x => {
+            let filtroSuc, filtroSup, agrupar, config, grupos;
+            try {
+                if (!licenciasCargadas) await cargarLicenciasDesdeNube();
+                if (!vacacionesCargadas) await cargarVacacionesDesdeNube();
+            } catch (error) {
+                console.error('Validación de ausencias antes de preparar correos:', error);
+                mostrarToast('No se generaron borradores: no fue posible validar licencias, permisos y vacaciones. Revisa los permisos de acceso e inténtalo nuevamente.', 'error', 14000);
+                return;
+            }
+            filtroSuc = valoresSeleccionados('correo-sucursales');
+            filtroSup = valoresSeleccionados('correo-supervisores');
+            agrupar = document.getElementById('correo-agrupar').value;
+            config = new Map(sucursalesConfiguracionGlobal.map(x => [texto(x.nombre).toLowerCase(), x]));
+            grupos = new Map();
+            datosAsistenciaGlobal.filter(x => x.fecha >= desde && x.fecha <= hasta && !personaConAusenciaEnFecha(x)).forEach(x => {
                 const cfg = config.get(texto(x.sucursal).toLowerCase()) || {};
                 if (filtroSuc.length && !filtroSuc.includes(x.sucursal)) return;
                 if (filtroSup.length && !filtroSup.includes(cfg.supervisor)) return;
@@ -233,27 +304,92 @@
             XLSX.writeFile(wb, 'Plantilla_correos_sucursales.xlsx');
         }
         async function importarCorreosSucursales(event) {
+            const input = event?.target;
+            const archivo = input?.files?.[0];
+            if (!archivo) return;
+            const normalizarClaveSucursal = valor => String(valor ?? '')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .trim().replace(/\s+/g, ' ').toLocaleLowerCase('es-CL');
+            const normalizarCorreo = valor => String(valor ?? '').trim().replace(/^mailto:/i, '').toLowerCase();
+            const emailValido = valor => /^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(valor);
+            const obtenerCorreoCopia = valor => String(valor ?? '')
+                .split(/[;,\n]+/).map(normalizarCorreo).filter(Boolean);
             try {
-                const filas = await leerExcel(event.target.files[0]);
-                for (const f of filas) {
-                    const nombre = texto(obtenerCampo(f, ['nombre', 'Sucursal', 'Nombre Sucursal']));
-                    if (!nombre) continue;
-                    const cambios = {
-                        supervisor: texto(obtenerCampo(f, ['supervisor', 'Supervisor'])),
-                        correo_sucursal: texto(obtenerCampo(f, ['correo_sucursal', 'Correo Sucursal'])),
-                        correo_copia: texto(obtenerCampo(f, ['correo_copia', 'Correo Copia', 'CC'])),
-                        horario_apertura: texto(obtenerCampo(f, ['horario_apertura', 'Horario Apertura'])),
-                        horario_cierre: texto(obtenerCampo(f, ['horario_cierre', 'Horario Cierre'])),
-                        firma_correo: texto(obtenerCampo(f, ['firma_correo', 'Firma Correo']))
+                const filas = await leerExcel(archivo);
+                if (!Array.isArray(filas) || !filas.length) {
+                    throw new Error('El Excel no contiene filas de datos. Descarga la plantilla oficial y vuelve a intentarlo.');
+                }
+                const { data: sucursales, error: errorSucursales } = await _supabase
+                    .from('sucursales').select('id,nombre,supervisor,correo_sucursal,correo_copia,horario_apertura,horario_cierre,firma_correo');
+                if (errorSucursales) {
+                    if (/firma_correo|schema cache|column/i.test(errorSucursales.message || '')) {
+                        throw new Error('La base de datos no reconoce la columna firma_correo. Primero debe aplicarse la migración SQL de la plataforma; no se modificó ninguna sucursal.');
+                    }
+                    throw errorSucursales;
+                }
+                const porNombre = new Map((sucursales || []).map(s => [normalizarClaveSucursal(s.nombre), s]));
+                const preparadas = [];
+                const errores = [];
+                const nombresVistos = new Set();
+                let filasVacias = 0;
+                for (let i = 0; i < filas.length; i++) {
+                    const f = filas[i];
+                    const nombre = texto(obtenerCampo(f, ['nombre', 'Sucursal', 'Nombre Sucursal', 'Nombre exacto de la sucursal']));
+                    if (!nombre || /^nombre exacto de la sucursal$/i.test(nombre)) { filasVacias++; continue; }
+                    const clave = normalizarClaveSucursal(nombre);
+                    if (nombresVistos.has(clave)) { errores.push('Fila ' + (i + 2) + ': sucursal duplicada en el Excel: ' + nombre); continue; }
+                    nombresVistos.add(clave);
+                    const sucursal = porNombre.get(clave);
+                    if (!sucursal) { errores.push('Fila ' + (i + 2) + ': no existe una sucursal con el nombre "' + nombre + '".'); continue; }
+                    const leer = (nombres, actual) => {
+                        const raw = obtenerCampo(f, nombres, undefined);
+                        return raw === undefined || raw === null || String(raw).trim() === '' ? actual : String(raw).trim();
                     };
-                    const { error } = await _supabase.from('sucursales').update(cambios).eq('nombre', nombre);
-                    if (error) throw error;
+                    const cambios = {
+                        supervisor: leer(['supervisor', 'Supervisor'], sucursal.supervisor || ''),
+                        correo_sucursal: normalizarCorreo(leer(['correo_sucursal', 'Correo Sucursal', 'Correo principal'], sucursal.correo_sucursal || '')),
+                        correo_copia: obtenerCorreoCopia(leer(['correo_copia', 'Correo Copia', 'CC'], sucursal.correo_copia || '')).join(';'),
+                        horario_apertura: leer(['horario_apertura', 'Horario Apertura', 'Hora de apertura'], sucursal.horario_apertura || ''),
+                        horario_cierre: leer(['horario_cierre', 'Horario Cierre', 'Hora de cierre'], sucursal.horario_cierre || ''),
+                        firma_correo: leer(['firma_correo', 'Firma Correo', 'Firma institucional'], sucursal.firma_correo || '')
+                    };
+                    if (cambios.correo_sucursal && !emailValido(cambios.correo_sucursal)) {
+                        errores.push('Fila ' + (i + 2) + ' (' + nombre + '): correo principal inválido: "' + cambios.correo_sucursal + '".');
+                    }
+                    const copiasInvalidas = obtenerCorreoCopia(cambios.correo_copia).filter(email => !emailValido(email));
+                    if (copiasInvalidas.length) {
+                        errores.push('Fila ' + (i + 2) + ' (' + nombre + '): correo(s) en copia inválido(s): ' + copiasInvalidas.join(', ') + '.');
+                    }
+                    if (cambios.horario_apertura && !/^([01]\d|2[0-3]):[0-5]\d$/.test(cambios.horario_apertura)) {
+                        errores.push('Fila ' + (i + 2) + ' (' + nombre + '): hora de apertura debe usar HH:MM.');
+                    }
+                    if (cambios.horario_cierre && !/^([01]\d|2[0-3]):[0-5]\d$/.test(cambios.horario_cierre)) {
+                        errores.push('Fila ' + (i + 2) + ' (' + nombre + '): hora de cierre debe usar HH:MM.');
+                    }
+                    preparadas.push({ id: sucursal.id, nombre: sucursal.nombre, cambios });
+                }
+                if (!preparadas.length) throw new Error('No se encontró ninguna sucursal válida para importar. Revisa la columna nombre.');
+                if (errores.length) {
+                    const resumen = errores.slice(0, 8).join('\n') + (errores.length > 8 ? '\nY ' + (errores.length - 8) + ' error(es) adicional(es).' : '');
+                    throw new Error('Importación cancelada: se encontraron ' + errores.length + ' problema(s). No se modificó ninguna sucursal.\n' + resumen);
+                }
+                let actualizadas = 0;
+                for (const fila of preparadas) {
+                    const { error } = await _supabase.from('sucursales').update(fila.cambios).eq('id', fila.id);
+                    if (error) {
+                        throw new Error('La importación se detuvo al actualizar "' + fila.nombre + '" (' + (actualizadas) + ' actualizadas antes del error): ' + error.message + '. Revisa la columna firma_correo y los permisos de Supabase.');
+                    }
+                    actualizadas++;
                 }
                 await prepararConfiguracionCorreos();
-                await registrarActualizacionFuente('config_correos', event.target.files?.[0]?.name || 'Plantilla de correos', filas.length, 'manual');
-                mostrarToast('Plantilla de correos cargada.', 'success');
-            } catch (e) { mostrarToast(e.message, 'error'); }
-            finally { event.target.value = ''; }
+                await registrarActualizacionFuente('config_correos', archivo.name || 'Plantilla de correos', actualizadas, 'manual');
+                mostrarToast('Importación finalizada: ' + actualizadas + ' sucursal(es) actualizadas. Las celdas vacías conservaron los valores existentes.', 'success', 8000);
+            } catch (e) {
+                console.error('Importación de correos de sucursales:', e);
+                mostrarToast(e.message || 'No se pudo importar el Excel.', 'error', 12000);
+            } finally {
+                if (input) input.value = '';
+            }
         }
         window.filtrarSucursalesMapa14 = function(tipo) {
             const input = document.getElementById(tipo === 'origen' ? 'map14-buscar-origen' : 'map14-buscar-destino');
