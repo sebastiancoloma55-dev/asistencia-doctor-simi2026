@@ -51,20 +51,35 @@
         }
         async function cargarSolicitudesDotacion(){
             const host=document.getElementById('tabla-alertas-dotacion');if(!host)return;
-            host.innerHTML='<tr><td colspan="7" class="p-4 text-sm text-slate-500">Cargando alertas…</td></tr>';
-            const {data,error}=await _supabase.from('solicitudes_dotacion').select('*').order('created_at',{ascending:false}).limit(300);
-            if(error){host.innerHTML='<tr><td colspan="7" class="p-4 text-sm text-rose-700">No se pudieron cargar las alertas: '+escaparHTML(error.message)+'</td></tr>';return;}
-            const rows=data||[];
-            const ids=[...new Set(rows.map(x=>x.solicitada_por).filter(Boolean))];
-            let usuarios=[];
-            if(ids.length){const u=await _supabase.rpc('listar_responsables_cobertura');if(!u.error)usuarios=(u.data||[]).filter(x=>ids.includes(x.id));}
-            const map=new Map(usuarios.map(u=>[String(u.id),u]));
-            host.innerHTML=rows.map(x=>{
-                const estado=x.estado||'PENDIENTE',resuelta=estado==='CUBIERTA',u=map.get(String(x.solicitada_por)),solicitante=u?.nombre||u?.email||'Usuario';
-                const color=resuelta?'bg-emerald-100 text-emerald-800':estado==='RECHAZADA'?'bg-rose-100 text-rose-800':estado==='APROBADA'?'bg-blue-100 text-blue-800':'bg-amber-100 text-amber-800';
-                const acciones=resuelta?'<button type="button" class="rounded-lg bg-blue-700 px-3 py-2 text-xs font-bold text-white" onclick="seleccionarAlertaParaAsignacion(\''+x.id+'\')">Asignar colaborador</button>':estado==='CANCELADA'||estado==='RECHAZADA'?'<span class="text-xs text-slate-500">Sin acciones</span>':'<button type="button" class="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white" onclick="resolverSolicitudDotacion(\''+x.id+'\')">Cobertura resuelta</button>';
-                return '<tr><td class="p-3"><b>'+escaparHTML(x.sucursal_nombre)+'</b><div class="text-xs text-slate-500">'+escaparHTML(x.cargo_requerido)+' · '+escaparHTML(x.turno)+'</div></td><td class="p-3">'+escaparHTML(x.fecha_inicio)+' a '+escaparHTML(x.fecha_fin)+'<div class="text-xs text-slate-500">'+Number(x.cantidad||1)+' persona(s)</div></td><td class="p-3">'+escaparHTML(solicitante)+'</td><td class="p-3">'+escaparHTML(x.motivo)+'</td><td class="p-3"><span class="rounded-full px-2 py-1 text-xs font-bold '+color+'">'+(resuelta?'RESUELTA':escaparHTML(estado))+'</span></td><td class="p-3">'+acciones+'</td></tr>';
-            }).join('')||'<tr><td colspan="6" class="p-4 text-sm text-slate-500">Todavía no hay alertas de cobertura.</td></tr>';
+            host.innerHTML='<tr><td colspan="6" class="p-4 text-sm text-slate-500">Cargando alertas…</td></tr>';
+            const timeout=(ms)=>new Promise((_,reject)=>setTimeout(()=>reject(new Error('La consulta tardó demasiado. Pulsa “Actualizar alertas” para intentarlo otra vez.')),ms));
+            try{
+                const result=await Promise.race([
+                    _supabase.from('solicitudes_dotacion').select('*').order('created_at',{ascending:false}).limit(300),
+                    timeout(15000)
+                ]);
+                const {data,error}=result;
+                if(error)throw error;
+                const rows=data||[];
+                const ids=[...new Set(rows.map(x=>x.solicitada_por).filter(Boolean))];
+                let usuarios=[];
+                if(ids.length){
+                    try{
+                        const u=await Promise.race([_supabase.rpc('listar_responsables_cobertura'),timeout(10000)]);
+                        if(!u.error)usuarios=(u.data||[]).filter(x=>ids.includes(x.id));
+                    }catch(userError){console.warn('No se pudieron cargar nombres de solicitantes:',userError);}
+                }
+                const map=new Map(usuarios.map(u=>[String(u.id),u]));
+                host.innerHTML=rows.map(x=>{
+                    const estado=x.estado||'PENDIENTE',resuelta=estado==='CUBIERTA',u=map.get(String(x.solicitada_por)),solicitante=u?.nombre||u?.email||'Usuario';
+                    const color=resuelta?'bg-emerald-100 text-emerald-800':estado==='RECHAZADA'?'bg-rose-100 text-rose-800':estado==='APROBADA'?'bg-blue-100 text-blue-800':'bg-amber-100 text-amber-800';
+                    const acciones=resuelta?'<button type="button" class="rounded-lg bg-blue-700 px-3 py-2 text-xs font-bold text-white" onclick="seleccionarAlertaParaAsignacion(\''+x.id+'\')">Asignar colaborador</button>':estado==='CANCELADA'||estado==='RECHAZADA'?'<span class="text-xs text-slate-500">Sin acciones</span>':'<button type="button" class="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white" onclick="resolverSolicitudDotacion(\''+x.id+'\')">Cobertura resuelta</button>';
+                    return '<tr><td class="p-3"><b>'+escaparHTML(x.sucursal_nombre)+'</b><div class="text-xs text-slate-500">'+escaparHTML(x.cargo_requerido)+' · '+escaparHTML(x.turno)+'</div></td><td class="p-3">'+escaparHTML(x.fecha_inicio)+' a '+escaparHTML(x.fecha_fin)+'<div class="text-xs text-slate-500">'+Number(x.cantidad||1)+' persona(s)</div></td><td class="p-3">'+escaparHTML(solicitante)+'</td><td class="p-3">'+escaparHTML(x.motivo)+'</td><td class="p-3"><span class="rounded-full px-2 py-1 text-xs font-bold '+color+'">'+(resuelta?'RESUELTA':escaparHTML(estado))+'</span></td><td class="p-3">'+acciones+'</td></tr>';
+                }).join('')||'<tr><td colspan="6" class="p-4 text-sm text-slate-500">Todavía no hay alertas de cobertura.</td></tr>';
+            }catch(error){
+                console.error('Cargar alertas de cobertura:',error);
+                host.innerHTML='<tr><td colspan="6" class="p-4 text-sm text-rose-700">No se pudieron cargar las alertas: '+escaparHTML(error.message||'Error desconocido')+'. Puedes volver a intentarlo con “Actualizar alertas”.</td></tr>';
+            }
         }
         async function resolverSolicitudDotacion(id){
             try{
