@@ -251,3 +251,17 @@ end;
 $$;
 revoke all on function public.resolver_alerta_cobertura(uuid) from public, anon;
 grant execute on function public.resolver_alerta_cobertura(uuid) to authenticated;
+
+-- A designated coverage owner can see the task in their daily task list even if they lack broad task-admin access.
+drop policy if exists tareas_select_cobertura_asignada on public.tareas;
+create policy tareas_select_cobertura_asignada
+on public.tareas for select to authenticated
+using (
+  solicitud_dotacion_id is not null
+  and responsable_rol_id = public.chat_usuario_actual_id()
+  and exists (
+    select 1 from public.solicitud_dotacion_responsables r
+    where r.solicitud_id = tareas.solicitud_dotacion_id
+      and r.usuario_rol_id = public.chat_usuario_actual_id()
+  )
+);
