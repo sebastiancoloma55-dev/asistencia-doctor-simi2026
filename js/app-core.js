@@ -412,6 +412,7 @@
             if (!registros.length) {
                 throw new Error(`No hay registros para guardar en ${tabla}.`);
             }
+            invalidarCacheLecturas(tabla);
 
             let confirmados = 0;
             let lotesProcesados = 0;
@@ -445,6 +446,7 @@
                 lotesProcesados++;
             }
 
+            invalidarCacheLecturas(tabla);
             return {
                 confirmados,
                 lotesProcesados
@@ -452,33 +454,55 @@
         }
 
         const consultasTablaCompletaEnCurso = new Map();
+        // Caché temporal solo en memoria; no persiste datos personales ni licencias.
+        const cacheLecturasTablaCompleta = new Map();
+        const TTL_CACHE_LECTURAS_MS = 20000;
+
+        function invalidarCacheLecturas(tabla = null) {
+            if (!tabla) {
+                cacheLecturasTablaCompleta.clear();
+                return;
+            }
+            for (const clave of cacheLecturasTablaCompleta.keys()) {
+                if (clave.startsWith(tabla + "::")) cacheLecturasTablaCompleta.delete(clave);
+            }
+        }
+        window.invalidarCacheLecturas = invalidarCacheLecturas;
+        if (_supabase?.auth?.onAuthStateChange) {
+            _supabase.auth.onAuthStateChange(event => {
+                if (event === 'SIGNED_OUT') invalidarCacheLecturas();
+            });
+        }
+
         async function leerTablaCompleta(tabla, columnaOrden = null) {
-            const clave = `${tabla}::${columnaOrden || ''}`;
-            // Si dos módulos piden la misma tabla simultáneamente, comparten la consulta
-            // en curso y evitamos duplicar lecturas pesadas a Supabase.
-            if (consultasTablaCompletaEnCurso.has(clave)) return consultasTablaCompletaEnCurso.get(clave);
+            const clave = tabla + "::" + (columnaOrden || "");
+            const ahora = Date.now();
+            const cache = cacheLecturasTablaCompleta.get(clave);
+            if (cache && ahora - cache.timestamp < TTL_CACHE_LECTURAS_MS) return cache.data.slice();
+            if (cache) cacheLecturasTablaCompleta.delete(clave);
+            if (consultasTablaCompletaEnCurso.has(clave)) {
+                return consultasTablaCompletaEnCurso.get(clave).then(rows => rows.slice());
+            }
 
             const promesa = (async () => {
                 const resultado = [];
-                const paginasPorLote = 4;
-                for (let inicioLote = 0; ; inicioLote += TAMANO_PAGINA * paginasPorLote) {
-                    const consultas = Array.from({ length: paginasPorLote }, (_, pagina) => {
-                        const inicio = inicioLote + pagina * TAMANO_PAGINA;
-                        let consulta = _supabase.from(tabla).select('*');
-                        if (columnaOrden) consulta = consulta.order(columnaOrden, { ascending: false });
-                        return consulta.range(inicio, inicio + TAMANO_PAGINA - 1).then(({ data, error }) => {
-                            if (error) throw errorSupabase(`No se pudo leer ${tabla}, filas ${inicio + 1} a ${inicio + TAMANO_PAGINA}`, error);
-                            return data || [];
-                        });
-                    });
-                    const paginas = await Promise.all(consultas);
-                    for (const pagina of paginas) resultado.push(...pagina);
-                    if (paginas.some(pagina => pagina.length < TAMANO_PAGINA)) break;
+                let desde = 0;
+                const TAMANO_PAGINA = 1000;
+                while (true) {
+                    let consulta = _supabase.from(tabla).select('*');
+                    if (columnaOrden) consulta = consulta.order(columnaOrden, { ascending: true });
+                    const { data, error } = await consulta.range(desde, desde + TAMANO_PAGINA - 1);
+                    if (error) throw error;
+                    const pagina = data || [];
+                    resultado.push(...pagina);
+                    if (pagina.length < TAMANO_PAGINA) break;
+                    desde += TAMANO_PAGINA;
                 }
+                cacheLecturasTablaCompleta.set(clave, { timestamp: Date.now(), data: resultado });
                 return resultado;
             })();
             consultasTablaCompletaEnCurso.set(clave, promesa);
-            try { return await promesa; }
+            try { return (await promesa).slice(); }
             finally { consultasTablaCompletaEnCurso.delete(clave); }
         }
 
