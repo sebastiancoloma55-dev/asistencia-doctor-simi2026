@@ -852,6 +852,15 @@
                 });
             }
             if(perfilActualSistema&&!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para acceder a este apartado.','warning');const primero=modulos.find(nombre=>tienePermisoModulo(nombre));if(primero&&primero!==modulo)return cambiarModulo(primero,cargar);return;}
+            // Aislar las vistas: ocultar todas las secciones registradas en el DOM,
+            // incluso si una vista nueva aún no está incluida en el arreglo "modulos".
+            // Evita que módulos secundarios queden visibles al cambiar de apartado.
+            document.querySelectorAll("section[id^='view-']").forEach(vistaSeccion => {
+                vistaSeccion.classList.remove('rrhh-view-enter');
+                vistaSeccion.classList.add('hidden');
+                vistaSeccion.style.display = 'none';
+            });
+
             modulos.forEach(nombre => {
                 const boton = document.getElementById(`btn-${nombre}`);
 
@@ -885,6 +894,7 @@
             const vista = document.getElementById(`view-${modulo}`);
 
             if (vista) {
+                vista.style.display = '';
                 vista.classList.remove('hidden');
                 requestAnimationFrame(() => {
                     if (secuenciaActual === secuenciaCambioModulo && !vista.classList.contains('hidden')) {
@@ -895,6 +905,7 @@
                 if (window.actualizarContextoModulo) window.actualizarContextoModulo(modulo);
             } else {
                 const generic = document.getElementById('view-generic');
+                generic.style.display = '';
                 generic.classList.remove('hidden');
                 requestAnimationFrame(() => {
                     if (secuenciaActual === secuenciaCambioModulo && !generic.classList.contains('hidden')) {
