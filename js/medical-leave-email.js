@@ -165,7 +165,7 @@
       $('lic-correo-estado').textContent='Validando en el servidor si estas licencias ya fueron reservadas por otro usuario…';
       try {
         const {data,error}=await db.rpc('reservar_licencias_medicas_borrador',{
-          p_licencia_ids:b.ids.map(id=>Number(id)),
+          p_licencia_ids:b.ids,
           p_sucursal:b.nombre,
           p_periodo_desde:p.desde,
           p_periodo_hasta:p.hasta
