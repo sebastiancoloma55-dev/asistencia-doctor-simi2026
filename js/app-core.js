@@ -451,34 +451,35 @@
             };
         }
 
+        const consultasTablaCompletaEnCurso = new Map();
         async function leerTablaCompleta(tabla, columnaOrden = null) {
-            const resultado = [];
-            const paginasPorLote = 4;
+            const clave = `${tabla}::${columnaOrden || ''}`;
+            // Si dos módulos piden la misma tabla simultáneamente, comparten la consulta
+            // en curso y evitamos duplicar lecturas pesadas a Supabase.
+            if (consultasTablaCompletaEnCurso.has(clave)) return consultasTablaCompletaEnCurso.get(clave);
 
-            // Consultar hasta cuatro páginas en paralelo reduce los viajes de red
-            // sin cambiar el límite de filas ni omitir registros del histórico.
-            for (let inicioLote = 0; ; inicioLote += TAMANO_PAGINA * paginasPorLote) {
-                const consultas = Array.from({ length: paginasPorLote }, (_, pagina) => {
-                    const inicio = inicioLote + pagina * TAMANO_PAGINA;
-                    let consulta = _supabase.from(tabla).select('*');
-                    if (columnaOrden) {
-                        consulta = consulta.order(columnaOrden, { ascending: false });
-                    }
-                    return consulta.range(inicio, inicio + TAMANO_PAGINA - 1)
-                        .then(({ data, error }) => {
+            const promesa = (async () => {
+                const resultado = [];
+                const paginasPorLote = 4;
+                for (let inicioLote = 0; ; inicioLote += TAMANO_PAGINA * paginasPorLote) {
+                    const consultas = Array.from({ length: paginasPorLote }, (_, pagina) => {
+                        const inicio = inicioLote + pagina * TAMANO_PAGINA;
+                        let consulta = _supabase.from(tabla).select('*');
+                        if (columnaOrden) consulta = consulta.order(columnaOrden, { ascending: false });
+                        return consulta.range(inicio, inicio + TAMANO_PAGINA - 1).then(({ data, error }) => {
                             if (error) throw errorSupabase(`No se pudo leer ${tabla}, filas ${inicio + 1} a ${inicio + TAMANO_PAGINA}`, error);
                             return data || [];
                         });
-                });
-
-                const paginas = await Promise.all(consultas);
-                for (const pagina of paginas) resultado.push(...pagina);
-
-                // Si cualquier página no está completa, ya alcanzamos el final del histórico.
-                if (paginas.some(pagina => pagina.length < TAMANO_PAGINA)) break;
-            }
-
-            return resultado;
+                    });
+                    const paginas = await Promise.all(consultas);
+                    for (const pagina of paginas) resultado.push(...pagina);
+                    if (paginas.some(pagina => pagina.length < TAMANO_PAGINA)) break;
+                }
+                return resultado;
+            })();
+            consultasTablaCompletaEnCurso.set(clave, promesa);
+            try { return await promesa; }
+            finally { consultasTablaCompletaEnCurso.delete(clave); }
         }
 
         const CLAVE_NONCE_SESION_GLOBAL = 'doctor-simi-global-session-nonce';
