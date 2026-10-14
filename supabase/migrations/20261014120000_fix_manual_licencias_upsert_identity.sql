@@ -56,7 +56,10 @@ begin
       gerencia = excluded.gerencia,
       centro_costo = excluded.centro_costo,
       numero_horas = excluded.numero_horas,
-      numero_minutos = excluded.numero_minutos;
+      numero_minutos = excluded.numero_minutos,
+      fecha_creacion = excluded.fecha_creacion,
+      hora_inicio = excluded.hora_inicio,
+      hora_fin = excluded.hora_fin;
 
     v_processed := v_processed + 1;
   end loop;
