@@ -347,7 +347,7 @@
         folder.file(filename+'.eml',eml); folder.file(filename+'.html',mail.cuerpo);
         csv.push([d.rut,d.nombre,d.cargo,d.sucursal,d.fechaRegistro,d.inicio,d.termino,d.retorno,d.dias,d.correoSucursal,d.correoCopia,r.estado_correo||'guardada']);
       }
-      zip.file('Control_de_licencias.csv','\\uFEFF'+csv.map(row=>row.map(csvCelda).join(';')).join('\\r\\n'));
+      zip.file('Control_de_licencias.csv','\uFEFF'+csv.map(row=>row.map(csvCelda).join(';')).join('\r\n'));
       zip.file('LEEME.txt','Borradores para Outlook siguiendo el formato del ZIP de comunicaciones de Asistencia. Extrae el ZIP y abre cada archivo .eml en Outlook. Revisa destinatarios y contenido antes de pulsar Enviar. Los correos NO se envían automáticamente. Incluye también una vista HTML y el CSV de control.');
       const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
       const url=URL.createObjectURL(blob), link=document.createElement('a');
