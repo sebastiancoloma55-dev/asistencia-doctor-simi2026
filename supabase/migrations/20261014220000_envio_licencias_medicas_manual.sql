@@ -47,7 +47,8 @@ returns trigger language plpgsql set search_path=public,pg_temp as $
 begin
   new.updated_at := now();
   return new;
-end $;
+end;
+$;
 drop trigger if exists tg_actualizar_envio_licencia_manual on public.envio_licencias_medicas;
 create trigger tg_actualizar_envio_licencia_manual
 before update on public.envio_licencias_medicas
@@ -64,7 +65,8 @@ begin
   insert into public.envio_licencias_medicas_auditoria(licencia_manual_id,accion,usuario_id,datos_anteriores,datos_nuevos)
   values(new.id,'UPDATE',auth.uid(),to_jsonb(old),to_jsonb(new));
   return new;
-end $;
+end;
+$;
 drop trigger if exists tg_auditar_envio_licencia_manual on public.envio_licencias_medicas;
 create trigger tg_auditar_envio_licencia_manual
 after insert or update on public.envio_licencias_medicas
