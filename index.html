@@ -3263,7 +3263,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       }
       toggle.addEventListener('click',()=>{const opening=pop.hidden;render();pop.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));});
       document.getElementById('simi-context-close').addEventListener('click',()=>{pop.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();});
-      const observer=new MutationObserver(()=>{if(!pop.hidden)render();});
+      const observer=new MutationObserver(()=>{render();});
       document.querySelectorAll('section[id^="view-"]').forEach(v=>observer.observe(v,{attributes:true,attributeFilter:['class']}));
       render();
       document.addEventListener('click',e=>{if(e.target.closest('[onclick*="cambiarModulo"]')&&!pop.contains(e.target)&&!toggle.contains(e.target)){if(!pop.hidden)render();}});
