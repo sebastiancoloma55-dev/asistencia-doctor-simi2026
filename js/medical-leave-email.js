@@ -4,6 +4,10 @@
   let registros = [];
   let sucursales = [];
   let seleccion = new Set();
+  const STORAGE_KEY = 'rrhh_licencias_borrador_solicitado_v1';
+  function idsPreparados() { try { return new Set(JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]').map(String)); } catch (_) { return new Set(); } }
+  function guardarIdsPreparados(ids) { try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify([...ids])); } catch (_) {} }
+  function correoValido(value) { return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(value || '').trim()); }
 
   function esc(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function hoyChile() {
@@ -97,26 +101,44 @@
     elegidas.forEach(r=>{const nombre=r.sucursal||'Sin sucursal'; if(!grupos.has(nombre))grupos.set(nombre,[]);grupos.get(nombre).push(r);});
     const sinCorreo=[];
     const borradores=[];
-    for (const [nombre,casos] of grupos) {
+    const yaPreparadas=idsPreparados();
+    const omitidasDuplicadas=[];
+    for (const [nombre,casosOriginales] of grupos) {
+      const casos=casosOriginales.filter(r=>!yaPreparadas.has(String(r.id)));
+      if(!casos.length){omitidasDuplicadas.push(nombre);continue;}
       const s=porNombre.get(nombre.trim().toLowerCase());
-      const para=s?.correo_sucursal||'';
-      if (!para) {sinCorreo.push(nombre);continue;}
+      let para=String(s?.correo_sucursal||'').trim();
+      if (!para) {
+        const manual=prompt('La sucursal "'+nombre+'" no tiene correo configurado. Ingresa el destinatario oficial para este borrador (o cancela para omitirla):','');
+        if(manual===null){sinCorreo.push(nombre);continue;}
+        para=manual.trim();
+      }
+      if(!correoValido(para)){sinCorreo.push(nombre+' (correo no válido)');continue;}
       const p=periodo();
       const asunto='Gestión de licencias médicas ingresadas · '+nombre+' · '+p.desde+' al '+p.hasta;
       // Minimización de datos: no incluir diagnóstico ni motivo médico.
       const cuerpo='Estimado equipo de '+nombre+':\n\nJunto con saludar, informamos que se registraron '+casos.length+' licencia(s) médica(s) en el sistema durante el período '+p.desde+' al '+p.hasta+'.\n\nPor favor, revisar y gestionar los registros que correspondan:\n\n'+casos.map((r,i)=>(i+1)+'. '+(r.nombre||'Sin nombre')+' | RUT: '+(r.rut||'—')+' | Período: '+(r.fecha_inicio||'—')+' al '+(r.fecha_fin||'—')+' | Días: '+(r.dias_ausencia??'—')).join('\n')+'\n\nEste correo fue preparado como borrador para revisión. No constituye confirmación de envío.\n\nSaludos cordiales,\nGestión de Asistencia\nRecursos Humanos\nFarmacias de Similares Chile S.A.';
       borradores.push({nombre,para,cc:s?.correo_copia||'',asunto,cuerpo,total:casos.length});
     }
-    if (!borradores.length) {alert('Las sucursales seleccionadas no tienen correo configurado. No se generaron borradores.');return;}
-    const resumen='Se prepararán '+borradores.length+' borrador(es) para '+elegidas.length+' licencia(s).'+(sinCorreo.length?'\nSin correo configurado: '+sinCorreo.join(', '):'')+'\n\n¿Continuar?';
+    if (!borradores.length) {
+      alert(omitidasDuplicadas.length
+        ? 'No se generaron borradores nuevos: las licencias seleccionadas ya se procesaron en esta pestaña o no tienen un destinatario válido. Recarga solo si necesitas reiniciar esta sesión.'
+        : 'No se generaron borradores. Verifica que las sucursales tengan correo configurado o ingresa un correo oficial válido.');
+      return;
+    }
+    const resumen='Se solicitará abrir '+borradores.length+' borrador(es) para '+borradores.reduce((n,b)=>n+b.total,0)+' licencia(s):\n\n'+borradores.map(b=>'• '+b.nombre+' → Para: '+b.para+(b.cc?' | CC: '+b.cc:'')+' ('+b.total+' licencia(s))').join('\n')+(sinCorreo.length?'\n\nOmitidas por falta de correo válido: '+sinCorreo.join(', '):'')+(omitidasDuplicadas.length?'\n\nOmitidas por posible duplicado en esta pestaña: '+omitidasDuplicadas.join(', '):'')+'\n\nConfirma que los destinatarios sean oficiales. ¿Continuar?';
     if(!confirm(resumen))return;
+    const ids=idsPreparados();
+    borradores.forEach(b=>b.ids=grupos.get(b.nombre).filter(r=>!ids.has(String(r.id))).map(r=>String(r.id)));
     borradores.forEach((b,i)=>{
       const url='mailto:'+encodeURIComponent(b.para)+'?cc='+encodeURIComponent(b.cc)+'&subject='+encodeURIComponent(b.asunto)+'&body='+encodeURIComponent(b.cuerpo);
       if(i===0) window.location.href=url;
-      else setTimeout(()=>window.open(url,'_blank','noopener'),i*500);
+      else setTimeout(()=>window.open(url,'_blank','noopener'),i*700);
+      b.ids.forEach(id=>ids.add(id));
     });
-    $('lic-correo-estado').textContent='Se solicitó abrir '+borradores.length+' borrador(es) en el cliente de correo. Revisa Outlook y envía manualmente; la plataforma no confirma el envío.';
-    alert('Se solicitaron '+borradores.length+' borrador(es). Outlook o el navegador puede requerir permitir ventanas emergentes. Verifica cada borrador antes de enviarlo.');
+    guardarIdsPreparados(ids);
+    $('lic-correo-estado').textContent='Se solicitó abrir '+borradores.length+' borrador(es). La sesión marcará estos registros para evitar repetir la solicitud de apertura. Esto no confirma que Outlook lo haya abierto ni que el correo se haya enviado.';
+    alert('Se solicitó abrir '+borradores.length+' borrador(es). Si son varios, el navegador puede bloquear ventanas adicionales. Verifica destinatarios y contenido en Outlook; el envío siempre es manual.');
   }
   function iniciar() {
     if (!$('lic-correo-periodo') || $('lic-correo-periodo').dataset.ready==='1') return;
