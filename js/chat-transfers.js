@@ -153,8 +153,31 @@
     chatBusy=true;
     try{
       const me=await currentUserId();
-      const title=$("chat-titulo-nuevo")?.value.trim();
       const chosenUsers=chatUsers.filter(u=>chosen.includes(Number(u.id)));
+      if(chosenUsers.length===1){
+        const {data:existing,error:existingError}=await _supabase.rpc("chat_listar_conversaciones");
+        if(existingError)throw existingError;
+        const privateIds=(existing||[]).filter(item=>item.tipo==="PRIVADA").map(item=>item.id);
+        if(privateIds.length){
+          const {data:members,error:membersError}=await _supabase.from("chat_participantes")
+            .select("conversacion_id,usuario_rol_id").in("conversacion_id",privateIds);
+          if(membersError)throw membersError;
+          const targetIds=[Number(me),Number(chosenUsers[0].id)].sort((a,b)=>a-b);
+          const existingPrivate=(existing||[]).filter(item=>item.tipo==="PRIVADA").find(item=>{
+            const ids=(members||[]).filter(member=>member.conversacion_id===item.id)
+              .map(member=>Number(member.usuario_rol_id)).sort((a,b)=>a-b);
+            return ids.length===2&&ids[0]===targetIds[0]&&ids[1]===targetIds[1];
+          });
+          if(existingPrivate){
+            $("chat-titulo-nuevo").value="";
+            Array.from($("chat-usuarios-nuevos").options).forEach(o=>o.selected=false);
+            await abrirConversacionChat(existingPrivate.id);
+            setStatus("chat-estado","Ya existía una conversación con esa persona. Abrimos el chat anterior.");
+            return;
+          }
+        }
+      }
+      const title=$("chat-titulo-nuevo")?.value.trim();
       const finalTitle=title||(chosenUsers.length===1?(chosenUsers[0].nombre||chosenUsers[0].email):"Grupo de Recursos Humanos");
       const {data:conversation,error}=await _supabase.from("chat_conversaciones").insert({
         titulo:finalTitle.slice(0,80),tipo:chosenUsers.length===1?"PRIVADA":"GRUPO",creado_por:me
