@@ -2977,6 +2977,15 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         return;
       }
       var resultado=await originalChange.apply(this,arguments);
+      // Cinturón de seguridad: el Dashboard y su panel inteligente solo pueden verse en la ruta Dashboard.
+      // Evita que el contenido del Dashboard quede visible al navegar a Coberturas, Traslados u otro módulo.
+      var dashboardView=document.getElementById('view-dashboard');
+      if(dashboardView){
+        var mostrarDashboard=String(modulo||'').trim().toLowerCase()==='dashboard';
+        dashboardView.classList.toggle('hidden',!mostrarDashboard);
+        var panelInteligente=document.getElementById('dashboard-panel-inteligente');
+        if(panelInteligente)panelInteligente.classList.toggle('hidden',!mostrarDashboard);
+      }
       if(modulo==='mapas'){setTimeout(function(){var mapa=asegurarMapaLeaflet();if(mapa)mapa.invalidateSize();},220);}
       return resultado;
     };
