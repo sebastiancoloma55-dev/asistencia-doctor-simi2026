@@ -526,8 +526,17 @@
                 const fechaCaso = normalizarFechaProteccionCorreo(x.fecha);
                 if (!fechaCaso || fechaCaso < desde || fechaCaso > hasta) continue;
                 const cfg = config.get(texto(x.sucursal).toLowerCase()) || {};
-                if (filtroSuc.length && !filtroSuc.includes(x.sucursal)) continue;
-                if (filtroSup.length && !filtroSup.includes(cfg.supervisor)) continue;
+                // Los filtros de supervisores y sucursales se combinan como una unión (OR):
+                // incluye las sucursales de los supervisores elegidos MÁS las sucursales
+                // seleccionadas manualmente, aunque pertenezcan a otros supervisores.
+                // Si no se elige nada en ninguno de los dos filtros, se incluyen todas.
+                const sucursalActual = texto(x.sucursal).trim().toLocaleLowerCase('es-CL');
+                const supervisorActual = texto(cfg.supervisor).trim().toLocaleLowerCase('es-CL');
+                const sucursalElegida = filtroSuc.some(v => texto(v).trim().toLocaleLowerCase('es-CL') === sucursalActual);
+                const supervisorElegido = filtroSup.some(v => texto(v).trim().toLocaleLowerCase('es-CL') === supervisorActual);
+                if (filtroSuc.length || filtroSup.length) {
+                    if (!sucursalElegida && !supervisorElegido) continue;
+                }
                 const detalles = [];
                 if (document.getElementById('correo-t-atraso').checked && x.tiene_atraso && minutosAtraso(x.atraso) >= minimo) detalles.push(`Atraso: ${x.atraso}. Favor indicar motivo.`);
                 if (document.getElementById('correo-t-temprana').checked && x.salida_temprana && x.salida_temprana !== '-') detalles.push(`Salida anticipada: ${x.salida_temprana}. Favor indicar motivo.`);
