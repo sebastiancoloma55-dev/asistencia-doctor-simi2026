@@ -1182,6 +1182,58 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     </div>
                     <p class="mt-4 text-xs leading-5 text-slate-500">Nota: estos valores cuentan registros, no personas únicas. Los registros sin marca no equivalen automáticamente a faltas injustificadas; esa categoría se calcula por separado según el campo de ausentismo.</p>
                 </div>
+            <!-- VISTA PREVIA · PANEL INTELIGENTE RR. HH. (datos demostrativos) -->
+            <section id="dashboard-panel-inteligente" class="hidden space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <span class="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-cyan-800"><i data-lucide="sparkles" class="h-4 w-4"></i> Vista previa</span>
+                        <h3 class="mt-3 text-xl font-black text-slate-900 sm:text-2xl">Panel inteligente de asistencia</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-slate-500">Una vista rápida de las prioridades, calidad de datos e importaciones para que el equipo sepa dónde actuar primero.</p>
+                    </div>
+                    <span class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">Datos de ejemplo · no operativos</span>
+                </div>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <article class="rounded-xl border border-slate-200 p-4">
+                        <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Por revisar</span><span class="grid h-9 w-9 place-items-center rounded-lg bg-amber-50 text-amber-700"><i data-lucide="clipboard-list" class="h-5 w-5"></i></span></div>
+                        <p class="mt-3 text-3xl font-black text-slate-900">12</p><p class="mt-1 text-xs text-slate-500">Incidencias de ejemplo</p>
+                        <button type="button" onclick="cambiarModulo('asistencia')" class="mt-4 text-sm font-bold text-simiRed hover:underline">Revisar asistencia →</button>
+                    </article>
+                    <article class="rounded-xl border border-slate-200 p-4">
+                        <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Datos por validar</span><span class="grid h-9 w-9 place-items-center rounded-lg bg-rose-50 text-rose-700"><i data-lucide="shield-alert" class="h-5 w-5"></i></span></div>
+                        <p class="mt-3 text-3xl font-black text-slate-900">4</p><p class="mt-1 text-xs text-slate-500">Alertas demostrativas</p>
+                        <button type="button" onclick="cambiarModulo('calidad')" class="mt-4 text-sm font-bold text-simiRed hover:underline">Ver calidad de datos →</button>
+                    </article>
+                    <article class="rounded-xl border border-slate-200 p-4">
+                        <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Importaciones</span><span class="grid h-9 w-9 place-items-center rounded-lg bg-sky-50 text-sky-700"><i data-lucide="file-spreadsheet" class="h-5 w-5"></i></span></div>
+                        <p class="mt-3 text-3xl font-black text-slate-900">2</p><p class="mt-1 text-xs text-slate-500">Archivos de muestra</p>
+                        <div class="mt-4 h-2 overflow-hidden rounded-full bg-slate-100"><div class="h-full w-2/3 rounded-full bg-simiRed"></div></div><p class="mt-2 text-[11px] text-slate-500">Progreso ilustrativo · 67%</p>
+                    </article>
+                    <article class="rounded-xl border border-slate-200 p-4">
+                        <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Cobertura</span><span class="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 text-emerald-700"><i data-lucide="users" class="h-5 w-5"></i></span></div>
+                        <p class="mt-3 text-3xl font-black text-slate-900">3</p><p class="mt-1 text-xs text-slate-500">Necesidades de ejemplo</p>
+                        <button type="button" onclick="cambiarModulo('traslados')" class="mt-4 text-sm font-bold text-simiRed hover:underline">Ver coberturas →</button>
+                    </article>
+                </div>
+                <div class="grid grid-cols-1 gap-4 xl:grid-cols-5">
+                    <div class="xl:col-span-3 rounded-xl border border-slate-200 p-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2"><div><h4 class="font-extrabold text-slate-900">Prioridades del día</h4><p class="mt-1 text-xs text-slate-500">Ejemplo de cómo ordenar el trabajo por urgencia.</p></div><span class="text-[11px] font-bold uppercase tracking-wide text-slate-400">Demo visual</span></div>
+                        <div class="mt-4 space-y-3">
+                            <div class="flex items-start gap-3 rounded-lg bg-rose-50 p-3"><span class="mt-0.5 text-rose-700"><i data-lucide="alert-circle" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm text-slate-800">Marcas incompletas</strong><span class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-extrabold text-rose-700">Alta</span></div><p class="mt-1 text-xs text-slate-600">Ejemplo: revisar entradas o salidas faltantes antes del cierre.</p></div><button type="button" onclick="cambiarModulo('asistencia')" aria-label="Abrir asistencia" class="rounded-lg border border-rose-200 bg-white px-3 py-2 text-xs font-bold text-rose-700">Abrir</button></div>
+                            <div class="flex items-start gap-3 rounded-lg bg-amber-50 p-3"><span class="mt-0.5 text-amber-700"><i data-lucide="calendar-clock" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm text-slate-800">Licencias próximas a terminar</strong><span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-extrabold text-amber-800">Atención</span></div><p class="mt-1 text-xs text-slate-600">Ejemplo: anticipar revisión de reincorporación y cobertura.</p></div><button type="button" onclick="cambiarModulo('licencias')" aria-label="Abrir licencias" class="rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs font-bold text-amber-800">Abrir</button></div>
+                            <div class="flex items-start gap-3 rounded-lg bg-sky-50 p-3"><span class="mt-0.5 text-sky-700"><i data-lucide="file-check-2" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm text-slate-800">Validar archivos importados</strong><span class="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-extrabold text-sky-700">Control</span></div><p class="mt-1 text-xs text-slate-600">Ejemplo: confirmar período, filas rechazadas y duplicados reemplazados.</p></div><button type="button" onclick="cambiarModulo('integraciones')" aria-label="Abrir integraciones" class="rounded-lg border border-sky-200 bg-white px-3 py-2 text-xs font-bold text-sky-700">Abrir</button></div>
+                        </div>
+                    </div>
+                    <div class="xl:col-span-2 rounded-xl border border-slate-200 p-4">
+                        <h4 class="font-extrabold text-slate-900">Estado de automatizaciones</h4><p class="mt-1 text-xs text-slate-500">Diseño de referencia; no consulta todavía estados reales del bot.</p>
+                        <div class="mt-4 space-y-3">
+                            <div class="flex items-center gap-3"><span class="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-600"><i data-lucide="bot" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><p class="text-sm font-bold text-slate-800">Bot de reportes Talana</p><p class="text-xs text-slate-500">Conectar estado real en siguiente etapa</p></div><span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">Pendiente</span></div>
+                            <div class="flex items-center gap-3"><span class="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-600"><i data-lucide="database" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><p class="text-sm font-bold text-slate-800">Sincronización de datos</p><p class="text-xs text-slate-500">Mostrar última carga confirmada</p></div><span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">Pendiente</span></div>
+                            <div class="flex items-center gap-3"><span class="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-600"><i data-lucide="activity" class="h-5 w-5"></i></span><div class="min-w-0 flex-1"><p class="text-sm font-bold text-slate-800">Calidad de datos</p><p class="text-xs text-slate-500">Conectar con alertas reales del sistema</p></div><span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">Pendiente</span></div>
+                        </div>
+                        <div class="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-xs leading-5 text-slate-600">Los números de esta vista son ficticios para mostrar el diseño. No se guardan ni modifican registros laborales.</div>
+                    </div>
+                </div>
+            </section>
             </section>
 
             <!-- MI ESPACIO DE TRABAJO -->
@@ -2012,6 +2064,32 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 <div class="helper-note"><strong>Seguridad:</strong> no pegues claves privadas de Talana, IMED, Google, Microsoft ni Supabase en esta pantalla. Las credenciales deben almacenarse como variables de entorno en el servidor.</div>
             </section>
 
+            <style id="chat-whatsapp-style">
+                #view-chat .module-intro{display:none}
+                #view-chat .ui-card{border:1px solid #d1d7db;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(11,20,26,.08)}
+                #view-chat aside{background:#f0f2f5!important;border-color:#d1d7db!important;padding:14px}
+                #view-chat aside h4{color:#111b21}
+                #view-chat aside .corp-button{background:#008069!important;border-color:#008069!important;color:#fff!important;border-radius:9px}
+                #view-chat #chat-conversaciones-list{display:flex;flex-direction:column;gap:0!important;margin-top:8px}
+                #view-chat #chat-conversaciones-list button{position:relative;border:0!important;border-bottom:1px solid #e9edef!important;border-radius:0!important;background:transparent!important;padding:13px 10px!important;min-height:68px}
+                #view-chat #chat-conversaciones-list button:hover,#view-chat #chat-conversaciones-list button.border-blue-300{background:#e9edef!important}
+                #view-chat #chat-conversaciones-list button span:first-child{font-size:14px;color:#111b21!important;font-weight:600}
+                #view-chat #chat-conversaciones-list button span:nth-child(2){font-size:11px;color:#667781!important}
+                #view-chat #chat-conversaciones-list button span.bg-blue-700{background:#25d366!important;color:#fff!important;border-radius:999px!important;padding:3px 7px!important}
+                #view-chat #chat-conversacion-titulo{background:#f0f2f5;border-color:#d1d7db;padding:14px 18px}
+                #view-chat #chat-conversacion-titulo h4{color:#111b21}
+                #view-chat #chat-mensajes{background-color:#efeae2;background-image:radial-gradient(rgba(120,110,95,.09) .7px,transparent .7px);background-size:12px 12px;padding:18px}
+                #view-chat #chat-mensajes>div{margin:3px 0}
+                #view-chat #chat-mensajes>div>div{border:0!important;border-radius:8px!important;box-shadow:0 1px 1px rgba(0,0,0,.12)!important;padding:8px 10px!important}
+                #view-chat #chat-mensajes>div>div.bg-blue-700{background:#d9fdd3!important;color:#111b21!important;border-radius:8px 0 8px 8px!important}
+                #view-chat #chat-mensajes>div>div.bg-white{background:#fff!important;color:#111b21!important;border-radius:0 8px 8px 8px!important}
+                #view-chat #chat-mensajes>div>div p{line-height:1.45}
+                #view-chat #chat-form-mensaje{background:#f0f2f5;border-color:#d1d7db;flex-wrap:nowrap}
+                #view-chat #chat-form-mensaje #chat-mensaje-input{background:#fff;border:0;border-radius:24px;padding:11px 16px}
+                #view-chat #chat-form-mensaje button#chat-enviar{background:#008069!important;border-color:#008069!important;border-radius:24px;color:#fff!important}
+                #view-chat #chat-estado{background:#f0f2f5;color:#667781;padding-top:3px}
+                @media(max-width:767px){#view-chat .ui-card{grid-template-columns:minmax(0,1fr);min-height:calc(100dvh - 170px)}#view-chat aside{border-right:0!important;border-bottom:1px solid #d1d7db!important}#view-chat #chat-conversaciones-list{max-height:230px;overflow:auto}#view-chat #chat-mensajes{min-height:300px}#view-chat #chat-form-mensaje label{display:none}}
+            </style>
             <section id="view-chat" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro">
                     <span class="module-kicker"><i data-lucide="messages-square" class="h-3 w-3"></i> Comunicación interna</span>
@@ -2020,9 +2098,9 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 </div>
                 <div class="ui-card grid min-h-[560px] grid-cols-1 overflow-hidden lg:grid-cols-[300px_minmax(0,1fr)]">
                     <aside class="border-b border-slate-200 bg-slate-50 p-4 lg:border-b-0 lg:border-r">
-                        <h4 class="font-extrabold text-slate-900">Iniciar chat o grupo</h4>
-                        <label class="mt-3 block text-xs font-bold text-slate-600">Nombre del grupo (opcional)</label>
-                        <input id="chat-titulo-nuevo" class="form-field mt-1" maxlength="80" placeholder="Ej. Equipo de asistencia">
+                        <h4 class="font-extrabold text-slate-900">Chats</h4><p class="mt-1 text-xs text-slate-500">Un chat por persona; los existentes se reutilizan. Selecciona varias personas solo para crear un grupo.</p>
+                        <label class="mt-3 block text-xs font-bold text-slate-600">Nombre del grupo (solo si eliges varias personas)</label>
+                        <input id="chat-titulo-nuevo" class="form-field mt-1" maxlength="80" placeholder="Ej. Equipo de asistencia (opcional)">
                         <label class="mt-3 block text-xs font-bold text-slate-600">Participantes</label>
                         <select id="chat-usuarios-nuevos" class="form-field mt-1 min-h-32" multiple size="5" aria-label="Seleccionar participantes"></select>
                         <button type="button" class="corp-button mt-3 w-full" onclick="crearConversacionChat()">Abrir chat / Crear grupo</button>
@@ -2070,17 +2148,6 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     </form>
                     <p id="traslado-estado" class="mt-3 text-xs text-slate-500" aria-live="polite"></p>
                 </div>
-                <div class="ui-card overflow-hidden border border-indigo-100">
-                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 via-sky-50 to-cyan-50 p-4"><div><h4 class="font-extrabold text-slate-900"><i data-lucide="bell-ring" class="mr-2 inline h-4 w-4 text-indigo-700"></i>Alertas de necesidad de personal</h4><p class="mt-1 text-xs text-slate-600">Revisa las sucursales que solicitan apoyo por fecha, días, cargo y turno.</p></div><button type="button" class="corp-button-dark text-xs" onclick="cargarSolicitudesDotacion()">Actualizar alertas</button></div>
-                    <div class="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_minmax(145px,.7fr)_minmax(130px,.55fr)_minmax(130px,.55fr)_auto]">
-                        <input id="dotacion-filtro-buscar" type="search" class="form-field" placeholder="Buscar sucursal, cargo, turno o motivo…" aria-label="Buscar solicitudes de dotación" oninput="filtrarSolicitudesDotacion()">
-                        <select id="dotacion-filtro-estado" class="form-field" aria-label="Filtrar solicitudes por estado" onchange="filtrarSolicitudesDotacion()"><option value="TODOS">Todos los estados</option><option value="PENDIENTE">Pendientes</option><option value="APROBADA">Aprobadas</option><option value="CUBIERTA">Cubiertas</option><option value="RECHAZADA">Rechazadas</option><option value="CANCELADA">Canceladas</option></select>
-                        <input id="dotacion-filtro-desde" type="date" class="form-field" aria-label="Fecha de inicio desde" title="Inicio desde" onchange="filtrarSolicitudesDotacion()">
-                        <input id="dotacion-filtro-hasta" type="date" class="form-field" aria-label="Fecha de inicio hasta" title="Inicio hasta" onchange="filtrarSolicitudesDotacion()">
-                        <button type="button" class="corp-button-dark text-xs" onclick="limpiarFiltrosSolicitudesDotacion()">Limpiar</button>
-                    </div>
-                    <p id="dotacion-filter-summary" class="mb-2 text-xs text-slate-500" aria-live="polite">Consultando conteos…</p>
-                    <div class="table-scroll"><table class="w-full min-w-[1050px] text-left"><thead class="bg-white text-[11px] uppercase text-slate-500"><tr><th class="p-3">Sucursal / cargo</th><th class="p-3">Período</th><th class="p-3">Turno</th><th class="p-3">Cantidad</th><th class="p-3">Motivo</th><th class="p-3">Estado</th><th class="p-3">Acciones</th></tr></thead><tbody id="dotacion-alertas-lista" class="divide-y divide-slate-100 text-xs"><tr><td colspan="7" class="p-6 text-center text-slate-500">Cargando alertas…</td></tr></tbody></table></div>
                 </div>
                 <div class="ui-card overflow-hidden">
                     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 p-4"><div><h4 class="font-extrabold">Solicitudes e historial</h4><p class="mt-1 text-xs text-slate-500">Las aprobaciones requieren el permiso específico de traslados.</p></div><div class="flex gap-2"><select id="traslado-filtro-estado" class="form-field" onchange="cargarTrasladosPersonal()"><option value="TODOS">Todos los estados</option><option>SOLICITADO</option><option>APROBADO</option><option>RECHAZADO</option><option>CANCELADO</option><option>COMPLETADO</option></select><button type="button" class="corp-button-dark" onclick="cargarTrasladosPersonal()">Actualizar</button></div></div>
@@ -3141,5 +3208,80 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
 })();
 </script>
 
+
+    <!-- ASISTENTE CONTEXTUAL GLOBAL · vista previa -->
+    <style>
+      #simi-context-assistant{position:fixed;right:18px;bottom:56px;z-index:70;font-family:inherit}
+      #simi-context-toggle{display:flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:12px 16px;background:#073b70;color:#fff;font-size:13px;font-weight:800;box-shadow:0 10px 28px rgba(7,59,112,.24);cursor:pointer}
+      #simi-context-toggle:focus-visible,#simi-context-close:focus-visible{outline:3px solid #0ea5e9;outline-offset:3px}
+      #simi-context-popover{width:min(360px,calc(100vw - 28px));margin-bottom:10px;border:1px solid #dbe4ee;border-radius:18px;background:#fff;color:#0f172a;box-shadow:0 18px 48px rgba(15,23,42,.18);overflow:hidden}
+      #simi-context-popover[hidden]{display:none}
+      #simi-context-head{padding:16px;background:#f1f8fc;border-bottom:1px solid #dbe4ee}
+      #simi-context-content{padding:16px}
+      #simi-context-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+      #simi-context-links button{border:1px solid #dbe4ee;border-radius:9px;background:#fff;padding:8px 10px;color:#075985;font-size:12px;font-weight:800;cursor:pointer}
+      #simi-context-links button:hover{background:#f1f8fc}
+      @media(max-width:640px){#simi-context-assistant{right:10px;bottom:44px}#simi-context-toggle{padding:11px 13px}#simi-context-toggle span{display:none}}
+    </style>
+    <div id="simi-context-assistant">
+      <section id="simi-context-popover" hidden aria-label="Asistente contextual de RR. HH." aria-live="polite">
+        <div id="simi-context-head" class="flex items-start justify-between gap-3">
+          <div><span class="text-[10px] font-extrabold uppercase tracking-widest text-sky-800">Asistencia Doctor Simi</span><h3 id="simi-context-title" class="mt-1 text-base font-black">Ayuda del módulo</h3></div>
+          <button id="simi-context-close" type="button" aria-label="Cerrar asistente" class="rounded-lg px-2 py-1 text-slate-500 hover:bg-white">✕</button>
+        </div>
+        <div id="simi-context-content"><p class="text-sm text-slate-600">Selecciona un módulo para ver sus recomendaciones.</p></div>
+        <div id="simi-context-links" class="px-4 pb-4"></div>
+        <p class="border-t border-slate-100 px-4 py-3 text-[10px] leading-4 text-slate-500">Ayuda contextual de vista previa. Las recomendaciones son orientativas y no modifican datos ni ejecutan aprobaciones.</p>
+      </section>
+      <button id="simi-context-toggle" type="button" aria-expanded="false" aria-controls="simi-context-popover"><i data-lucide="sparkles" class="h-5 w-5"></i><span>Asistente RR. HH.</span></button>
+    </div>
+    <script>
+    (function(){
+      const contexts={
+        dashboard:{title:'Resumen general',text:'Revisa primero las prioridades del día y luego entra al módulo correspondiente. Los indicadores reales dependen de los permisos y de la última carga confirmada.',links:[['Asistencia','asistencia'],['Licencias','licencias'],['Integraciones','integraciones']]},
+        espacio:{title:'Mi espacio de trabajo',text:'Usa notas y recordatorios para organizar gestiones pendientes. Evita registrar datos personales sensibles que no sean necesarios.',links:[['Tareas','tareas'],['Notificaciones','notificaciones']]},
+        colaboradores:{title:'Colaboradores',text:'Antes de modificar una ficha, verifica la identidad laboral y la sucursal asignada. Revisa duplicados y mantén actualizados los datos de referencia.',links:[['Sucursales','sucursales'],['Asistencia','asistencia']]},
+        sucursales:{title:'Sucursales',text:'Comprueba que cada sucursal tenga responsables, dotación y datos de ubicación actualizados. Contrasta cualquier cambio con la información oficial.',links:[['Colaboradores','colaboradores'],['Mapa y distancias','mapas']]},
+        asistencia:{title:'Control de asistencia',text:'Prioriza marcas incompletas, atrasos y diferencias entre el turno asignado y la marcación. No conviertas automáticamente una marca faltante en falta injustificada.',links:[['Calidad de datos','calidad'],['Reportes','reportes']]},
+        licencias:{title:'Licencias médicas',text:'Revisa fechas de inicio y término, posibles continuidades y la recepción del documento. Protege la información médica y valida los antecedentes antes de regularizar.',links:[['Asistencia','asistencia'],['Notificaciones','notificaciones']]},
+        vacaciones:{title:'Vacaciones y permisos',text:'Verifica saldo, fechas solicitadas, solapamientos y cobertura de la sucursal antes de tramitar una solicitud.',links:[['Cobertura','traslados'],['Tareas','tareas']]},
+        papeletas:{title:'Papeletas de permisos',text:'Comprueba tipo de permiso, fechas, autorización y respaldo requerido antes de cerrar la gestión.',links:[['Tareas','tareas'],['Auditoría','auditoria']]},
+        correos:{title:'Correos y comunicaciones',text:'Confirma destinatarios y adjuntos antes de enviar comunicaciones. Utiliza los canales oficiales para documentación de RR. HH.',links:[['Configuración de correos','configcorreos'],['Tareas','tareas']]},
+        amonestaciones:{title:'Amonestaciones',text:'Verifica antecedentes, fechas y plantilla correcta. Revisa el documento generado antes de emitirlo y conserva trazabilidad de la gestión.',links:[['Colaboradores','colaboradores'],['Auditoría','auditoria']]},
+        reportes:{title:'Reportes y análisis',text:'Confirma el período informado, la fuente y el total de registros antes de compartir resultados. Distingue conteos de registros de conteos de personas únicas.',links:[['Asistencia','asistencia'],['Integraciones','integraciones']]},
+        usuarios:{title:'Usuarios y permisos',text:'Aplica el principio de mínimo acceso. Después de cambiar permisos, verifica que el usuario solo pueda consultar los módulos y sucursales autorizados.',links:[['Auditoría','auditoria'],['Centro de operaciones','operaciones']]},
+        auditoria:{title:'Bitácora y auditoría',text:'Utiliza los registros para rastrear cambios y responsables. Investiga diferencias antes de corregir datos y evita exponer información personal innecesaria.',links:[['Usuarios','usuarios'],['Calidad de datos','calidad']]},
+        configcorreos:{title:'Configuración de correos',text:'Prueba destinatarios y plantillas con un caso controlado antes de activar comunicaciones masivas.',links:[['Correos','correos'],['Integraciones','integraciones']]},
+        mapas:{title:'Mapa y distancias',text:'Utiliza las distancias como estimaciones para planificar traslados. Confirma condiciones reales de ruta antes de coordinar cobertura.',links:[['Sucursales','sucursales'],['Traslados','traslados']]},
+        tareas:{title:'Tareas pendientes',text:'Ordena por urgencia, responsable y fecha límite. Deja constancia de la resolución para evitar gestiones duplicadas.',links:[['Notificaciones','notificaciones'],['Centro de operaciones','operaciones']]},
+        operaciones:{title:'Centro de operaciones',text:'Revisa alertas, integraciones y tareas abiertas. Si una fuente aparece como no disponible, no interpretes ese estado como cero incidencias.',links:[['Integraciones','integraciones'],['Calidad de datos','calidad']]},
+        calidad:{title:'Calidad de datos',text:'Antes de importar o corregir, identifica período, columnas obligatorias, filas rechazadas y duplicados. Conserva el archivo fuente para poder auditar el resultado.',links:[['Integraciones','integraciones'],['Reportes','reportes']]},
+        notificaciones:{title:'Notificaciones',text:'Prioriza avisos vencidos o que requieran acción. Al cerrar una gestión, verifica si corresponde dejar evidencia o avisar al responsable.',links:[['Tareas','tareas'],['Centro de operaciones','operaciones']]},
+        integraciones:{title:'Integraciones y monitoreo',text:'Comprueba hora de última ejecución, archivos descargados, período detectado y filas aceptadas/rechazadas. Un proceso exitoso debe confirmarse con resultados.',links:[['Calidad de datos','calidad'],['Reportes','reportes']]},
+        chat:{title:'Chat interno',text:'Usa conversaciones existentes para mantener el historial. Evita enviar datos médicos o personales por canales no autorizados.',links:[['Tareas','tareas'],['Notificaciones','notificaciones']]},
+        traslados:{title:'Traslados y cobertura',text:'Valida la necesidad de dotación, disponibilidad y jornada antes de proponer una cobertura. Confirma con la jefatura responsable.',links:[['Sucursales','sucursales'],['Mapa y distancias','mapas']]},
+        generic:{title:'Ayuda del módulo',text:'Verifica que los datos estén actualizados, revisa los pendientes y confirma los permisos antes de realizar cambios.',links:[['Dashboard','dashboard'],['Centro de operaciones','operaciones']]}
+      };
+      const pop=document.getElementById('simi-context-popover'),toggle=document.getElementById('simi-context-toggle'),title=document.getElementById('simi-context-title'),content=document.getElementById('simi-context-content'),links=document.getElementById('simi-context-links');
+      if(!pop||!toggle)return;
+      function activeView(){const views=[...document.querySelectorAll('section[id^="view-"]')];const found=views.find(v=>!v.classList.contains('hidden')&&v.getClientRects().length);return found?found.id.replace('view-',''):'dashboard';}
+      function render(){
+        const key=activeView(),item=contexts[key]||contexts.generic;
+        const dashboardPanel=document.getElementById('dashboard-panel-inteligente');
+        if(dashboardPanel)dashboardPanel.classList.toggle('hidden',key!=='dashboard');
+        title.textContent=item.title;
+        content.innerHTML='<p class="text-sm leading-6 text-slate-600">'+item.text+'</p><p class="mt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Sugerencias para esta pantalla</p>';
+        links.replaceChildren();
+        item.links.forEach(([label,module])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>{if(typeof window.cambiarModulo==='function')window.cambiarModulo(module);pop.hidden=true;toggle.setAttribute('aria-expanded','false');});links.appendChild(b);});
+        if(window.lucide)window.lucide.createIcons();
+      }
+      toggle.addEventListener('click',()=>{const opening=pop.hidden;render();pop.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));});
+      document.getElementById('simi-context-close').addEventListener('click',()=>{pop.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();});
+      const observer=new MutationObserver(()=>{render();});
+      document.querySelectorAll('section[id^="view-"]').forEach(v=>observer.observe(v,{attributes:true,attributeFilter:['class']}));
+      render();
+      document.addEventListener('click',e=>{if(e.target.closest('[onclick*="cambiarModulo"]')&&!pop.contains(e.target)&&!toggle.contains(e.target)){if(!pop.hidden)render();}});
+    })();
+    </script>
 </body>
 </html>
