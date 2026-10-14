@@ -453,46 +453,29 @@
 
         async function leerTablaCompleta(tabla, columnaOrden = null) {
             const resultado = [];
+            const paginasPorLote = 4;
 
-            for (
-                let inicio = 0;
-                ;
-                inicio += TAMANO_PAGINA
-            ) {
-                let consulta = _supabase
-                    .from(tabla)
-                    .select('*');
+            // Consultar hasta cuatro páginas en paralelo reduce los viajes de red
+            // sin cambiar el límite de filas ni omitir registros del histórico.
+            for (let inicioLote = 0; ; inicioLote += TAMANO_PAGINA * paginasPorLote) {
+                const consultas = Array.from({ length: paginasPorLote }, (_, pagina) => {
+                    const inicio = inicioLote + pagina * TAMANO_PAGINA;
+                    let consulta = _supabase.from(tabla).select('*');
+                    if (columnaOrden) {
+                        consulta = consulta.order(columnaOrden, { ascending: false });
+                    }
+                    return consulta.range(inicio, inicio + TAMANO_PAGINA - 1)
+                        .then(({ data, error }) => {
+                            if (error) throw errorSupabase(`No se pudo leer ${tabla}, filas ${inicio + 1} a ${inicio + TAMANO_PAGINA}`, error);
+                            return data || [];
+                        });
+                });
 
-                if (columnaOrden) {
-                    consulta = consulta.order(
-                        columnaOrden,
-                        {
-                            ascending: false
-                        }
-                    );
-                }
+                const paginas = await Promise.all(consultas);
+                for (const pagina of paginas) resultado.push(...pagina);
 
-                const { data, error } = await consulta.range(
-                    inicio,
-                    inicio + TAMANO_PAGINA - 1
-                );
-
-                if (error) {
-                    throw errorSupabase(
-                        `No se pudo leer ${tabla}`,
-                        error
-                    );
-                }
-
-                if (!data?.length) {
-                    break;
-                }
-
-                resultado.push(...data);
-
-                if (data.length < TAMANO_PAGINA) {
-                    break;
-                }
+                // Si cualquier página no está completa, ya alcanzamos el final del histórico.
+                if (paginas.some(pagina => pagina.length < TAMANO_PAGINA)) break;
             }
 
             return resultado;
