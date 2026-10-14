@@ -130,8 +130,9 @@
   function renderConversations(items) {
     const host=$("chat-conversaciones-list"); if(!host)return;
     host.replaceChildren();
-    if(!items.length){host.append(Object.assign(document.createElement("p"),{className:"text-sm text-slate-500",textContent:"Todavía no tienes conversaciones. Selecciona participantes y crea una."}));return;}
-    items.forEach(item=>{
+    const allItems=items||[];
+    if(!allItems.length){host.append(Object.assign(document.createElement("p"),{className:"rounded-xl border border-dashed border-slate-200 p-4 text-sm text-slate-500",textContent:"Todavía no tienes conversaciones. Puedes iniciar un chat o crear un grupo."}));return;}
+    allItems.forEach(item=>{
       const btn=document.createElement("button");
       btn.type="button";
       btn.className="w-full rounded-xl border p-3 text-left transition "+(item.id===activeConversation?"border-blue-300 bg-blue-50":"border-slate-200 bg-white hover:bg-slate-100");
@@ -142,6 +143,7 @@
       else btn.append(title,meta);
       btn.addEventListener("click",()=>abrirConversacionChat(item.id));host.append(btn);
     });
+    filtrarConversacionesChat();
   }
 
   async function crearConversacionChat() {
@@ -151,8 +153,29 @@
     chatBusy=true;
     try{
       const me=await currentUserId();
-      const title=$("chat-titulo-nuevo")?.value.trim();
       const chosenUsers=chatUsers.filter(u=>chosen.includes(Number(u.id)));
+      if(chosenUsers.length===1){
+        const {data:existing,error:existingError}=await _supabase.rpc("chat_listar_conversaciones");
+        if(existingError)throw existingError;
+        const privateIds=(existing||[]).filter(item=>item.tipo==="PRIVADA").map(item=>item.id);
+        if(privateIds.length){
+          const {data:members,error:membersError}=await _supabase.from("chat_participantes").select("conversacion_id,usuario_rol_id").in("conversacion_id",privateIds);
+          if(membersError)throw membersError;
+          const targetIds=[Number(me),Number(chosenUsers[0].id)].sort((a,b)=>a-b);
+          const existingPrivate=(existing||[]).filter(item=>item.tipo==="PRIVADA").find(item=>{
+            const ids=(members||[]).filter(member=>String(member.conversacion_id)===String(item.id)).map(member=>Number(member.usuario_rol_id)).sort((a,b)=>a-b);
+            return ids.length===2&&ids[0]===targetIds[0]&&ids[1]===targetIds[1];
+          });
+          if(existingPrivate){
+            $("chat-titulo-nuevo").value="";
+            Array.from($("chat-usuarios-nuevos").options).forEach(o=>o.selected=false);
+            await abrirConversacionChat(existingPrivate.id);
+            setStatus("chat-estado","Ya existía una conversación con esa persona. Abrimos el chat anterior.");
+            return;
+          }
+        }
+      }
+      const title=$("chat-titulo-nuevo")?.value.trim();
       const finalTitle=title||(chosenUsers.length===1?(chosenUsers[0].nombre||chosenUsers[0].email):"Grupo de Recursos Humanos");
       const {data:conversation,error}=await _supabase.from("chat_conversaciones").insert({
         titulo:finalTitle.slice(0,80),tipo:chosenUsers.length===1?"PRIVADA":"GRUPO",creado_por:me
@@ -219,10 +242,12 @@
   function appendMessage(msg) {
     const host=$("chat-mensajes");if(!host||host.querySelector('[data-chat-msg="'+msg.id+'"]'))return;
     const sender=chatUsers.find(u=>Number(u.id)===Number(msg.remitente_id));
+    const content=String(msg.contenido||"Mensaje eliminado");
+    const stickerOnly=content.length<=12 && /^(?:[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]|\uFE0F|\u200D)+$/u.test(content.trim());
     const row=document.createElement("div");row.dataset.chatMsg=msg.id;row.className="flex "+(Number(msg.remitente_id)===Number(currentRoleId)?"justify-end":"justify-start");
-    const bubble=document.createElement("div");bubble.className="max-w-[88%] rounded-2xl px-4 py-3 "+(Number(msg.remitente_id)===Number(currentRoleId)?"bg-blue-700 text-white":"border border-slate-200 bg-slate-50 text-slate-800");
+    const bubble=document.createElement("div");bubble.className=(stickerOnly?"max-w-[88%] rounded-2xl px-2 py-1 ":"max-w-[88%] rounded-2xl px-4 py-3 shadow-sm ")+(Number(msg.remitente_id)===Number(currentRoleId)?"bg-blue-700 text-white":"border border-slate-200 bg-white text-slate-800");
     const name=document.createElement("div");name.className="mb-1 text-[10px] font-bold opacity-75";name.textContent=(sender?.nombre||sender?.email||"Usuario")+" · "+dateTime(msg.created_at);
-    const body=document.createElement("p");body.className="whitespace-pre-wrap break-words text-sm";body.textContent=msg.contenido||"Mensaje eliminado";
+    const body=document.createElement("p");body.className="whitespace-pre-wrap break-words "+(stickerOnly?"text-5xl leading-tight":"text-sm");body.textContent=content;
     bubble.append(name,body);
     if(msg.adjunto_path){
       const fileBtn=document.createElement("button");fileBtn.type="button";fileBtn.className="mt-2 block max-w-full break-all text-left text-xs font-bold underline";fileBtn.textContent="📎 "+(msg.adjunto_nombre||"Descargar archivo");fileBtn.dataset.chatDownload=msg.adjunto_path;fileBtn.dataset.chatFilename=msg.adjunto_nombre||"archivo";
@@ -534,7 +559,31 @@
     }catch(error){console.error("Resolver traslado:",error);setStatus("traslado-estado",error.message||"No se pudo actualizar el estado. Comprueba el permiso traslados_aprobar.",true);}
   }
 
+  const CHAT_EMOJIS=["😀","😂","🥹","😍","😊","😎","🤔","😭","🙌","👏","🙏","👍","👎","❤️","💙","🔥","🎉","✅","💪","☕","👋","🤝","💯","✨","🥳","😴","😅","🤗","💡","📌"];
+  const CHAT_STICKERS=["🎉","👏","🙌","❤️","😂","🥹","💪","☕","🐶","🦄","🌟","🎂","🚀","🏆","🤝","🥳"];
+  function renderChatPicker(){
+    const emojis=$("chat-emojis-grid"),stickers=$("chat-stickers-grid");
+    if(emojis&&!emojis.childElementCount)CHAT_EMOJIS.forEach(emoji=>{const b=document.createElement("button");b.type="button";b.dataset.chatEmoji=emoji;b.className="rounded-lg p-2 text-xl hover:bg-slate-100";b.textContent=emoji;b.setAttribute("aria-label","Insertar "+emoji);emojis.append(b);});
+    if(stickers&&!stickers.childElementCount)CHAT_STICKERS.forEach(sticker=>{const b=document.createElement("button");b.type="button";b.dataset.chatSticker=sticker;b.className="flex min-h-16 flex-col items-center justify-center rounded-xl border border-slate-100 bg-slate-50 p-2 text-3xl transition hover:scale-105 hover:bg-slate-100";b.textContent=sticker;b.title="Enviar sticker";stickers.append(b);});
+  }
+  function toggleChatPicker(force){const panel=$("chat-sticker-panel");if(!panel)return;renderChatPicker();panel.classList.toggle("hidden",typeof force==="boolean"?!force:!panel.classList.contains("hidden"));}
+  function filtrarConversacionesChat(){
+    const host=$("chat-conversaciones-list");if(!host)return;
+    const query=norm($("chat-buscar-conversacion")?.value||"");
+    const buttons=Array.from(host.querySelectorAll("button"));
+    buttons.forEach(button=>button.classList.toggle("hidden",!norm(button.textContent).includes(query)));
+    const empty=host.querySelector("[data-chat-search-empty]");
+    const noMatches=buttons.length>0&&!buttons.some(button=>!button.classList.contains("hidden"));
+    if(noMatches&&!empty){const p=document.createElement("p");p.dataset.chatSearchEmpty="true";p.className="rounded-xl border border-dashed border-slate-200 p-3 text-sm text-slate-500";p.textContent="No hay chats que coincidan con la búsqueda.";host.append(p);}else if(!noMatches)empty?.remove();
+  }
+  function insertarEmojiChat(emoji){const input=$("chat-mensaje-input");if(!input||input.disabled)return;const start=input.selectionStart??input.value.length,end=input.selectionEnd??input.value.length;input.value=input.value.slice(0,start)+emoji+input.value.slice(end);input.focus();input.setSelectionRange(start+emoji.length,start+emoji.length);}
   document.addEventListener("click",async event=>{
+    const emojiBtn=event.target.closest("[data-chat-emoji]");
+    if(emojiBtn){insertarEmojiChat(emojiBtn.dataset.chatEmoji);return;}
+    const stickerBtn=event.target.closest("[data-chat-sticker]");
+    if(stickerBtn){const input=$("chat-mensaje-input");if(input&&!input.disabled){input.value=stickerBtn.dataset.chatSticker;toggleChatPicker(false);await enviarMensajeChat();}return;}
+    if(event.target.closest("#chat-toggle-stickers")){toggleChatPicker();return;}
+    if(event.target.closest("#chat-cerrar-stickers")){toggleChatPicker(false);return;}
     const dotacionBtn=event.target.closest("[data-dotacion-action]");
     if(dotacionBtn){resolverSolicitudDotacion(dotacionBtn.dataset.id,dotacionBtn.dataset.dotacionAction);return;}
     const transferBtn=event.target.closest("[data-transfer-action]");
@@ -563,6 +612,7 @@
     }
   });
 
+  window.filtrarConversacionesChat=filtrarConversacionesChat;
   window.cargarChatInterno=cargarChatInterno;
   window.crearConversacionChat=crearConversacionChat;
   window.abrirConversacionChat=abrirConversacionChat;
