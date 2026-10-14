@@ -2885,6 +2885,8 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
 /* Transición de módulos: breve, ligera y respetuosa con movimiento reducido */
 @keyframes rrhhModuleEnter{from{opacity:0;transform:translate3d(0,7px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 .rrhh-view-enter{animation:rrhhModuleEnter 190ms cubic-bezier(.2,.75,.25,1) both}
+/* Evita que una vista inactiva se muestre si alguna regla de estilos pisa la clase hidden. */
+section[id^="view-"].hidden{display:none!important}
 @media(prefers-reduced-motion:reduce){.rrhh-view-enter{animation:none!important}}
 </style>
 <script>
