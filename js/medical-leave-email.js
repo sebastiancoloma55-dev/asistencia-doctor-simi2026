@@ -91,7 +91,7 @@
       if (sucRes.error) throw sucRes.error;
       registros=todos; sucursales=sucRes.data||[];
       $('lic-correo-estado').textContent='Datos reales cargados para '+p.desde+' al '+p.hasta+' (hora de Chile), filtrados por fecha de ingreso.';
-      seleccion=new Set(registros.map(r=>String(r.id)));
+      seleccion=new Set();
       pintar();
     } catch(e) {
       estado.textContent='No se pudieron consultar los registros: '+(e.message||'error de conexión');
@@ -191,10 +191,43 @@
         if(pre)pre.textContent=cuerpo;
         const resumen=article?.querySelector('.text-xs.text-slate-500');
         if(resumen)resumen.textContent=casosReservados.length+' licencia(s) reservadas · '+b.asunto;
-        window.location.href=url;
+        const liberarBtn=document.createElement('button');
+        liberarBtn.type='button';
+        liberarBtn.className='mt-3 rounded-lg border border-amber-400 px-3 py-2 text-xs font-semibold text-amber-800';
+        liberarBtn.textContent='Outlook no se abrió: liberar reserva';
+        liberarBtn.title='Úsalo únicamente si confirmaste que el borrador no se abrió en Outlook.';
+        liberarBtn.addEventListener('click',async()=>{
+          if(!confirm('Solo continúa si confirmaste que Outlook NO abrió el borrador. Liberar la reserva permite que otra persona vuelva a preparar estas licencias y puede generar duplicados si el correo sí se abrió o se envió. ¿Liberar la reserva?'))return;
+          liberarBtn.disabled=true;
+          liberarBtn.textContent='Liberando reserva…';
+          try {
+            const {data,error}=await db.rpc('liberar_reserva_licencias_medicas_borrador',{
+              p_licencia_ids:casosReservados.map(r=>String(r.id))
+            });
+            if(error)throw error;
+            const liberados=new Set((data||[]).map(x=>String(x.licencia_id)));
+            const locales=idsPreparados();
+            liberados.forEach(id=>locales.delete(id));
+            guardarIdsPreparados(locales);
+            if(liberados.size===0)throw new Error('No se liberó ninguna reserva propia. Puede que la sesión haya cambiado o las reservas pertenezcan a otro usuario.');
+            b.idsSolicitados=false;
+            btn.disabled=false;
+            btn.textContent='Abrir borrador en Outlook';
+            btn.classList.remove('opacity-60','cursor-not-allowed');
+            liberarBtn.remove();
+            $('lic-correo-estado').textContent='Se liberaron '+liberados.size+' reserva(s) propias. Puedes volver a intentarlo; primero confirma que no exista un borrador abierto o enviado.';
+          } catch(err) {
+            liberarBtn.disabled=false;
+            liberarBtn.textContent='Outlook no se abrió: liberar reserva';
+            $('lic-correo-estado').textContent='No se pudo liberar la reserva: '+(err.message||'error desconocido');
+            alert('No se liberó la reserva. '+(err.message||'Error desconocido'));
+          }
+        });
+        article?.appendChild(liberarBtn);
         btn.textContent='Apertura solicitada';
         btn.classList.add('opacity-60','cursor-not-allowed');
         $('lic-correo-estado').textContent='Se solicitó abrir el borrador de '+b.nombre+' con '+casosReservados.length+' licencia(s) reservadas en el servidor. Esto no confirma que Outlook lo haya abierto ni que se haya enviado.';
+        window.location.href=url;
       } catch(e) {
         btn.disabled=false;
         btn.textContent='Abrir borrador en Outlook';
