@@ -185,7 +185,7 @@
         cargo:colaborador.cargo||null,sucursal_id:colaborador.sucursal_id||null,
         sucursal_nombre:colaborador.sucursalNombre||colaborador.sucursal||null,
         correo_sucursal:colaborador.sucursalCorreo||null,correo_copia:colaborador.sucursalCopia||null,
-        fecha_inicio:inicio,dias_corridos:dias,fecha_termino:termino,fecha_retorno:retorno,
+        fecha_inicio:inicio,dias_corridos:dias,
         observacion_administrativa:$('eml-observacion').value.trim()||null,
         estado_correo:'guardada',created_by:user?.id||null
       };
