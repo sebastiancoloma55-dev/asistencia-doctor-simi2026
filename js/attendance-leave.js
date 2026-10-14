@@ -508,10 +508,8 @@
 
                 const procesadas = consolidado.registros;
 
-                datosLicenciasGlobal = procesadas;
-                licenciasCargadas = true;
-                poblarFiltrosLicencias();
-
+                // No reemplazar la vista actual con filas todavía no confirmadas por Supabase.
+                // La tabla se recarga desde la nube solo después de guardar todos los lotes.
                 if (consolidado.duplicados.length) {
                     mostrarToast(
                         `Licencias: se detectaron ${consolidado.duplicados.length} fila(s) repetidas. Se conservó la última aparición de cada identidad Talana (RUT + inicio + tipo + fecha de creación + horas).`,
