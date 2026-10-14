@@ -154,11 +154,12 @@
       $('eml-nombre').value=[colaborador.nombres,colaborador.apellidos].filter(Boolean).join(' ');
       $('eml-cargo').value=colaborador.cargo||'';
       $('eml-sucursal').value=sucursal;
+      $('eml-correo-para').value=colaborador.sucursalCorreo||'';$('eml-correo-cc').value=colaborador.sucursalCopia||'';
       setEstado('Colaborador encontrado. Revisa los datos antes de guardar.');
     } catch(e){setEstado('No se pudo consultar al colaborador. Verifica la sesión y los permisos de acceso.');console.error('[envio-licencias] búsqueda exacta fallida',e);}
   }
   function limpiarFormulario() {
-    colaborador=null;$('eml-rut').value='';$('eml-colaborador-id').value='';$('eml-nombre').value='';$('eml-cargo').value='';$('eml-sucursal').value='';
+    colaborador=null;$('eml-rut').value='';$('eml-colaborador-id').value='';$('eml-nombre').value='';$('eml-cargo').value='';$('eml-sucursal').value='';$('eml-correo-para').value='';$('eml-correo-cc').value='';
     $('eml-manual-toggle').checked=false;
     ['eml-nombre','eml-cargo','eml-sucursal'].forEach(id=>{$(id).readOnly=true;$(id).classList.add('bg-slate-50');});
     $('eml-inicio').value='';$('eml-dias').value='';$('eml-termino').value='';$('eml-retorno').value='';$('eml-observacion').value='';
@@ -172,7 +173,7 @@
       cargo:$('eml-cargo').value.trim(), sucursal:$('eml-sucursal').value.trim(),
       fechaRegistro:$('eml-fecha-registro').value, inicio:$('eml-inicio').value,
       dias:Number($('eml-dias').value), termino:$('eml-termino').value, retorno:$('eml-retorno').value,
-      correoSucursal:colaborador?.sucursalCorreo||'', correoCopia:colaborador?.sucursalCopia||'',
+      correoSucursal:$('eml-correo-para').value.trim(), correoCopia:$('eml-correo-cc').value.trim(),
       observacion:$('eml-observacion').value.trim() };
   }
   function plantillaCorreo(d) {
@@ -249,6 +250,7 @@
     iniciada=true;
     prepararPanelSugerencias();
     $('eml-fecha-registro').value=isoHoy();
+    ['eml-nombre','eml-cargo','eml-sucursal'].forEach(id=>{ $(id).readOnly=true; $(id).classList.add('bg-slate-50'); });
     // Delegación de eventos para que el cálculo funcione también en móviles.
     document.addEventListener('input',e=>{if(e.target && (e.target.id==='eml-inicio'||e.target.id==='eml-dias'))calcular();});
     document.addEventListener('change',e=>{if(e.target && (e.target.id==='eml-inicio'||e.target.id==='eml-dias'))calcular();});
@@ -270,7 +272,7 @@
     $('eml-manual-toggle').addEventListener('change',()=>{
       const manual=manualActivo();colaborador=null;$('eml-colaborador-id').value='';
       ['eml-nombre','eml-cargo','eml-sucursal'].forEach(id=>{const el=$(id);el.readOnly=!manual;el.classList.toggle('bg-slate-50',!manual);});
-      $('eml-nombre').value='';$('eml-cargo').value='';$('eml-sucursal').value='';
+      $('eml-nombre').value='';$('eml-cargo').value='';$('eml-sucursal').value='';$('eml-correo-para').value='';$('eml-correo-cc').value='';
       setEstado(manual?'Modo manual activo. Completa nombre y sucursal; el RUT debe ser válido.':'Busca al colaborador en el maestro.');
     });
     $('eml-vista-correo').addEventListener('click',mostrarVistaCorreo);
