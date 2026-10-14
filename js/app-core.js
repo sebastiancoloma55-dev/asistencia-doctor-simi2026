@@ -468,6 +468,11 @@
             }
         }
         window.invalidarCacheLecturas = invalidarCacheLecturas;
+        if (_supabase?.auth?.onAuthStateChange) {
+            _supabase.auth.onAuthStateChange(event => {
+                if (event === 'SIGNED_OUT') invalidarCacheLecturas();
+            });
+        }
 
         async function leerTablaCompleta(tabla, columnaOrden = null) {
             const clave = `${tabla}::${columnaOrden || ''}`;
