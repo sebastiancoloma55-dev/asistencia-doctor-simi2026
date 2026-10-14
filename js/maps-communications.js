@@ -165,8 +165,23 @@
             const {error}=await _supabase.from('borradores_correo_usuario').insert([fila]);
             if(error)throw new Error(error.message||'No se pudo guardar el historial de correos.');
         }
+        function alternarHistorialBorradoresNube() {
+            const panel=document.getElementById('correo-historial-panel');
+            const boton=document.getElementById('correo-historial-toggle');
+            const refrescar=document.getElementById('correo-historial-refresh');
+            if(!panel||!boton)return;
+            const abrir=panel.hidden;
+            panel.hidden=!abrir;
+            boton.setAttribute('aria-expanded',String(abrir));
+            boton.textContent=abrir?'Ocultar historial':'Mostrar historial';
+            if(refrescar)refrescar.classList.toggle('hidden',!abrir);
+            if(abrir)cargarHistorialBorradoresNube(false);
+        }
         async function cargarHistorialBorradoresNube(notificar=false) {
+            const panel=document.getElementById('correo-historial-panel');
             const cont=document.getElementById('correo-nube-historial');if(!cont)return;
+            // No consultar la nube mientras el historial esté cerrado.
+            if(panel?.hidden)return;
             cont.innerHTML='<p class="text-sm text-slate-500">Cargando tu historial...</p>';
             const {data:sesion,error:errSesion}=await _supabase.auth.getUser();
             if(errSesion||!sesion?.user?.email){cont.innerHTML='<p class="text-sm text-rose-700">No se pudo verificar la sesión.</p>';return;}
