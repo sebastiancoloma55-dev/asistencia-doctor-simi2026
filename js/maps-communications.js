@@ -233,7 +233,7 @@
             return Boolean(inicio && fin && fin >= desde && inicio <= hasta);
         }
 
-        async function cargarProteccionAusenciasCorreos(desde, hasta) {
+        async function cargarProteccionAusenciasCorreos(desde, hasta, opciones = {}) {
             if (typeof tienePermisoModulo !== 'function') {
                 throw new Error('No se pudieron comprobar los permisos para validar licencias, vacaciones y papeletas.');
             }
@@ -243,11 +243,14 @@
                 throw new Error('Por seguridad no se generaron borradores: tu perfil necesita permiso de consulta para Licencias, Vacaciones y Papeletas para verificar las ausencias.');
             }
 
-            // Lectura fresca y completa: no usar solo los datos que estén abiertos en pantalla.
+            const cacheCorreo = window.__doctorSimiAusenciasCache;
+            if (!opciones.forceFresh && cacheCorreo && Date.now() - cacheCorreo.timestamp < 20000) return cacheCorreo.resultado;
+            // Lecturas paralelas con solo columnas de validación; se conservan todas las filas
+            // para detectar RUT con fechas defectuosas y bloquear borradores inseguros.
             const [licencias, vacaciones, permisos] = await Promise.all([
-                leerTablaCompleta('licencias_medicas', 'fecha_inicio'),
-                leerTablaCompleta('vacaciones_historico', 'fecha_inicio'),
-                leerTablaCompleta('papeletas_permiso', 'fecha_inicio')
+                leerColumnasTablaCorreo('licencias_medicas', ['id', 'rut', 'tipo_ausencia', 'fecha_inicio', 'fecha_fin']),
+                leerColumnasTablaCorreo('vacaciones_historico', ['id', 'rut', 'estado', 'fecha_inicio', 'fecha_fin']),
+                leerColumnasTablaCorreo('papeletas_permiso', ['id', 'rut', 'fecha_inicio', 'fecha_fin', 'fecha_retorno'])
             ]);
 
             const periodosPorRut = new Map();
@@ -302,11 +305,13 @@
                 throw new Error('No se generaron borradores: hay registros de licencia, vacaciones o permiso que no se pueden asociar a un RUT. Corrige esos datos para evitar correos incorrectos.');
             }
 
-            return { periodosPorRut, rutConFechaNoVerificable, resumen, filasConsultadas: {
+            const resultadoProteccion = { periodosPorRut, rutConFechaNoVerificable, resumen, filasConsultadas: {
                 licencias: (licencias || []).length,
                 vacaciones: (vacaciones || []).length,
                 permisos: (permisos || []).length
             }};
+            window.__doctorSimiAusenciasCache = { timestamp: Date.now(), resultado: resultadoProteccion };
+            return resultadoProteccion;
         }
 
         function buscarExclusionAusenciaCorreo(registroAsistencia, fechaCaso, proteccion) {
@@ -361,7 +366,11 @@
             }
             const desde = lista.map(b => b.periodoDesde).sort()[0];
             const hasta = lista.map(b => b.periodoHasta).sort().slice(-1)[0];
-            const proteccion = await cargarProteccionAusenciasCorreos(desde, hasta);
+            actualizarProgresoCorreos(18, 'Preparando ZIP', 'Revalidando licencias, vacaciones y permisos en Supabase…');
+            await esperarPintadoCorreo();
+            const proteccion = await cargarProteccionAusenciasCorreos(desde, hasta, { forceFresh: true });
+            actualizarProgresoCorreos(38, 'Preparando ZIP', 'Ausencias verificadas. Preparando archivos EML…');
+            await esperarPintadoCorreo();
             const remociones = [];
             const conservados = [];
 
@@ -420,6 +429,51 @@
             return conservados;
         }
 
+        // Indicador de avance real para vista previa y generación del ZIP.
+        function asegurarPanelProgresoCorreos() {
+            let panel = document.getElementById('correo-progreso-ejecucion');
+            if (panel) return panel;
+            const anchor = document.getElementById('lista-borradores');
+            if (!anchor) return null;
+            panel = document.createElement('section');
+            panel.id = 'correo-progreso-ejecucion';
+            panel.className = 'hidden ui-card mb-4 p-4';
+            panel.setAttribute('role', 'status');
+            panel.setAttribute('aria-live', 'polite');
+            panel.innerHTML = '<div class="flex items-center justify-between gap-3"><strong id="correo-progreso-titulo" class="text-sm font-extrabold text-slate-800">Procesando…</strong><strong id="correo-progreso-porcentaje" class="text-sm tabular-nums text-simiRed">0%</strong></div><div class="mt-3 h-3 overflow-hidden rounded-full bg-slate-100"><div id="correo-progreso-barra" class="h-full rounded-full bg-simiRed transition-all duration-200" style="width:0%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div><p id="correo-progreso-detalle" class="mt-2 text-xs text-slate-500">Preparando tarea…</p>';
+            anchor.parentNode.insertBefore(panel, anchor);
+            return panel;
+        }
+        function actualizarProgresoCorreos(porcentaje, titulo, detalle, estado) {
+            const panel = asegurarPanelProgresoCorreos();
+            if (!panel) return;
+            const pct = Math.max(0, Math.min(100, Math.round(Number(porcentaje) || 0)));
+            panel.classList.remove('hidden');
+            panel.dataset.estado = estado || 'procesando';
+            const title = document.getElementById('correo-progreso-titulo');
+            const value = document.getElementById('correo-progreso-porcentaje');
+            const bar = document.getElementById('correo-progreso-barra');
+            const desc = document.getElementById('correo-progreso-detalle');
+            if (title) title.textContent = titulo || 'Procesando…';
+            if (value) value.textContent = pct + '%';
+            if (bar) { bar.style.width = pct + '%'; bar.setAttribute('aria-valuenow', String(pct)); bar.classList.toggle('bg-emerald-600', estado === 'completado'); bar.classList.toggle('bg-red-600', estado === 'error'); }
+            if (desc) desc.textContent = detalle || '';
+        }
+        const esperarPintadoCorreo = () => new Promise(resolve => setTimeout(resolve, 0));
+
+        async function leerColumnasTablaCorreo(tabla, columnas) {
+            const resultado = [];
+            const tamano = 1000;
+            for (let inicio = 0; ; inicio += tamano) {
+                const { data, error } = await _supabase.from(tabla).select(columnas.join(',')).order('id', { ascending: true }).range(inicio, inicio + tamano - 1);
+                if (error) throw errorSupabase('No se pudo consultar ' + tabla, error);
+                if (!data?.length) break;
+                resultado.push(...data);
+                if (data.length < tamano) break;
+            }
+            return resultado;
+        }
+
         async function prepararCorreosAsistencia() {
             if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para preparar correos.','warning');
             const desde = document.getElementById('correo-desde').value;
@@ -431,14 +485,19 @@
             const filtroSup = valoresSeleccionados('correo-supervisores');
             const agrupar = document.getElementById('correo-agrupar').value;
             let proteccionAusencias;
+            actualizarProgresoCorreos(5, 'Generando vista previa', 'Consultando licencias, vacaciones y permisos en Supabase…');
+            await esperarPintadoCorreo();
             try {
                 proteccionAusencias = await cargarProteccionAusenciasCorreos(desde, hasta);
+                actualizarProgresoCorreos(38, 'Generando vista previa', 'Ausencias consultadas. Analizando registros de asistencia…');
+                await esperarPintadoCorreo();
             } catch (error) {
                 resumenExclusionesCorreoGlobal = null;
                 casosExcluidosCorreoGlobal = [];
                 borradoresGeneradosGlobal = [];
                 renderizarBorradoresMasivos();
                 actualizarResumenExclusionesCorreo();
+                actualizarProgresoCorreos(100, 'No se pudo generar la vista previa', error.message || String(error), 'error');
                 mostrarToast('No se generaron borradores porque no fue posible validar las ausencias. ' + (error.message || error), 'error', 16000);
                 return;
             }
@@ -446,28 +505,32 @@
             const grupos = new Map();
             casosExcluidosCorreoGlobal = [];
             const conteoExclusiones = { vacaciones: 0, permisos: 0, licencias: 0, fecha_no_verificable: 0 };
-            datosAsistenciaGlobal.forEach(x => {
+            for (let correoIdx = 0; correoIdx < datosAsistenciaGlobal.length; correoIdx++) {
+                const x = datosAsistenciaGlobal[correoIdx];
+                if (correoIdx % 300 === 0) { actualizarProgresoCorreos(38 + Math.round(34 * correoIdx / Math.max(1, datosAsistenciaGlobal.length)), 'Generando vista previa', 'Analizando asistencia: ' + Math.min(correoIdx + 1, datosAsistenciaGlobal.length).toLocaleString('es-CL') + ' de ' + datosAsistenciaGlobal.length.toLocaleString('es-CL') + ' registros…'); await esperarPintadoCorreo(); }
                 const fechaCaso = normalizarFechaProteccionCorreo(x.fecha);
-                if (!fechaCaso || fechaCaso < desde || fechaCaso > hasta) return;
+                if (!fechaCaso || fechaCaso < desde || fechaCaso > hasta) continue;
                 const cfg = config.get(texto(x.sucursal).toLowerCase()) || {};
-                if (filtroSuc.length && !filtroSuc.includes(x.sucursal)) return;
-                if (filtroSup.length && !filtroSup.includes(cfg.supervisor)) return;
+                if (filtroSuc.length && !filtroSuc.includes(x.sucursal)) continue;
+                if (filtroSup.length && !filtroSup.includes(cfg.supervisor)) continue;
                 const detalles = [];
                 if (document.getElementById('correo-t-atraso').checked && x.tiene_atraso && minutosAtraso(x.atraso) >= minimo) detalles.push(`Atraso: ${x.atraso}. Favor indicar motivo.`);
                 if (document.getElementById('correo-t-temprana').checked && x.salida_temprana && x.salida_temprana !== '-') detalles.push(`Salida anticipada: ${x.salida_temprana}. Favor indicar motivo.`);
                 if (document.getElementById('correo-t-sinturno').checked && x.sin_turno_marcas) detalles.push('Presenta marcas sin turno asignado. Favor aclarar la jornada realizada.');
                 if (document.getElementById('correo-t-sinmarca').checked && x.sin_marca && !x.tipo_ausentismo) detalles.push('No registra marcas durante la jornada. Favor confirmar asistencia o justificar inasistencia.');
-                if (!detalles.length) return;
+                if (!detalles.length) continue;
                 const exclusion = buscarExclusionAusenciaCorreo(x, fechaCaso, proteccionAusencias);
                 if (exclusion) {
                     casosExcluidosCorreoGlobal.push({ rut: normalizarRutProteccionCorreo(x.rut), nombre: x.nombre || '', fecha: fechaCaso, categoria: exclusion.categoria, mensaje: exclusion.mensaje });
                     conteoExclusiones[exclusion.categoria] = (conteoExclusiones[exclusion.categoria] || 0) + 1;
-                    return;
+                    continue;
                 }
                 const clave = agrupar === 'SUPERVISOR' ? (cfg.supervisor || 'Sin supervisor') : (x.sucursal || 'Sin sucursal');
                 if (!grupos.has(clave)) grupos.set(clave, []);
                 grupos.get(clave).push({ ...x, fecha: fechaCaso, detalles, cfg });
-            });
+            }
+            actualizarProgresoCorreos(76, 'Generando vista previa', 'Agrupando incidencias y preparando borradores…');
+            await esperarPintadoCorreo();
             resumenExclusionesCorreoGlobal = {
                 verificada: true,
                 version: VERSION_PROTECCION_AUSENCIAS_CORREO,
@@ -497,18 +560,22 @@
                     return { id: 'borrador-' + indice + '-' + particion.tipoCorreo.toLowerCase(), tipoCorreo: particion.tipoCorreo, nombre, para, cc, asunto: `Importancia alta - ${particion.etiqueta} - ${nombreGrupo} - ${desde} a ${hasta}`, cuerpo: '', cuerpoHtml: '', cantidad: casos.length, proteccionAusenciasVerificada: true, periodoDesde: desde, periodoHasta: hasta, grupoCorreo: grupo, casosDetalle: casos.map(x => ({ fecha: x.fecha, rut: x.rut, nombre: x.nombre, sucursal: x.sucursal, detalles: x.detalles, turno: x.turno, turno_asignado: x.turno_asignado, jornada: x.jornada, horario: x.horario, entrada: x.entrada, salida: x.salida })) };
                 });
             });
+            actualizarProgresoCorreos(84, 'Generando vista previa', 'Vista previa preparada. Guardando el historial en la nube…');
             renderizarBorradoresMasivos();
             actualizarResumenExclusionesCorreo();
             if(borradoresGeneradosGlobal.length){
                 try {
                     await guardarLoteBorradoresNube(desde,hasta,agrupar,filtroSuc,filtroSup,minimo);
+                    actualizarProgresoCorreos(100, 'Vista previa lista', borradoresGeneradosGlobal.length.toLocaleString('es-CL') + ' borrador(es) preparados y guardados.', 'completado');
                     mostrarToast('Borradores verificados y guardados. Se omitieron ' + casosExcluidosCorreoGlobal.length + ' caso(s) que coincidían con vacaciones, permisos o licencias. Abrirlos en Outlook no envía el correo automáticamente.','success',12000);
                     await cargarHistorialBorradoresNube(false);
                 } catch(error) {
+                    actualizarProgresoCorreos(100, 'Vista previa lista con advertencia', 'No se pudo guardar el historial: ' + (error.message || 'error desconocido'), 'error');
                     mostrarToast('Los borradores están preparados en esta sesión, pero no se guardaron en la nube: '+(error.message||'error desconocido'),'warning',12000);
                 }
             } else {
                 await cargarHistorialBorradoresNube(false);
+                actualizarProgresoCorreos(100, 'Vista previa finalizada', 'No se encontraron casos que cumplan los filtros.', 'completado');
             }
         }
         function renderizarBorradoresMasivos() {
@@ -547,6 +614,8 @@
             const elegidos = borradoresGeneradosGlobal.filter(b => (b.tipoCorreo || 'OTRAS_INCIDENCIAS') === tipo);
             if (!elegidos.length) return mostrarToast('No hay correos para descargar en esta sección.', 'warning');
             try {
+                actualizarProgresoCorreos(3, 'Preparando ZIP', 'Validando los borradores seleccionados…');
+                await esperarPintadoCorreo();
                 const list = await revalidarBorradoresAntesDeExportar(elegidos);
                 if (!list.length) { actualizarProgresoCorreos(100, 'ZIP no generado', 'No quedaron borradores válidos después de revalidar ausencias.', 'error'); return; }
                 if (!window.JSZip) { actualizarProgresoCorreos(100, 'ZIP no generado', 'No se pudo cargar el generador ZIP. Recarga la página.', 'error'); return mostrarToast('No se pudo cargar el generador ZIP. Recarga la página.', 'error'); }
@@ -644,20 +713,27 @@
             if (!elegidos.length) return mostrarToast('Selecciona uno o más borradores antes de descargar el ZIP.', 'warning');
             try {
                 const list = await revalidarBorradoresAntesDeExportar(elegidos);
-                if (!list.length) return;
-                if (!window.JSZip) return mostrarToast('No se pudo cargar el generador ZIP. Recarga la página.', 'error');
+                if (!list.length) { actualizarProgresoCorreos(100, 'ZIP no generado', 'No quedaron borradores válidos después de revalidar ausencias.', 'error'); return; }
+                if (!window.JSZip) { actualizarProgresoCorreos(100, 'ZIP no generado', 'No se pudo cargar el generador ZIP. Recarga la página.', 'error'); return mostrarToast('No se pudo cargar el generador ZIP. Recarga la página.', 'error'); }
                 const zip = new JSZip(), folder = zip.folder('Borradores_Outlook');
                 list.forEach((b, i) => {
                     const slug = String(b.nombre || 'Borrador_' + (i + 1)).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 60) || 'Borrador_' + (i + 1);
                     folder.file(String(i + 1).padStart(3, '0') + '_' + slug + '.eml', crearEmlOutlook(b));
                 });
                 zip.file('LEEME.txt', 'Borradores para Outlook de escritorio. Extrae el ZIP, abre los archivos .eml con Outlook, revisa destinatarios y contenido y pulsa Enviar. No se envían automáticamente. Los casos se revalidaron contra las ausencias actuales antes de crear este paquete.');
-                const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+                actualizarProgresoCorreos(65, 'Comprimiendo ZIP', list.length.toLocaleString('es-CL') + ' archivo(s) preparados. Comprimiendo…');
+                await esperarPintadoCorreo();
+                const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }, metadata => {
+                    const real = Math.round(Number(metadata.percent) || 0);
+                    actualizarProgresoCorreos(65 + Math.round(real * 0.32), 'Comprimiendo ZIP', 'Compresión real: ' + real + '% · ' + list.length.toLocaleString('es-CL') + ' borrador(es).');
+                });
                 const url = URL.createObjectURL(blob), a = document.createElement('a');
                 a.href = url; a.download = 'Borradores_Outlook_' + fechaActualChileISO() + '.zip';
                 document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+                actualizarProgresoCorreos(100, 'ZIP listo para descargar', list.length.toLocaleString('es-CL') + ' borrador(es) comprimidos. La descarga se inició en el navegador.', 'completado');
                 mostrarToast('ZIP revalidado: ' + list.length + ' borrador(es) descargados después de excluir ausencias actuales.', 'success', 10000);
             } catch (error) {
+                actualizarProgresoCorreos(100, 'No se pudo generar el ZIP', error.message || 'Error desconocido', 'error');
                 mostrarToast(error.message || 'No se pudo volver a validar el paquete de correos.', 'error', 14000);
             }
         }
