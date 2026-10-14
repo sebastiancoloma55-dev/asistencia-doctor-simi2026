@@ -130,7 +130,7 @@
       const asunto='Gestión de licencias médicas ingresadas · '+nombre+' · '+p.desde+' al '+p.hasta;
       // Minimización de datos: no incluir diagnóstico ni motivo médico.
       const cuerpo='Estimado equipo de '+nombre+':\n\nJunto con saludar, informamos que se registraron '+casos.length+' licencia(s) médica(s) en el sistema durante el período '+p.desde+' al '+p.hasta+'.\n\nPor favor, revisar y gestionar los registros que correspondan:\n\n'+casos.map((r,i)=>(i+1)+'. '+(r.nombre||'Sin nombre')+' | RUT: '+(r.rut||'—')+' | Período: '+(r.fecha_inicio||'—')+' al '+(r.fecha_fin||'—')+' | Días: '+(r.dias_ausencia??'—')).join('\n')+'\n\nEste correo fue preparado como borrador para revisión. No constituye confirmación de envío.\n\nSaludos cordiales,\nGestión de Asistencia\nRecursos Humanos\nFarmacias de Similares Chile S.A.';
-      borradores.push({nombre,para,cc,asunto,cuerpo,total:casos.length});
+      borradores.push({nombre,para,cc,asunto,cuerpo,total:casos.length,ids:casos.map(r=>String(r.id))});
     }
     if (!borradores.length) {
       alert(omitidasDuplicadas.length
@@ -147,22 +147,60 @@
       return '<article class="ui-card border border-slate-200 p-4" data-draft-index="'+i+'"><div class="flex flex-wrap items-start justify-between gap-3"><div class="min-w-0 flex-1"><h4 class="font-extrabold text-slate-900">'+esc(b.nombre)+'</h4><p class="mt-1 break-all text-xs text-slate-600">Para: '+esc(b.para)+'</p>'+(b.cc?'<p class="mt-1 break-all text-xs text-slate-600">CC: '+esc(b.cc)+'</p>':'')+'<p class="mt-1 text-xs text-slate-500">'+b.total+' licencia(s) · '+esc(b.asunto)+'</p></div><button type="button" class="lic-correo-abrir rounded-lg bg-sky-700 px-4 py-3 text-xs font-bold text-white" data-draft-index="'+i+'">Abrir borrador en Outlook</button></div><details class="mt-3"><summary class="cursor-pointer text-xs font-bold text-slate-700">Revisar contenido del correo</summary><pre class="mt-2 whitespace-pre-wrap break-words rounded-lg bg-slate-50 p-3 text-xs">'+esc(b.cuerpo)+'</pre></details><p class="mt-2 text-[11px] text-amber-700">La plataforma solo solicita abrir el borrador. Confirma en Outlook si se abrió y envíalo manualmente.</p></article>';
     }).join('');
     const botones=[...host.querySelectorAll('.lic-correo-abrir')];
-    botones.forEach(btn=>btn.addEventListener('click',()=>{
+    botones.forEach(btn=>btn.addEventListener('click', async ()=>{
       const b=borradores[Number(btn.dataset.draftIndex)];
-      if(!b)return;
-      const ids=idsPreparados();
-      if(b.idsSolicitados){alert('Ya se solicitó abrir este borrador en esta pestaña.');return;}
-      const url='mailto:'+encodeURIComponent(b.para)+'?cc='+encodeURIComponent(b.cc)+'&subject='+encodeURIComponent(b.asunto)+'&body='+encodeURIComponent(b.cuerpo);
-      // Un clic explícito por sucursal evita que el navegador bloquee una cadena de ventanas emergentes.
-      b.idsSolicitados=true;
-      const nuevas=grupos.get(b.nombre).filter(r=>!ids.has(String(r.id)));
-      nuevas.forEach(r=>ids.add(String(r.id)));
-      guardarIdsPreparados(ids);
-      window.location.href=url;
+      if(!b || b.idsSolicitados)return;
+      const db = typeof _supabase !== 'undefined' ? _supabase : window._supabase;
+      if (!db || typeof db.rpc !== 'function') {
+        alert('No está disponible la conexión segura para validar duplicados. No se abrirá el borrador.');
+        return;
+      }
+      const p=periodo();
+      if(!p.desde || !p.hasta || p.hasta<p.desde) {
+        alert('El período seleccionado no es válido. No se abrirá el borrador.');
+        return;
+      }
       btn.disabled=true;
-      btn.textContent='Apertura solicitada';
-      btn.classList.add('opacity-60','cursor-not-allowed');
-      $('lic-correo-estado').textContent='Se solicitó abrir el borrador de '+b.nombre+'. Esto no confirma que Outlook lo haya abierto ni que se haya enviado.';
+      btn.textContent='Validando duplicados…';
+      $('lic-correo-estado').textContent='Validando en el servidor si estas licencias ya fueron reservadas por otro usuario…';
+      try {
+        const {data,error}=await db.rpc('reservar_licencias_medicas_borrador',{
+          p_licencia_ids:b.ids.map(id=>Number(id)),
+          p_sucursal:b.nombre,
+          p_periodo_desde:p.desde,
+          p_periodo_hasta:p.hasta
+        });
+        if(error) throw error;
+        const reservadas=new Set((data||[]).filter(x=>x.reservado===true).map(x=>String(x.licencia_id)));
+        const casosReservados=grupos.get(b.nombre).filter(r=>reservadas.has(String(r.id)));
+        if(!casosReservados.length) {
+          btn.textContent='Ya procesadas';
+          btn.classList.add('opacity-60','cursor-not-allowed');
+          $('lic-correo-estado').textContent='No se abrió el borrador de '+b.nombre+': las licencias seleccionadas ya fueron reservadas o no superaron la validación del servidor.';
+          alert('No se generó un nuevo borrador para '+b.nombre+'. Las licencias pueden haber sido procesadas por otro usuario, o no coincidir con la sucursal y el período.');
+          return;
+        }
+        const cuerpo='Estimado equipo de '+b.nombre+':\n\nJunto con saludar, informamos que se registraron '+casosReservados.length+' licencia(s) médica(s) en el sistema durante el período '+p.desde+' al '+p.hasta+'.\n\nPor favor, revisar y gestionar los registros que correspondan:\n\n'+casosReservados.map((r,i)=>(i+1)+'. '+(r.nombre||'Sin nombre')+' | RUT: '+(r.rut||'—')+' | Período: '+(r.fecha_inicio||'—')+' al '+(r.fecha_fin||'—')+' | Días: '+(r.dias_ausencia??'—')).join('\n')+'\n\nEste correo fue preparado como borrador para revisión. No constituye confirmación de envío.\n\nSaludos cordiales,\nGestión de Asistencia\nRecursos Humanos\nFarmacias de Similares Chile S.A.';
+        const url='mailto:'+encodeURIComponent(b.para)+'?cc='+encodeURIComponent(b.cc)+'&subject='+encodeURIComponent(b.asunto)+'&body='+encodeURIComponent(cuerpo);
+        const yaLocales=idsPreparados();
+        casosReservados.forEach(r=>yaLocales.add(String(r.id)));
+        guardarIdsPreparados(yaLocales);
+        b.idsSolicitados=true;
+        const article=btn.closest('article');
+        const pre=article?.querySelector('details pre');
+        if(pre)pre.textContent=cuerpo;
+        const resumen=article?.querySelector('.text-xs.text-slate-500');
+        if(resumen)resumen.textContent=casosReservados.length+' licencia(s) reservadas · '+b.asunto;
+        window.location.href=url;
+        btn.textContent='Apertura solicitada';
+        btn.classList.add('opacity-60','cursor-not-allowed');
+        $('lic-correo-estado').textContent='Se solicitó abrir el borrador de '+b.nombre+' con '+casosReservados.length+' licencia(s) reservadas en el servidor. Esto no confirma que Outlook lo haya abierto ni que se haya enviado.';
+      } catch(e) {
+        btn.disabled=false;
+        btn.textContent='Abrir borrador en Outlook';
+        $('lic-correo-estado').textContent='No se pudo validar la reserva en el servidor. No se abrió el borrador.';
+        alert('No se pudo validar el control compartido de duplicados. No se abrirá el borrador. Detalle: '+(e.message||'error desconocido'));
+      }
     }));
     host.scrollIntoView({behavior:'smooth',block:'start'});
     $('lic-correo-estado').textContent='Borradores preparados para revisión. Revisa destinatario, copia y contenido; pulsa el botón de cada sucursal para solicitar la apertura.';
