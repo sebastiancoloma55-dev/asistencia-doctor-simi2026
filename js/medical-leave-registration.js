@@ -36,6 +36,7 @@
     const p=String(iso).slice(0,10).split('-');
     return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:iso;
   }
+  function formatoFechaCorreo(iso) { return formatoFecha(iso).replaceAll('/','-'); }
   function sumarFecha(iso,n) {
     if(!iso) return '';
     const d=new Date(iso+'T12:00:00Z');
@@ -176,7 +177,7 @@
   }
   function plantillaCorreo(d) {
     const asunto='LICENCIA MÉDICA - '+(d.nombre||'Colaborador/a');
-    const filas=[['Fecha de inicio de licencia',formatoFecha(d.inicio)],['Fecha de término de licencia',formatoFecha(d.termino)],['Fecha de retorno',formatoFecha(d.retorno)],['Total de días corridos',String(d.dias||'')]]
+    const filas=[['Fecha de inicio de licencia',formatoFechaCorreo(d.inicio)],['Fecha de término de licencia',formatoFechaCorreo(d.termino)],['Fecha de retorno',formatoFechaCorreo(d.retorno)],['Total de días corridos',String(d.dias||'')]]
       .map(([k,v])=>'<tr><td style="padding:13px 15px;border:1px solid #d7deea;font-weight:700;color:#22324d;width:65%">'+esc(k)+'</td><td style="padding:13px 15px;border:1px solid #d7deea;color:#26364f">'+esc(v)+'</td></tr>').join('');
     const cuerpo='<!doctype html><html lang="es"><head><meta charset="utf-8"></head><body style="margin:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#26364f"><div style="max-width:760px;margin:24px auto;background:#fff;border:1px solid #d9e2ef"><div style="background:#174f95;padding:30px 20px;text-align:center;color:#fff"><div style="margin:0 auto 12px;width:76px;height:76px;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:35px;font-weight:800">S</div><div style="font-size:22px;font-weight:800;letter-spacing:.04em">DOCTOR SIMI</div><div style="margin-top:8px;font-size:16px;font-weight:700;letter-spacing:.08em">LICENCIA MÉDICA</div></div><div style="padding:28px 24px"><p style="font-size:15px;font-weight:700;color:#1764b2">Estimados/as,</p><p style="font-size:14px;line-height:1.8">Se informa que el/la colaborador/a <strong>'+esc(d.nombre)+'</strong>, con RUT <strong>'+esc(d.rut)+'</strong>, '+(d.cargo?'cargo <strong>'+esc(d.cargo)+'</strong>, ':'')+'de la sucursal <strong>'+esc(d.sucursal)+'</strong>, registra una licencia médica. A continuación, se detallan las fechas para coordinación y seguimiento:</p><table role="presentation" cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin:22px 0">'+filas+'</table><p style="font-size:14px;line-height:1.8">Se solicita confirmar el retorno del/de la trabajador/a en la fecha indicada y comunicar cualquier diferencia al equipo de Asistencia y Ausentismo.</p>'+(d.observacion?'<p style="font-size:13px;line-height:1.7"><strong>Observación administrativa:</strong> '+esc(d.observacion)+'</p>':'')+'<p style="font-size:14px;line-height:1.8;margin-top:28px">Saludos cordiales,</p></div><div style="background:#f8fafc;padding:22px 24px;text-align:center;color:#64748b;font-size:11px"><div style="font-weight:700;color:#42526b">Área de Asistencia y Ausentismo</div><div style="height:1px;background:#b8c5d6;margin:12px 0"></div>© 2026 Farmacias Dr. Simi. Todos los derechos reservados.</div></div></body></html>';
     return {asunto,cuerpo,to:d.correoSucursal||'',cc:d.correoCopia||''};
@@ -190,9 +191,9 @@
   function descargarCorreo() {
     calcular(); const d=datosActuales();
     if(!rutValido(d.rut)||!d.nombre||!d.sucursal||!d.inicio||!Number.isInteger(d.dias)||d.dias<1||d.dias>365){mensaje('Completa los datos obligatorios antes de descargar el borrador de Outlook.');return;}
-    const mail=plantillaCorreo(d), clean=s=>String(s||'').replace(/[\\r\\n]/g,' ').replace(/[^\\x20-\\x7E]/g,'');
-    const to=mail.to?'To: '+clean(mail.to)+'\\r\\n':'', cc=mail.cc?'Cc: '+clean(mail.cc)+'\\r\\n':'';
-    const eml='MIME-Version: 1.0\\r\\n'+to+cc+'Subject: =?UTF-8?B?'+btoa(unescape(encodeURIComponent(mail.asunto)))+'?=\\r\\nX-Unsent: 1\\r\\nContent-Type: text/html; charset=UTF-8\\r\\nContent-Transfer-Encoding: base64\\r\\n\\r\\n'+btoa(unescape(encodeURIComponent(mail.cuerpo)));
+    const mail=plantillaCorreo(d), clean=s=>String(s||'').replace(/[\r\n]/g,' ').replace(/[^\x20-\x7E]/g,'');
+    const to=mail.to?'To: '+clean(mail.to)+'\r\n':'', cc=mail.cc?'Cc: '+clean(mail.cc)+'\r\n':'';
+    const eml='MIME-Version: 1.0\r\n'+to+cc+'Subject: =?UTF-8?B?'+btoa(unescape(encodeURIComponent(mail.asunto)))+'?=\r\nX-Unsent: 1\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+btoa(unescape(encodeURIComponent(mail.cuerpo)));
     const url=URL.createObjectURL(new Blob([eml],{type:'message/rfc822;charset=utf-8'}));
     const a=document.createElement('a');a.href=url;a.download='Borrador_Licencia_Medica_'+normalizarRut(d.rut)+'.eml';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
     if(window.mostrarToast)window.mostrarToast('Borrador .eml preparado. Ábrelo en Outlook y revisa destinatarios antes de enviar.','success');
@@ -241,7 +242,7 @@
     overlay.className='fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-3';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
     overlay.innerHTML='<div class="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl"><div class="flex items-center justify-between gap-3 border-b p-4"><div><h3 class="font-extrabold text-slate-900">Vista previa de licencia médica</h3><p class="text-xs text-slate-500">Borrador únicamente · no se envía automáticamente</p></div><button type="button" class="rounded-lg border px-3 py-2 text-sm font-bold" data-close>Cerrar</button></div><div class="p-4"><p class="mb-3 text-sm"><strong>Asunto:</strong> '+esc(mail.asunto)+'</p><div class="overflow-hidden rounded-xl border">'+mail.cuerpo+'</div><div class="mt-4 flex justify-end"><button type="button" class="rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white" data-download>Descargar .eml para Outlook</button></div></div></div>';
     document.body.appendChild(overlay);overlay.querySelector('[data-close]').addEventListener('click',()=>overlay.remove());overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
-    overlay.querySelector('[data-download]').addEventListener('click',()=>{const eml='MIME-Version: 1.0\\r\\nSubject: =?UTF-8?B?'+btoa(unescape(encodeURIComponent(mail.asunto)))+'?=\\r\\nX-Unsent: 1\\r\\nContent-Type: text/html; charset=UTF-8\\r\\nContent-Transfer-Encoding: base64\\r\\n\\r\\n'+btoa(unescape(encodeURIComponent(mail.cuerpo)));const url=URL.createObjectURL(new Blob([eml],{type:'message/rfc822;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='Borrador_Licencia_Medica_'+normalizarRut(d.rut)+'.eml';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);});
+    overlay.querySelector('[data-download]').addEventListener('click',()=>{const eml='MIME-Version: 1.0\r\nSubject: =?UTF-8?B?'+btoa(unescape(encodeURIComponent(mail.asunto)))+'?=\r\nX-Unsent: 1\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+btoa(unescape(encodeURIComponent(mail.cuerpo)));const url=URL.createObjectURL(new Blob([eml],{type:'message/rfc822;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='Borrador_Licencia_Medica_'+normalizarRut(d.rut)+'.eml';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);});
   }
   function iniciar() {
     if(iniciada||!$('eml-guardar'))return;
@@ -259,6 +260,7 @@
     $('eml-buscar').addEventListener('click',buscarColaborador);
     $('eml-rut').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();buscarColaborador();}});
     $('eml-rut').addEventListener('input',()=>{
+      if(manualActivo()){colaborador=null;$('eml-colaborador-id').value='';setEstado('Modo manual activo. Completa nombre y sucursal; el RUT debe ser válido.');return;}
       colaborador=null;
       $('eml-colaborador-id').value='';$('eml-nombre').value='';$('eml-cargo').value='';$('eml-sucursal').value='';
       clearTimeout(sugerenciaTimer);
