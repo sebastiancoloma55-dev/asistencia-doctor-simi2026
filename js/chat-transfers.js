@@ -105,6 +105,49 @@
     }
   }
 
+  // Muestra una sola conversación privada por pareja de usuarios. Si quedaron
+  // duplicados históricos, conserva visible la conversación con actividad más reciente.
+  async function deduplicatePrivateConversations(items) {
+    const all = Array.isArray(items) ? items.slice() : [];
+    const privateItems = all.filter(item => item.tipo === "PRIVADA");
+    if (privateItems.length < 2) return all;
+    try {
+      const ids = privateItems.map(item => item.id);
+      const { data: members, error } = await _supabase
+        .from("chat_participantes")
+        .select("conversacion_id,usuario_rol_id")
+        .in("conversacion_id", ids);
+      if (error) throw error;
+      const pairByConversation = new Map();
+      (members || []).forEach(member => {
+        const key = String(member.conversacion_id);
+        if (!pairByConversation.has(key)) pairByConversation.set(key, []);
+        pairByConversation.get(key).push(Number(member.usuario_rol_id));
+      });
+      const keepByPair = new Map();
+      const activity = item => new Date(item.last_message_at || item.updated_at || 0).getTime() || 0;
+      privateItems.forEach(item => {
+        const pair = (pairByConversation.get(String(item.id)) || []).sort((a,b)=>a-b);
+        if (pair.length !== 2) return;
+        const key = pair.join(":");
+        const current = keepByPair.get(key);
+        if (!current || activity(item) > activity(current)) keepByPair.set(key, item);
+      });
+      const keepIds = new Set(Array.from(keepByPair.values()).map(item => String(item.id)));
+      const result = all.filter(item => item.tipo !== "PRIVADA" || !pairByConversation.has(String(item.id)) || keepIds.has(String(item.id)));
+      if (activeConversation && !result.some(item => String(item.id) === String(activeConversation))) {
+        const current = privateItems.find(item => String(item.id) === String(activeConversation));
+        const pair = current && (pairByConversation.get(String(current.id)) || []).sort((a,b)=>a-b);
+        const canonical = pair && pair.length === 2 ? keepByPair.get(pair.join(":")) : null;
+        if (canonical) activeConversation = canonical.id;
+      }
+      return result;
+    } catch (error) {
+      console.warn("No se pudieron agrupar chats privados duplicados:", error);
+      return all;
+    }
+  }
+
   async function cargarChatInterno() {
     const status=$("chat-estado");
     if(status) status.textContent="Conectando con el chat seguro…";
@@ -118,7 +161,7 @@
       renderConversations(data||[]);
       if(status) status.textContent="Conectado · mensajes protegidos por participante · hora de Chile";
       if(activeConversation && !(data||[]).some(c=>c.id===activeConversation)) activeConversation=null;
-      if(!activeConversation && data?.length) await abrirConversacionChat(data[0].id);
+      if(!activeConversation && uniqueConversations.length) await abrirConversacionChat(uniqueConversations[0].id);
       else if(activeConversation) await abrirConversacionChat(activeConversation);
     } catch(error) {
       console.warn("Chat interno:",error);
@@ -162,7 +205,7 @@
           const {data:members,error:membersError}=await _supabase.from("chat_participantes").select("conversacion_id,usuario_rol_id").in("conversacion_id",privateIds);
           if(membersError)throw membersError;
           const targetIds=[Number(me),Number(chosenUsers[0].id)].sort((a,b)=>a-b);
-          const existingPrivate=(existing||[]).filter(item=>item.tipo==="PRIVADA").find(item=>{
+          const existingPrivate=(existing||[]).filter(item=>item.tipo==="PRIVADA").filter(item=>{
             const ids=(members||[]).filter(member=>String(member.conversacion_id)===String(item.id)).map(member=>Number(member.usuario_rol_id)).sort((a,b)=>a-b);
             return ids.length===2&&ids[0]===targetIds[0]&&ids[1]===targetIds[1];
           });
