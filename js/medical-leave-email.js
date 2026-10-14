@@ -7,7 +7,7 @@
   const STORAGE_KEY = 'rrhh_licencias_borrador_solicitado_v1';
   function idsPreparados() { try { return new Set(JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]').map(String)); } catch (_) { return new Set(); } }
   function guardarIdsPreparados(ids) { try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify([...ids])); } catch (_) {} }
-  function correoValido(value) { return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(value || '').trim()); }
+  function correoValido(value) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim()); }
 
   function esc(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function hoyChile() {
