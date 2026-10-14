@@ -412,6 +412,8 @@
             if (!registros.length) {
                 throw new Error(`No hay registros para guardar en ${tabla}.`);
             }
+            // Si un lote falla a mitad de la operación, no reutilizar una lectura anterior.
+            invalidarCacheLecturas(tabla);
 
             let confirmados = 0;
             let lotesProcesados = 0;
