@@ -77,6 +77,7 @@
                 document.getElementById('cob-inicio').value=data.fecha_inicio||'';
                 document.getElementById('cob-fin').value=data.fecha_fin||'';
                 document.getElementById('cob-motivo').value=data.motivo||'Cobertura';
+                document.getElementById('cob-observaciones').value=data.observaciones||'Sin observaciones adicionales.';
                 calcularDiasCobertura();
                 await cargarSolicitudesDotacion();
                 mostrarToast('Cobertura marcada como resuelta. Ahora puedes buscar al colaborador para preparar el traslado.','success',9000);
@@ -94,6 +95,7 @@
             document.getElementById('cob-inicio').value=data.fecha_inicio||'';
             document.getElementById('cob-fin').value=data.fecha_fin||'';
             document.getElementById('cob-motivo').value=data.motivo||'Cobertura';
+            document.getElementById('cob-observaciones').value=data.observaciones||'Sin observaciones adicionales.';
             calcularDiasCobertura();
             document.getElementById('cob-buscar')?.focus();
         }
