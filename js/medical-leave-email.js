@@ -68,13 +68,19 @@
     const db = typeof _supabase !== 'undefined' ? _supabase : window._supabase;
     estado.textContent='Consultando licencias reales en Supabase…';
     try {
-      const [licRes,sucRes] = await Promise.all([
-        db.from('licencias_medicas').select('id,rut,nombre,cargo,sucursal,fecha_inicio,fecha_fin,dias_ausencia,created_at').order('created_at',{ascending:false}).limit(20000),
-        db.from('sucursales').select('nombre,correo_sucursal,correo_copia,activa').eq('activa',true).limit(1000)
-      ]);
-      if (licRes.error) throw licRes.error;
+      const sucPromise = db.from('sucursales').select('nombre,correo_sucursal,correo_copia,activa').eq('activa',true).limit(1000);
+      const todos = [];
+      for (let desde=0; ; desde+=1000) {
+        const {data,error} = await db.from('licencias_medicas')
+          .select('id,rut,nombre,cargo,sucursal,fecha_inicio,fecha_fin,dias_ausencia,created_at')
+          .order('created_at',{ascending:false}).range(desde,desde+999);
+        if (error) throw error;
+        todos.push(...(data||[]));
+        if (!data || data.length < 1000) break;
+      }
+      const sucRes = await sucPromise;
       if (sucRes.error) throw sucRes.error;
-      registros=licRes.data||[]; sucursales=sucRes.data||[];
+      registros=todos; sucursales=sucRes.data||[];
       $('lic-correo-estado').textContent='Datos reales cargados. Se usa exclusivamente created_at para determinar el período.';
       seleccion=new Set(licenciasEnPeriodo().map(r=>String(r.id)));
       pintar();
