@@ -24,7 +24,7 @@
         let solicitudCoberturaSeleccionada=null;
         async function cargarResponsablesCobertura(){
             const select=document.getElementById('dot-responsables');if(!select)return;
-            const {data,error}=await _supabase.from('usuarios_roles').select('id,nombre,email,activo').eq('activo',true).order('nombre').limit(500);
+            const {data,error}=await _supabase.rpc('listar_responsables_cobertura');
             if(error){select.innerHTML='<option value="">No se pudieron cargar usuarios</option>';throw error;}
             select.innerHTML=(data||[]).map(u=>'<option value="'+escaparHTML(u.id)+'">'+escaparHTML((u.nombre||u.email||('Usuario '+u.id))+(u.email?' · '+u.email:''))+'</option>').join('');
         }
@@ -57,7 +57,7 @@
             const rows=data||[];
             const ids=[...new Set(rows.map(x=>x.solicitada_por).filter(Boolean))];
             let usuarios=[];
-            if(ids.length){const u=await _supabase.from('usuarios_roles').select('id,nombre,email').in('id',ids);if(!u.error)usuarios=u.data||[];}
+            if(ids.length){const u=await _supabase.rpc('listar_responsables_cobertura');if(!u.error)usuarios=(u.data||[]).filter(x=>ids.includes(x.id));}
             const map=new Map(usuarios.map(u=>[String(u.id),u]));
             host.innerHTML=rows.map(x=>{
                 const estado=x.estado||'PENDIENTE',resuelta=estado==='CUBIERTA',u=map.get(String(x.solicitada_por)),solicitante=u?.nombre||u?.email||'Usuario';
@@ -68,7 +68,7 @@
         }
         async function resolverSolicitudDotacion(id){
             try{
-                const {data,error}=await _supabase.from('solicitudes_dotacion').update({estado:'CUBIERTA'}).eq('id',id).neq('estado','CUBIERTA').select('*').single();
+                const {data,error}=await _supabase.rpc('resolver_alerta_cobertura',{p_solicitud_id:id});
                 if(error)throw error;
                 solicitudCoberturaSeleccionada=data;
                 document.getElementById('cob-solicitud-id').value=data.id;
