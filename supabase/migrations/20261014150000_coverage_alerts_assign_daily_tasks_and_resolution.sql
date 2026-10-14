@@ -3,6 +3,13 @@ alter table public.tareas
   add column if not exists solicitud_dotacion_id uuid
   references public.solicitudes_dotacion(id) on delete set null;
 
+alter table public.coberturas
+  add column if not exists solicitud_dotacion_id uuid
+  references public.solicitudes_dotacion(id) on delete set null;
+create index if not exists idx_coberturas_solicitud_dotacion
+  on public.coberturas(solicitud_dotacion_id)
+  where solicitud_dotacion_id is not null;
+
 create index if not exists idx_tareas_solicitud_dotacion
   on public.tareas(solicitud_dotacion_id)
   where solicitud_dotacion_id is not null;
@@ -150,3 +157,33 @@ grant execute on function public.crear_alerta_cobertura_asignada(uuid,text,date,
 
 comment on column public.tareas.solicitud_dotacion_id is 'Vincula la tarea diaria con la alerta de cobertura que la originó.';
 comment on table public.solicitud_dotacion_responsables is 'Usuarios designados para gestionar cada alerta de cobertura.';
+
+-- Notifications for new alerts are sent only to explicitly assigned recipients by the RPC above.
+-- Keep status-change notifications to the requester without broadcasting alert creation to all staff.
+create or replace function public.notificar_cambios_solicitud_dotacion()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_titulo text;
+  v_mensaje text;
+begin
+  if tg_op = 'INSERT' then
+    return new;
+  end if;
+  if tg_op = 'UPDATE' and new.estado is distinct from old.estado then
+    v_titulo := case
+      when new.estado = 'APROBADA' then 'Necesidad de cobertura aprobada'
+      when new.estado = 'RECHAZADA' then 'Necesidad de cobertura rechazada'
+      when new.estado = 'CUBIERTA' then 'Cobertura marcada como resuelta'
+      else 'Actualización de necesidad de cobertura'
+    end;
+    v_mensaje := 'Tu solicitud para ' || new.sucursal_nombre || ' (' || new.fecha_inicio::text || ' a ' || new.fecha_fin::text || ') cambió a estado: ' || new.estado || '.';
+    insert into public.notificaciones(usuario_rol_id,tipo,titulo,mensaje,entidad_tipo,leida)
+    values(new.solicitada_por,'COBERTURA_DOTACION',v_titulo,v_mensaje,'solicitud_dotacion',false);
+  end if;
+  return new;
+end;
+$$;
