@@ -147,10 +147,10 @@
       sucursalManual=null;
       if(String(colaborador.estado||'activo').toLowerCase()!=='activo'){colaborador=null;setEstado('El colaborador figura inactivo. Verifica antes de registrar la licencia.');return;}
       let sucursal=colaborador.sucursal||'';
-      if(colaborador.sucursal_id){
-        const sr=await client.from('sucursales').select('nombre,correo_sucursal,correo_copia').eq('id',colaborador.sucursal_id).maybeSingle();
-        if(!sr.error&&sr.data){sucursal=sr.data.nombre||sucursal;colaborador.sucursalCorreo=sr.data.correo_sucursal||null;colaborador.sucursalCopia=sr.data.correo_copia||null;sucursalManual=sr.data;}
-      }
+      try {
+        const sr=await resolverSucursal(sucursal,colaborador.sucursal_id);
+        if(sr){sucursal=sr.nombre||sucursal;colaborador.sucursal_id=sr.id;colaborador.sucursalCorreo=sr.correo_sucursal||null;colaborador.sucursalCopia=sr.correo_copia||null;sucursalManual=sr;}
+      } catch(e) { console.warn('[envio-licencias] no se pudo resolver destinatarios de sucursal',e); }
       colaborador.sucursalNombre=sucursal;
       $('eml-colaborador-id').value=colaborador.id;
       $('eml-nombre').value=[colaborador.nombres,colaborador.apellidos].filter(Boolean).join(' ');
@@ -209,27 +209,75 @@
       observacion:$('eml-observacion').value.trim() };
   }
   function plantillaCorreo(d) {
-    const asunto='LICENCIA MÉDICA - '+(d.nombre||'Colaborador/a');
-    const filas=[['Fecha de inicio de licencia',formatoFechaCorreo(d.inicio)],['Fecha de término de licencia',formatoFechaCorreo(d.termino)],['Fecha de retorno',formatoFechaCorreo(d.retorno)],['Total de días corridos',String(d.dias||'')]]
-      .map(([k,v])=>'<tr><td style="padding:13px 15px;border:1px solid #d7deea;font-weight:700;color:#22324d;width:65%">'+esc(k)+'</td><td style="padding:13px 15px;border:1px solid #d7deea;color:#26364f">'+esc(v)+'</td></tr>').join('');
-    const cuerpo='<!doctype html><html lang="es"><head><meta charset="utf-8"></head><body style="margin:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#26364f"><div style="max-width:760px;margin:24px auto;background:#fff;border:1px solid #d9e2ef"><div style="background:#174f95;padding:28px 20px;text-align:center;color:#fff"><img src="https://asistencia-doctor-simi2026.vercel.app/doctor-simi-logo.jpg" alt="Doctor Simi" width="86" height="86" style="display:block;object-fit:contain;width:86px;height:86px;margin:0 auto 12px;border-radius:50%;background:#fff;padding:4px"><div style="font-size:22px;font-weight:800;letter-spacing:.04em">FARMACIAS DOCTOR SIMI</div><div style="margin-top:8px;font-size:16px;font-weight:700;letter-spacing:.08em">LICENCIA MÉDICA</div></div><div style="padding:28px 24px"><p style="font-size:15px;font-weight:700;color:#1764b2">Estimados/as,</p><p style="font-size:14px;line-height:1.8">Se informa que el/la colaborador/a <strong>'+esc(d.nombre)+'</strong>, con RUT <strong>'+esc(d.rut)+'</strong>, '+(d.cargo?'cargo <strong>'+esc(d.cargo)+'</strong>, ':'')+'de la sucursal <strong>'+esc(d.sucursal)+'</strong>, registra una licencia médica. A continuación, se detallan las fechas para coordinación y seguimiento:</p><table role="presentation" cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;margin:22px 0">'+filas+'</table><p style="font-size:14px;line-height:1.8">Se solicita confirmar el retorno del/de la trabajador/a en la fecha indicada y comunicar cualquier diferencia al equipo de Asistencia y Ausentismo.</p>'+(d.observacion?'<p style="font-size:13px;line-height:1.7"><strong>Observación administrativa:</strong> '+esc(d.observacion)+'</p>':'')+'<p style="font-size:14px;line-height:1.8;margin-top:28px">Saludos cordiales,</p></div><div style="background:#f8fafc;padding:22px 24px;text-align:center;color:#64748b;font-size:11px"><div style="font-weight:700;color:#42526b">Área de Asistencia y Ausentismo</div><div style="height:1px;background:#b8c5d6;margin:12px 0"></div>© 2026 Farmacias Dr. Simi. Todos los derechos reservados.</div></div></body></html>';
-    return {asunto,cuerpo,to:d.correoSucursal||'',cc:d.correoCopia||''};
+    const asunto = 'LICENCIA MÉDICA - ' + (d.nombre || 'Colaborador/a');
+    const filas = [
+      ['Fecha de inicio de licencia', formatoFechaCorreo(d.inicio)],
+      ['Fecha de término de licencia', formatoFechaCorreo(d.termino)],
+      ['Fecha de retorno', formatoFechaCorreo(d.retorno)],
+      ['Total de días corridos', String(d.dias || '')]
+    ].map(([k, v]) => '<tr><td style="padding:13px 14px;border:1px solid #dce5f0;font-weight:700;color:#213a5b;width:62%">' + esc(k) + '</td><td style="padding:13px 14px;border:1px solid #dce5f0;color:#20324a">' + esc(v) + '</td></tr>').join('');
+    const logo = 'https://raw.githubusercontent.com/sebastiancoloma55-dev/asistencia-doctor-simi2026/main/doctor-simi-logo.jpg';
+    const cuerpo = '<!doctype html><html lang="es"><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#eef3f9;font-family:Arial,Helvetica,sans-serif;color:#26364f"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef3f9;padding:22px 8px"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;background:#fff;border:1px solid #dbe5f0;border-radius:18px;overflow:hidden"><tr><td align="center" style="background:#174f95;padding:26px 18px 24px;color:#fff"><img src="' + logo + '" alt="Farmacias Doctor Simi" width="92" height="92" style="display:block;width:92px;height:92px;object-fit:contain;border:3px solid #fff;border-radius:50%;background:#fff;margin:0 auto 14px"><div style="font-size:22px;font-weight:800;letter-spacing:.03em">FARMACIAS DOCTOR SIMI</div><div style="font-size:11px;font-weight:700;letter-spacing:.16em;color:#d8f5ff;margin-top:6px">ASISTENCIA Y AUSENTISMO</div><div style="display:inline-block;margin-top:16px;padding:8px 14px;background:#fff;color:#174f95;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.08em">LICENCIA MÉDICA</div></td></tr><tr><td style="padding:28px 24px 22px"><p style="margin:0 0 12px;font-size:15px;font-weight:700;color:#1764b2">Estimados/as,</p><p style="margin:0 0 20px;font-size:14px;line-height:1.8">Se informa que el/la colaborador/a <strong>' + esc(d.nombre) + '</strong>, con RUT <strong>' + esc(d.rut) + '</strong>, ' + (d.cargo ? 'cargo <strong>' + esc(d.cargo) + '</strong>, ' : '') + 'de la sucursal <strong>' + esc(d.sucursal) + '</strong>, registra una licencia médica. Se detallan las fechas para coordinación y seguimiento:</p><table role="presentation" cellspacing="0" cellpadding="0" width="100%" style="border-collapse:collapse;font-size:13px;margin:20px 0">' + filas + '</table><div style="margin:20px 0;padding:15px 16px;border-left:4px solid #16a6b6;background:#f0fbfc;border-radius:0 10px 10px 0;font-size:13px;line-height:1.7">Se solicita confirmar el retorno del/de la trabajador/a en la fecha indicada y comunicar cualquier diferencia al equipo de Asistencia y Ausentismo.</div>' + (d.observacion ? '<p style="font-size:13px;line-height:1.7"><strong>Observación administrativa:</strong> ' + esc(d.observacion) + '</p>' : '') + '<p style="font-size:14px;line-height:1.8;margin:26px 0 0">Saludos cordiales,</p><p style="font-size:13px;line-height:1.7;margin:4px 0 0;color:#174f95;font-weight:700">Equipo de Asistencia y Ausentismo<br>Farmacias Doctor Simi</p></td></tr><tr><td style="background:#f7f9fc;border-top:1px solid #e3eaf3;padding:18px 20px;text-align:center;color:#64748b;font-size:11px;line-height:1.6">Comunicación administrativa · revisar destinatarios antes de enviar<br>© 2026 Farmacias Dr. Simi. Todos los derechos reservados.</td></tr></table></td></tr></table></body></html>';
+    return { asunto, cuerpo, to: d.correoSucursal || '', cc: d.correoCopia || '' };
   }
+
+  function base64Lineas(valor) {
+    const encoded = btoa(unescape(encodeURIComponent(String(valor || ''))));
+    return encoded.match(/.{1,76}/g)?.join('\r\n') || '';
+  }
+
+  function crearEmlLicencia(mail) {
+    const limpiar = v => String(v || '').replace(/[\r\n]+/g, ' ').trim();
+    const boundary = '----=_DoctorSimiLicencia_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2);
+    const textoPlano = document.createElement('div');
+    textoPlano.innerHTML = mail.cuerpo || '';
+    const plain = base64Lineas(textoPlano.textContent || mail.asunto || 'Licencia médica');
+    const html = base64Lineas(mail.cuerpo || '');
+    const subject = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(limpiar(mail.asunto)))) + '?=';
+    return (limpiar(mail.to) ? 'To: ' + limpiar(mail.to) + '\r\n' : '') +
+      (limpiar(mail.cc) ? 'Cc: ' + limpiar(mail.cc) + '\r\n' : '') +
+      'Subject: ' + subject + '\r\nMIME-Version: 1.0\r\nX-Unsent: 1\r\n' +
+      'Content-Type: multipart/alternative; boundary="' + boundary + '"\r\n\r\n' +
+      '--' + boundary + '\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n' + plain + '\r\n' +
+      '--' + boundary + '\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n' + html + '\r\n' +
+      '--' + boundary + '--\r\n';
+  }
+
+  function descargarArchivo(blob, nombre) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombre;
+    a.setAttribute('target', '_self');
+    a.style.position = 'fixed';
+    a.style.left = '-9999px';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 60000);
+  }
+
+  function descargarEml(mail, rut) {
+    if (!mail.to && !mail.cc) {
+      mensaje('La sucursal no tiene destinatarios asignados. Revisa la configuración de correos antes de descargar.');
+      return;
+    }
+    const eml = crearEmlLicencia(mail);
+    descargarArchivo(new Blob([eml], { type: 'message/rfc822;charset=utf-8' }), 'Borrador_Licencia_Medica_' + normalizarRut(rut) + '.eml');
+    if (window.mostrarToast) window.mostrarToast('Borrador .eml descargado. Ábrelo en Outlook y revisa destinatarios antes de enviar.', 'success');
+  }
+
   function mostrarVistaCorreo() {
     calcular(); const d=datosActuales();
     if(!rutValido(d.rut)||!d.nombre||!d.sucursal||!d.inicio||!Number.isInteger(d.dias)||d.dias<1||d.dias>365){mensaje('Para preparar el correo, completa un RUT válido, nombre, sucursal, fecha de inicio y días corridos.');return;}
-    $('eml-correo-preview').innerHTML=plantillaCorreo(d).cuerpo;
+    const mail=plantillaCorreo({...d,correoSucursal:colaborador?.sucursalCorreo||d.correoSucursal,correoCopia:colaborador?.sucursalCopia||d.correoCopia});
+    $('eml-correo-preview').innerHTML=mail.cuerpo;
     $('eml-correo-preview').classList.remove('hidden'); mensaje('');
   }
   function descargarCorreo() {
     calcular(); const d=datosActuales();
     if(!rutValido(d.rut)||!d.nombre||!d.sucursal||!d.inicio||!Number.isInteger(d.dias)||d.dias<1||d.dias>365){mensaje('Completa los datos obligatorios antes de descargar el borrador de Outlook.');return;}
-    const mail=plantillaCorreo(d), clean=s=>String(s||'').replace(/[\r\n]/g,' ').replace(/[^\x20-\x7E]/g,'');
-    const to=mail.to?'To: '+clean(mail.to)+'\r\n':'', cc=mail.cc?'Cc: '+clean(mail.cc)+'\r\n':'';
-    const eml='MIME-Version: 1.0\r\n'+to+cc+'Subject: =?UTF-8?B?'+btoa(unescape(encodeURIComponent(mail.asunto)))+'?=\r\nX-Unsent: 1\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+btoa(unescape(encodeURIComponent(mail.cuerpo)));
-    const url=URL.createObjectURL(new Blob([eml],{type:'application/octet-stream'}));
-    const a=document.createElement('a');a.href=url;a.download='Borrador_Licencia_Medica_'+normalizarRut(d.rut)+'.eml';a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},10000);
-    if(window.mostrarToast)window.mostrarToast('Borrador .eml preparado. Ábrelo en Outlook y revisa destinatarios antes de enviar.','success');
+    const mail=plantillaCorreo({...d,correoSucursal:colaborador?.sucursalCorreo||d.correoSucursal,correoCopia:colaborador?.sucursalCopia||d.correoCopia});
+    mensaje(''); descargarEml(mail,d.rut);
   }
 
   async function guardar() {
@@ -289,15 +337,12 @@
       const zip=new JSZip(), folder=zip.folder('Borradores_licencias_medicas');
       const csv=[['RUT','Colaborador','Cargo','Sucursal','Fecha registro','Inicio','Término','Retorno','Días corridos','Para','CC','Estado']];
       for(const r of rows) {
-        const suc=(r.correo_sucursal||r.correo_copia)?null:await resolverSucursal(r.sucursal_nombre,r.sucursal_id);
-        const d={nombre:r.nombre_colaborador||'',rut:r.rut||'',cargo:r.cargo||'',sucursal:r.sucursal_nombre||'',fechaRegistro:r.fecha_registro,inicio:r.fecha_inicio,dias:Number(r.dias_corridos),termino:r.fecha_termino,retorno:r.fecha_retorno,correoSucursal:r.correo_sucursal||suc?.correo_sucursal||'',correoCopia:r.correo_copia||suc?.correo_copia||'',observacion:r.observacion_administrativa||''};
+        const suc=await resolverSucursal(r.sucursal_nombre,r.sucursal_id);
+        const d={nombre:r.nombre_colaborador||'',rut:r.rut||'',cargo:r.cargo||'',sucursal:r.sucursal_nombre||'',fechaRegistro:r.fecha_registro,inicio:r.fecha_inicio,dias:Number(r.dias_corridos),termino:r.fecha_termino||sumarFecha(r.fecha_inicio,Number(r.dias_corridos)-1),retorno:r.fecha_retorno||sumarFecha(r.fecha_inicio,Number(r.dias_corridos)),correoSucursal:suc?.correo_sucursal||'',correoCopia:suc?.correo_copia||'',observacion:r.observacion_administrativa||''};
         if(!rutValido(d.rut)||!d.nombre||!d.sucursal||!d.inicio||!Number.isInteger(d.dias)||d.dias<1)throw new Error('Una de las licencias tiene datos obligatorios incompletos. Revisa los registros.');
         if(!d.correoSucursal&&!d.correoCopia)throw new Error('La sucursal '+d.sucursal+' no tiene destinatarios asignados. Configura sus correos antes de generar el ZIP.');
         const mail=plantillaCorreo(d);
-        const clean=v=>String(v||'').replace(/[\r\n]/g,' ').replace(/[^\x20-\x7E]/g,'');
-        const to=mail.to?'To: '+clean(mail.to)+'\r\n':'';
-        const cc=mail.cc?'Cc: '+clean(mail.cc)+'\r\n':'';
-        const eml='MIME-Version: 1.0\r\n'+to+cc+'Subject: =?UTF-8?B?'+btoa(unescape(encodeURIComponent(mail.asunto)))+'?=\r\nX-Unsent: 1\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+btoa(unescape(encodeURIComponent(mail.cuerpo)));
+        const eml=crearEmlLicencia(mail);
         const filename=String(d.inicio||'licencia')+'_'+normalizarRut(d.rut);
         folder.file(filename+'.eml',eml);
         folder.file(filename+'.html',mail.cuerpo);
@@ -306,9 +351,7 @@
       zip.file('Control_de_licencias.csv','\uFEFF'+csv.map(row=>row.map(csvCelda).join(';')).join('\r\n'));
       zip.file('LEEME.txt','Se incluye un borrador .eml individual y una vista HTML por licencia, más un CSV de control. Los correos NO han sido enviados. Abre cada .eml en Outlook, revisa destinatarios y contenido y pulsa Enviar. No se incluyen documentos médicos adjuntos que no se hayan cargado al sistema.');
       const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
-      const url=URL.createObjectURL(blob), a=document.createElement('a');
-      a.href=url;a.download='Borradores_Licencias_'+isoHoy()+'.zip';a.style.display='none';document.body.appendChild(a);a.click();
-      setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},10000);
+      descargarArchivo(blob,'Borradores_Licencias_'+isoHoy()+'.zip');
       if(window.mostrarToast)window.mostrarToast('ZIP preparado con '+rows.length+' borrador(es). Los correos aún no han sido enviados.','success');
     } catch(e) { mensaje(e.message||'No se pudo generar el ZIP.'); }
     finally {btn.disabled=false;btn.textContent=texto;actualizarSeleccion();}
@@ -327,15 +370,18 @@
       actualizarSeleccion();
     } catch(e){$('eml-lista-estado').textContent='No se pudieron cargar los registros. Comprueba que la migración esté aplicada y que tengas permiso.';$('eml-lista').innerHTML='<tr><td colspan="6" class="p-6 text-center text-rose-600">'+esc(e.message||'Error desconocido')+'</td></tr>';}
   }
-  function verRegistro(r) {
+  async function verRegistro(r) {
     if(!r)return;
-    const d={nombre:r.nombre_colaborador||'',rut:r.rut||'',cargo:r.cargo||'',sucursal:r.sucursal_nombre||'',inicio:r.fecha_inicio,dias:Number(r.dias_corridos),termino:r.fecha_termino,retorno:r.fecha_retorno,correoSucursal:r.correo_sucursal||'',correoCopia:r.correo_copia||'',observacion:r.observacion_administrativa||''};
+    let suc=null;
+    try { suc=await resolverSucursal(r.sucursal_nombre,r.sucursal_id); } catch(e) { console.warn('[envio-licencias] no se pudo actualizar destinatarios para vista previa',e); }
+    const d={nombre:r.nombre_colaborador||'',rut:r.rut||'',cargo:r.cargo||'',sucursal:r.sucursal_nombre||'',inicio:r.fecha_inicio,dias:Number(r.dias_corridos),termino:r.fecha_termino||sumarFecha(r.fecha_inicio,Number(r.dias_corridos)-1),retorno:r.fecha_retorno||sumarFecha(r.fecha_inicio,Number(r.dias_corridos)),correoSucursal:suc?.correo_sucursal||r.correo_sucursal||'',correoCopia:suc?.correo_copia||r.correo_copia||'',observacion:r.observacion_administrativa||''};
     const mail=plantillaCorreo(d), overlay=document.createElement('div');
     overlay.className='fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-3';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
     overlay.innerHTML='<div class="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl"><div class="flex items-center justify-between gap-3 border-b p-4"><div><h3 class="font-extrabold text-slate-900">Vista previa de licencia médica</h3><p class="text-xs text-slate-500">Borrador únicamente · no se envía automáticamente</p></div><button type="button" class="rounded-lg border px-3 py-2 text-sm font-bold" data-close>Cerrar</button></div><div class="p-4"><p class="mb-3 text-sm"><strong>Asunto:</strong> '+esc(mail.asunto)+'</p><div class="overflow-hidden rounded-xl border">'+mail.cuerpo+'</div><div class="mt-4 flex justify-end"><button type="button" class="rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white" data-download>Descargar .eml para Outlook</button></div></div></div>';
     document.body.appendChild(overlay);overlay.querySelector('[data-close]').addEventListener('click',()=>overlay.remove());overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
-    overlay.querySelector('[data-download]').addEventListener('click',()=>{const eml='MIME-Version: 1.0\\r\\n'+(mail.to?'To: '+String(mail.to).replace(/[\\r\\n]/g,' ')+'\\r\\n':'')+(mail.cc?'Cc: '+String(mail.cc).replace(/[\\r\\n]/g,' ')+'\\r\\n':'')+'Subject: =?UTF-8?B?'+btoa(unescape(encodeURIComponent(mail.asunto)))+'?=\\r\\nX-Unsent: 1\\r\\nContent-Type: text/html; charset=UTF-8\\r\\nContent-Transfer-Encoding: base64\\r\\n\\r\\n'+btoa(unescape(encodeURIComponent(mail.cuerpo)));const url=URL.createObjectURL(new Blob([eml],{type:'application/octet-stream'}));const a=document.createElement('a');a.href=url;a.download='Borrador_Licencia_Medica_'+normalizarRut(d.rut)+'.eml';a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},10000);});
+    overlay.querySelector('[data-download]').addEventListener('click',()=>descargarEml(mail,d.rut));
   }
+
   function iniciar() {
     if(iniciada||!$('eml-guardar'))return;
     iniciada=true;
