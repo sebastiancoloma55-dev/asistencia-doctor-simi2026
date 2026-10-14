@@ -25,7 +25,7 @@
         async function cargarResponsablesCobertura(){
             const select=document.getElementById('dot-responsables');if(!select)return;
             const {data,error}=await _supabase.rpc('listar_responsables_cobertura');
-            if(error){select.innerHTML='<option value="">No se pudieron cargar usuarios</option>';throw error;}
+            if(error){select.innerHTML='<option value="">No disponible para este perfil</option>';return;}
             select.innerHTML=(data||[]).map(u=>'<option value="'+escaparHTML(u.id)+'">'+escaparHTML((u.nombre||u.email||('Usuario '+u.id))+(u.email?' · '+u.email:''))+'</option>').join('');
         }
         async function crearSolicitudDotacion(event){
