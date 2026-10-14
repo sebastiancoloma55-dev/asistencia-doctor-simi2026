@@ -491,12 +491,12 @@
                 // Consolidación global ANTES de dividir en lotes.
                 // Esto evita que el lote 901-1200 caiga completo por código 21000.
                 const normalizarIdentidadTexto = valor => String(valor ?? '')
-                    .trim().toLowerCase().replace(/\\s+/g, ' ')
+                    .trim().toLowerCase().replace(/\s+/g, ' ')
                     .replace(/[áéíóúüñ]/g, letra => ({á:'a',é:'e',í:'i',ó:'o',ú:'u',ü:'u',ñ:'n'}[letra]));
                 const consolidado = deduplicarRegistros(
                     originales,
                     registro => [
-                        normalizarRut(registro.rut).replace(/[.\\s]/g, '').toUpperCase(),
+                        normalizarRut(registro.rut).replace(/[.\s]/g, '').toUpperCase(),
                         String(registro.fecha_inicio || '').trim(),
                         normalizarIdentidadTexto(registro.tipo_ausencia),
                         String(registro.fecha_creacion || '').trim().slice(0, 10),
