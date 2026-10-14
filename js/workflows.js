@@ -253,7 +253,7 @@
             await registrarAuditoria('reportes','GENERA_REPORTE',`${tipo} · ${formato} · ${desde||'s/f'} a ${hasta||'s/f'} · ${datos.length} registros`);mostrarToast('Reporte generado y descargado.','success');
         }
 
-        const listaPermisos=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','traslados_aprobar'];
+        const listaPermisos=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','traslados_aprobar'];
         let perfilActualSistema=null, modulosPermitidosActuales=[];
         const EMAIL_ADMIN_PRINCIPAL='scoloma@farmaciasdoctorsimi.cl';
         function esAdminPrincipalActual(){return String(perfilActualSistema?.email||'').trim().toLowerCase()===EMAIL_ADMIN_PRINCIPAL;}
@@ -368,7 +368,7 @@
         const etiquetasPermisosUsuarios = {
             dashboard:'Dashboard', espacio:'Mi espacio de trabajo', tareas:'Tareas diarias',
             colaboradores:'Colaboradores', sucursales:'Sucursales', usuarios:'Usuarios y roles',
-            asistencia:'Asistencia y atrasos', licencias:'Licencias médicas', vacaciones:'Vacaciones',
+            asistencia:'Asistencia y atrasos', licencias:'Licencias médicas', envio_licencias:'Envío de licencias médicas', vacaciones:'Vacaciones',
             papeletas:'Permisos y ausencias', amonestaciones:'Coberturas', traslados:'Traslados de personal',
             correos:'Borradores de correo', configcorreos:'Correos de sucursales', chat:'Chat interno',
             reportes:'Reportes', mapas:'Mapa y distancias', operaciones:'Centro de operaciones',
@@ -378,7 +378,7 @@
         const gruposPermisosUsuarios = [
             {label:'Inicio y productividad',icon:'layout-dashboard',keys:['dashboard','espacio','tareas']},
             {label:'Personas y estructura',icon:'users',keys:['colaboradores','sucursales','usuarios']},
-            {label:'Asistencia y beneficios',icon:'clock',keys:['asistencia','licencias','vacaciones','papeletas']},
+            {label:'Asistencia y beneficios',icon:'clock',keys:['asistencia','licencias','envio_licencias','vacaciones','papeletas']},
             {label:'Coberturas y comunicación',icon:'calendar-check',keys:['amonestaciones','traslados','correos','configcorreos','chat']},
             {label:'Análisis y control',icon:'chart-no-axes-combined',keys:['reportes','mapas','operaciones','calidad','notificaciones','integraciones','auditoria']},
             {label:'Privilegios especiales',icon:'shield-check',keys:['traslados_aprobar']}

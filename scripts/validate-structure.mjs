@@ -131,6 +131,30 @@ for (const redundantMigration of ['20261011120000_talana_importer_privileges_and
 }
 if (!migrationNames.includes('20261011073437_talana_importer_privileges_and_key_contract_20261011.sql')) fail('Falta alinear la migración del importador con la versión aplicada en Supabase.');
 if (!migrationNames.includes('20261011181841_talana_four_reports_config_20261011.sql')) fail('Falta versionar la configuración del bot con los cuatro reportes activos.');
+const manualLeave = readFileSync(path.join(root, 'js/medical-leave-registration.js'), 'utf8');
+for (const marker of [
+  "from('colaboradores')",
+  "from('envio_licencias_medicas')",
+  'function rutValido',
+  'fecha_termino',
+  'fecha_retorno',
+  'No se envió ningún correo'
+]) {
+  if (!manualLeave.includes(marker)) fail('El módulo de registro manual de licencias no contiene la validación requerida: ' + marker + '.');
+}
+if (!migrationNames.includes('20261014220000_envio_licencias_medicas_manual.sql')) fail('Falta la migración de la tabla independiente de licencias médicas manuales.');
+const manualMigration = readFileSync(path.join(migrationDir, '20261014220000_envio_licencias_medicas_manual.sql'), 'utf8');
+for (const marker of [
+  'public.envio_licencias_medicas',
+  'public.envio_licencias_medicas_auditoria',
+  "usuario_tiene_permiso('envio_licencias')",
+  'fecha_inicio + (dias_corridos - 1)',
+  'fecha_inicio + dias_corridos'
+]) {
+  if (!manualMigration.includes(marker)) fail('La migración de licencias manuales no contiene: ' + marker + '.');
+}
+if (manualMigration.includes('references public.licencias_medicas')) fail('El nuevo registro manual no debe depender del historial de licencias.');
+
 
 if (process.exitCode) process.exit(process.exitCode);
 console.log(`Validación correcta: ${localScripts.length} scripts locales, ${jsFiles.length} archivos JS, ${buttons.size} módulos navegables y APIs protegidas.`);
