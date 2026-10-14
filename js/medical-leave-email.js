@@ -72,12 +72,17 @@
     const db = typeof _supabase !== 'undefined' ? _supabase : window._supabase;
     estado.textContent='Consultando licencias reales en Supabase…';
     try {
+      const p=periodo();
+      if(!p.desde||!p.hasta||p.hasta<p.desde) throw new Error('El rango de fechas no es válido.');
+      const desdeUTC=inicioChileUTC(p.desde);
+      const hastaUTC=inicioChileUTC(sumarDias(p.hasta,1));
       const sucPromise = db.from('sucursales').select('nombre,correo_sucursal,correo_copia,activa').eq('activa',true).limit(1000);
       const todos = [];
-      for (let desde=0; ; desde+=1000) {
+      for (let offset=0; ; offset+=1000) {
         const {data,error} = await db.from('licencias_medicas')
           .select('id,rut,nombre,cargo,sucursal,fecha_inicio,fecha_fin,dias_ausencia,created_at')
-          .order('created_at',{ascending:false}).range(desde,desde+999);
+          .gte('created_at',desdeUTC).lt('created_at',hastaUTC)
+          .order('created_at',{ascending:false}).range(offset,offset+999);
         if (error) throw error;
         todos.push(...(data||[]));
         if (!data || data.length < 1000) break;
@@ -85,8 +90,8 @@
       const sucRes = await sucPromise;
       if (sucRes.error) throw sucRes.error;
       registros=todos; sucursales=sucRes.data||[];
-      $('lic-correo-estado').textContent='Datos reales cargados. Se usa exclusivamente created_at para determinar el período.';
-      seleccion=new Set(licenciasEnPeriodo().map(r=>String(r.id)));
+      $('lic-correo-estado').textContent='Datos reales cargados para '+p.desde+' al '+p.hasta+' (hora de Chile), filtrados por fecha de ingreso.';
+      seleccion=new Set(registros.map(r=>String(r.id)));
       pintar();
     } catch(e) {
       estado.textContent='No se pudieron consultar los registros: '+(e.message||'error de conexión');
@@ -160,8 +165,8 @@
     if (!$('lic-correo-periodo') || $('lic-correo-periodo').dataset.ready==='1') return;
     $('lic-correo-periodo').dataset.ready='1';
     $('lic-correo-periodo').value='hoy';
-    $('lic-correo-periodo').addEventListener('change',()=>{const c=$('lic-correo-periodo').value==='custom';$('lic-correo-fechas-custom').classList.toggle('hidden',!c);pintar();});
-    ['lic-correo-desde','lic-correo-hasta'].forEach(id=>$(id).addEventListener('change',pintar));
+    $('lic-correo-periodo').addEventListener('change',()=>{const c=$('lic-correo-periodo').value==='custom';$('lic-correo-fechas-custom').classList.toggle('hidden',!c);if(!c)cargar();});
+    ['lic-correo-desde','lic-correo-hasta'].forEach(id=>$(id).addEventListener('change',()=>{if($('lic-correo-periodo').value==='custom')cargar();}));
     $('lic-correo-todos').addEventListener('click',()=>{seleccion=new Set(licenciasEnPeriodo().map(r=>String(r.id)));pintar();});
     $('lic-correo-ninguno').addEventListener('click',()=>{seleccion.clear();pintar();});
     $('lic-correo-recargar').addEventListener('click',cargar);
