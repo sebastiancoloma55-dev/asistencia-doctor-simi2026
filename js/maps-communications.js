@@ -155,6 +155,21 @@
             mostrarToast('Borradores restaurados desde tu historial privado. Revisa los destinatarios antes de abrirlos.','success',9000);
         }
 
+        function personaConAusenciaEnFecha(registro) {
+            const fecha = String(registro?.fecha || '').slice(0, 10);
+            const tipo = String(registro?.tipo_ausentismo || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
+            if (/licencia|medic|permiso|vacacion|ausencia/.test(tipo)) return true;
+            const rut = typeof normalizarRut === 'function' ? normalizarRut(registro?.rut) : String(registro?.rut || '').replace(/[^0-9k]/gi, '').toUpperCase();
+            if (!fecha || !rut) return false;
+            const cubreFecha = ausencia => {
+                const rutAusencia = typeof normalizarRut === 'function' ? normalizarRut(ausencia?.rut) : String(ausencia?.rut || '').replace(/[^0-9k]/gi, '').toUpperCase();
+                const inicio = String(ausencia?.fecha_inicio || '').slice(0, 10);
+                const fin = String(ausencia?.fecha_fin || ausencia?.fecha_inicio || '').slice(0, 10);
+                return rutAusencia === rut && !!inicio && !!fin && fecha >= inicio && fecha <= fin;
+            };
+            return (datosLicenciasGlobal || []).some(cubreFecha) || (datosVacacionesGlobal || []).some(cubreFecha);
+        }
+
         async function prepararCorreosAsistencia() {
             if(!puedePrepararCorreosActual())return mostrarToast('No tienes autorización para preparar correos.','warning');
             const desde = document.getElementById('correo-desde').value;
@@ -162,12 +177,21 @@
             const minimo = Number(document.getElementById('correo-min-atraso').value) || 0;
             if (!desde || !hasta) return mostrarToast('Selecciona el período desde y hasta.', 'warning');
             if (desde > hasta) return mostrarToast('La fecha Desde no puede ser posterior a Hasta.', 'warning');
-            const filtroSuc = valoresSeleccionados('correo-sucursales');
-            const filtroSup = valoresSeleccionados('correo-supervisores');
-            const agrupar = document.getElementById('correo-agrupar').value;
-            const config = new Map(sucursalesConfiguracionGlobal.map(x => [texto(x.nombre).toLowerCase(), x]));
-            const grupos = new Map();
-            datosAsistenciaGlobal.filter(x => x.fecha >= desde && x.fecha <= hasta).forEach(x => {
+            let filtroSuc, filtroSup, agrupar, config, grupos;
+            try {
+                if (!licenciasCargadas) await cargarLicenciasDesdeNube();
+                if (!vacacionesCargadas) await cargarVacacionesDesdeNube();
+            } catch (error) {
+                console.error('Validación de ausencias antes de preparar correos:', error);
+                mostrarToast('No se generaron borradores: no fue posible validar licencias, permisos y vacaciones. Revisa los permisos de acceso e inténtalo nuevamente.', 'error', 14000);
+                return;
+            }
+            filtroSuc = valoresSeleccionados('correo-sucursales');
+            filtroSup = valoresSeleccionados('correo-supervisores');
+            agrupar = document.getElementById('correo-agrupar').value;
+            config = new Map(sucursalesConfiguracionGlobal.map(x => [texto(x.nombre).toLowerCase(), x]));
+            grupos = new Map();
+            datosAsistenciaGlobal.filter(x => x.fecha >= desde && x.fecha <= hasta && !personaConAusenciaEnFecha(x)).forEach(x => {
                 const cfg = config.get(texto(x.sucursal).toLowerCase()) || {};
                 if (filtroSuc.length && !filtroSuc.includes(x.sucursal)) return;
                 if (filtroSup.length && !filtroSup.includes(cfg.supervisor)) return;
