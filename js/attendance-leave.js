@@ -491,14 +491,15 @@
                 // Consolidación global ANTES de dividir en lotes.
                 // Esto evita que el lote 901-1200 caiga completo por código 21000.
                 const normalizarIdentidadTexto = valor => String(valor ?? '')
-                    .trim().toLowerCase().replace(/\s+/g, ' ')
+                    .trim().toLowerCase().replace(/\s+/g, ' ');
+                const normalizarTipoIdentidad = valor => normalizarIdentidadTexto(valor)
                     .replace(/[áéíóúüñ]/g, letra => ({á:'a',é:'e',í:'i',ó:'o',ú:'u',ü:'u',ñ:'n'}[letra]));
                 const consolidado = deduplicarRegistros(
                     originales,
                     registro => [
                         normalizarRut(registro.rut).replace(/[.\s]/g, '').toUpperCase(),
                         String(registro.fecha_inicio || '').trim(),
-                        normalizarIdentidadTexto(registro.tipo_ausencia),
+                        normalizarTipoIdentidad(registro.tipo_ausencia),
                         String(registro.fecha_creacion || '').trim().slice(0, 10),
                         normalizarIdentidadTexto(registro.hora_inicio),
                         normalizarIdentidadTexto(registro.hora_fin)
@@ -513,7 +514,7 @@
 
                 if (consolidado.duplicados.length) {
                     mostrarToast(
-                        `Licencias: se detectaron ${consolidado.duplicados.length} fila(s) repetidas. Se conservó la última aparición de cada combinación RUT + fecha inicio + fecha fin + tipo.`,
+                        `Licencias: se detectaron ${consolidado.duplicados.length} fila(s) repetidas. Se conservó la última aparición de cada identidad Talana (RUT + inicio + tipo + fecha de creación + horas).`,
                         'warning',
                         14000
                     );
