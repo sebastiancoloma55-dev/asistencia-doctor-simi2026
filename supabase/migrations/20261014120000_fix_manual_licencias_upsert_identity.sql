@@ -22,16 +22,16 @@ begin
       dias_ausencia, fecha_inicio, fecha_fin, observaciones, gerencia,
       centro_costo, hora_inicio, hora_fin, numero_horas, numero_minutos, fecha_creacion
     ) values (
-      nullif(v_row->>'rut',''), nullif(v_row->>'nombre',''),
-      nullif(v_row->>'empresa',''), nullif(v_row->>'cargo',''),
-      nullif(v_row->>'sucursal',''), nullif(v_row->>'tipo_ausencia',''),
-      nullif(v_row->>'motivo_ausencia',''),
+      v_row->>'rut', v_row->>'nombre',
+      v_row->>'empresa', v_row->>'cargo',
+      v_row->>'sucursal', v_row->>'tipo_ausencia',
+      v_row->>'motivo_ausencia',
       nullif(v_row->>'dias_ausencia','')::numeric,
-      nullif(v_row->>'fecha_inicio',''), nullif(v_row->>'fecha_fin',''),
-      nullif(v_row->>'observaciones',''), nullif(v_row->>'gerencia',''),
-      nullif(v_row->>'centro_costo',''), nullif(v_row->>'hora_inicio',''),
-      nullif(v_row->>'hora_fin',''), nullif(v_row->>'numero_horas',''),
-      nullif(v_row->>'numero_minutos',''), nullif(v_row->>'fecha_creacion','')
+      v_row->>'fecha_inicio', v_row->>'fecha_fin',
+      v_row->>'observaciones', v_row->>'gerencia',
+      v_row->>'centro_costo', v_row->>'hora_inicio',
+      v_row->>'hora_fin', v_row->>'numero_horas',
+      v_row->>'numero_minutos', v_row->>'fecha_creacion'
     )
     on conflict (
       (regexp_replace(upper(trim(rut)), '[.[:space:]]', '', 'g')),
