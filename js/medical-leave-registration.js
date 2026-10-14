@@ -215,7 +215,7 @@
       const userRes=await client.auth.getUser(), user=userRes?.data?.user;
       const payload={fecha_registro:d.fechaRegistro,colaborador_id:manual?null:colaborador.id,rut:d.rut,nombre_colaborador:d.nombre,cargo:d.cargo||null,
         sucursal_id:manual?null:(colaborador.sucursal_id||null),sucursal_nombre:d.sucursal,
-        correo_sucursal:manual?null:(colaborador.sucursalCorreo||null),correo_copia:manual?null:(colaborador.sucursalCopia||null),
+        correo_sucursal:d.correoSucursal||null,correo_copia:d.correoCopia||null,
         fecha_inicio:d.inicio,dias_corridos:d.dias,observacion_administrativa:d.observacion||null,estado_correo:'guardada',created_by:user?.id||null};
       const ins=await client.from('envio_licencias_medicas').insert(payload).select('id').single();
       if(ins.error)throw ins.error;
