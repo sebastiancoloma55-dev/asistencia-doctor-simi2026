@@ -157,10 +157,11 @@
       await loadChatUsers();
       const {data,error}=await _supabase.rpc("chat_listar_conversaciones");
       if(error) throw error;
-      await suscribirAvisosChat(data||[]);
-      renderConversations(data||[]);
-      if(status) status.textContent="Conectado · mensajes protegidos por participante · hora de Chile";
-      if(activeConversation && !(data||[]).some(c=>c.id===activeConversation)) activeConversation=null;
+      const uniqueConversations=await deduplicatePrivateConversations(data||[]);
+      await suscribirAvisosChat(uniqueConversations);
+      renderConversations(uniqueConversations);
+      if(status) status.textContent="Conectado · chats privados agrupados por persona · hora de Chile";
+      if(activeConversation && !uniqueConversations.some(c=>String(c.id)===String(activeConversation))) activeConversation=null;
       if(!activeConversation && uniqueConversations.length) await abrirConversacionChat(uniqueConversations[0].id);
       else if(activeConversation) await abrirConversacionChat(activeConversation);
     } catch(error) {
