@@ -335,7 +335,7 @@
       const rows=data||[];
       if(!rows.length)throw new Error('No se encontraron registros seleccionados. Actualiza la lista.');
       const zip=new JSZip(), folder=zip.folder('Borradores_Outlook_Licencias');
-      const csv=[['RUT','Colaborador','Cargo','Sucursal','Fecha registro','Inicio','Término','Retorno','Días corridos','Para','CC','Estado']];
+      
       for(let i=0;i<rows.length;i++) {
         const r=rows[i], suc=await resolverSucursal(r.sucursal_nombre,r.sucursal_id);
         const d={nombre:r.nombre_colaborador||'',rut:r.rut||'',cargo:r.cargo||'',sucursal:r.sucursal_nombre||'',fechaRegistro:r.fecha_registro,inicio:r.fecha_inicio,dias:Number(r.dias_corridos),termino:r.fecha_termino||sumarFecha(r.fecha_inicio,Number(r.dias_corridos)-1),retorno:r.fecha_retorno||sumarFecha(r.fecha_inicio,Number(r.dias_corridos)),correoSucursal:suc?.correo_sucursal||r.correo_sucursal||'',correoCopia:suc?.correo_copia||r.correo_copia||'',observacion:r.observacion_administrativa||''};
@@ -344,16 +344,14 @@
         const mail=plantillaCorreo(d), eml=crearEmlLicencia(mail);
         const slug=String(d.nombre||'Colaborador').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').slice(0,55)||'Colaborador';
         const filename=String(i+1).padStart(3,'0')+'_'+slug+'_'+normalizarRut(d.rut);
-        folder.file(filename+'.eml',eml); folder.file(filename+'.html',mail.cuerpo);
-        csv.push([d.rut,d.nombre,d.cargo,d.sucursal,d.fechaRegistro,d.inicio,d.termino,d.retorno,d.dias,d.correoSucursal,d.correoCopia,r.estado_correo||'guardada']);
+        folder.file(filename+'.eml',eml);
       }
-      zip.file('Control_de_licencias.csv','\uFEFF'+csv.map(row=>row.map(csvCelda).join(';')).join('\r\n'));
-      zip.file('LEEME.txt','Borradores para Outlook siguiendo el formato del ZIP de comunicaciones de Asistencia. Extrae el ZIP y abre cada archivo .eml en Outlook. Revisa destinatarios y contenido antes de pulsar Enviar. Los correos NO se envían automáticamente. Incluye también una vista HTML y el CSV de control.');
+      
       const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
       const url=URL.createObjectURL(blob), link=document.createElement('a');
       link.href=url; link.download='Borradores_Outlook_Licencias_'+isoHoy()+'.zip'; link.style.display='none';
       document.body.appendChild(link); link.click(); link.remove(); setTimeout(()=>URL.revokeObjectURL(url),60000);
-      if(window.mostrarToast)window.mostrarToast('ZIP listo: '+rows.length+' borrador(es) preparados para Outlook. Los correos aún no han sido enviados.','success',10000);
+      try { const upd=await db().from('envio_licencias_medicas').update({estado_correo:'borrador_solicitado'}).in('id',rows.map(r=>r.id)); if(upd.error)throw upd.error; await cargarLista(); if(window.mostrarToast)window.mostrarToast('ZIP listo con '+rows.length+' archivo(s) .eml. El registro quedó actualizado; los correos no se enviaron.','success',10000); } catch(regErr) { if(window.mostrarToast)window.mostrarToast('El ZIP se descargó, pero no se pudo actualizar el estado del registro: '+(regErr.message||'error de registro'),'warning',10000); }
     } catch(e) { mensaje(e.message||'No se pudo generar el ZIP.'); }
     finally {btn.disabled=false;btn.textContent=texto;actualizarSeleccion();}
   }
