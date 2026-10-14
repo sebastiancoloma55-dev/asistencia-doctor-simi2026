@@ -5,7 +5,7 @@
   const dateOnly = value => value ? new Date(value+"T12:00:00").toLocaleDateString("es-CL",{timeZone:"America/Santiago"}) : "—";
   const setStatus = (id, message, error=false) => { const node=$(id); if(node){node.textContent=message;node.className="mt-3 text-xs "+(error?"text-rose-700":"text-slate-500");} };
   const norm = value => String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLocaleLowerCase("es-CL");
-  let currentRoleId = null, chatUsers = [], activeConversation = null, chatChannel = null, chatInboxChannel = null, chatBusy = false;
+  let currentRoleId = null, chatUsers = [], activeConversation = null, chatChannel = null, chatInboxChannel = null, chatBusy = false, chatPollingTimer = null, chatPollingBusy = false, chatLastMessageAt = null, chatPollTicks = 0;
   const notifiedMessageIds = new Set();
   let chatAudioContext = null;
   let chatAudioUnlocked = false;
@@ -53,7 +53,7 @@
       const sender = chatUsers.find(user => Number(user.id) === Number(msg.remitente_id));
       const body = msg.adjunto_nombre ? "Adjunto: " + msg.adjunto_nombre : String(msg.contenido || "Nuevo mensaje").slice(0, 140);
       try {
-        const notice = new Notification((sender?.nombre || sender?.email || "Nuevo mensaje") + " · " + (conversation?.titulo || "Chat interno"), { body, tag: "chat-" + msg.conversacion_id, icon: "/favicon.ico" });
+        const notice = new Notification((sender?.nombre || sender?.email || "Nuevo mensaje") + " · " + (conversation?.displayTitle || conversation?.titulo || "Chat interno"), { body, tag: "chat-" + msg.conversacion_id, icon: "/favicon.ico" });
         notice.onclick = () => { window.focus(); if (conversation) abrirConversacionChat(conversation.id); notice.close(); };
       } catch (e) { console.debug("Notificación de escritorio no disponible:", e); }
     }
@@ -148,6 +148,53 @@
     }
   }
 
+  async function enriquecerTitulosConversaciones(items) {
+    const list=Array.isArray(items)?items:[];
+    const ids=list.filter(x=>x.tipo==="PRIVADA").map(x=>x.id);
+    if(!ids.length)return list;
+    try{
+      const {data,error}=await _supabase.from("chat_participantes").select("conversacion_id,usuario_rol_id").in("conversacion_id",ids);
+      if(error)throw error;
+      const byConversation=new Map();
+      (data||[]).forEach(x=>{const key=String(x.conversacion_id);if(!byConversation.has(key))byConversation.set(key,[]);byConversation.get(key).push(Number(x.usuario_rol_id));});
+      return list.map(item=>{
+        if(item.tipo!=="PRIVADA")return item;
+        const peer=(byConversation.get(String(item.id))||[]).find(id=>id!==Number(currentRoleId));
+        const user=chatUsers.find(x=>Number(x.id)===Number(peer));
+        return {...item,displayTitle:user?(user.nombre||user.email):item.titulo};
+      });
+    }catch(error){console.warn("No se pudieron resolver los nombres de los chats:",error);return list;}
+  }
+
+  async function refrescarMensajesChatActivo() {
+    if(chatPollingBusy||!activeConversation||document.visibilityState!=="visible")return;
+    chatPollingBusy=true;
+    try{
+      const conversationId=activeConversation;
+      let q=_supabase.from("chat_mensajes").select("id,conversacion_id,remitente_id,contenido,created_at,adjunto_path,adjunto_nombre,adjunto_mime,adjunto_bytes").eq("conversacion_id",conversationId).is("eliminado_at",null).order("created_at",{ascending:true}).limit(300);
+      if(chatLastMessageAt)q=q.gt("created_at",chatLastMessageAt);
+      const {data,error}=await q;
+      if(error)throw error;
+      if(conversationId!==activeConversation)return;
+      (data||[]).forEach(msg=>{appendMessage(msg);if(!chatLastMessageAt||new Date(msg.created_at)>new Date(chatLastMessageAt))chatLastMessageAt=msg.created_at;});
+      if((data||[]).length)await _supabase.rpc("chat_marcar_leido",{p_conversacion:conversationId});
+      chatPollTicks++;
+      if(chatPollTicks%3===0){
+        const listResult=await _supabase.rpc("chat_listar_conversaciones");
+        if(!listResult.error){
+          const unique=await deduplicatePrivateConversations(listResult.data||[]);
+          renderConversations(await enriquecerTitulosConversaciones(unique));
+        }
+      }
+    }catch(error){console.warn("Actualización automática de chat:",error);}
+    finally{chatPollingBusy=false;}
+  }
+
+  function iniciarPollingChat() {
+    if(chatPollingTimer)clearInterval(chatPollingTimer);
+    chatPollingTimer=setInterval(refrescarMensajesChatActivo,5000);
+  }
+
   async function cargarChatInterno() {
     const status=$("chat-estado");
     if(status) status.textContent="Conectando con el chat seguro…";
@@ -157,7 +204,7 @@
       await loadChatUsers();
       const {data,error}=await _supabase.rpc("chat_listar_conversaciones");
       if(error) throw error;
-      const uniqueConversations=await deduplicatePrivateConversations(data||[]);
+      const uniqueConversations=await enriquecerTitulosConversaciones(await deduplicatePrivateConversations(data||[]));
       await suscribirAvisosChat(uniqueConversations);
       renderConversations(uniqueConversations);
       if(status) status.textContent="Conectado · chats privados agrupados por persona · hora de Chile";
@@ -180,7 +227,7 @@
       const btn=document.createElement("button");
       btn.type="button";
       btn.className="w-full rounded-xl border p-3 text-left transition "+(item.id===activeConversation?"border-blue-300 bg-blue-50":"border-slate-200 bg-white hover:bg-slate-100");
-      const title=document.createElement("span");title.className="block truncate text-sm font-bold text-slate-800";title.textContent=item.titulo||"Conversación";
+      const title=document.createElement("span");title.className="block truncate text-sm font-bold text-slate-800";title.textContent=item.displayTitle||item.titulo||"Conversación";
       const meta=document.createElement("span");meta.className="mt-1 block text-[11px] text-slate-500";meta.textContent=(item.tipo==="GRUPO"?"Grupo":"Privada")+" · "+dateTime(item.last_message_at||item.updated_at);
       const unread=Number(item.unread_count||0);
       if(unread>0){const badge=document.createElement("span");badge.className="mt-2 inline-flex rounded-full bg-blue-700 px-2 py-1 text-[10px] font-extrabold text-white";badge.textContent=unread+" sin leer";btn.append(title,meta,badge);}
@@ -243,10 +290,15 @@
     try{
       const {data:conv,error:convError}=await _supabase.from("chat_conversaciones").select("id,titulo,tipo,updated_at").eq("id",id).single();
       if(convError)throw convError;
-      if($("chat-conversacion-titulo"))$("chat-conversacion-titulo").innerHTML='<h4 class="font-extrabold">'+esc(conv.titulo)+'</h4><p class="mt-1 text-xs text-slate-500">'+(conv.tipo==="GRUPO"?"Conversación grupal":"Conversación privada")+' · actualizado '+esc(dateTime(conv.updated_at))+'</p>';
+      const listForTitle=await _supabase.rpc("chat_listar_conversaciones");
+      const visibleConversations=await enriquecerTitulosConversaciones(await deduplicatePrivateConversations(listForTitle.data||[]));
+      const displayConversation=visibleConversations.find(x=>String(x.id)===String(id));
+      if($("chat-conversacion-titulo"))$("chat-conversacion-titulo").innerHTML='<h4 class="font-extrabold">'+esc(displayConversation?.displayTitle||conv.titulo)+'</h4><p class="mt-1 text-xs text-slate-500">'+(conv.tipo==="GRUPO"?"Conversación grupal":"Conversación privada")+' · actualizado '+esc(dateTime(conv.updated_at))+'</p>';
       const {data,error}=await _supabase.from("chat_mensajes").select("id,conversacion_id,remitente_id,contenido,created_at,adjunto_path,adjunto_nombre,adjunto_mime,adjunto_bytes").eq("conversacion_id",id).is("eliminado_at",null).order("created_at",{ascending:true}).limit(300);
       if(error)throw error;
       renderMessages(data||[]);
+      chatLastMessageAt=(data||[]).length?(data||[])[(data||[]).length-1].created_at:null;
+      iniciarPollingChat();
       if($("chat-mensaje-input"))$("chat-mensaje-input").disabled=false;
       if($("chat-archivo"))$("chat-archivo").disabled=false;
       if($("chat-enviar"))$("chat-enviar").disabled=false;
@@ -256,6 +308,7 @@
         if(msg && msg.conversacion_id===activeConversation) {
           const current= $("chat-mensajes");
           if(current && !current.querySelector('[data-chat-msg="'+msg.id+'"]')) appendMessage(msg);
+          if(!chatLastMessageAt||new Date(msg.created_at)>new Date(chatLastMessageAt))chatLastMessageAt=msg.created_at;
           _supabase.rpc("chat_marcar_leido",{p_conversacion:id});
         }
       }).subscribe((status, err) => {
@@ -266,7 +319,7 @@
       });
       if($("chat-estado"))$("chat-estado").textContent="Conversación conectada · mensajes en tiempo real";
       const {data:list}=await _supabase.rpc("chat_listar_conversaciones");
-      renderConversations(await deduplicatePrivateConversations(list||[]));
+      renderConversations(await enriquecerTitulosConversaciones(await deduplicatePrivateConversations(list||[])));
     }catch(error){
       console.warn("Abrir conversación:",error);
       if(host)host.innerHTML='<p class="text-sm text-rose-700">No tienes acceso a esta conversación o no se pudo cargar.</p>';
