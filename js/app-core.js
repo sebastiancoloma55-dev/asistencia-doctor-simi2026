@@ -788,6 +788,59 @@
         // ============================================================
         let secuenciaCambioModulo = 0;
         let ultimaConsultaActualizacionesFuente = 0;
+        async function cargarPanelInteligenteOperativo() {
+            const estado=document.getElementById('pi-estado');
+            const prioridades=document.getElementById('pi-prioridades');
+            const setValue=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
+            const fmt=value=>Number(value).toLocaleString('es-CL');
+            if(estado)estado.textContent='Consultando datos reales…';
+            if(prioridades)prioridades.textContent='Calculando prioridades…';
+            const permitido=(modulo)=>(typeof esAdminPrincipalActual==='function'&&esAdminPrincipalActual())||(typeof tienePermisoModulo==='function'&&tienePermisoModulo(modulo));
+            const cuenta=async(tabla,modulo,configurar)=>{
+                if(!permitido(modulo))return {ok:false,value:null,error:'Sin permiso'};
+                let q=_supabase.from(tabla).select('id',{count:'exact',head:true});
+                if(configurar)q=configurar(q);
+                const r=await q;
+                return r.error?{ok:false,value:null,error:r.error.message}:{ok:true,value:r.count??0};
+            };
+            const resultados=await Promise.allSettled([
+                cuenta('registros_asistencia','asistencia'),
+                cuenta('registros_asistencia','asistencia',q=>q.eq('marca_incompleta',true)),
+                cuenta('solicitudes_dotacion','amonestaciones',q=>q.eq('estado','PENDIENTE'))
+            ]);
+            const valores=resultados.map(r=>r.status==='fulfilled'?r.value:{ok:false,value:null,error:r.reason?.message||'Error de consulta'});
+            setValue('pi-asistencia',valores[0].ok?fmt(valores[0].value):'No disponible');
+            setValue('pi-incompletas',valores[1].ok?fmt(valores[1].value):'No disponible');
+            setValue('pi-coberturas',valores[2].ok?fmt(valores[2].value):'No disponible');
+            const importPermitido=permitido('integraciones');
+            let importacion='No disponible',detalle=importPermitido?'No se pudo consultar el historial de importaciones':'Sin permiso para ver importaciones';
+            if(importPermitido){
+                try{
+                    const r=await _supabase.from('importaciones').select('id,modulo,nombre_archivo,estado,created_at,finalizada_at,filas_error,filas_rechazadas').order('created_at',{ascending:false}).limit(1);
+                    if(!r.error){
+                        if(r.data&&r.data.length){const x=r.data[0];importacion=String(x.estado||'Registrada');detalle=(x.nombre_archivo||x.modulo||'Importación')+' · '+new Date(x.finalizada_at||x.created_at).toLocaleString('es-CL');}
+                        else{importacion='Sin registros';detalle='Todavía no hay importaciones registradas';}
+                    }else detalle=r.error.message;
+                }catch(e){detalle=e.message||detalle;}
+            }
+            setValue('pi-importacion',importacion);
+            setValue('pi-importacion-detalle',detalle);
+            const items=[];
+            if(valores[0].ok)items.push('Base de asistencia: '+fmt(valores[0].value)+' registros disponibles.');
+            else items.push('Asistencia: no fue posible consultar el indicador ('+valores[0].error+').');
+            if(valores[1].ok&&valores[1].value>0)items.push('Revisar '+fmt(valores[1].value)+' registros con marca incompleta.');
+            else if(valores[1].ok)items.push('No hay registros marcados como incompletos en la consulta actual.');
+            else items.push('Marcas incompletas: indicador no disponible; no se asume que el total sea cero.');
+            if(valores[2].ok&&valores[2].value>0)items.push('Gestionar '+fmt(valores[2].value)+' solicitudes de cobertura pendientes.');
+            else if(valores[2].ok)items.push('No hay solicitudes pendientes según la consulta actual.');
+            else items.push('Coberturas: indicador no disponible; revisa permisos o conexión.');
+            if(prioridades)prioridades.innerHTML=items.map(x=>'<div class="rounded-lg border border-slate-200 bg-slate-50 p-3">'+escaparHTML(x)+'</div>').join('');
+            const fallos=valores.filter(x=>!x.ok).length+(importacion==='No disponible'?1:0);
+            if(estado)estado.textContent=(fallos?'Algunos indicadores no disponibles':'Datos reales actualizados')+' · '+new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+            setValue('pi-actualizado','Última consulta: '+new Date().toLocaleString('es-CL'));
+            if(window.lucide)lucide.createIcons();
+        }
+        window.cargarPanelInteligenteOperativo=cargarPanelInteligenteOperativo;
         async function cambiarModulo(modulo, cargar = true) {
             const secuenciaActual = ++secuenciaCambioModulo;
             // No repetir una consulta a Supabase por cada clic de navegación.
@@ -822,6 +875,10 @@
                 .classList
                 .add('hidden');
 
+            const dashboardView=document.getElementById('view-dashboard');
+            if(dashboardView)dashboardView.classList.toggle('hidden',modulo!=='dashboard');
+            const dashboardPanel=document.getElementById('dashboard-panel-inteligente');
+            if(dashboardPanel)dashboardPanel.classList.toggle('hidden',modulo!=='dashboard');
             document.getElementById('header-title').innerText =
                 titulos[modulo] || modulo;
 
@@ -859,6 +916,7 @@
             try {
                 if (modulo === 'espacio' && window.cargarEspacioTrabajo) await window.cargarEspacioTrabajo();
                 if (modulo === 'dashboard') {
+                    if (window.cargarPanelInteligenteOperativo) await window.cargarPanelInteligenteOperativo();
                     if (window.cargarResumenEspacioDashboard) {
                         Promise.resolve(window.cargarResumenEspacioDashboard())
                             .catch(error => console.warn('Resumen de Mi espacio:', error));
