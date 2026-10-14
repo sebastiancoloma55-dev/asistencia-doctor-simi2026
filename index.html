@@ -2064,6 +2064,32 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 <div class="helper-note"><strong>Seguridad:</strong> no pegues claves privadas de Talana, IMED, Google, Microsoft ni Supabase en esta pantalla. Las credenciales deben almacenarse como variables de entorno en el servidor.</div>
             </section>
 
+            <style id="chat-whatsapp-style">
+                #view-chat .module-intro{display:none}
+                #view-chat .ui-card{border:1px solid #d1d7db;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(11,20,26,.08)}
+                #view-chat aside{background:#f0f2f5!important;border-color:#d1d7db!important;padding:14px}
+                #view-chat aside h4{color:#111b21}
+                #view-chat aside .corp-button{background:#008069!important;border-color:#008069!important;color:#fff!important;border-radius:9px}
+                #view-chat #chat-conversaciones-list{display:flex;flex-direction:column;gap:0!important;margin-top:8px}
+                #view-chat #chat-conversaciones-list button{position:relative;border:0!important;border-bottom:1px solid #e9edef!important;border-radius:0!important;background:transparent!important;padding:13px 10px!important;min-height:68px}
+                #view-chat #chat-conversaciones-list button:hover,#view-chat #chat-conversaciones-list button.border-blue-300{background:#e9edef!important}
+                #view-chat #chat-conversaciones-list button span:first-child{font-size:14px;color:#111b21!important;font-weight:600}
+                #view-chat #chat-conversaciones-list button span:nth-child(2){font-size:11px;color:#667781!important}
+                #view-chat #chat-conversaciones-list button span.bg-blue-700{background:#25d366!important;color:#fff!important;border-radius:999px!important;padding:3px 7px!important}
+                #view-chat #chat-conversacion-titulo{background:#f0f2f5;border-color:#d1d7db;padding:14px 18px}
+                #view-chat #chat-conversacion-titulo h4{color:#111b21}
+                #view-chat #chat-mensajes{background-color:#efeae2;background-image:radial-gradient(rgba(120,110,95,.09) .7px,transparent .7px);background-size:12px 12px;padding:18px}
+                #view-chat #chat-mensajes>div{margin:3px 0}
+                #view-chat #chat-mensajes>div>div{border:0!important;border-radius:8px!important;box-shadow:0 1px 1px rgba(0,0,0,.12)!important;padding:8px 10px!important}
+                #view-chat #chat-mensajes>div>div.bg-blue-700{background:#d9fdd3!important;color:#111b21!important;border-radius:8px 0 8px 8px!important}
+                #view-chat #chat-mensajes>div>div.bg-white{background:#fff!important;color:#111b21!important;border-radius:0 8px 8px 8px!important}
+                #view-chat #chat-mensajes>div>div p{line-height:1.45}
+                #view-chat #chat-form-mensaje{background:#f0f2f5;border-color:#d1d7db;flex-wrap:nowrap}
+                #view-chat #chat-form-mensaje #chat-mensaje-input{background:#fff;border:0;border-radius:24px;padding:11px 16px}
+                #view-chat #chat-form-mensaje button#chat-enviar{background:#008069!important;border-color:#008069!important;border-radius:24px;color:#fff!important}
+                #view-chat #chat-estado{background:#f0f2f5;color:#667781;padding-top:3px}
+                @media(max-width:767px){#view-chat .ui-card{grid-template-columns:minmax(0,1fr);min-height:calc(100dvh - 170px)}#view-chat aside{border-right:0!important;border-bottom:1px solid #d1d7db!important}#view-chat #chat-conversaciones-list{max-height:230px;overflow:auto}#view-chat #chat-mensajes{min-height:300px}#view-chat #chat-form-mensaje label{display:none}}
+            </style>
             <section id="view-chat" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro">
                     <span class="module-kicker"><i data-lucide="messages-square" class="h-3 w-3"></i> Comunicación interna</span>
@@ -2072,9 +2098,9 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 </div>
                 <div class="ui-card grid min-h-[560px] grid-cols-1 overflow-hidden lg:grid-cols-[300px_minmax(0,1fr)]">
                     <aside class="border-b border-slate-200 bg-slate-50 p-4 lg:border-b-0 lg:border-r">
-                        <h4 class="font-extrabold text-slate-900">Iniciar chat o grupo</h4>
-                        <label class="mt-3 block text-xs font-bold text-slate-600">Nombre del grupo (opcional)</label>
-                        <input id="chat-titulo-nuevo" class="form-field mt-1" maxlength="80" placeholder="Ej. Equipo de asistencia">
+                        <h4 class="font-extrabold text-slate-900">Chats</h4><p class="mt-1 text-xs text-slate-500">Un chat por persona; los existentes se reutilizan. Selecciona varias personas solo para crear un grupo.</p>
+                        <label class="mt-3 block text-xs font-bold text-slate-600">Nombre del grupo (solo si eliges varias personas)</label>
+                        <input id="chat-titulo-nuevo" class="form-field mt-1" maxlength="80" placeholder="Ej. Equipo de asistencia (opcional)">
                         <label class="mt-3 block text-xs font-bold text-slate-600">Participantes</label>
                         <select id="chat-usuarios-nuevos" class="form-field mt-1 min-h-32" multiple size="5" aria-label="Seleccionar participantes"></select>
                         <button type="button" class="corp-button mt-3 w-full" onclick="crearConversacionChat()">Abrir chat / Crear grupo</button>
