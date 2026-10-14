@@ -548,8 +548,8 @@
             if (!elegidos.length) return mostrarToast('No hay correos para descargar en esta sección.', 'warning');
             try {
                 const list = await revalidarBorradoresAntesDeExportar(elegidos);
-                if (!list.length) return;
-                if (!window.JSZip) return mostrarToast('No se pudo cargar el generador ZIP. Recarga la página.', 'error');
+                if (!list.length) { actualizarProgresoCorreos(100, 'ZIP no generado', 'No quedaron borradores válidos después de revalidar ausencias.', 'error'); return; }
+                if (!window.JSZip) { actualizarProgresoCorreos(100, 'ZIP no generado', 'No se pudo cargar el generador ZIP. Recarga la página.', 'error'); return mostrarToast('No se pudo cargar el generador ZIP. Recarga la página.', 'error'); }
                 const zip = new JSZip(), folder = zip.folder(tipo === 'SIN_MARCAS' ? 'Correos_Solo_Sin_Marcas' : 'Correos_Otras_Incidencias');
                 list.forEach((b, i) => {
                     const slug = String(b.nombre || 'Correo_' + (i + 1)).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 60) || 'Correo_' + (i + 1);
