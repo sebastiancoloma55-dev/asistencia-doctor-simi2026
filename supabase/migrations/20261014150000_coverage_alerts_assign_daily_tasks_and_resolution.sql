@@ -187,3 +187,67 @@ begin
   return new;
 end;
 $$;
+
+-- Safe directory for the responsible-user picker without granting broad user-directory reads.
+create or replace function public.listar_responsables_cobertura()
+returns table(id bigint, nombre text, email text)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not (public.usuario_es_admin_principal_2026()
+      or public.usuario_tiene_alguno_permiso(array['traslados','coberturas','amonestaciones']::text[])) then
+    raise exception 'No tienes permiso para asignar alertas de cobertura.';
+  end if;
+  return query
+    select u.id, u.nombre, u.email
+    from public.usuarios_roles u
+    where coalesce(u.activo, false)
+    order by coalesce(u.nombre, u.email), u.email
+    limit 500;
+end;
+$$;
+revoke all on function public.listar_responsables_cobertura() from public, anon;
+grant execute on function public.listar_responsables_cobertura() to authenticated;
+
+-- Assigned staff can see their own coverage alerts even when branch-scoped access is narrower.
+drop policy if exists solicitudes_dotacion_select_asignados on public.solicitudes_dotacion;
+create policy solicitudes_dotacion_select_asignados
+on public.solicitudes_dotacion for select to authenticated
+using (exists (
+  select 1 from public.solicitud_dotacion_responsables r
+  where r.solicitud_id = solicitudes_dotacion.id
+    and r.usuario_rol_id = public.chat_usuario_actual_id()
+));
+
+create or replace function public.resolver_alerta_cobertura(p_solicitud_id uuid)
+returns public.solicitudes_dotacion
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare v_usuario bigint; v_row public.solicitudes_dotacion%rowtype;
+begin
+  v_usuario := public.chat_usuario_actual_id();
+  if v_usuario is null then raise exception 'Tu usuario no tiene un perfil activo.'; end if;
+  if not (
+    public.usuario_es_admin_principal_2026()
+    or public.usuario_tiene_permiso('traslados_aprobar')
+    or public.usuario_tiene_alguno_permiso(array['coberturas','traslados','amonestaciones']::text[])
+    or exists(select 1 from public.solicitud_dotacion_responsables r where r.solicitud_id=p_solicitud_id and r.usuario_rol_id=v_usuario)
+  ) then raise exception 'No tienes permiso para resolver esta cobertura.'; end if;
+  update public.solicitudes_dotacion
+    set estado='CUBIERTA', revisada_por=v_usuario, revisada_en=now(), updated_at=now()
+    where id=p_solicitud_id and estado not in ('CUBIERTA','CANCELADA','RECHAZADA')
+    returning * into v_row;
+  if not found then
+    select * into v_row from public.solicitudes_dotacion where id=p_solicitud_id;
+    if not found then raise exception 'No se encontró la alerta de cobertura.'; end if;
+    if v_row.estado <> 'CUBIERTA' then raise exception 'La alerta está cancelada o rechazada y no se puede resolver.'; end if;
+  end if;
+  return v_row;
+end;
+$$;
+revoke all on function public.resolver_alerta_cobertura(uuid) from public, anon;
+grant execute on function public.resolver_alerta_cobertura(uuid) to authenticated;
