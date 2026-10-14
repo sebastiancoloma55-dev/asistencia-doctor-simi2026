@@ -1185,7 +1185,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
             </section>
 
             <!-- VISTA PREVIA · PANEL INTELIGENTE RR. HH. (datos demostrativos) -->
-            <section id="dashboard-panel-inteligente" class="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+            <section id="dashboard-panel-inteligente" class="hidden space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <span class="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-cyan-800"><i data-lucide="sparkles" class="h-4 w-4"></i> Vista previa</span>
@@ -1213,7 +1213,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     <article class="rounded-xl border border-slate-200 p-4">
                         <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-wide text-slate-500">Cobertura</span><span class="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 text-emerald-700"><i data-lucide="users" class="h-5 w-5"></i></span></div>
                         <p class="mt-3 text-3xl font-black text-slate-900">3</p><p class="mt-1 text-xs text-slate-500">Necesidades de ejemplo</p>
-                        <button type="button" onclick="cambiarModulo('coberturas')" class="mt-4 text-sm font-bold text-simiRed hover:underline">Ver coberturas →</button>
+                        <button type="button" onclick="cambiarModulo('traslados')" class="mt-4 text-sm font-bold text-simiRed hover:underline">Ver coberturas →</button>
                     </article>
                 </div>
                 <div class="grid grid-cols-1 gap-4 xl:grid-cols-5">
@@ -3253,6 +3253,8 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       function activeView(){const views=[...document.querySelectorAll('section[id^="view-"]')];const found=views.find(v=>!v.classList.contains('hidden')&&v.getClientRects().length);return found?found.id.replace('view-',''):'dashboard';}
       function render(){
         const key=activeView(),item=contexts[key]||contexts.generic;
+        const dashboardPanel=document.getElementById('dashboard-panel-inteligente');
+        if(dashboardPanel)dashboardPanel.classList.toggle('hidden',key!=='dashboard');
         title.textContent=item.title;
         content.innerHTML='<p class="text-sm leading-6 text-slate-600">'+item.text+'</p><p class="mt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Sugerencias para esta pantalla</p>';
         links.replaceChildren();
@@ -3263,6 +3265,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       document.getElementById('simi-context-close').addEventListener('click',()=>{pop.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();});
       const observer=new MutationObserver(()=>{if(!pop.hidden)render();});
       document.querySelectorAll('section[id^="view-"]').forEach(v=>observer.observe(v,{attributes:true,attributeFilter:['class']}));
+      render();
       document.addEventListener('click',e=>{if(e.target.closest('[onclick*="cambiarModulo"]')&&!pop.contains(e.target)&&!toggle.contains(e.target)){if(!pop.hidden)render();}});
     })();
     </script>
