@@ -228,7 +228,7 @@
     const client=db(); if(!client){$('eml-lista-estado').textContent='Conexión con Supabase no disponible.';return;}
     $('eml-lista-estado').textContent='Cargando registros manuales…';
     try {
-      const {data,error}=await client.from('envio_licencias_medicas').select('id,fecha_registro,rut,nombre_colaborador,cargo,sucursal_nombre,fecha_inicio,dias_corridos,fecha_termino,fecha_retorno,estado_correo,created_at').order('created_at',{ascending:false}).limit(200);
+      const {data,error}=await client.from('envio_licencias_medicas').select('id,fecha_registro,rut,nombre_colaborador,cargo,sucursal_nombre,correo_sucursal,correo_copia,observacion_administrativa,fecha_inicio,dias_corridos,fecha_termino,fecha_retorno,estado_correo,created_at').order('created_at',{ascending:false}).limit(200);
       if(error)throw error;
       const rows=data||[];
       $('eml-lista-estado').textContent=rows.length+' registro(s) manual(es) recientes. Se muestran hasta 200.';
@@ -238,7 +238,7 @@
   }
   function verRegistro(r) {
     if(!r)return;
-    const d={nombre:r.nombre_colaborador||'',rut:r.rut||'',cargo:r.cargo||'',sucursal:r.sucursal_nombre||'',inicio:r.fecha_inicio,dias:Number(r.dias_corridos),termino:r.fecha_termino,retorno:r.fecha_retorno,observacion:''};
+    const d={nombre:r.nombre_colaborador||'',rut:r.rut||'',cargo:r.cargo||'',sucursal:r.sucursal_nombre||'',inicio:r.fecha_inicio,dias:Number(r.dias_corridos),termino:r.fecha_termino,retorno:r.fecha_retorno,correoSucursal:r.correo_sucursal||'',correoCopia:r.correo_copia||'',observacion:r.observacion_administrativa||''};
     const mail=plantillaCorreo(d), overlay=document.createElement('div');
     overlay.className='fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-3';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
     overlay.innerHTML='<div class="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl"><div class="flex items-center justify-between gap-3 border-b p-4"><div><h3 class="font-extrabold text-slate-900">Vista previa de licencia médica</h3><p class="text-xs text-slate-500">Borrador únicamente · no se envía automáticamente</p></div><button type="button" class="rounded-lg border px-3 py-2 text-sm font-bold" data-close>Cerrar</button></div><div class="p-4"><p class="mb-3 text-sm"><strong>Asunto:</strong> '+esc(mail.asunto)+'</p><div class="overflow-hidden rounded-xl border">'+mail.cuerpo+'</div><div class="mt-4 flex justify-end"><button type="button" class="rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white" data-download>Descargar .eml para Outlook</button></div></div></div>';
