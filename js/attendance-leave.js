@@ -540,6 +540,7 @@
                 }
                 const resultado = { confirmados, lotesProcesados };
 
+                if (typeof window.invalidarCacheLecturas === 'function') window.invalidarCacheLecturas('licencias_medicas');
                 await cargarLicenciasDesdeNube(false);
                 await inicializarDashboard();
                 await registrarAuditoria('licencias', 'CARGA_EXCEL', `Filas: ${originales.length}; únicos: ${procesadas.length}; duplicados: ${consolidado.duplicados.length}`);
