@@ -59,8 +59,12 @@
         }
 
         async function cargarVacacionesDesdeNube() {
-            datosVacacionesGlobal=await leerTablaCompleta('vacaciones_historico','fecha_inicio');
-            if(!asistenciaCargada) await cargarAsistenciaDesdeNube();
+            // Vacaciones y asistencia se necesitan para el cruce; cargar ambas en paralelo
+            // cuando la asistencia aún no está disponible.
+            const tareas = [leerTablaCompleta('vacaciones_historico', 'fecha_inicio')];
+            if (!asistenciaCargada) tareas.push(cargarAsistenciaDesdeNube());
+            const [vacaciones] = await Promise.all(tareas);
+            datosVacacionesGlobal = vacaciones;
             vacacionesCargadas=true;
             poblarFiltroVacaciones();
         }
