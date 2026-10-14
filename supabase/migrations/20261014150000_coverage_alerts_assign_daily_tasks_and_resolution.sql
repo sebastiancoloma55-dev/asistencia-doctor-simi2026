@@ -254,8 +254,8 @@ begin
         and estado in ('PENDIENTE','EN_PROCESO')
       returning id
   loop
-    insert into public.tareas_eventos(tarea_id,accion,estado_anterior,estado_nuevo,usuario_email,detalle)
-    values(v_tarea.id,'COBERTURA_RESUELTA','PENDIENTE','COMPLETADA_POR_VALIDAR',
+    insert into public.tareas_eventos(tarea_id,accion,estado_nuevo,usuario_email,detalle)
+    values(v_tarea.id,'COBERTURA_RESUELTA','COMPLETADA_POR_VALIDAR',
       coalesce(v_email,'sistema@asistencia-doctor-simi.local'),
       'La alerta de cobertura se marcó como resuelta; la tarea pasa a revisión.');
   end loop;
