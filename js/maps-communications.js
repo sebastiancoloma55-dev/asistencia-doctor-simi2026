@@ -21,25 +21,81 @@
             if(error){select.innerHTML='<option value="">No se pudieron cargar sucursales</option>';const status=document.getElementById('dot-estado');if(status)status.textContent='No se pudo cargar el listado de sucursales: '+error.message;return;}
             select.innerHTML='<option value="">Selecciona una sucursal</option>'+(data||[]).map(x=>'<option value="'+escaparHTML(x.id)+'">'+escaparHTML(x.nombre)+'</option>').join('');
         }
+        let solicitudCoberturaSeleccionada=null;
+        async function cargarResponsablesCobertura(){
+            const select=document.getElementById('dot-responsables');if(!select)return;
+            const {data,error}=await _supabase.from('usuarios_roles').select('id,nombre,email,activo').eq('activo',true).order('nombre').limit(500);
+            if(error){select.innerHTML='<option value="">No se pudieron cargar usuarios</option>';throw error;}
+            select.innerHTML=(data||[]).map(u=>'<option value="'+escaparHTML(u.id)+'">'+escaparHTML((u.nombre||u.email||('Usuario '+u.id))+(u.email?' · '+u.email:''))+'</option>').join('');
+        }
         async function crearSolicitudDotacion(event){
             event.preventDefault();
             const status=document.getElementById('dot-estado'),form=document.getElementById('form-alerta-dotacion');
             const sucursalId=document.getElementById('dot-sucursal')?.value,opcion=document.getElementById('dot-sucursal')?.selectedOptions?.[0];
             const inicio=document.getElementById('dot-inicio')?.value,fin=document.getElementById('dot-fin')?.value;
             const turno=document.getElementById('dot-turno')?.value,horaini=document.getElementById('dot-hora-inicio')?.value||null,horafin=document.getElementById('dot-hora-fin')?.value||null;
+            const destinatarios=[...(document.getElementById('dot-responsables')?.selectedOptions||[])].map(o=>Number(o.value)).filter(Number.isFinite);
             if(!sucursalId||!inicio||!fin||fin<inicio)return mostrarToast('Selecciona una sucursal y revisa las fechas de la solicitud.','warning');
+            if(!destinatarios.length)return mostrarToast('Selecciona al menos una persona responsable de la cobertura.','warning');
             if(horaini&&horafin&&horafin<=horaini)return mostrarToast('La hora de término debe ser posterior a la hora de inicio.','warning');
             try{
-                if(status)status.textContent='Guardando alerta de cobertura…';
-                const me=await _supabase.rpc('chat_usuario_actual_id');if(me.error||!me.data)throw me.error||new Error('Tu usuario no tiene un perfil activo.');
-                const payload={sucursal_id:sucursalId,sucursal_nombre:opcion?.textContent||'',fecha_inicio:inicio,fecha_fin:fin,cantidad:Number(document.getElementById('dot-cantidad')?.value||1),cargo_requerido:document.getElementById('dot-cargo')?.value||'AF',turno,hora_inicio:horaini,hora_fin:horafin,motivo:document.getElementById('dot-motivo')?.value?.trim(),observaciones:document.getElementById('dot-observaciones')?.value?.trim()||null,solicitada_por:me.data,estado:'PENDIENTE'};
-                const {data,error}=await _supabase.from('solicitudes_dotacion').insert(payload).select('id').single();if(error)throw error;
-                await registrarAuditoria('coberturas','CREA_ALERTA_DOTACION',payload.sucursal_nombre+' · '+payload.cargo_requerido+' · '+payload.turno+' · '+payload.fecha_inicio+' a '+payload.fecha_fin);
-                if(status)status.textContent='Alerta enviada · '+new Date().toLocaleString('es-CL',{timeZone:'America/Santiago'})+'. Solicitud '+data.id.slice(0,8)+'.';
+                if(status)status.textContent='Creando alerta, tareas diarias y notificaciones…';
+                const params={p_sucursal_id:sucursalId,p_sucursal_nombre:opcion?.textContent||'',p_fecha_inicio:inicio,p_fecha_fin:fin,p_cantidad:Number(document.getElementById('dot-cantidad')?.value||1),p_cargo_requerido:document.getElementById('dot-cargo')?.value||'AF',p_turno:turno,p_hora_inicio:horaini,p_hora_fin:horafin,p_motivo:document.getElementById('dot-motivo')?.value?.trim(),p_observaciones:document.getElementById('dot-observaciones')?.value?.trim()||null,p_destinatarios:destinatarios};
+                const {data,error}=await _supabase.rpc('crear_alerta_cobertura_asignada',params);if(error)throw error;
+                await registrarAuditoria('coberturas','CREA_ALERTA_DOTACION',params.p_sucursal_nombre+' · '+params.p_cargo_requerido+' · '+params.p_turno+' · '+inicio+' a '+fin+' · Responsables: '+destinatarios.length);
+                if(status)status.textContent='Alerta creada y asignada a '+destinatarios.length+' responsable(s). ID '+String(data).slice(0,8)+'.';
                 form?.reset();document.getElementById('dot-dias').value='';actualizarHorarioDotacion();
-                mostrarToast('Alerta de necesidad de personal enviada a la cola de revisión de Traslados.','success',8000);
-                if(typeof cargarSolicitudesDotacion==='function')await cargarSolicitudesDotacion();
+                mostrarToast('Alerta creada. Las personas seleccionadas recibieron una notificación y una tarea en Tareas diarias.','success',9000);
+                await cargarSolicitudesDotacion();
             }catch(error){console.error('Crear alerta dotación:',error);if(status)status.textContent='No se pudo enviar: '+(error.message||'Error desconocido');mostrarToast('No se pudo guardar la alerta: '+(error.message||''),'error',10000);}
+        }
+        async function cargarSolicitudesDotacion(){
+            const host=document.getElementById('tabla-alertas-dotacion');if(!host)return;
+            host.innerHTML='<tr><td colspan="7" class="p-4 text-sm text-slate-500">Cargando alertas…</td></tr>';
+            const {data,error}=await _supabase.from('solicitudes_dotacion').select('*').order('created_at',{ascending:false}).limit(300);
+            if(error){host.innerHTML='<tr><td colspan="7" class="p-4 text-sm text-rose-700">No se pudieron cargar las alertas: '+escaparHTML(error.message)+'</td></tr>';return;}
+            const rows=data||[];
+            const ids=[...new Set(rows.map(x=>x.solicitada_por).filter(Boolean))];
+            let usuarios=[];
+            if(ids.length){const u=await _supabase.from('usuarios_roles').select('id,nombre,email').in('id',ids);if(!u.error)usuarios=u.data||[];}
+            const map=new Map(usuarios.map(u=>[String(u.id),u]));
+            host.innerHTML=rows.map(x=>{
+                const estado=x.estado||'PENDIENTE',resuelta=estado==='CUBIERTA',u=map.get(String(x.solicitada_por)),solicitante=u?.nombre||u?.email||'Usuario';
+                const color=resuelta?'bg-emerald-100 text-emerald-800':estado==='RECHAZADA'?'bg-rose-100 text-rose-800':estado==='APROBADA'?'bg-blue-100 text-blue-800':'bg-amber-100 text-amber-800';
+                const acciones=resuelta?'<span class="text-xs font-bold text-emerald-700">Resuelta · puedes asignar colaborador abajo</span>':estado==='CANCELADA'||estado==='RECHAZADA'?'<span class="text-xs text-slate-500">Sin acciones</span>':'<button type="button" class="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white" onclick="resolverSolicitudDotacion(\''+x.id+'\')">Cobertura resuelta</button>';
+                return '<tr><td class="p-3"><b>'+escaparHTML(x.sucursal_nombre)+'</b><div class="text-xs text-slate-500">'+escaparHTML(x.cargo_requerido)+' · '+escaparHTML(x.turno)+'</div></td><td class="p-3">'+escaparHTML(x.fecha_inicio)+' a '+escaparHTML(x.fecha_fin)+'<div class="text-xs text-slate-500">'+Number(x.cantidad||1)+' persona(s)</div></td><td class="p-3">'+escaparHTML(solicitante)+'</td><td class="p-3">'+escaparHTML(x.motivo)+'</td><td class="p-3"><span class="rounded-full px-2 py-1 text-xs font-bold '+color+'">'+(resuelta?'RESUELTA':escaparHTML(estado))+'</span></td><td class="p-3">'+acciones+'</td></tr>';
+            }).join('')||'<tr><td colspan="6" class="p-4 text-sm text-slate-500">Todavía no hay alertas de cobertura.</td></tr>';
+        }
+        async function resolverSolicitudDotacion(id){
+            try{
+                const {data,error}=await _supabase.from('solicitudes_dotacion').update({estado:'CUBIERTA'}).eq('id',id).neq('estado','CUBIERTA').select('*').single();
+                if(error)throw error;
+                solicitudCoberturaSeleccionada=data;
+                document.getElementById('cob-solicitud-id').value=data.id;
+                document.getElementById('form-cobertura')?.classList.remove('hidden');
+                const destino=document.getElementById('cob-destino');if(destino)destino.value=data.sucursal_nombre||'';
+                document.getElementById('cob-inicio').value=data.fecha_inicio||'';
+                document.getElementById('cob-fin').value=data.fecha_fin||'';
+                document.getElementById('cob-motivo').value=data.motivo||'Cobertura';
+                calcularDiasCobertura();
+                await cargarSolicitudesDotacion();
+                mostrarToast('Cobertura marcada como resuelta. Ahora puedes buscar al colaborador para preparar el traslado.','success',9000);
+                document.getElementById('cob-buscar')?.focus();
+            }catch(e){mostrarToast('No se pudo marcar como resuelta. Verifica que tengas permiso de revisión: '+(e.message||''),'error',10000);}
+        }
+        async function seleccionarAlertaParaAsignacion(id){
+            const {data,error}=await _supabase.from('solicitudes_dotacion').select('*').eq('id',id).single();
+            if(error||!data)return mostrarToast('No se pudo cargar la alerta seleccionada.','error');
+            if(data.estado!=='CUBIERTA')return mostrarToast('Primero marca la cobertura como resuelta.','warning');
+            solicitudCoberturaSeleccionada=data;
+            document.getElementById('cob-solicitud-id').value=data.id;
+            document.getElementById('form-cobertura')?.classList.remove('hidden');
+            const destino=document.getElementById('cob-destino');if(destino)destino.value=data.sucursal_nombre||'';
+            document.getElementById('cob-inicio').value=data.fecha_inicio||'';
+            document.getElementById('cob-fin').value=data.fecha_fin||'';
+            document.getElementById('cob-motivo').value=data.motivo||'Cobertura';
+            calcularDiasCobertura();
+            document.getElementById('cob-buscar')?.focus();
         }
         async function prepararMapaYConfiguracionSucursales(){
             const lista=await obtenerSucursalesConfig(), opts='<option value="">Seleccione sucursal</option>'+lista.map(x=>`<option value="${escaparHTML(direccionSucursal(x))}">${escaparHTML(x.nombre)}</option>`).join('');
@@ -1075,12 +1131,16 @@
             if(window.lucide)lucide.createIcons();
         }
 
-        async function prepararModuloCoberturas(){const lista=await obtenerSucursalesConfig();document.getElementById('cob-destino').innerHTML='<option value="">Local a cubrir</option>'+lista.map(x=>`<option>${escaparHTML(x.nombre)}</option>`).join('');await cargarCoberturas();}
+        async function prepararModuloCoberturas(){const lista=await obtenerSucursalesConfig();document.getElementById('cob-destino').innerHTML='<option value="">Local a cubrir</option>'+lista.map(x=>`<option>${escaparHTML(x.nombre)}</option>`).join('');await Promise.all([cargarResponsablesCobertura(),cargarSolicitudesDotacion()]);await cargarCoberturas();}
         function buscarCoberturaPersona(){const q=document.getElementById('cob-buscar').value.toLowerCase().trim(),p=document.getElementById('cob-resultados');if(q.length<2){p.classList.add('hidden');return;}const r=colaboradoresPapeleta.filter(x=>`${x.nombres} ${x.apellidos} ${x.rut} ${x.cargo}`.toLowerCase().includes(q)).slice(0,20);p.innerHTML=r.map(x=>`<button type="button" class="autocomplete-item" onclick="seleccionarCoberturaPersona('${x.id}')"><b>${escaparHTML(`${x.nombres||''} ${x.apellidos||''}`)}</b><br>${escaparHTML(x.rut)} · ${escaparHTML(x.cargo)} · ${escaparHTML(x.sucursal)}</button>`).join('');p.classList.remove('hidden');}
         function seleccionarCoberturaPersona(id){const x=colaboradoresPapeleta.find(a=>String(a.id)===String(id));if(!x)return;document.getElementById('cob-id').value=x.id;document.getElementById('cob-buscar').value=`${x.nombres} ${x.apellidos} · ${x.rut}`;document.getElementById('cob-nombre').value=`${x.nombres} ${x.apellidos}`.trim();document.getElementById('cob-rut').value=x.rut||'';document.getElementById('cob-origen').value=x.sucursal||'';document.getElementById('cob-tipo').value=x.cargo||'';document.getElementById('cob-resultados').classList.add('hidden');}
         function calcularDiasCobertura(){const a=parsearFechaExcel(document.getElementById('cob-inicio').value),b=parsearFechaExcel(document.getElementById('cob-fin').value);if(a&&b&&b>=a)document.getElementById('cob-dias').value=Math.floor((b-a)/86400000)+1;}
         async function guardarCobertura(e) {
             e.preventDefault();
+            const solicitudId=document.getElementById('cob-solicitud-id')?.value;
+            if(!solicitudId)return mostrarToast('Selecciona una alerta que esté marcada como resuelta antes de asignar al colaborador.','warning');
+            const {data:solicitud,error:solicitudError}=await _supabase.from('solicitudes_dotacion').select('*').eq('id',solicitudId).single();
+            if(solicitudError||!solicitud||solicitud.estado!=='CUBIERTA')return mostrarToast('La cobertura debe estar resuelta antes de asignar al colaborador.','warning');
             const registro = {
                 colaborador_id: String(document.getElementById('cob-id').value || ''),
                 rut: document.getElementById('cob-rut').value,
@@ -1111,7 +1171,7 @@
                 if (!person) throw new Error('No se encontró al colaborador en el maestro por RUT.');
                 if (!origin || !destination) throw new Error('No se encontró la sucursal de origen o destino en el maestro. Revisa los nombres antes de guardar.');
                 if (origin.id === destination.id) throw new Error('El local de origen y destino deben ser diferentes.');
-                const {data:coverage,error:coverageError} = await _supabase.from('coberturas').insert([{...registro,colaborador_id:String(person.id)}]).select('id').single();
+                const {data:coverage,error:coverageError} = await _supabase.from('coberturas').insert([{...registro,colaborador_id:String(person.id),solicitud_dotacion_id:solicitudId}]).select('id').single();
                 if (coverageError) throw coverageError;
                 const me = await _supabase.rpc('chat_usuario_actual_id');
                 if (me.error || !me.data) throw me.error || new Error('Tu usuario no tiene un perfil activo.');
@@ -1141,7 +1201,8 @@
                 }
                 await registrarAuditoria('coberturas','CREA_COBERTURA',`${registro.nombre}: ${registro.local_origen} a ${registro.local_destino}`);
                 e.target.reset();
-                await cargarCoberturas();
+                document.getElementById('cob-solicitud-id').value='';solicitudCoberturaSeleccionada=null;document.getElementById('form-cobertura')?.classList.add('hidden');
+                await cargarCoberturas();await cargarSolicitudesDotacion();
                 mostrarToast('Cobertura guardada y enviada al módulo Traslados para aprobar o rechazar. La sucursal maestra no cambiará por aprobar una cobertura temporal.','success',10000);
             } catch (error) {
                 console.error('Guardar cobertura:', error);
