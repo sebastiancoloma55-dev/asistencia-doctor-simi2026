@@ -2862,9 +2862,9 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   }
   function setupSelectors(){
     setupMultiSelect('usr-supervisores','supervisores');setupMultiSelect('usr-sucursales','sucursales');
-    setupMultiSelect('correo-sucursales','sucursales');setupMultiSelect('correo-supervisores','supervisores');
+    setupMultiSelect('correo-sucursales','sucursales');setupMultiSelect('correo-supervisores','supervisores');setupMultiSelect('dot-responsables','usuarios responsables');
   }
-  function updateSelectorCounts(){['usr-supervisores','usr-sucursales','correo-sucursales','correo-supervisores'].forEach(function(id){var el=document.getElementById(id);if(el&&el._uxUpdate2026)el._uxUpdate2026();});}
+  function updateSelectorCounts(){['usr-supervisores','usr-sucursales','correo-sucursales','correo-supervisores','dot-responsables'].forEach(function(id){var el=document.getElementById(id);if(el&&el._uxUpdate2026)el._uxUpdate2026();});}
   window.actualizarContadoresSelectores2026=updateSelectorCounts;
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
   var allowed=new Set(['dashboard']);
