@@ -208,7 +208,7 @@
           const existingPrivate=(existing||[]).filter(item=>item.tipo==="PRIVADA").filter(item=>{
             const ids=(members||[]).filter(member=>String(member.conversacion_id)===String(item.id)).map(member=>Number(member.usuario_rol_id)).sort((a,b)=>a-b);
             return ids.length===2&&ids[0]===targetIds[0]&&ids[1]===targetIds[1];
-          });
+          }).sort((a,b)=>new Date(b.last_message_at||b.updated_at||0)-new Date(a.last_message_at||a.updated_at||0))[0];
           if(existingPrivate){
             $("chat-titulo-nuevo").value="";
             Array.from($("chat-usuarios-nuevos").options).forEach(o=>o.selected=false);
