@@ -119,11 +119,18 @@
         para=manual.trim();
       }
       if(!correoValido(para)){sinCorreo.push(nombre+' (correo no válido)');continue;}
+      let cc=String(s?.correo_copia||'').trim();
+      if(cc&&!cc.split(/[;,]/).every(c=>correoValido(c.trim()))) {
+        const manualCC=prompt('La copia configurada para "'+nombre+'" no tiene un formato válido. Corrige los correos separados por coma o punto y coma, o deja vacío para no usar copia:',cc);
+        if(manualCC===null){sinCorreo.push(nombre+' (copia omitida por revisión)');cc='';}
+        else if(!manualCC.trim()||manualCC.split(/[;,]/).every(c=>correoValido(c.trim())))cc=manualCC.trim();
+        else {sinCorreo.push(nombre+' (copia con formato inválido)');continue;}
+      }
       const p=periodo();
       const asunto='Gestión de licencias médicas ingresadas · '+nombre+' · '+p.desde+' al '+p.hasta;
       // Minimización de datos: no incluir diagnóstico ni motivo médico.
       const cuerpo='Estimado equipo de '+nombre+':\n\nJunto con saludar, informamos que se registraron '+casos.length+' licencia(s) médica(s) en el sistema durante el período '+p.desde+' al '+p.hasta+'.\n\nPor favor, revisar y gestionar los registros que correspondan:\n\n'+casos.map((r,i)=>(i+1)+'. '+(r.nombre||'Sin nombre')+' | RUT: '+(r.rut||'—')+' | Período: '+(r.fecha_inicio||'—')+' al '+(r.fecha_fin||'—')+' | Días: '+(r.dias_ausencia??'—')).join('\n')+'\n\nEste correo fue preparado como borrador para revisión. No constituye confirmación de envío.\n\nSaludos cordiales,\nGestión de Asistencia\nRecursos Humanos\nFarmacias de Similares Chile S.A.';
-      borradores.push({nombre,para,cc:s?.correo_copia||'',asunto,cuerpo,total:casos.length});
+      borradores.push({nombre,para,cc,asunto,cuerpo,total:casos.length});
     }
     if (!borradores.length) {
       alert(omitidasDuplicadas.length
@@ -147,11 +154,11 @@
       if(b.idsSolicitados){alert('Ya se solicitó abrir este borrador en esta pestaña.');return;}
       const url='mailto:'+encodeURIComponent(b.para)+'?cc='+encodeURIComponent(b.cc)+'&subject='+encodeURIComponent(b.asunto)+'&body='+encodeURIComponent(b.cuerpo);
       // Un clic explícito por sucursal evita que el navegador bloquee una cadena de ventanas emergentes.
-      window.location.href=url;
       b.idsSolicitados=true;
       const nuevas=grupos.get(b.nombre).filter(r=>!ids.has(String(r.id)));
       nuevas.forEach(r=>ids.add(String(r.id)));
       guardarIdsPreparados(ids);
+      window.location.href=url;
       btn.disabled=true;
       btn.textContent='Apertura solicitada';
       btn.classList.add('opacity-60','cursor-not-allowed');
