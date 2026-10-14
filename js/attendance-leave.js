@@ -224,11 +224,13 @@
         }
 
         async function cargarAsistenciaDesdeNube() {
-            await obtenerMapaSupervisoresDirectorio();
-            datosAsistenciaGlobal = await leerTablaCompleta(
-                'registros_asistencia',
-                'fecha'
-            );
+            // La lectura de datos y el directorio no dependen entre sí: ejecutarlos juntos
+            // reduce la espera inicial sin alterar filtros ni registros.
+            const [, registros] = await Promise.all([
+                obtenerMapaSupervisoresDirectorio(),
+                leerTablaCompleta('registros_asistencia', 'fecha')
+            ]);
+            datosAsistenciaGlobal = registros;
 
             asistenciaCargada = true;
             document.getElementById('kpi-asistencia').innerText =
@@ -572,11 +574,12 @@
         }
 
         async function cargarLicenciasDesdeNube() {
-            await obtenerMapaSupervisoresDirectorio();
-            datosLicenciasGlobal = await leerTablaCompleta(
-                'licencias_medicas',
-                'fecha_fin'
-            );
+            // Traer licencias en paralelo al directorio evita una espera innecesaria.
+            const [, registros] = await Promise.all([
+                obtenerMapaSupervisoresDirectorio(),
+                leerTablaCompleta('licencias_medicas', 'fecha_fin')
+            ]);
+            datosLicenciasGlobal = registros;
 
             licenciasCargadas = true;
             document.getElementById('kpi-licencias').innerText =
