@@ -126,19 +126,35 @@
         : 'No se generaron borradores. Verifica que las sucursales tengan correo configurado o ingresa un correo oficial válido.');
       return;
     }
-    const resumen='Se solicitará abrir '+borradores.length+' borrador(es) para '+borradores.reduce((n,b)=>n+b.total,0)+' licencia(s):\n\n'+borradores.map(b=>'• '+b.nombre+' → Para: '+b.para+(b.cc?' | CC: '+b.cc:'')+' ('+b.total+' licencia(s))').join('\n')+(sinCorreo.length?'\n\nOmitidas por falta de correo válido: '+sinCorreo.join(', '):'')+(omitidasDuplicadas.length?'\n\nOmitidas por posible duplicado en esta pestaña: '+omitidasDuplicadas.join(', '):'')+'\n\nConfirma que los destinatarios sean oficiales. ¿Continuar?';
+    const resumen='Se preparará una lista de '+borradores.length+' borrador(es) para revisar antes de abrirlos:\n\n'+borradores.map(b=>'• '+b.nombre+' → Para: '+b.para+(b.cc?' | CC: '+b.cc:'')+' ('+b.total+' licencia(s))').join('\n')+(sinCorreo.length?'\n\nOmitidas por falta de correo válido: '+sinCorreo.join(', '):'')+(omitidasDuplicadas.length?'\n\nOmitidas por posible duplicado en esta pestaña: '+omitidasDuplicadas.join(', '):'')+'\n\nNo se enviará ningún correo automáticamente. ¿Continuar?';
     if(!confirm(resumen))return;
-    const ids=idsPreparados();
-    borradores.forEach(b=>b.ids=grupos.get(b.nombre).filter(r=>!ids.has(String(r.id))).map(r=>String(r.id)));
-    borradores.forEach((b,i)=>{
+    const host=$('lic-correo-borradores-lista');
+    if(!host)return;
+    host.innerHTML=borradores.map((b,i)=>{
+      const ids=grupos.get(b.nombre).filter(r=>!yaPreparadas.has(String(r.id))).map(r=>String(r.id));
+      return '<article class="ui-card border border-slate-200 p-4" data-draft-index="'+i+'"><div class="flex flex-wrap items-start justify-between gap-3"><div class="min-w-0 flex-1"><h4 class="font-extrabold text-slate-900">'+esc(b.nombre)+'</h4><p class="mt-1 break-all text-xs text-slate-600">Para: '+esc(b.para)+'</p>'+(b.cc?'<p class="mt-1 break-all text-xs text-slate-600">CC: '+esc(b.cc)+'</p>':'')+'<p class="mt-1 text-xs text-slate-500">'+b.total+' licencia(s) · '+esc(b.asunto)+'</p></div><button type="button" class="lic-correo-abrir rounded-lg bg-sky-700 px-4 py-3 text-xs font-bold text-white" data-draft-index="'+i+'">Abrir borrador en Outlook</button></div><details class="mt-3"><summary class="cursor-pointer text-xs font-bold text-slate-700">Revisar contenido del correo</summary><pre class="mt-2 whitespace-pre-wrap break-words rounded-lg bg-slate-50 p-3 text-xs">'+esc(b.cuerpo)+'</pre></details><p class="mt-2 text-[11px] text-amber-700">La plataforma solo solicita abrir el borrador. Confirma en Outlook si se abrió y envíalo manualmente.</p></article>';
+    }).join('');
+    const botones=[...host.querySelectorAll('.lic-correo-abrir')];
+    botones.forEach(btn=>btn.addEventListener('click',()=>{
+      const b=borradores[Number(btn.dataset.draftIndex)];
+      if(!b)return;
+      const ids=idsPreparados();
+      if(b.idsSolicitados){alert('Ya se solicitó abrir este borrador en esta pestaña.');return;}
       const url='mailto:'+encodeURIComponent(b.para)+'?cc='+encodeURIComponent(b.cc)+'&subject='+encodeURIComponent(b.asunto)+'&body='+encodeURIComponent(b.cuerpo);
-      if(i===0) window.location.href=url;
-      else setTimeout(()=>window.open(url,'_blank','noopener'),i*700);
-      b.ids.forEach(id=>ids.add(id));
-    });
-    guardarIdsPreparados(ids);
-    $('lic-correo-estado').textContent='Se solicitó abrir '+borradores.length+' borrador(es). La sesión marcará estos registros para evitar repetir la solicitud de apertura. Esto no confirma que Outlook lo haya abierto ni que el correo se haya enviado.';
-    alert('Se solicitó abrir '+borradores.length+' borrador(es). Si son varios, el navegador puede bloquear ventanas adicionales. Verifica destinatarios y contenido en Outlook; el envío siempre es manual.');
+      // Un clic explícito por sucursal evita que el navegador bloquee una cadena de ventanas emergentes.
+      window.location.href=url;
+      b.idsSolicitados=true;
+      const nuevas=grupos.get(b.nombre).filter(r=>!ids.has(String(r.id)));
+      nuevas.forEach(r=>ids.add(String(r.id)));
+      guardarIdsPreparados(ids);
+      btn.disabled=true;
+      btn.textContent='Apertura solicitada';
+      btn.classList.add('opacity-60','cursor-not-allowed');
+      $('lic-correo-estado').textContent='Se solicitó abrir el borrador de '+b.nombre+'. Esto no confirma que Outlook lo haya abierto ni que se haya enviado.';
+    }));
+    host.scrollIntoView({behavior:'smooth',block:'start'});
+    $('lic-correo-estado').textContent='Borradores preparados para revisión. Revisa destinatario, copia y contenido; pulsa el botón de cada sucursal para solicitar la apertura.';
+
   }
   function iniciar() {
     if (!$('lic-correo-periodo') || $('lic-correo-periodo').dataset.ready==='1') return;
