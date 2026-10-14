@@ -224,6 +224,57 @@
     } catch(e){mensaje(e.message||'No se pudo guardar el registro.');}
     finally{btn.disabled=false;btn.innerHTML='<i data-lucide="save" class="mr-2 inline h-4 w-4"></i>Guardar registro';if(window.lucide)window.lucide.createIcons();}
   }
+
+  function seleccionados() {
+    return [...document.querySelectorAll('[data-eml-seleccionar]:checked')].map(x=>String(x.dataset.emlSeleccionar));
+  }
+  function actualizarSeleccion() {
+    const ids=seleccionados(), todos=[...document.querySelectorAll('[data-eml-seleccionar]')];
+    $('eml-seleccion-contador').textContent=ids.length+' seleccionada(s)';
+    $('eml-descargar-zip').disabled=ids.length===0;
+    $('eml-seleccionar-todos').checked=todos.length>0&&todos.every(x=>x.checked);
+    $('eml-seleccionar-todos').indeterminate=ids.length>0&&ids.length<todos.length;
+  }
+  function csvCelda(v) { return '"'+String(v??'').replace(/"/g,'""')+'"'; }
+  async function descargarZipMasivo() {
+    const ids=seleccionados();
+    if(!ids.length){mensaje('Selecciona al menos una licencia.');return;}
+    if(typeof JSZip==='undefined'){mensaje('No se pudo cargar el generador ZIP. Recarga la página.');return;}
+    const btn=$('eml-descargar-zip'), texto=btn.textContent;
+    btn.disabled=true;btn.textContent='Preparando ZIP…';
+    try {
+      const {data,error}=await db().from('envio_licencias_medicas')
+        .select('id,fecha_registro,rut,nombre_colaborador,cargo,sucursal_nombre,correo_sucursal,correo_copia,observacion_administrativa,fecha_inicio,dias_corridos,fecha_termino,fecha_retorno,estado_correo')
+        .in('id',ids);
+      if(error)throw error;
+      const rows=data||[];
+      if(!rows.length)throw new Error('No se encontraron registros seleccionados. Actualiza la lista.');
+      const zip=new JSZip(), folder=zip.folder('Borradores_licencias_medicas');
+      const csv=[['RUT','Colaborador','Cargo','Sucursal','Fecha registro','Inicio','Término','Retorno','Días corridos','Para','CC','Estado']];
+      for(const r of rows) {
+        const d={nombre:r.nombre_colaborador||'',rut:r.rut||'',cargo:r.cargo||'',sucursal:r.sucursal_nombre||'',fechaRegistro:r.fecha_registro,inicio:r.fecha_inicio,dias:Number(r.dias_corridos),termino:r.fecha_termino,retorno:r.fecha_retorno,correoSucursal:r.correo_sucursal||'',correoCopia:r.correo_copia||'',observacion:r.observacion_administrativa||''};
+        if(!rutValido(d.rut)||!d.nombre||!d.sucursal||!d.inicio||!Number.isInteger(d.dias)||d.dias<1)throw new Error('Una de las licencias tiene datos obligatorios incompletos. Revisa los registros.');
+        const mail=plantillaCorreo(d);
+        const clean=v=>String(v||'').replace(/[\r\n]/g,' ').replace(/[^\x20-\x7E]/g,'');
+        const to=mail.to?'To: '+clean(mail.to)+'\r\n':'';
+        const cc=mail.cc?'Cc: '+clean(mail.cc)+'\r\n':'';
+        const eml='MIME-Version: 1.0\r\n'+to+cc+'Subject: =?UTF-8?B?'+btoa(unescape(encodeURIComponent(mail.asunto)))+'?=\r\nX-Unsent: 1\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+btoa(unescape(encodeURIComponent(mail.cuerpo)));
+        const filename=String(d.inicio||'licencia')+'_'+normalizarRut(d.rut);
+        folder.file(filename+'.eml',eml);
+        folder.file(filename+'.html',mail.cuerpo);
+        csv.push([d.rut,d.nombre,d.cargo,d.sucursal,d.fechaRegistro,d.inicio,d.termino,d.retorno,d.dias,d.correoSucursal,d.correoCopia,r.estado_correo||'guardada']);
+      }
+      zip.file('Control_de_licencias.csv','\uFEFF'+csv.map(row=>row.map(csvCelda).join(';')).join('\r\n'));
+      zip.file('LEEME.txt','Se incluye un borrador .eml individual y una vista HTML por licencia, más un CSV de control. Los correos NO han sido enviados. Abre cada .eml en Outlook, revisa destinatarios y contenido y pulsa Enviar. No se incluyen documentos médicos adjuntos que no se hayan cargado al sistema.');
+      const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+      const url=URL.createObjectURL(blob), a=document.createElement('a');
+      a.href=url;a.download='Borradores_Licencias_'+isoHoy()+'.zip';document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),2000);
+      if(window.mostrarToast)window.mostrarToast('ZIP preparado con '+rows.length+' borrador(es). Los correos aún no han sido enviados.','success');
+    } catch(e) { mensaje(e.message||'No se pudo generar el ZIP.'); }
+    finally {btn.disabled=false;btn.textContent=texto;actualizarSeleccion();}
+  }
+
   async function cargarLista() {
     const client=db(); if(!client){$('eml-lista-estado').textContent='Conexión con Supabase no disponible.';return;}
     $('eml-lista-estado').textContent='Cargando registros manuales…';
@@ -232,8 +283,9 @@
       if(error)throw error;
       const rows=data||[];
       $('eml-lista-estado').textContent=rows.length+' registro(s) manual(es) recientes. Se muestran hasta 200.';
-      $('eml-lista').innerHTML=rows.length?rows.map(r=>'<tr class="border-t border-slate-100"><td class="p-3">'+esc(formatoFecha(r.fecha_registro))+'<div class="mt-1 text-[10px] text-slate-500">'+esc(r.created_at?new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'short',timeStyle:'short'}).format(new Date(r.created_at)):'')+'</div></td><td class="p-3">'+esc(r.nombre_colaborador||'—')+'<div class="text-[10px] text-slate-500">'+esc(r.rut||'')+'</div><div class="text-[10px] text-slate-500">'+esc(r.cargo||'')+'</div></td><td class="p-3">'+esc(r.sucursal_nombre||'—')+'</td><td class="p-3">'+esc(formatoFecha(r.fecha_inicio))+' – '+esc(formatoFecha(r.fecha_termino))+'<div class="text-[10px] text-slate-500">'+esc(r.dias_corridos)+' día(s) · retorno '+esc(formatoFecha(r.fecha_retorno))+'</div></td><td class="p-3"><span class="rounded-full bg-slate-100 px-2 py-1">'+esc(r.estado_correo||'guardada')+'</span></td><td class="p-3"><button type="button" class="rounded-lg border border-slate-200 px-2 py-1 font-semibold" data-eml-ver="'+esc(r.id)+'">Ver</button></td></tr>').join(''):'<tr><td colspan="6" class="p-6 text-center text-slate-400">Todavía no hay registros manuales.</td></tr>';
+      $('eml-lista').innerHTML=rows.length?rows.map(r=>'<tr class="border-t border-slate-100"><td class="p-3"><input type="checkbox" class="h-4 w-4" data-eml-seleccionar="'+esc(r.id)+'" aria-label="Seleccionar licencia"></td><td class="p-3">'+esc(formatoFecha(r.fecha_registro))+'<div class="mt-1 text-[10px] text-slate-500">'+esc(r.created_at?new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'short',timeStyle:'short'}).format(new Date(r.created_at)):'')+'</div></td><td class="p-3">'+esc(r.nombre_colaborador||'—')+'<div class="text-[10px] text-slate-500">'+esc(r.rut||'')+'</div><div class="text-[10px] text-slate-500">'+esc(r.cargo||'')+'</div></td><td class="p-3">'+esc(r.sucursal_nombre||'—')+'</td><td class="p-3">'+esc(formatoFecha(r.fecha_inicio))+' – '+esc(formatoFecha(r.fecha_termino))+'<div class="text-[10px] text-slate-500">'+esc(r.dias_corridos)+' día(s) · retorno '+esc(formatoFecha(r.fecha_retorno))+'</div></td><td class="p-3"><span class="rounded-full bg-slate-100 px-2 py-1">'+esc(r.estado_correo||'guardada')+'</span></td><td class="p-3"><button type="button" class="rounded-lg border border-slate-200 px-2 py-1 font-semibold" data-eml-ver="'+esc(r.id)+'">Ver</button></td></tr>').join(''):'<tr><td colspan="7" class="p-6 text-center text-slate-400">Todavía no hay registros manuales.</td></tr>';
       $('eml-lista').querySelectorAll('[data-eml-ver]').forEach(b=>b.addEventListener('click',()=>verRegistro(rows.find(r=>String(r.id)===b.dataset.emlVer))));
+      actualizarSeleccion();
     } catch(e){$('eml-lista-estado').textContent='No se pudieron cargar los registros. Comprueba que la migración esté aplicada y que tengas permiso.';$('eml-lista').innerHTML='<tr><td colspan="6" class="p-6 text-center text-rose-600">'+esc(e.message||'Error desconocido')+'</td></tr>';}
   }
   function verRegistro(r) {
@@ -279,6 +331,9 @@
     $('eml-descargar-correo').addEventListener('click',descargarCorreo);
     $('eml-guardar').addEventListener('click',guardar);
     $('eml-recargar').addEventListener('click',cargarLista);
+    $('eml-seleccionar-todos').addEventListener('change',e=>{document.querySelectorAll('[data-eml-seleccionar]').forEach(c=>c.checked=e.target.checked);actualizarSeleccion();});
+    $('eml-lista').addEventListener('change',e=>{if(e.target.matches('[data-eml-seleccionar]'))actualizarSeleccion();});
+    $('eml-descargar-zip').addEventListener('click',descargarZipMasivo);
     document.addEventListener('click',e=>{const b=e.target.closest('#btn-envio_licencias');if(b)setTimeout(cargarLista,150);});
     cargarLista();
   }
