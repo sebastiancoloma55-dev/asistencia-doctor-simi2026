@@ -334,25 +334,26 @@
       if(error)throw error;
       const rows=data||[];
       if(!rows.length)throw new Error('No se encontraron registros seleccionados. Actualiza la lista.');
-      const zip=new JSZip(), folder=zip.folder('Borradores_licencias_medicas');
+      const zip=new JSZip(), folder=zip.folder('Borradores_Outlook_Licencias');
       const csv=[['RUT','Colaborador','Cargo','Sucursal','Fecha registro','Inicio','Término','Retorno','Días corridos','Para','CC','Estado']];
-      for(const r of rows) {
-        const suc=await resolverSucursal(r.sucursal_nombre,r.sucursal_id);
-        const d={nombre:r.nombre_colaborador||'',rut:r.rut||'',cargo:r.cargo||'',sucursal:r.sucursal_nombre||'',fechaRegistro:r.fecha_registro,inicio:r.fecha_inicio,dias:Number(r.dias_corridos),termino:r.fecha_termino||sumarFecha(r.fecha_inicio,Number(r.dias_corridos)-1),retorno:r.fecha_retorno||sumarFecha(r.fecha_inicio,Number(r.dias_corridos)),correoSucursal:suc?.correo_sucursal||'',correoCopia:suc?.correo_copia||'',observacion:r.observacion_administrativa||''};
+      for(let i=0;i<rows.length;i++) {
+        const r=rows[i], suc=await resolverSucursal(r.sucursal_nombre,r.sucursal_id);
+        const d={nombre:r.nombre_colaborador||'',rut:r.rut||'',cargo:r.cargo||'',sucursal:r.sucursal_nombre||'',fechaRegistro:r.fecha_registro,inicio:r.fecha_inicio,dias:Number(r.dias_corridos),termino:r.fecha_termino||sumarFecha(r.fecha_inicio,Number(r.dias_corridos)-1),retorno:r.fecha_retorno||sumarFecha(r.fecha_inicio,Number(r.dias_corridos)),correoSucursal:suc?.correo_sucursal||r.correo_sucursal||'',correoCopia:suc?.correo_copia||r.correo_copia||'',observacion:r.observacion_administrativa||''};
         if(!rutValido(d.rut)||!d.nombre||!d.sucursal||!d.inicio||!Number.isInteger(d.dias)||d.dias<1)throw new Error('Una de las licencias tiene datos obligatorios incompletos. Revisa los registros.');
         if(!d.correoSucursal&&!d.correoCopia)throw new Error('La sucursal '+d.sucursal+' no tiene destinatarios asignados. Configura sus correos antes de generar el ZIP.');
-        const mail=plantillaCorreo(d);
-        const eml=crearEmlLicencia(mail);
-        const filename=String(d.inicio||'licencia')+'_'+normalizarRut(d.rut);
-        folder.file(filename+'.eml',eml);
-        folder.file(filename+'.html',mail.cuerpo);
+        const mail=plantillaCorreo(d), eml=crearEmlLicencia(mail);
+        const slug=String(d.nombre||'Colaborador').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').slice(0,55)||'Colaborador';
+        const filename=String(i+1).padStart(3,'0')+'_'+slug+'_'+normalizarRut(d.rut);
+        folder.file(filename+'.eml',eml); folder.file(filename+'.html',mail.cuerpo);
         csv.push([d.rut,d.nombre,d.cargo,d.sucursal,d.fechaRegistro,d.inicio,d.termino,d.retorno,d.dias,d.correoSucursal,d.correoCopia,r.estado_correo||'guardada']);
       }
-      zip.file('Control_de_licencias.csv','\uFEFF'+csv.map(row=>row.map(csvCelda).join(';')).join('\r\n'));
-      zip.file('LEEME.txt','Se incluye un borrador .eml individual y una vista HTML por licencia, más un CSV de control. Los correos NO han sido enviados. Abre cada .eml en Outlook, revisa destinatarios y contenido y pulsa Enviar. No se incluyen documentos médicos adjuntos que no se hayan cargado al sistema.');
+      zip.file('Control_de_licencias.csv','\\uFEFF'+csv.map(row=>row.map(csvCelda).join(';')).join('\\r\\n'));
+      zip.file('LEEME.txt','Borradores para Outlook siguiendo el formato del ZIP de comunicaciones de Asistencia. Extrae el ZIP y abre cada archivo .eml en Outlook. Revisa destinatarios y contenido antes de pulsar Enviar. Los correos NO se envían automáticamente. Incluye también una vista HTML y el CSV de control.');
       const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
-      descargarArchivo(blob,'Borradores_Licencias_'+isoHoy()+'.zip');
-      if(window.mostrarToast)window.mostrarToast('ZIP preparado con '+rows.length+' borrador(es). Los correos aún no han sido enviados.','success');
+      const url=URL.createObjectURL(blob), link=document.createElement('a');
+      link.href=url; link.download='Borradores_Outlook_Licencias_'+isoHoy()+'.zip'; link.style.display='none';
+      document.body.appendChild(link); link.click(); link.remove(); setTimeout(()=>URL.revokeObjectURL(url),60000);
+      if(window.mostrarToast)window.mostrarToast('ZIP listo: '+rows.length+' borrador(es) preparados para Outlook. Los correos aún no han sido enviados.','success',10000);
     } catch(e) { mensaje(e.message||'No se pudo generar el ZIP.'); }
     finally {btn.disabled=false;btn.textContent=texto;actualizarSeleccion();}
   }
@@ -361,7 +362,7 @@
     const client=db(); if(!client){$('eml-lista-estado').textContent='Conexión con Supabase no disponible.';return;}
     $('eml-lista-estado').textContent='Cargando registros manuales…';
     try {
-      const {data,error}=await client.from('envio_licencias_medicas').select('id,fecha_registro,rut,nombre_colaborador,cargo,sucursal_nombre,correo_sucursal,correo_copia,observacion_administrativa,fecha_inicio,dias_corridos,fecha_termino,fecha_retorno,estado_correo,created_at').order('created_at',{ascending:false}).limit(200);
+      let consulta=client.from('envio_licencias_medicas').select('id,fecha_registro,rut,nombre_colaborador,cargo,sucursal_nombre,correo_sucursal,correo_copia,observacion_administrativa,fecha_inicio,dias_corridos,fecha_termino,fecha_retorno,estado_correo,created_at').order('created_at',{ascending:false}).limit(200); const desde=$('eml-filtro-desde')?.value||'', hasta=$('eml-filtro-hasta')?.value||''; if(desde)consulta=consulta.gte('fecha_registro',desde); if(hasta)consulta=consulta.lte('fecha_registro',hasta); const {data,error}=await consulta;
       if(error)throw error;
       const rows=data||[];
       $('eml-lista-estado').textContent=rows.length+' registro(s) manual(es) recientes. Se muestran hasta 200.';
@@ -418,6 +419,11 @@
     $('eml-descargar-correo').addEventListener('click',descargarCorreo);
     $('eml-guardar').addEventListener('click',guardar);
     $('eml-recargar').addEventListener('click',cargarLista);
+    const aplicarRango=(desde,hasta)=>{ $('eml-filtro-desde').value=desde||''; $('eml-filtro-hasta').value=hasta||''; cargarLista(); };
+    $('eml-filtro-hoy').addEventListener('click',()=>aplicarRango(isoHoy(),isoHoy()));
+    $('eml-filtro-manana').addEventListener('click',()=>{const manana=sumarFecha(isoHoy(),1);aplicarRango(manana,manana);});
+    $('eml-filtro-limpiar').addEventListener('click',()=>aplicarRango('',''));
+    $('eml-filtro-aplicar').addEventListener('click',()=>{const desde=$('eml-filtro-desde').value,hasta=$('eml-filtro-hasta').value;if(desde&&hasta&&desde>hasta){mensaje('La fecha Desde no puede ser posterior a Hasta.');return;}cargarLista();});
     $('eml-seleccionar-todos').addEventListener('change',e=>{document.querySelectorAll('[data-eml-seleccionar]').forEach(c=>c.checked=e.target.checked);actualizarSeleccion();});
     $('eml-lista').addEventListener('change',e=>{if(e.target.matches('[data-eml-seleccionar]'))actualizarSeleccion();});
     $('eml-descargar-zip').addEventListener('click',descargarZipMasivo);
