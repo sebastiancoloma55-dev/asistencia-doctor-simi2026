@@ -444,7 +444,14 @@
                 ),
                 observaciones: texto(
                     obtenerCampo(fila, ['Observaciones'])
-                )
+                ),
+                gerencia: texto(obtenerCampo(fila, ['Gerencia'])),
+                centro_costo: texto(obtenerCampo(fila, ['Centro de Costo', 'Centro Costo'])),
+                fecha_creacion: texto(obtenerCampo(fila, ['Fecha de Creación', 'Fecha Creacion', 'Fecha de creación', 'Fecha creación'])),
+                hora_inicio: texto(obtenerCampo(fila, ['Hora Inicio', 'Hora de Inicio', 'Hora inicio'])),
+                hora_fin: texto(obtenerCampo(fila, ['Hora Fin', 'Hora de Fin', 'Hora fin'])),
+                numero_horas: texto(obtenerCampo(fila, ['Número de horas', 'Numero de horas', 'Horas'])),
+                numero_minutos: texto(obtenerCampo(fila, ['Número de minutos', 'Numero de minutos', 'Minutos']))
             };
         }
 
@@ -483,13 +490,19 @@
 
                 // Consolidación global ANTES de dividir en lotes.
                 // Esto evita que el lote 901-1200 caiga completo por código 21000.
+                const normalizarIdentidadTexto = valor => String(valor ?? '')
+                    .trim().toLowerCase().replace(/\s+/g, ' ');
+                const normalizarTipoIdentidad = valor => normalizarIdentidadTexto(valor)
+                    .replace(/[áéíóúüñ]/g, letra => ({á:'a',é:'e',í:'i',ó:'o',ú:'u',ü:'u',ñ:'n'}[letra]));
                 const consolidado = deduplicarRegistros(
                     originales,
                     registro => [
-                        normalizarRut(registro.rut),
-                        registro.fecha_inicio,
-                        registro.fecha_fin,
-                        texto(registro.tipo_ausencia).toLowerCase()
+                        normalizarRut(registro.rut).replace(/[.\s]/g, '').toUpperCase(),
+                        String(registro.fecha_inicio || '').trim(),
+                        normalizarTipoIdentidad(registro.tipo_ausencia),
+                        String(registro.fecha_creacion || '').trim().slice(0, 10),
+                        normalizarIdentidadTexto(registro.hora_inicio),
+                        normalizarIdentidadTexto(registro.hora_fin)
                     ].join('|')
                 );
 
@@ -501,7 +514,7 @@
 
                 if (consolidado.duplicados.length) {
                     mostrarToast(
-                        `Licencias: se detectaron ${consolidado.duplicados.length} fila(s) repetidas. Se conservó la última aparición de cada combinación RUT + fecha inicio + fecha fin + tipo.`,
+                        `Licencias: se detectaron ${consolidado.duplicados.length} fila(s) repetidas. Se conservó la última aparición de cada identidad Talana (RUT + inicio + tipo + fecha de creación + horas).`,
                         'warning',
                         14000
                     );
@@ -509,13 +522,23 @@
 
                 boton.textContent = 'Guardando todos los lotes...';
 
-                const resultado = await guardarLotes(
-                    'licencias_medicas',
-                    procesadas,
-                    {
-                        onConflict: 'rut,fecha_inicio,fecha_fin,tipo_ausencia'
+                let confirmados = 0;
+                let lotesProcesados = 0;
+                for (let inicio = 0; inicio < procesadas.length; inicio += TAMANO_LOTE) {
+                    const lote = procesadas.slice(inicio, inicio + TAMANO_LOTE);
+                    const { data, error } = await _supabase.rpc('upsert_licencias_medicas_batch', {
+                        p_rows: lote
+                    });
+                    if (error) {
+                        throw errorSupabase(
+                            `Error en licencias_medicas, filas únicas ${inicio + 1} a ${inicio + lote.length}`,
+                            error
+                        );
                     }
-                );
+                    confirmados += Number(data?.procesados ?? lote.length);
+                    lotesProcesados++;
+                }
+                const resultado = { confirmados, lotesProcesados };
 
                 await cargarLicenciasDesdeNube(false);
                 await inicializarDashboard();
