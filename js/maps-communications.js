@@ -157,7 +157,7 @@
 
         function personaConAusenciaEnFecha(registro) {
             const fecha = String(registro?.fecha || '').slice(0, 10);
-            const tipo = String(registro?.tipo_ausentismo || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
+            const tipo = String(registro?.tipo_ausentismo || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
             if (/licencia|medic|permiso|vacacion|ausencia/.test(tipo)) return true;
             const rut = typeof normalizarRut === 'function' ? normalizarRut(registro?.rut) : String(registro?.rut || '').replace(/[^0-9k]/gi, '').toUpperCase();
             if (!fecha || !rut) return false;
