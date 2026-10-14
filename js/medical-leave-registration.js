@@ -98,9 +98,18 @@
     try {
       // Se busca por el fragmento y luego se filtra por inicio del RUT normalizado,
       // para admitir RUT escritos con puntos/guion sin mostrar coincidencias intermedias.
+      const prefijos = new Set([parcial]);
+      for (const largo of [7,8]) {
+        const relleno = (parcial + '00000000').slice(0,largo);
+        const formateado = relleno.replace(/\\B(?=(\\d{3})+(?!\\d))/g,'.');
+        let prefijo = '', digitos = 0;
+        for (const ch of formateado) { prefijo += ch; if (/[0-9]/.test(ch)) digitos++; if (digitos >= parcial.length) break; }
+        if (prefijo) prefijos.add(prefijo);
+      }
+      const filtros = [...prefijos].map(p => 'rut.ilike.' + p + '%').join(',');
       const {data,error} = await client.from('colaboradores')
         .select('id,rut,nombres,apellidos,cargo,sucursal,sucursal_id,estado')
-        .ilike('rut','%' + parcial + '%').limit(150);
+        .or(filtros).limit(250);
       if (error) throw error;
       const rows = (data || []).filter(x => normalizarRut(x.rut).startsWith(parcial));
       if ($('eml-rut').value.trim() !== entrada) return;
