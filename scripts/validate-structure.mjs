@@ -131,26 +131,29 @@ for (const redundantMigration of ['20261011120000_talana_importer_privileges_and
 }
 if (!migrationNames.includes('20261011073437_talana_importer_privileges_and_key_contract_20261011.sql')) fail('Falta alinear la migración del importador con la versión aplicada en Supabase.');
 if (!migrationNames.includes('20261011181841_talana_four_reports_config_20261011.sql')) fail('Falta versionar la configuración del bot con los cuatro reportes activos.');
-if (!migrationNames.includes('20261014180000_control_borradores_licencias_medicas.sql')) fail('Falta la migración base del control compartido de borradores de licencias.');
-if (!migrationNames.includes('20261014183000_validar_reserva_licencias_medicas.sql')) fail('Falta la validación de sucursal y período en la reserva de licencias.');
-if (!migrationNames.includes('20261014190000_recuperar_reserva_borrador_licencias.sql')) fail('Falta la recuperación de reservas propias de borradores.');
-const medicalEmail = readFileSync(path.join(root, 'js/medical-leave-email.js'), 'utf8');
+const manualLeave = readFileSync(path.join(root, 'js/medical-leave-registration.js'), 'utf8');
 for (const marker of [
-  "db.rpc('reservar_licencias_medicas_borrador'",
-  "db.rpc('liberar_reserva_licencias_medicas_borrador'",
-  "seleccion=new Set();",
-  'No se pudo validar el control compartido de duplicados',
-  'Outlook no se abrió: liberar reserva'
+  "from('colaboradores')",
+  "from('envio_licencias_medicas')",
+  'function rutValido',
+  'fecha_termino',
+  'fecha_retorno',
+  'No se envió ningún correo'
 ]) {
-  if (!medicalEmail.includes(marker)) fail('El flujo de licencias médicas no contiene la protección requerida: ' + marker + '.');
+  if (!manualLeave.includes(marker)) fail('El módulo de registro manual de licencias no contiene la validación requerida: ' + marker + '.');
 }
-if (medicalEmail.includes('r.diagnostico') || medicalEmail.includes('r.motivo_medico')) fail('El borrador no debe incluir diagnóstico ni motivo médico.');
-const reserveMigration = readFileSync(path.join(migrationDir, '20261014183000_validar_reserva_licencias_medicas.sql'), 'utf8');
-for (const marker of ["usuario_tiene_permiso('licencias')", "'America/Santiago'", 'on conflict (licencia_id) do nothing']) {
-  if (!reserveMigration.includes(marker)) fail('La migración de reserva no contiene la validación requerida: ' + marker + '.');
+if (!migrationNames.includes('20261014220000_envio_licencias_medicas_manual.sql')) fail('Falta la migración de la tabla independiente de licencias médicas manuales.');
+const manualMigration = readFileSync(path.join(migrationDir, '20261014220000_envio_licencias_medicas_manual.sql'), 'utf8');
+for (const marker of [
+  'public.envio_licencias_medicas',
+  'public.envio_licencias_medicas_auditoria',
+  "usuario_tiene_permiso('envio_licencias')",
+  'fecha_inicio + (dias_corridos - 1)',
+  'fecha_inicio + dias_corridos'
+]) {
+  if (!manualMigration.includes(marker)) fail('La migración de licencias manuales no contiene: ' + marker + '.');
 }
-const releaseMigration = readFileSync(path.join(migrationDir, '20261014190000_recuperar_reserva_borrador_licencias.sql'), 'utf8');
-if (!releaseMigration.includes('c.solicitado_por = auth.uid()')) fail('La liberación solo debe permitir reservas del usuario autenticado.');
+if (manualMigration.includes('references public.licencias_medicas')) fail('El nuevo registro manual no debe depender del historial de licencias.');
 
 
 if (process.exitCode) process.exit(process.exitCode);
