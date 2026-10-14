@@ -82,6 +82,9 @@ begin
   if p_cantidad < 1 or p_cantidad > 100 then
     raise exception 'La cantidad debe estar entre 1 y 100.';
   end if;
+  if not coalesce(private.usuario_puede_ver_sucursal(p_sucursal_id, trim(p_sucursal_nombre)), false) then
+    raise exception 'No tienes acceso a la sucursal seleccionada.';
+  end if;
   if exists (
     select 1 from unnest(p_destinatarios) recipient_id
     left join public.usuarios_roles u on u.id = recipient_id
