@@ -281,7 +281,7 @@
     btn.disabled=true;btn.textContent='Preparando ZIP…';
     try {
       const {data,error}=await db().from('envio_licencias_medicas')
-        .select('id,fecha_registro,rut,nombre_colaborador,cargo,sucursal_nombre,correo_sucursal,correo_copia,observacion_administrativa,fecha_inicio,dias_corridos,fecha_termino,fecha_retorno,estado_correo')
+        .select('id,fecha_registro,rut,nombre_colaborador,cargo,sucursal_id,sucursal_nombre,correo_sucursal,correo_copia,observacion_administrativa,fecha_inicio,dias_corridos,fecha_termino,fecha_retorno,estado_correo')
         .in('id',ids);
       if(error)throw error;
       const rows=data||[];
@@ -289,8 +289,10 @@
       const zip=new JSZip(), folder=zip.folder('Borradores_licencias_medicas');
       const csv=[['RUT','Colaborador','Cargo','Sucursal','Fecha registro','Inicio','Término','Retorno','Días corridos','Para','CC','Estado']];
       for(const r of rows) {
-        const d={nombre:r.nombre_colaborador||'',rut:r.rut||'',cargo:r.cargo||'',sucursal:r.sucursal_nombre||'',fechaRegistro:r.fecha_registro,inicio:r.fecha_inicio,dias:Number(r.dias_corridos),termino:r.fecha_termino,retorno:r.fecha_retorno,correoSucursal:r.correo_sucursal||'',correoCopia:r.correo_copia||'',observacion:r.observacion_administrativa||''};
+        const suc=(r.correo_sucursal||r.correo_copia)?null:await resolverSucursal(r.sucursal_nombre,r.sucursal_id);
+        const d={nombre:r.nombre_colaborador||'',rut:r.rut||'',cargo:r.cargo||'',sucursal:r.sucursal_nombre||'',fechaRegistro:r.fecha_registro,inicio:r.fecha_inicio,dias:Number(r.dias_corridos),termino:r.fecha_termino,retorno:r.fecha_retorno,correoSucursal:r.correo_sucursal||suc?.correo_sucursal||'',correoCopia:r.correo_copia||suc?.correo_copia||'',observacion:r.observacion_administrativa||''};
         if(!rutValido(d.rut)||!d.nombre||!d.sucursal||!d.inicio||!Number.isInteger(d.dias)||d.dias<1)throw new Error('Una de las licencias tiene datos obligatorios incompletos. Revisa los registros.');
+        if(!d.correoSucursal&&!d.correoCopia)throw new Error('La sucursal '+d.sucursal+' no tiene destinatarios asignados. Configura sus correos antes de generar el ZIP.');
         const mail=plantillaCorreo(d);
         const clean=v=>String(v||'').replace(/[\r\n]/g,' ').replace(/[^\x20-\x7E]/g,'');
         const to=mail.to?'To: '+clean(mail.to)+'\r\n':'';
