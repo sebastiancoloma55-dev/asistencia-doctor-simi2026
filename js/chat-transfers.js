@@ -591,8 +591,6 @@
     }
   });
 
-  $("chat-toggle-stickers")?.addEventListener("click",()=>toggleChatPicker());
-  $("chat-cerrar-stickers")?.addEventListener("click",()=>toggleChatPicker(false));
   window.filtrarConversacionesChat=filtrarConversacionesChat;
   window.cargarChatInterno=cargarChatInterno;
   window.crearConversacionChat=crearConversacionChat;
