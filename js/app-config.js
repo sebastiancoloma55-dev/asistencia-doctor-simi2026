@@ -56,7 +56,8 @@
             'calidad',
             'notificaciones',
             'integraciones',
-            'auditoria'
+            'auditoria',
+            'ayuda'
         ];
 
         const titulos = {
@@ -82,6 +83,7 @@
             calidad: 'Calidad de datos',
             notificaciones: 'Notificaciones',
             integraciones: 'Integraciones y monitoreo',
-            auditoria: 'Bitácora y auditoría'
+            auditoria: 'Bitácora y auditoría',
+            ayuda: 'Centro de Ayuda'
         };
 
