@@ -1148,8 +1148,6 @@
             const consultas=await Promise.all([
                 opsConsultar('tareas','id,titulo,estado,fecha_limite,prioridad,responsable:usuarios_roles!tareas_responsable_rol_id_fkey(nombre,email),sucursal:sucursales(nombre)',['tareas'],q=>q.order('fecha_limite',{ascending:true})),
                 opsConsultar('gestiones_correo','id,asunto,estado,plazo_respuesta,supervisor',['correos'],q=>q.order('plazo_respuesta',{ascending:true})),
-                opsConsultar('registros_asistencia','id,sin_marca,marca_incompleta,sin_turno_marcas',['asistencia','reportes'],q=>q.order('id',{ascending:false})),
-                opsConsultar('notificaciones','id,titulo,mensaje,leida,created_at',['tareas'],q=>q.eq('leida',false).order('created_at',{ascending:false})),
                 opsContar('tareas',['tareas'],q=>q.not('estado','in','("APROBADA","CANCELADA")')),
                 opsContar('tareas',['tareas'],q=>q.not('estado','in','("APROBADA","CANCELADA")').lt('fecha_limite',ahoraIso)),
                 opsContar('gestiones_correo',['correos'],q=>q.not('estado','in','("RESPONDIDO","CERRADO","CANCELADO")')),
@@ -1157,11 +1155,9 @@
                 opsContar('registros_asistencia',['asistencia','reportes'],q=>q.or('sin_marca.eq.true,marca_incompleta.eq.true,sin_turno_marcas.eq.true')),
                 opsContar('notificaciones',['tareas'],q=>q.eq('leida',false))
             ]);
-            const [t,c,a,n,tp,tv,cp,cv,incidencias,notificacionesSinLeer]=consultas,disponible=x=>x.disponible,now=new Date();
+            const [t,c,tp,tv,cp,cv,incidencias,notificacionesSinLeer]=consultas,disponible=x=>x.disponible,now=new Date();
             const tareas=t.data||[],tPend=tareas.filter(x=>!['APROBADA','CANCELADA'].includes(String(x.estado||'').toUpperCase())),tVenc=tPend.filter(x=>x.fecha_limite&&new Date(x.fecha_limite)<now);
             const correos=c.data||[],cPend=correos.filter(x=>!['RESPONDIDO','CERRADO','CANCELADO'].includes(String(x.estado||'').toUpperCase())),cVenc=cPend.filter(x=>x.plazo_respuesta&&new Date(x.plazo_respuesta)<now);
-            const asist=a.data||[],sinMarca=incidencias.disponible?incidencias.count:null;
-            const notis=n.data||[];
             const metricas=[
                 {label:'Tareas abiertas',value:tp.disponible?tp.count:'—',desc:tp.disponible?(tv.disponible?tv.count+' vencidas':'Plazos vencidos no disponibles'):'Sin permiso de tareas',icon:'list-checks',color:'blue',module:'tareas'},
                 {label:'Gestiones de correo abiertas',value:cp.disponible?cp.count:'—',desc:cp.disponible?(cv.disponible?cv.count+' con plazo vencido':'Plazos vencidos no disponibles'):'Sin permiso de correos',icon:'mail-clock',color:'cyan',module:'correos'},
