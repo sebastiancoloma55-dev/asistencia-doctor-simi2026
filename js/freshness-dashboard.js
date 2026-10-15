@@ -34,14 +34,24 @@
                 .from("actualizaciones_fuentes")
                 .select("modulo,actualizado_en,archivo,origen,detalles")
                 .order("actualizado_en", { ascending: false })
-                .limit(6);
+                .limit(60);
             if (error) throw error;
             target.replaceChildren();
             if (!data?.length) {
                 target.append(textNode("p", "text-sm text-slate-500", "Todavía no hay cargas registradas en los módulos que puedes consultar."));
                 return;
             }
+            // La consulta trae una ventana amplia para mostrar la última carga de cada módulo,
+            // no seis filas que podrían pertenecer repetidamente a una sola fuente.
+            const latestByModule = new Map();
             for (const item of data) {
+                const key = String(item.modulo || "sin_modulo");
+                if (!latestByModule.has(key)) latestByModule.set(key, item);
+            }
+            const latestItems = [...latestByModule.values()].slice(0, 10);
+            const header = textNode("p", "col-span-full text-xs text-slate-500", "Última carga registrada por módulo · " + latestItems.length + " fuente(s) visibles según tus permisos.");
+            target.append(header);
+            for (const item of latestItems) {
                 const card = textNode("div", "rounded-lg border border-slate-100 bg-slate-50 p-3", "");
                 const heading = textNode("div", "flex flex-wrap items-start justify-between gap-2", "");
                 heading.append(textNode("b", "text-sm text-slate-800", names[item.modulo] || item.modulo));
