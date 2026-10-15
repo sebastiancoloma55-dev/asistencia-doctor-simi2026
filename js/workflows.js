@@ -264,7 +264,7 @@
         function tienePermisoModulo(modulo){
             // Administradores globales mantienen acceso a todo el catálogo.
             if(esAdministradorConAccesoGlobal())return true;
-            // El Centro de Ayuda es de lectura y debe estar disponible para cualquier usuario autenticado.
+            // El Centro de Ayuda contiene documentación de lectura para cualquier usuario autenticado.
             if(modulo==='ayuda')return true;
             // Mi espacio acompaña a Tareas para evitar quitarle al equipo una herramienta de seguimiento útil.
             if(modulo==='espacio')return modulosPermitidosActuales.includes('espacio')||modulosPermitidosActuales.includes('tareas');
