@@ -801,6 +801,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 @media(max-width:640px){.colab-pagination{align-items:stretch;padding:12px}.colab-pagination-controls{justify-content:space-between;gap:5px}.colab-pagination-controls button{padding:8px}.colab-pagination-info span{max-width:100%}}
 
 </style>
+    <link rel="stylesheet" href="/css/help-center.css">
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -929,6 +930,8 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
   <button id="btn-notificaciones" class="menu-btn" onclick="cambiarModulo('notificaciones')"><i data-lucide="bell-ring" class="h-4 w-4"></i><span>Notificaciones</span><span id="nav-notif-count" class="nav-count hidden">0</span></button>
   <button id="btn-integraciones" class="menu-btn" onclick="cambiarModulo('integraciones')"><i data-lucide="plug-zap" class="h-4 w-4"></i><span>Integraciones y monitoreo</span></button>
   <button id="btn-auditoria" class="menu-btn" onclick="cambiarModulo('auditoria')"><i data-lucide="clock-arrow-down" class="h-4 w-4"></i><span>Bitácora y auditoría</span></button>
+  <div class="nova-nav-divider" data-nav-group><span>AYUDA Y CAPACITACIÓN</span></div>
+  <button id="btn-ayuda" class="menu-btn hc-nav-link" onclick="cambiarModulo('ayuda')"><i data-lucide="book-open-check" class="h-4 w-4"></i><span>Centro de Ayuda</span><span class="hc-nav-pill">GUÍAS</span></button>
 </nav>
             <div class="sidebar-credit" aria-label="Gestionado por el equipo de Asistencia" title="Gestionado por el equipo de Asistencia">
                 <span class="sidebar-credit-icon"><i data-lucide="shield-check" class="h-4 w-4"></i></span>
@@ -2138,6 +2141,10 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 </div>
             </div>
 
+            <section id="view-ayuda" class="hidden p-4 sm:p-6 lg:p-8" aria-label="Centro de Ayuda interactivo">
+                <div id="help-center-app"></div>
+            </section>
+
             <section id="view-generic" class="hidden p-8">
                 <div class="ui-card mx-auto mt-10 max-w-xl p-12 text-center">
                     <i data-lucide="wrench" class="mx-auto mb-4 h-10 w-10 text-simiRed"></i>
@@ -2201,6 +2208,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 <script src="/js/workspace.js"></script>
 <script src="/js/module-organization.js"></script>
 <script src="/js/operational-summary.js"></script>
+<script src="/js/help-center.js" defer></script>
 
     <!--
     SQL QUE YA DEBE EXISTIR EN SUPABASE:
