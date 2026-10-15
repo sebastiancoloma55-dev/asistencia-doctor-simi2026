@@ -15,7 +15,7 @@
             // Los horarios varían por sucursal; no se inventan horas por defecto.
             ini.value='';fin.value='';
         }
-        function normalizarSupervisorCobertura(valor){return String(valor||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().toLocaleLowerCase('es-CL');}
+        function normalizarSupervisorCobertura(valor){return String(valor||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLocaleLowerCase('es-CL');}
         function supervisoresDeSucursalCobertura(sucursal){
             return String(sucursal.supervisor||'').split(/[;,|]/).map(x=>x.trim()).filter(Boolean);
         }
