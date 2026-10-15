@@ -15,13 +15,62 @@
             // Los horarios varían por sucursal; no se inventan horas por defecto.
             ini.value='';fin.value='';
         }
+        function normalizarSupervisorCobertura(valor){return String(valor||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().toLocaleLowerCase('es-CL');}
+        function supervisoresDeSucursalCobertura(sucursal){
+            return String(sucursal.supervisor||'').split(/[;,|]/).map(x=>x.trim()).filter(Boolean);
+        }
+        function sucursalesVisiblesCobertura(){
+            if(!supervisoresCoberturaSeleccionados.size)return sucursalesDotacionCache.slice();
+            return sucursalesDotacionCache.filter(s=>supervisoresDeSucursalCobertura(s).some(nombre=>supervisoresCoberturaSeleccionados.has(normalizarSupervisorCobertura(nombre))));
+        }
+        function renderSupervisoresCobertura(){
+            const host=document.getElementById('dot-supervisores');if(!host)return;
+            const nombres=[...new Set(sucursalesDotacionCache.flatMap(supervisoresDeSucursalCobertura).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+            if(!nombres.length){host.innerHTML='<p class="text-xs text-amber-700">Las sucursales no tienen supervisores registrados. Puedes seleccionar una sucursal usando el listado completo.</p>';return;}
+            host.innerHTML=nombres.map(nombre=>{
+                const key=normalizarSupervisorCobertura(nombre),checked=supervisoresCoberturaSeleccionados.has(key);
+                const count=sucursalesDotacionCache.filter(s=>supervisoresDeSucursalCobertura(s).some(n=>normalizarSupervisorCobertura(n)===key)).length;
+                return '<label class="flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-2 text-xs '+(checked?'border-sky-400 bg-white':'border-slate-200 bg-white hover:border-sky-300')+'"><input type="checkbox" class="mt-0.5 accent-sky-700" value="'+escaparHTML(key)+'" '+(checked?'checked':'')+' onchange="cambiarSupervisorFiltroCobertura(this)"><span class="min-w-0 flex-1"><span class="block font-bold text-slate-800">'+escaparHTML(nombre)+'</span><span class="mt-0.5 block text-slate-500">'+count+' sucursal(es)</span></span></label>';
+            }).join('');
+        }
+        function cambiarSupervisorFiltroCobertura(input){
+            const key=String(input?.value||'');if(!key)return;
+            if(input.checked)supervisoresCoberturaSeleccionados.add(key);else supervisoresCoberturaSeleccionados.delete(key);
+            actualizarFiltroSucursalesCobertura();
+        }
+        function actualizarFiltroSucursalesCobertura(){
+            const select=document.getElementById('dot-sucursal'),preview=document.getElementById('dot-supervisores-preview'),ayuda=document.getElementById('dot-sucursal-ayuda');
+            const visibles=sucursalesVisiblesCobertura(),seleccionActual=select?.value||'';
+            if(select){
+                select.innerHTML='<option value="">Selecciona una sucursal</option>'+visibles.map(s=>'<option value="'+escaparHTML(s.id)+'">'+escaparHTML(s.nombre)+'</option>').join('');
+                if(visibles.some(s=>String(s.id)===String(seleccionActual)))select.value=seleccionActual;
+            }
+            if(preview){
+                preview.innerHTML=visibles.length?visibles.map(s=>'<span class="inline-flex rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-800">'+escaparHTML(s.nombre)+'</span>').join(''):'<span class="text-xs text-rose-700">Los supervisores seleccionados no tienen sucursales asociadas.</span>';
+            }
+            if(ayuda)ayuda.textContent=supervisoresCoberturaSeleccionados.size
+                ? visibles.length+' sucursal(es) incluidas en la combinación de supervisores seleccionados.'
+                : 'Sin supervisores seleccionados, se muestran todas las sucursales activas.';
+            renderSupervisoresCobertura();
+        }
+        function limpiarFiltroSupervisoresCobertura(){
+            supervisoresCoberturaSeleccionados.clear();
+            actualizarFiltroSucursalesCobertura();
+        }
         async function cargarSucursalesDotacion(){
             const select=document.getElementById('dot-sucursal');if(!select)return;
-            const {data,error}=await _supabase.from('sucursales').select('id,nombre,activa').eq('activa',true).order('nombre').limit(1000);
-            if(error){select.innerHTML='<option value="">No se pudieron cargar sucursales</option>';const status=document.getElementById('dot-estado');if(status)status.textContent='No se pudo cargar el listado de sucursales: '+error.message;return;}
-            select.innerHTML='<option value="">Selecciona una sucursal</option>'+(data||[]).map(x=>'<option value="'+escaparHTML(x.id)+'">'+escaparHTML(x.nombre)+'</option>').join('');
+            select.innerHTML='<option value="">Cargando sucursales…</option>';
+            const {data,error}=await _supabase.from('sucursales').select('id,nombre,activa,supervisor').eq('activa',true).order('nombre').limit(1000);
+            if(error){
+                select.innerHTML='<option value="">No se pudieron cargar sucursales</option>';
+                const status=document.getElementById('dot-estado');if(status)status.textContent='No se pudo cargar el listado de sucursales: '+error.message;
+                const preview=document.getElementById('dot-supervisores-preview');if(preview)preview.textContent='No se pudo cargar el listado.';
+                return;
+            }
+            sucursalesDotacionCache=data||[];
+            supervisoresCoberturaSeleccionados.clear();
+            actualizarFiltroSucursalesCobertura();
         }
-        let solicitudCoberturaSeleccionada=null;
         async function cargarResponsablesCobertura(){
             const select=document.getElementById('dot-responsables');if(!select)return;
             const {data,error}=await _supabase.rpc('listar_responsables_cobertura');
