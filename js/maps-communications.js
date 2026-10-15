@@ -15,56 +15,41 @@
             // Los horarios varían por sucursal; no se inventan horas por defecto.
             ini.value='';fin.value='';
         }
-        let sucursalesDotacionCache=[];
-        let supervisoresCoberturaSeleccionados=new Set();
-        function normalizarSupervisorCobertura(valor){return String(valor||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLocaleLowerCase('es-CL');}
-        function supervisoresDeSucursalCobertura(sucursal){
-            const valor=sucursal.supervisor??sucursal.supervisores??sucursal.nombre_supervisor??'';
-            return (Array.isArray(valor)?valor:String(valor).split(/[;,|]/)).map(x=>String(x||'').trim()).filter(Boolean);
-        }
-        function sucursalesVisiblesCobertura(){
-            if(!supervisoresCoberturaSeleccionados.size)return sucursalesDotacionCache.slice();
-            return sucursalesDotacionCache.filter(s=>supervisoresDeSucursalCobertura(s).some(n=>supervisoresCoberturaSeleccionados.has(normalizarSupervisorCobertura(n))));
-        }
-        function renderSupervisoresCobertura(){
-            const host=document.getElementById('dot-supervisores');if(!host)return;
-            const nombres=[...new Set(sucursalesDotacionCache.flatMap(supervisoresDeSucursalCobertura))].sort((a,b)=>a.localeCompare(b,'es'));
-            if(!nombres.length){host.innerHTML='<p class="text-xs text-amber-700">No hay supervisores registrados en los datos de sucursales. Puedes usar el listado completo de sucursales.</p>';return;}
-            host.innerHTML=nombres.map(nombre=>{
-                const key=normalizarSupervisorCobertura(nombre),checked=supervisoresCoberturaSeleccionados.has(key);
-                const count=sucursalesDotacionCache.filter(s=>supervisoresDeSucursalCobertura(s).some(n=>normalizarSupervisorCobertura(n)===key)).length;
-                return '<label class="flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-2 text-xs '+(checked?'border-sky-400 bg-white':'border-slate-200 bg-white hover:border-sky-300')+'"><input type="checkbox" class="mt-0.5 accent-sky-700" value="'+escaparHTML(key)+'" '+(checked?'checked':'')+' onchange="cambiarSupervisorFiltroCobertura(this)"><span class="min-w-0 flex-1"><span class="block font-bold text-slate-800">'+escaparHTML(nombre)+'</span><span class="mt-0.5 block text-slate-500">'+count+' sucursal(es)</span></span></label>';
-            }).join('');
-        }
-        function cambiarSupervisorFiltroCobertura(input){
-            const key=String(input?.value||'');if(!key)return;
-            if(input.checked)supervisoresCoberturaSeleccionados.add(key);else supervisoresCoberturaSeleccionados.delete(key);
-            actualizarFiltroSucursalesCobertura();
-        }
-        function actualizarFiltroSucursalesCobertura(){
-            const select=document.getElementById('dot-sucursal'),preview=document.getElementById('dot-supervisores-preview'),ayuda=document.getElementById('dot-sucursal-ayuda');
-            const visibles=sucursalesVisiblesCobertura(),actual=select?.value||'';
-            if(select){select.innerHTML='<option value="">Selecciona una sucursal</option>'+visibles.map(s=>'<option value="'+escaparHTML(s.id)+'">'+escaparHTML(s.nombre)+'</option>').join('');if(visibles.some(s=>String(s.id)===String(actual)))select.value=actual;}
-            if(preview)preview.innerHTML=visibles.length?visibles.map(s=>'<span class="inline-flex rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-800">'+escaparHTML(s.nombre)+'</span>').join(''):'<span class="text-xs text-rose-700">Los supervisores seleccionados no tienen sucursales asociadas.</span>';
-            if(ayuda)ayuda.textContent=supervisoresCoberturaSeleccionados.size?visibles.length+' sucursal(es) incluidas en la combinación de supervisores seleccionados.':'Sin supervisores seleccionados, se muestran todas las sucursales activas.';
-            renderSupervisoresCobertura();
-        }
-        function limpiarFiltroSupervisoresCobertura(){supervisoresCoberturaSeleccionados.clear();actualizarFiltroSucursalesCobertura();}
-        async function cargarSucursalesDotacion(){
+async function cargarSucursalesDotacion(){
             const select=document.getElementById('dot-sucursal');if(!select)return;
-            select.innerHTML='<option value="">Cargando sucursales…</option>';
-            const {data,error}=await _supabase.from('sucursales').select('*').eq('activa',true).order('nombre').limit(1000);
-            if(error){select.innerHTML='<option value="">No se pudieron cargar sucursales</option>';const status=document.getElementById('dot-estado');if(status)status.textContent='No se pudo cargar el listado de sucursales: '+error.message;const preview=document.getElementById('dot-supervisores-preview');if(preview)preview.textContent='No se pudo cargar el listado.';return;}
-            sucursalesDotacionCache=data||[];
-            supervisoresCoberturaSeleccionados.clear();
-            actualizarFiltroSucursalesCobertura();
+            const {data,error}=await _supabase.from('sucursales').select('id,nombre,activa').eq('activa',true).order('nombre').limit(1000);
+            if(error){select.innerHTML='<option value="">No se pudieron cargar sucursales</option>';const status=document.getElementById('dot-estado');if(status)status.textContent='No se pudo cargar el listado de sucursales: '+error.message;return;}
+            select.innerHTML='<option value="">Selecciona una sucursal</option>'+(data||[]).map(x=>'<option value="'+escaparHTML(x.id)+'">'+escaparHTML(x.nombre)+'</option>').join('');
         }
-        let solicitudCoberturaSeleccionada=null;
+                let solicitudCoberturaSeleccionada=null;
+        function renderResponsablesCobertura(){
+            const select=document.getElementById('dot-responsables'),host=document.getElementById('dot-responsables-lista'),chips=document.getElementById('dot-responsables-seleccionados');
+            if(!select||!host||!chips)return;
+            const q=(document.getElementById('dot-responsables-buscar')?.value||'').trim().toLocaleLowerCase('es-CL');
+            const options=[...select.options],visibles=options.filter(o=>o.textContent.toLocaleLowerCase('es-CL').includes(q));
+            host.innerHTML=visibles.length?visibles.map((o,i)=>'<label class="flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-2 text-xs '+(o.selected?'border-cyan-300 bg-cyan-50':'border-slate-200 bg-white hover:border-cyan-200')+'"><input type="checkbox" class="mt-0.5 accent-cyan-700" '+(o.selected?'checked':'')+' onchange="cambiarResponsableCobertura(\''+String(o.value).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',this.checked)"><span class="min-w-0"><span class="block font-bold text-slate-800">'+escaparHTML(o.textContent.split(' · ')[0])+'</span><span class="mt-0.5 block break-all text-slate-500">'+escaparHTML(o.textContent.includes(' · ')?o.textContent.split(' · ').slice(1).join(' · '):'')+'</span></span></label>').join(''):'<p class="p-2 text-xs text-slate-500">No hay usuarios que coincidan con la búsqueda.</p>';
+            const seleccionados=options.filter(o=>o.selected);
+            chips.innerHTML=seleccionados.length?seleccionados.map(o=>'<span class="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-semibold text-cyan-900">'+escaparHTML(o.textContent.split(' · ')[0])+'<button type="button" aria-label="Quitar '+escaparHTML(o.textContent.split(' · ')[0])+'" onclick="cambiarResponsableCobertura(\''+String(o.value).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',false)" class="font-extrabold">×</button></span>').join(''):'<span class="text-xs text-slate-500">Todavía no hay responsables seleccionados.</span>';
+        }
+        function cambiarResponsableCobertura(id,checked){
+            const select=document.getElementById('dot-responsables');if(!select)return;
+            const option=[...select.options].find(o=>String(o.value)===String(id));if(option)option.selected=!!checked;
+            renderResponsablesCobertura();
+        }
+        function filtrarResponsablesCobertura(){renderResponsablesCobertura();}
+        function seleccionarResponsablesVisiblesCobertura(checked){
+            const select=document.getElementById('dot-responsables');if(!select)return;
+            const q=(document.getElementById('dot-responsables-buscar')?.value||'').trim().toLocaleLowerCase('es-CL');
+            [...select.options].filter(o=>o.textContent.toLocaleLowerCase('es-CL').includes(q)).forEach(o=>o.selected=!!checked);
+            renderResponsablesCobertura();
+        }
         async function cargarResponsablesCobertura(){
             const select=document.getElementById('dot-responsables');if(!select)return;
             const {data,error}=await _supabase.rpc('listar_responsables_cobertura');
-            if(error){select.innerHTML='<option value="">No disponible para este perfil</option>';return;}
+            const host=document.getElementById('dot-responsables-lista');
+            if(error){select.innerHTML='';if(host)host.innerHTML='<p class="p-2 text-xs text-rose-700">No se pudieron cargar los responsables para este perfil.</p>';return;}
             select.innerHTML=(data||[]).map(u=>'<option value="'+escaparHTML(u.id)+'">'+escaparHTML((u.nombre||u.email||('Usuario '+u.id))+(u.email?' · '+u.email:''))+'</option>').join('');
+            renderResponsablesCobertura();
         }
         async function crearSolicitudDotacion(event){
             event.preventDefault();
