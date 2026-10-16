@@ -4346,15 +4346,16 @@ main.flex.min-w-0.flex-1{background:radial-gradient(ellipse at 90% 0%,rgba(14,16
   }
   function download(def,format){
     const csv=csvFor(def),base=def.title.toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi,'-').replace(/^-|-$/g,'');
-    if(format==='xlsx'&&window.XLSX){const lines=csv.replace(/^\ufeff/,'').split('\r\n').map(line=>line.split(';').map(x=>x.replace(/^"|"$/g,'').replace(/""/g,'"')));const ws=window.XLSX.utils.aoa_to_sheet(lines);const wb=window.XLSX.utils.book_new();window.XLSX.utils.book_append_sheet(wb,ws,'Detalle');window.XLSX.writeFile(wb,base+'.xlsx');return}
+    if(format==='xlsx'&&window.XLSX){const m=meta(),lines=[['Gráfico',def.title],['Período',m.period],['Sucursal',m.branch],['Última actualización',new Date().toLocaleString('es-CL')],[],['Detalle'],...safeText(byId(def.id)).split('\\n').filter(Boolean).map(x=>[x])];const ws=window.XLSX.utils.aoa_to_sheet(lines);const wb=window.XLSX.utils.book_new();window.XLSX.utils.book_append_sheet(wb,ws,'Detalle');window.XLSX.writeFile(wb,base+'.xlsx');return}
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=base+'.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
   }
   function addTools(def){
     const target=byId(def.id);if(!target||target.dataset.simiToolsReady)return;
     const article=target.closest('article');if(!article)return;
     const head=article.querySelector(':scope > div');if(!head)return;
-    const tools=document.createElement('div');tools.className='simi-chart-tools';tools.innerHTML='<button type="button" data-chart-detail><i data-lucide="mouse-pointer-click"></i> Ver detalle</button><button type="button" data-chart-export="csv"><i data-lucide="file-down"></i> CSV</button><button type="button" data-chart-export="xlsx"><i data-lucide="file-spreadsheet"></i> Excel</button>';
+    const tools=document.createElement('div');tools.className='simi-chart-tools';tools.innerHTML='<input type="search" data-chart-search placeholder="Filtrar este gráfico…" aria-label="Filtrar datos de este gráfico" style="min-width:130px;max-width:175px;border:1px solid #dbe7f3;border-radius:9px;padding:6px 8px;font-size:10px;outline-color:#1769df"><button type="button" data-chart-detail><i data-lucide="mouse-pointer-click"></i> Ver detalle</button><button type="button" data-chart-export="csv"><i data-lucide="file-down"></i> CSV</button><button type="button" data-chart-export="xlsx"><i data-lucide="file-spreadsheet"></i> Excel</button>';
     head.appendChild(tools);target.dataset.simiToolsReady='1';
+    const search=tools.querySelector('[data-chart-search]');search.addEventListener('input',()=>{const q=search.value.trim().toLocaleLowerCase('es-CL');Array.from(target.children).forEach(row=>{row.style.display=!q||row.textContent.toLocaleLowerCase('es-CL').includes(q)?'':'none'});});
     tools.addEventListener('click',e=>{const detail=e.target.closest('[data-chart-detail]'),exp=e.target.closest('[data-chart-export]');if(detail)openDetail(def);if(exp)download(def,exp.dataset.chartExport)});
     target.addEventListener('click',e=>{if(e.target.closest('button,a,input,select'))return;openDetail(def,safeText(target))});
     if(window.lucide&&typeof window.lucide.createIcons==='function')window.lucide.createIcons();
