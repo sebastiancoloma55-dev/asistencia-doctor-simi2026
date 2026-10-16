@@ -174,15 +174,14 @@ if(a==="bot_import"){
     else if(candidates.length>1){
       const groups=new Map<string,any[]>();
       for(const candidate of candidates){const candidateKey=keyOf(candidate)||"__incomplete__:"+String(candidate.id);const group=groups.get(candidateKey)||[];group.push(candidate);groups.set(candidateKey,group);}
-      if(groups.size===1){
-       const sameKey=[...groups.values()][0], merged=mergeExactRows(sameKey);
-       if(!merged.conflicts.length){old=merged.merged;legacyDuplicateIds=sameKey.filter((candidate:any)=>candidate.id!==old.id).map((candidate:any)=>candidate.id);}
-       else {skipped++;blockedAmbiguousLegacy++;blockedExistingDuplicateConflicts++;continue;}
-      }else{
-       // Distintas licencias/solicitudes comparten la clave parcial: no se puede
-       // decidir automáticamente cuál actualizar sin arriesgar datos.
-       skipped++;blockedAmbiguousLegacy++;continue;
-      }
+      // The operator has confirmed that rows sharing this legacy identity
+      // are duplicates. Keep one stable database id, apply the incoming Talana
+      // row as the authoritative version, and retire every other row in this group.
+      // This intentionally resolves the former "ambiguous legacy" block.
+      const canonicalCandidate=candidates[0];
+      old=canonicalCandidate;
+      legacyDuplicateIds=candidates.filter((candidate:any)=>candidate.id!==canonicalCandidate.id).map((candidate:any)=>candidate.id);
+      ambiguousLegacyMerged+=legacyDuplicateIds.length;
     }
    }
    if(old){
@@ -190,11 +189,9 @@ if(a==="bot_import"){
     let canonical={...old};
     if(exactMatches.length){
      const merged=mergeExactRows([old,...exactMatches]);
-     if(merged.conflicts.length){
-      skipped++;blockedExistingDuplicateConflicts++;
-      errors.push(table+" RUT "+row.rut+": hay duplicados con datos contradictorios ("+merged.conflicts.join(", ")+"); requiere revisión manual y no se modificó.");
-      continue;
-     }
+     // A repeated complete natural key is the same business record. Do not block
+     // the refresh because legacy values differ: the incoming export wins below,
+     // and all other rows with this exact key are removed after the canonical update.
      canonical=merged.merged;
     }
     pendingUpdates.push({id:old.id,row,old:canonical,duplicateIds:[...new Set([...exactMatches.map((candidate:any)=>candidate.id),...legacyDuplicateIds])]});
