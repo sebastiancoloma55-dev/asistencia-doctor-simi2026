@@ -635,7 +635,8 @@
             const opcionesKpi='<option value="TODOS">Todos los usuarios</option>'+responsables.map(opt).join('');
             document.getElementById('tarea-filtro-responsable').innerHTML=opcionesKpi;
             document.getElementById('tarea-kpi-filtro-usuario').innerHTML=opcionesKpi;
-            document.getElementById('tarea-responsable').innerHTML='<option value="">Selecciona responsable</option>'+responsables.map(opt).join('');
+            const listaResponsables=document.getElementById('tarea-responsables-list');
+            if(listaResponsables){listaResponsables.innerHTML=responsables.map(u=>{const nombre=escaparHTML(u.nombre||u.email||'Usuario'),email=escaparHTML(u.email||''),id=escaparHTML(String(u.id));return '<label class="task-assignee-option" data-assignee-search="'+escaparHTML(((u.nombre||'')+' '+(u.email||'')).toLowerCase())+'"><input type="checkbox" name="tarea-responsable-multiple" value="'+id+'" onchange="actualizarConteoResponsablesTarea()"><span class="task-assignee-person"><b>'+nombre+'</b><small>'+email+'</small></span></label>';}).join('')||'<p class="task-assignee-empty">No hay personas disponibles para asignar.</p>';actualizarConteoResponsablesTarea();}
             document.getElementById('tarea-revisor').innerHTML='<option value="">Sin revisor</option>'+revisores.map(opt).join('');
             document.getElementById('tarea-sucursal').innerHTML='<option value="">Todas / No aplica</option>'+(sucursales||[]).map(x=>`<option value="${x.id}">${escaparHTML(x.nombre)}</option>`).join('');
             const kpiBranch=document.getElementById('tarea-kpi-sucursal');
@@ -660,18 +661,31 @@
             document.getElementById('tarea-recurrencia').value=p.recurrencia;
             document.getElementById('tarea-titulo').focus();
         }
+        function obtenerResponsablesSeleccionadosTarea(){return Array.from(document.querySelectorAll('input[name="tarea-responsable-multiple"]:checked')).map(x=>x.value);}
+        function actualizarConteoResponsablesTarea(){const seleccionados=obtenerResponsablesSeleccionadosTarea();const el=document.getElementById('tarea-responsables-count');if(el)el.textContent=seleccionados.length+' '+(seleccionados.length===1?'persona seleccionada':'personas seleccionadas');}
+        function filtrarResponsablesTarea(){const q=texto(document.getElementById('tarea-responsable-buscar')?.value||'').toLowerCase();document.querySelectorAll('#tarea-responsables-list .task-assignee-option').forEach(el=>{el.style.display=el.dataset.assigneeSearch.includes(q)?'flex':'none';});}
+        function seleccionarTodosResponsablesTarea(seleccionar){document.querySelectorAll('#tarea-responsables-list .task-assignee-option').forEach(el=>{if(el.style.display==='none')return;const cb=el.querySelector('input');if(cb)cb.checked=seleccionar;});actualizarConteoResponsablesTarea();}
         async function guardarTarea(event){
             event.preventDefault();
             if(!puedeAsignarTareasActual())return mostrarToast('No tienes autorización para asignar tareas.','warning');
-            const responsable=document.getElementById('tarea-responsable').value;
+            const responsables=obtenerResponsablesSeleccionadosTarea();
             const vencimiento=document.getElementById('tarea-vencimiento').value;
-            if(!responsable)return mostrarToast('Selecciona un responsable para esta tarea.','warning');
+            if(!responsables.length)return mostrarToast('Selecciona al menos una persona responsable.','warning');
             if(!vencimiento || Number.isNaN(new Date(vencimiento).getTime()))return mostrarToast('Indica una fecha límite válida.','warning');
             const {data:{session}}=await _supabase.auth.getSession();
-            const registro={titulo:document.getElementById('tarea-titulo').value.trim(),descripcion:document.getElementById('tarea-descripcion').value.trim(),responsable_rol_id:Number(responsable),revisor_rol_id:document.getElementById('tarea-revisor').value?Number(document.getElementById('tarea-revisor').value):null,prioridad:document.getElementById('tarea-prioridad').value,fecha_limite:new Date(vencimiento).toISOString(),recurrencia:document.getElementById('tarea-recurrencia').value,sucursal_id:document.getElementById('tarea-sucursal').value||null,estado:'PENDIENTE',creado_por_email:session?.user?.email||''};
-            const {data,error}=await _supabase.from('tareas').insert([registro]).select('id').single();if(error)return mostrarToast(error.message,'error');
-            await _supabase.from('tareas_eventos').insert([{tarea_id:data.id,accion:'CREADA',estado_nuevo:'PENDIENTE',usuario_email:session?.user?.email||'',detalle:'Tarea creada desde la aplicación'}]);
-            event.target.reset();document.getElementById('tarea-vencimiento').value='';await prepararModuloTareas();mostrarToast('Tarea creada y asignada.','success');
+            const base={titulo:document.getElementById('tarea-titulo').value.trim(),descripcion:document.getElementById('tarea-descripcion').value.trim(),revisor_rol_id:document.getElementById('tarea-revisor').value?Number(document.getElementById('tarea-revisor').value):null,prioridad:document.getElementById('tarea-prioridad').value,fecha_limite:new Date(vencimiento).toISOString(),recurrencia:document.getElementById('tarea-recurrencia').value,sucursal_id:document.getElementById('tarea-sucursal').value||null,estado:'PENDIENTE',creado_por_email:session?.user?.email||''};
+            const registros=responsables.map(id=>({...base,responsable_rol_id:Number(id)}));
+            const {data,error}=await _supabase.from('tareas').insert(registros).select('id');
+            if(error)return mostrarToast(error.message,'error');
+            const eventos=(data||[]).map(t=>({tarea_id:t.id,accion:'CREADA',estado_nuevo:'PENDIENTE',usuario_email:session?.user?.email||'',detalle:'Tarea creada desde la aplicación; asignación individual dentro de una asignación múltiple'}));
+            if(eventos.length){const {error:eventError}=await _supabase.from('tareas_eventos').insert(eventos);if(eventError)console.error('No se pudieron registrar todos los eventos de creación:',eventError);}
+            event.target.reset();
+            document.querySelectorAll('input[name="tarea-responsable-multiple"]').forEach(x=>x.checked=false);
+            const buscador=document.getElementById('tarea-responsable-buscar');if(buscador)buscador.value='';
+            filtrarResponsablesTarea();actualizarConteoResponsablesTarea();
+            document.getElementById('tarea-vencimiento').value='';
+            await prepararModuloTareas();
+            mostrarToast('Tarea asignada individualmente a '+(data||[]).length+' '+((data||[]).length===1?'persona':'personas')+'.','success');
         }
         function estadoTareaCalculado(t){if(!['APROBADA','CANCELADA','DEVUELTA'].includes(t.estado)&&new Date(t.fecha_limite)<new Date())return'VENCIDA';return t.estado;}
         async function cargarTareas(){const {data,error}=await _supabase.from('tareas').select('*,responsable:usuarios_roles!tareas_responsable_rol_id_fkey(nombre,email),revisor:usuarios_roles!tareas_revisor_rol_id_fkey(nombre,email),sucursal:sucursales(nombre)').order('fecha_limite',{ascending:true});if(error)return mostrarToast(error.message,'error');tareasGlobal=(data||[]).map(x=>({...x,estado_calculado:estadoTareaCalculado(x)}));renderizarTareas();}
