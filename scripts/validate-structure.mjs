@@ -53,6 +53,14 @@ if (!html.includes('id="view-analista_ia"') || !html.includes('id="btn-analista_
 if (!html.includes('id="view-inteligencia_asistencia"') || !html.includes('id="btn-inteligencia_asistencia"')) fail('El Centro de inteligencia de asistencia debe tener pantalla y navegación propios.');
 if (!readFileSync(path.join(root, 'js/workflows.js'), 'utf8').includes("'inteligencia_asistencia'")) fail('El permiso del Centro de inteligencia de asistencia no está disponible para asignar a usuarios.');
 if (!readFileSync(path.join(root, 'js/workflows.js'), 'utf8').includes("'analista_ia'")) fail('El permiso analista_ia no está disponible para asignar a usuarios.');
+if (!html.includes('id="view-envio_licencias"') || !html.includes('id="btn-envio_licencias"')) fail('El envío de licencias médicas debe tener pantalla y navegación propios.');
+if (!html.includes('id="view-ayuda"') || !html.includes('id="btn-ayuda"')) fail('El Centro de Ayuda debe tener pantalla y navegación propios.');
+if (!coreConfig.includes("'envio_licencias'")) fail('El módulo de envío de licencias no está registrado en el catálogo.');
+if (!readFileSync(path.join(root, 'js/workflows.js'), 'utf8').includes("'envio_licencias'")) fail('El permiso de envío de licencias no está disponible para asignar usuarios.');
+for (const asset of ['js/medical-leave-registration.js', 'js/help-center.js', 'css/help-center.css']) {
+  if (!existsSync(path.join(root, asset))) fail('Falta el recurso restaurado: ' + asset);
+}
+if (!html.includes('/js/medical-leave-registration.js') || !html.includes('/js/help-center.js') || !html.includes('/css/help-center.css')) fail('Falta enlazar los recursos del envío de licencias o del Centro de Ayuda en index.html.');
 if (!existsSync(path.join(root, 'js/analista-ia.js'))) fail('Falta el controlador del módulo Analista IA.');
 const geo = readFileSync(path.join(root, 'api/geocodificar.js'), 'utf8');
 if (!gemini.includes("requireModuleAccess(req, 'reportes')") && !gemini.includes("requireModuleAccess(req, ['analista_ia', 'reportes'])")) fail('La API de IA debe validar el permiso analista_ia o reportes.');
