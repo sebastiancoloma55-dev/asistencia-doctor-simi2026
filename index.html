@@ -923,6 +923,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
   <button id="btn-chat" class="menu-btn" onclick="cambiarModulo('chat')"><i data-lucide="messages-square" class="h-4 w-4"></i><span>Chat interno</span></button>
   <div class="nova-nav-divider" data-nav-group><span>ANÁLISIS Y CONTROL</span></div>
   <button id="btn-reportes" class="menu-btn" onclick="cambiarModulo('reportes')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Reportes</span></button>
+  <button id="btn-analista_ia" class="menu-btn" onclick="cambiarModulo('analista_ia')"><i data-lucide="brain-circuit" class="h-4 w-4"></i><span>Analista RR. HH. con IA</span><span class="nav-new-mark">IA</span></button>
   <button id="btn-mapas" class="menu-btn" onclick="cambiarModulo('mapas')"><i data-lucide="map-pinned" class="h-4 w-4"></i><span>Mapa y distancias</span></button>
   <button id="btn-operaciones" class="menu-btn" onclick="cambiarModulo('operaciones')"><i data-lucide="gauge" class="h-4 w-4"></i><span>Centro de operaciones</span></button>
   <button id="btn-calidad" class="menu-btn" onclick="cambiarModulo('calidad')"><i data-lucide="shield-check" class="h-4 w-4"></i><span>Calidad de datos</span></button>
@@ -1829,6 +1830,43 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3"><div class="ui-card p-4">Pendientes <b id="cob-pendientes" class="block text-2xl">0</b></div><div class="ui-card p-4">En curso <b id="cob-curso" class="block text-2xl">0</b></div><div class="ui-card p-4">Realizadas <b id="cob-realizadas" class="block text-2xl">0</b></div></div><div class="ui-card table-scroll"><table class="w-full min-w-[1100px]"><thead><tr><th>Persona</th><th>Origen</th><th>Destino</th><th>Periodo</th><th>Motivo</th><th>Estado</th></tr></thead><tbody id="tabla-coberturas"></tbody></table></div>
             </section>
 
+
+            <!-- ANALISTA IA RR. HH. -->
+            <section id="view-analista_ia" class="hidden space-y-6 p-4 sm:p-8">
+              <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-simiNavy via-slate-800 to-slate-900 p-6 text-white shadow-xl md:p-8">
+                <div class="absolute -right-12 -top-12 h-48 w-48 rounded-full border-[24px] border-white/5"></div>
+                <div class="relative z-10 max-w-3xl">
+                  <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-widest"><i data-lucide="brain-circuit" class="h-4 w-4"></i> Inteligencia aplicada a RR. HH.</span>
+                  <h2 class="mt-4 text-3xl font-black tracking-tight md:text-4xl">Analista de RR. HH. con IA</h2>
+                  <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-200 md:text-base">Investiga asistencia, ausentismo, licencias y turnos con preguntas en lenguaje natural. Revisa los datos, combina filtros y exporta el informe generado.</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div class="ui-card p-4"><div class="flex items-center gap-3"><span class="rounded-xl bg-blue-50 p-3 text-blue-700"><i data-lucide="file-spreadsheet" class="h-5 w-5"></i></span><div><p class="text-xs text-slate-500">Formatos</p><p class="font-bold text-slate-900">Excel · CSV · PDF</p></div></div></div>
+                <div class="ui-card p-4"><div class="flex items-center gap-3"><span class="rounded-xl bg-emerald-50 p-3 text-emerald-700"><i data-lucide="filter" class="h-5 w-5"></i></span><div><p class="text-xs text-slate-500">Preparación</p><p class="font-bold text-slate-900">Filtros combinados</p></div></div></div>
+                <div class="ui-card p-4"><div class="flex items-center gap-3"><span class="rounded-xl bg-violet-50 p-3 text-violet-700"><i data-lucide="sparkles" class="h-5 w-5"></i></span><div><p class="text-xs text-slate-500">Análisis</p><p class="font-bold text-slate-900">Gemini con autorización</p></div></div></div>
+                <div class="ui-card p-4"><div class="flex items-center gap-3"><span class="rounded-xl bg-amber-50 p-3 text-amber-700"><i data-lucide="download" class="h-5 w-5"></i></span><div><p class="text-xs text-slate-500">Resultados</p><p class="font-bold text-slate-900">PDF y TXT</p></div></div></div>
+              </div>
+              <div class="grid grid-cols-1 gap-6 xl:grid-cols-5">
+                <div class="ui-card space-y-5 p-5 xl:col-span-2">
+                  <div><h3 class="section-title">1. Fuente y pregunta</h3><p class="mt-1 text-sm text-slate-500">Los archivos no se envían a Gemini hasta que marques la autorización.</p></div>
+                  <div><label for="aia-file" class="mb-2 block text-sm font-bold text-slate-700">Archivo de análisis</label><input id="aia-file" type="file" accept=".xlsx,.xls,.csv,.pdf" class="form-field w-full"><p class="mt-2 text-xs text-slate-500">Excel/CSV: filtros y vista previa local. PDF: máximo 5 MB.</p></div>
+                  <div><label for="aia-prompt" class="mb-2 block text-sm font-bold text-slate-700">¿Qué necesitas descubrir?</label><textarea id="aia-prompt" rows="6" class="form-field w-full" placeholder="Ej.: identifica colaboradores con más de 3 atrasos, compara por sucursal y señala limitaciones de los datos."></textarea></div>
+                  <label class="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-950"><input id="aia-consent" type="checkbox" class="mt-1"><span><b>Autorizo el envío a Gemini.</b> El archivo y la pregunta se enviarán al proveedor externo para realizar el análisis. Evita incluir datos personales innecesarios.</span></label>
+                  <div class="flex flex-wrap gap-2"><button id="aia-run" type="button" class="corp-button"><i data-lucide="sparkles" class="mr-2 inline h-4 w-4"></i>Ejecutar análisis</button><button id="aia-clear" type="button" class="corp-button-dark">Limpiar</button></div>
+                  <p id="aia-status" data-kind="info" role="status" aria-live="polite" class="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">Selecciona un archivo y formula una pregunta.</p>
+                </div>
+                <div class="space-y-6 xl:col-span-3">
+                  <div class="ui-card space-y-4 p-5">
+                    <div class="flex flex-wrap items-start justify-between gap-3"><div><h3 class="section-title">2. Filtrar y revisar datos</h3><p class="mt-1 text-sm text-slate-500">Los filtros se aplican juntos antes de preparar la muestra para IA.</p></div><span id="aia-filter-count" class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">Sin archivo cargado</span></div>
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2"><div><label for="aia-search" class="mb-1 block text-xs font-bold text-slate-600">Búsqueda general</label><input id="aia-search" class="form-field w-full" placeholder="Buscar en cualquier columna"></div><div><label for="aia-column" class="mb-1 block text-xs font-bold text-slate-600">Columna</label><select id="aia-column" class="form-field w-full"><option value="">Todas las columnas</option></select></div><div><label for="aia-value" class="mb-1 block text-xs font-bold text-slate-600">Valor de columna</label><input id="aia-value" class="form-field w-full" placeholder="Contiene…"></div><div class="grid grid-cols-2 gap-2"><div><label for="aia-from" class="mb-1 block text-xs font-bold text-slate-600">Desde</label><input id="aia-from" type="date" class="form-field w-full"></div><div><label for="aia-to" class="mb-1 block text-xs font-bold text-slate-600">Hasta</label><input id="aia-to" type="date" class="form-field w-full"></div></div></div>
+                    <div id="aia-preview" class="overflow-hidden rounded-xl border border-slate-200"><div class="p-6 text-center text-slate-500">Carga un archivo para revisar sus datos.</div></div>
+                  </div>
+                  <div class="ui-card p-5"><div class="flex flex-wrap items-center justify-between gap-3"><div><h3 class="section-title">3. Informe y hallazgos</h3><p class="mt-1 text-sm text-slate-500">Se mostrará aquí la respuesta real del servicio de IA.</p></div><div class="flex flex-wrap gap-2"><button id="aia-export-pdf" type="button" class="corp-button-dark"><i data-lucide="file-down" class="mr-1 inline h-4 w-4"></i>PDF</button><button id="aia-export-txt" type="button" class="corp-button-dark"><i data-lucide="download" class="mr-1 inline h-4 w-4"></i>TXT</button></div></div><pre id="aia-output" class="mt-4 min-h-64 whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-800">Selecciona un archivo y formula una pregunta.</pre></div>
+                </div>
+              </div>
+            </section>
+
             <!-- CENTRO DE REPORTES -->
             <section id="view-reportes" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro"><span class="module-kicker">Centro de control · RR. HH.</span><h3 class="mt-3 text-2xl font-extrabold text-slate-900">Reportes y KPI</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Selecciona varios informes, filtra por fechas y sucursal, y descarga Excel o un ZIP con hojas Excel, CSV separados y resumen PDF.</p></div>
@@ -2195,6 +2233,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 <script src="/js/attendance-leave.js"></script>
 <script src="/js/workflows.js"></script>
 <script src="/js/maps-communications.js"></script>
+<script src="/js/analista-ia.js"></script>
 <script src="/js/people-directory.js"></script>
 <script src="/js/chat-transfers.js"></script>
 <script src="/js/employee-history.js"></script>
