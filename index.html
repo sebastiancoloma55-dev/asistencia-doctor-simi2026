@@ -876,6 +876,34 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 </style>
 
 <!-- preview-refresh-2026-10-16-dashboard-reference -->
+
+<style id="simi-reference-dashboard-layout-v2">
+/* Restore the approved left navigation and dashboard-first hierarchy in Preview. */
+#sidebar{width:242px!important;min-width:242px!important;flex:0 0 242px!important;background:linear-gradient(180deg,#06234e 0%,#082f62 100%)!important;box-shadow:3px 0 18px rgba(5,28,67,.12)!important}
+#sidebar nav[aria-label="Navegación principal de Recursos Humanos"]{visibility:visible!important;display:flex!important;flex-direction:column!important}
+#sidebar .menu-btn{display:flex!important;align-items:center!important;min-height:38px!important;gap:12px!important;padding:9px 11px!important;border-radius:10px!important;color:#e8f1ff!important}
+#sidebar .menu-btn:hover,#sidebar .menu-btn.active{background:linear-gradient(90deg,#0879f9,#1261df)!important;color:#fff!important}
+#quick-module-bar{display:none!important}
+#view-dashboard{display:flex!important;flex-direction:column!important;gap:12px!important;padding:12px 16px 22px!important;background:#f2f6fc!important;overflow:auto!important}
+#view-dashboard>.dashboard-welcome{order:1!important;min-height:176px!important}
+#view-dashboard>.simi-command-grid{order:8!important}
+#view-dashboard>#dashboard-space-summary{order:6!important}
+#view-dashboard>#dashboard-ops-summary{order:5!important}
+#view-dashboard>div:has(>#dashboard-freshness-list){order:7!important}
+#view-dashboard>.grid.grid-cols-1.gap-5.sm\:grid-cols-2.lg\:grid-cols-4{order:2!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+#view-dashboard>.ui-card:has(>#connection-box){order:9!important}
+#view-dashboard>.ui-card:has(>#dashboard-indicadores-loading){order:3!important}
+#view-dashboard #dashboard-panel-inteligente{display:none!important}
+#view-dashboard .dashboard-welcome.simi-dashboard-hero{grid-template-columns:minmax(0,1.4fr) minmax(200px,.6fr)!important;align-items:center!important;padding:22px 28px!important;border-radius:18px!important;background:radial-gradient(ellipse at 82% 8%,rgba(55,215,255,.9),transparent 30%),linear-gradient(112deg,#06318c 0%,#0879e1 56%,#20c5ed 100%)!important;box-shadow:0 9px 24px rgba(0,55,145,.18)!important}
+#view-dashboard .simi-dashboard-hero h2{font-size:clamp(27px,2.6vw,40px)!important;line-height:1.06!important;color:#fff!important}
+#view-dashboard .simi-hero-art img{width:120px!important;height:120px!important;object-fit:contain!important;border:4px solid white!important;border-radius:25px!important;background:white!important}
+#view-dashboard .simi-command-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+#view-dashboard .simi-command-card{min-height:82px!important;border-radius:14px!important;padding:13px!important}
+#view-dashboard .ui-card,#view-dashboard .dash-space-card,#view-dashboard .dashboard-ops-summary{border:1px solid #e0eaf7!important;border-radius:15px!important;box-shadow:0 3px 12px rgba(15,45,95,.045)!important;background:#fff!important}
+#view-dashboard #dashboard-gerencial-graficos{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+@media(max-width:1000px){#sidebar{width:210px!important;min-width:210px!important;flex-basis:210px!important}#view-dashboard>.grid.grid-cols-1.gap-5.sm\:grid-cols-2.lg\:grid-cols-4{grid-template-columns:repeat(2,minmax(0,1fr))!important}#view-dashboard .simi-command-grid,#view-dashboard #dashboard-gerencial-graficos{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:640px){#sidebar{position:fixed!important;z-index:100!important;left:0!important;top:0!important;bottom:0!important;transform:translateX(-100%)}#view-dashboard{padding:8px!important}#view-dashboard .dashboard-welcome.simi-dashboard-hero{grid-template-columns:1fr!important;padding:17px!important}#view-dashboard .simi-hero-art{height:80px!important;justify-content:flex-start!important}#view-dashboard .simi-hero-art img{width:68px!important;height:68px!important}#view-dashboard .simi-command-grid,#view-dashboard #dashboard-gerencial-graficos{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
