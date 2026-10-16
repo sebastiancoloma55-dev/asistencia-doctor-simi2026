@@ -106,10 +106,6 @@ for (const marker of ['dashboard-ops-cards', 'cargarResumenOperativoRRHH', 'tala
 for (const marker of [
   'id="dashboard-ops-cards"',
   'id="talana-bot-health"',
-  'id="dotacion-filtro-buscar"',
-  'id="dotacion-filtro-estado"',
-  'id="dotacion-filtro-desde"',
-  'id="dotacion-filtro-hasta"',
   'src="/js/operational-summary.js"',
   'rrhhModuleEnter',
   'prefers-reduced-motion'
@@ -121,7 +117,7 @@ for (const marker of ['renderHealth', 'error_summary', 'reports_downloaded', 're
   if (!botCode.includes(marker)) fail("El panel del bot Talana no contiene diagnóstico esperado: " + marker + ".");
 }
 const coverageCode = readFileSync(path.join(root, 'js/chat-transfers.js'), 'utf8');
-for (const marker of ['function renderSolicitudesDotacion', 'function filtrarSolicitudesDotacion', 'function limpiarFiltrosSolicitudesDotacion', 'solicitudesDotacionCache']) {
+for (const marker of ['function renderSolicitudesDotacion', 'function filtrarSolicitudesDotacion', 'function limpiarFiltrosSolicitudesDotacion', 'solicitudesDotacionCache', 'dotacion-filtro-buscar', 'dotacion-filtro-estado', 'dotacion-filtro-desde', 'dotacion-filtro-hasta']) {
   if (!coverageCode.includes(marker)) fail("La vista de dotación no contiene filtro esperado: " + marker + ".");
 }
 const migrationDir = path.join(root, 'supabase/migrations');
