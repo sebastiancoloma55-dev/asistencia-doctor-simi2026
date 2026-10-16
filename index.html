@@ -960,15 +960,8 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <button type="button" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('tareas');setTimeout(()=>document.getElementById('tarea-titulo')?.focus(),250)">
-                        <i data-lucide="plus" class="h-4 w-4"></i><span>Nueva tarea rápida</span>
-                    </button>
-                    <button type="button" id="topbar-quick-note" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('espacio');setTimeout(()=>document.getElementById('rrhh-nota-titulo')?.focus(),250)"><i data-lucide="sticky-note" class="h-4 w-4"></i><span>Nueva nota rápida</span></button>
                     <button type="button" id="topbar-notification-button" class="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-100 bg-gradient-to-br from-white to-indigo-50 text-indigo-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" onclick="cambiarModulo('notificaciones');setTimeout(()=>cargarCentroNotificaciones(),150)" aria-label="Abrir notificaciones" title="Notificaciones">
                         <i data-lucide="bell-ring" class="h-5 w-5"></i><span id="topbar-notif-count" class="absolute -right-1 -top-1 hidden min-w-[18px] rounded-full bg-rose-600 px-1 text-center text-[10px] font-black leading-[18px] text-white">0</span>
-                    </button>
-                    <button type="button" class="topbar-search hidden md:inline-flex" onclick="abrirBuscadorGlobal()" aria-label="Buscar módulos, Ctrl K" title="Buscar módulos (Ctrl+K)">
-                        <i data-lucide="search" class="h-4 w-4"></i><span>Buscar módulo...</span><kbd>Ctrl K</kbd>
                     </button>
                     <span class="topbar-divider hidden sm:block"></span>
                     <span id="user-email-display" class="topbar-user-email hidden text-sm font-semibold text-slate-600 sm:inline">Cargando...</span>
@@ -986,7 +979,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 </div>
             </header>
 
-            <div id="quick-module-bar" aria-label="Accesos rápidos a módulos autorizados"><span class="quick-label">Accesos rápidos</span></div>
+            <div id="quick-module-bar" class="hidden" aria-label="Accesos rápidos a módulos autorizados" aria-hidden="true" style="display:none!important"><span class="quick-label">Accesos rápidos</span></div>
 <div id="simi-command-center" role="toolbar" aria-label="Centro de acciones rápidas">
 <div class="simi-command-brand"><span class="simi-command-brand-icon">✦</span><span><b>Centro de acciones</b><small>Atajos para tu trabajo diario</small></span></div>
 <div class="simi-command-actions">
@@ -3811,5 +3804,19 @@ window.setTimeout(scan,700);window.setTimeout(scan,1800);
 })();
 </script>
 <script src="/js/intelligence-center.js?v=centro-inteligencia-161026"></script>
+
+<style id="simi-dashboard-toolbar-dedup-v1">
+/* Una sola barra de acciones: evita repetir tarea, nota y búsqueda en dos zonas. */
+#simi-command-center{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 28px!important;background:linear-gradient(110deg,#fff 0%,#f7fbfe 100%);border-bottom:1px solid #dce7f0;box-shadow:0 5px 14px rgba(19,48,76,.035)}
+#simi-command-center .simi-command-brand{flex:0 0 auto}
+#simi-command-center .simi-command-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+#simi-command-center .simi-command-actions button{min-height:39px;padding:9px 13px;border:1px solid #d7e4ee;border-radius:11px;background:#fff;color:#173b57;font-size:11px;font-weight:850;box-shadow:0 2px 5px rgba(19,48,76,.035);transition:transform .16s,border-color .16s,box-shadow .16s}
+#simi-command-center .simi-command-actions button:hover{transform:translateY(-1px);border-color:#7fc8d5;box-shadow:0 6px 14px rgba(10,110,137,.09)}
+#simi-command-center .simi-command-actions button[data-simi-action="task"]{background:var(--brand-secondary,#00529b);border-color:var(--brand-secondary,#00529b);color:#fff}
+#simi-command-center .simi-command-actions button:focus-visible{outline:3px solid #8dd9e3;outline-offset:2px}
+@media(max-width:1000px){#simi-command-center{align-items:flex-start;flex-direction:column;padding:13px 18px!important}#simi-command-center .simi-command-actions{justify-content:flex-start;width:100%}}
+@media(max-width:600px){#simi-command-center{gap:12px;padding:12px!important}#simi-command-center .simi-command-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#simi-command-center .simi-command-actions button{justify-content:center;min-width:0;padding:10px 7px;font-size:10px}#simi-command-center .simi-command-actions button:last-child{grid-column:1/-1}}
+</style>
+
 </body>
 </html>
