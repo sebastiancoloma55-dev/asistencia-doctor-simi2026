@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método no permitido.' });
   }
 
-  const access = await requireModuleAccess(req, 'reportes');
+  const access = await requireModuleAccess(req, ['analista_ia', 'reportes']);
   if (!access.ok) return res.status(access.status).json({ error: access.error });
 
   const key = process.env.GEMINI_API_KEY;
