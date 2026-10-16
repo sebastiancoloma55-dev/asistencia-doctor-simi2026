@@ -1038,6 +1038,74 @@ main.flex.min-w-0.flex-1>header{background:rgba(255,255,255,.92)!important;borde
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
 </style>
 
+<style id="simi-redesign-2026-v1">
+/* Rediseño corporativo premium Doctor Simi: capa visual sin sustituir módulos ni lógica existente */
+:root{--simi-ink:#10294b;--simi-muted:#627895;--simi-surface:#fff;--simi-soft:#f2f7fc;--simi-edge:#dce8f5;--simi-blue:#1769df;--simi-teal:#00a2b7}
+body{background:#edf3fa!important;color:var(--simi-ink)}
+#sidebar{background:linear-gradient(180deg,#102541 0%,#07172f 100%)!important;border-right:1px solid rgba(255,255,255,.08);box-shadow:8px 0 28px rgba(12,36,68,.08)}
+#sidebar .menu-btn{border-radius:11px!important;margin:3px 8px;width:calc(100% - 16px);transition:background .18s,transform .18s}
+#sidebar .menu-btn:hover{transform:translateX(2px);background:rgba(255,255,255,.09)!important}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current=page]{background:linear-gradient(100deg,#2675f5,#1763db)!important;box-shadow:0 8px 22px rgba(23,105,223,.28)}
+main.flex.min-w-0.flex-1{background:linear-gradient(145deg,#f7faff 0%,#edf3fa 65%,#f7faff 100%)}
+#view-dashboard{max-width:1800px;margin:0 auto;width:100%;padding:22px 26px 36px!important;gap:18px!important}
+.simi-dashboard-hero{min-height:172px;padding:28px 32px!important;border-radius:22px!important;display:flex;align-items:center;justify-content:space-between;gap:24px;background:radial-gradient(circle at 76% 40%,rgba(60,191,255,.52),transparent 25%),linear-gradient(112deg,#173bc2 0%,#087fda 48%,#0098b4 100%)!important;box-shadow:0 16px 36px rgba(23,83,173,.2)!important}
+.simi-dashboard-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,32,100,.14),transparent 65%),repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 1px,transparent 1px 44px);pointer-events:none}
+.simi-hero-copy{position:relative;z-index:2;max-width:65%}
+.simi-hero-eyebrow{display:flex;align-items:center;gap:9px;color:#d9f6ff;font-size:10px;font-weight:900;letter-spacing:.17em}
+.simi-live-dot{width:8px;height:8px;border-radius:50%;background:#5af3df;box-shadow:0 0 0 5px rgba(90,243,223,.15)}
+.simi-hero-copy h2{font-size:clamp(26px,3vw,40px)!important;line-height:1.12;font-weight:900;letter-spacing:-.035em;margin:12px 0 8px;color:#fff}
+.simi-hero-copy h2 span{color:#fff}
+.simi-hero-copy>p:not(.simi-hero-eyebrow){font-size:14px;color:#e5f5ff;max-width:560px}
+.simi-hero-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.simi-hero-pills span{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid rgba(255,255,255,.25);background:rgba(5,35,100,.18);border-radius:999px;color:#f2fbff;font-size:10px;font-weight:750}
+.simi-hero-pills svg,.simi-hero-role svg{width:13px;height:13px}
+.simi-hero-role{position:absolute;right:20px;top:18px;z-index:3;display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(255,255,255,.13);font-size:10px;font-weight:800;color:white}
+.simi-hero-art{position:relative;z-index:1;align-self:stretch;display:flex;align-items:center;justify-content:center;min-width:220px;width:30%;max-width:350px}
+.simi-hero-art img{position:relative;z-index:2;width:clamp(120px,15vw,190px);height:clamp(120px,15vw,190px);object-fit:contain;border-radius:50%;background:rgba(255,255,255,.96);border:7px solid rgba(255,255,255,.2);box-shadow:0 18px 40px rgba(2,28,80,.22)}
+.simi-hero-brand-tag{position:absolute;right:-4px;bottom:6px;z-index:3;background:#fff;color:#0c3471;border:1px solid rgba(255,255,255,.5);border-radius:10px;padding:7px 11px;font-size:8px;line-height:1.25;letter-spacing:.08em;box-shadow:0 8px 20px rgba(0,25,80,.18)}
+.simi-hero-brand-tag b{font-size:10px}
+.simi-hero-orbit{position:absolute;border:1px solid rgba(255,255,255,.22);border-radius:50%;aspect-ratio:1}
+.simi-hero-orbit-one{width:225px}.simi-hero-orbit-two{width:285px}
+.simi-command-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.simi-command-card{position:relative;display:flex;align-items:center;gap:12px;min-width:0;text-align:left;padding:14px;border:1px solid var(--simi-edge);border-radius:17px;background:#fff;box-shadow:0 5px 16px rgba(21,56,97,.045);transition:transform .18s,box-shadow .18s,border-color .18s;overflow:hidden}
+.simi-command-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--card-accent)}
+.simi-command-card:hover{transform:translateY(-3px);box-shadow:0 14px 26px rgba(21,56,97,.11);border-color:color-mix(in srgb,var(--card-accent) 38%,white)}
+.simi-command-card-blue{--card-accent:#2376f5}.simi-command-card-teal{--card-accent:#00a0a8}.simi-command-card-amber{--card-accent:#e99a25}.simi-command-card-violet{--card-accent:#7a56d8}
+.simi-command-card-icon{display:flex;align-items:center;justify-content:center;flex:0 0 43px;height:43px;border-radius:13px;color:var(--card-accent);background:color-mix(in srgb,var(--card-accent) 11%,white)}
+.simi-command-card-icon svg{width:21px;height:21px}
+.simi-command-card>span:nth-child(2){display:flex;flex-direction:column;gap:4px;min-width:0}
+.simi-command-card b{font-size:12px;font-weight:850;color:#173453;line-height:1.25}
+.simi-command-card small{font-size:10px;line-height:1.35;color:#70839b}
+.simi-command-arrow{width:15px;height:15px;margin-left:auto;flex:0 0 auto;color:#8da2bb}
+#view-dashboard .ui-card,#view-dashboard .dash-space-card,#view-dashboard #dashboard-gerencial-graficos article{border-radius:18px!important;border-color:#dce7f3!important;box-shadow:0 8px 22px rgba(22,54,92,.045)!important}
+#view-dashboard .ui-card{background:rgba(255,255,255,.96)}
+#view-dashboard .dash-space-kicker{color:var(--user-accent,#087fa3);letter-spacing:.15em}
+#view-dashboard #dashboard-gerencial-graficos article{transition:transform .18s,box-shadow .18s}
+#view-dashboard #dashboard-gerencial-graficos article:hover{box-shadow:0 14px 28px rgba(22,54,92,.09)!important}
+#view-dashboard #dashboard-chart-incidencias>div,#view-dashboard #dashboard-chart-atrasos>div,#view-dashboard #dashboard-chart-carga>div{cursor:pointer;border-radius:10px;transition:background .16s,transform .16s}
+#view-dashboard #dashboard-chart-incidencias>div:hover,#view-dashboard #dashboard-chart-atrasos>div:hover,#view-dashboard #dashboard-chart-carga>div:hover{background:#f1f8ff;transform:translateY(-1px)}
+.simi-chart-tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px}
+.simi-chart-tools button{display:inline-flex;align-items:center;gap:5px;border:1px solid #dbe7f3;background:#fff;border-radius:9px;padding:6px 8px;font-size:10px;font-weight:800;color:#34506d}
+.simi-chart-tools button:hover{background:#edf7ff;border-color:#8bbbe9;color:#0b5aa7}
+.simi-chart-tools svg{width:13px;height:13px}
+#simi-chart-detail-modal{position:fixed;inset:0;z-index:10000;background:rgba(5,20,43,.54);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:20px}
+#simi-chart-detail-modal.open{display:flex}
+.simi-chart-detail-card{width:min(680px,100%);max-height:min(78vh,760px);overflow:auto;background:white;border-radius:20px;box-shadow:0 25px 80px rgba(0,0,0,.25);padding:22px}
+.simi-chart-detail-card h3{font-size:20px;font-weight:900;color:#143153}
+.simi-chart-detail-meta{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.simi-chart-detail-meta span{border:1px solid #dce8f5;background:#f4f8fc;border-radius:999px;padding:6px 10px;font-size:11px;color:#526b86}
+.simi-chart-detail-content{white-space:pre-wrap;font-size:13px;line-height:1.7;color:#425a75;background:#f8fbff;border:1px solid #e2ebf5;border-radius:12px;padding:14px;max-height:38vh;overflow:auto}
+.simi-chart-detail-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
+.simi-chart-detail-actions button{border-radius:10px;padding:9px 12px;font-size:12px;font-weight:800;border:1px solid #dbe5f1}
+.simi-chart-detail-actions .primary{background:#1769df;color:white;border-color:#1769df}
+#view-dashboard .form-field{border-radius:11px!important;border-color:#d6e3f2!important;min-height:40px}
+#view-dashboard .form-field:focus{border-color:var(--user-accent)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--user-accent) 15%,transparent)!important}
+#btn-theme-settings{border-radius:12px!important;padding:9px 13px!important;box-shadow:0 4px 12px rgba(20,55,95,.05)}
+#theme-settings-modal .theme-settings-card{border-radius:22px!important;box-shadow:0 30px 90px rgba(7,23,47,.24)!important}
+@media(max-width:1100px){.simi-command-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.simi-hero-art{min-width:160px;width:28%}.simi-hero-brand-tag{right:-5px}}
+@media(max-width:640px){#view-dashboard{padding:14px!important}.simi-dashboard-hero{padding:22px 18px!important;min-height:190px;align-items:flex-start}.simi-hero-copy{max-width:100%;padding-top:18px}.simi-hero-copy h2{font-size:27px!important}.simi-hero-art{position:absolute;right:-18px;bottom:-28px;width:125px;min-width:125px;opacity:.28}.simi-hero-art img{width:120px;height:120px}.simi-hero-role{right:12px;top:10px}.simi-hero-pills{max-width:78%}.simi-command-grid{grid-template-columns:1fr;gap:8px}.simi-command-card{padding:12px}.simi-chart-tools button{padding:6px}.simi-chart-detail-card{padding:16px}}
+@media(prefers-reduced-motion:reduce){.simi-command-card,#view-dashboard #dashboard-gerencial-graficos article,#view-dashboard #dashboard-chart-incidencias>div,#view-dashboard #dashboard-chart-atrasos>div,#view-dashboard #dashboard-chart-carga>div{transition:none!important}}
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -1229,16 +1297,26 @@ main.flex.min-w-0.flex-1>header{background:rgba(255,255,255,.92)!important;borde
 
             <!-- DASHBOARD -->
             <section id="view-dashboard" class="space-y-6 p-4 sm:p-8">
-                <div class="dashboard-welcome">
-                    <div class="flex flex-wrap items-start justify-between gap-4">
-                        <div>
-                            <p class="text-xs font-extrabold uppercase tracking-[.18em] text-sky-100">Plataforma de gestión · Recursos Humanos</p>
-                            <h2 class="mt-2 text-2xl font-black tracking-tight sm:text-3xl">¡Bienvenido/a, <span id="dashboard-welcome-name">equipo de Asistencia</span>!</h2>
-                            <p id="dashboard-welcome-subtitle" class="mt-2 max-w-2xl text-sm text-blue-50">Tu centro de control para asistencia, ausentismo y operaciones.</p>
-                        </div>
-                        <span id="dashboard-welcome-role" class="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-2 text-xs font-bold text-white"><i data-lucide="shield-check" class="h-4 w-4"></i> Usuario autorizado</span>
+                <div class="dashboard-welcome simi-dashboard-hero">
+                    <div class="simi-hero-copy">
+                        <p class="simi-hero-eyebrow"><span class="simi-live-dot"></span> DOCTOR SIMI · RECURSOS HUMANOS</p>
+                        <h2>Bienvenido/a, <span id="dashboard-welcome-name">equipo de Asistencia</span></h2>
+                        <p id="dashboard-welcome-subtitle">Tu centro de control para asistencia, ausentismo y operaciones.</p>
+                        <div class="simi-hero-pills"><span><i data-lucide="shield-check"></i> Entorno autorizado</span><span><i data-lucide="activity"></i> Datos conectados al sistema</span></div>
                     </div>
+                    <div class="simi-hero-art" aria-label="Identidad visual Doctor Simi">
+                        <div class="simi-hero-orbit simi-hero-orbit-one"></div><div class="simi-hero-orbit simi-hero-orbit-two"></div>
+                        <img src="/doctor-simi-logo.jpg" alt="Doctor Simi" loading="eager">
+                        <span class="simi-hero-brand-tag">FARMACIAS<br><b>DOCTOR SIMI</b></span>
+                    </div>
+                    <span id="dashboard-welcome-role" class="simi-hero-role"><i data-lucide="shield-check"></i> Usuario autorizado</span>
                 </div>
+                <section class="simi-command-grid" aria-label="Centros de trabajo">
+                    <button type="button" class="simi-command-card simi-command-card-blue" onclick="cambiarModulo('reportes')"><span class="simi-command-card-icon"><i data-lucide="chart-no-axes-combined"></i></span><span><b>Inteligencia de asistencia</b><small>Tendencias, atrasos y diferencias</small></span><i data-lucide="arrow-up-right" class="simi-command-arrow"></i></button>
+                    <button type="button" class="simi-command-card simi-command-card-teal" onclick="cambiarModulo('tareas')"><span class="simi-command-card-icon"><i data-lucide="list-todo"></i></span><span><b>Centro de operaciones</b><small>Prioridades y pendientes del equipo</small></span><i data-lucide="arrow-up-right" class="simi-command-arrow"></i></button>
+                    <button type="button" class="simi-command-card simi-command-card-amber" onclick="cambiarModulo('traslados')"><span class="simi-command-card-icon"><i data-lucide="map-pinned"></i></span><span><b>Mapa y coberturas</b><small>Ubicaciones y coordinación operativa</small></span><i data-lucide="arrow-up-right" class="simi-command-arrow"></i></button>
+                    <button type="button" class="simi-command-card simi-command-card-violet" onclick="cambiarModulo('integraciones')"><span class="simi-command-card-icon"><i data-lucide="workflow"></i></span><span><b>Automatización Talana</b><small>Importaciones y estado de sincronización</small></span><i data-lucide="arrow-up-right" class="simi-command-arrow"></i></button>
+                </section>
                 <div id="dashboard-space-summary" class="dash-space-card" aria-live="polite">
                     <div class="dash-space-intro"><div><span class="dash-space-kicker">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo('espacio')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div>
                     <div class="dash-space-stat-grid"><div><span class="dash-space-stat-icon"><i data-lucide="sticky-note"></i></span><span><b>0</b><small>Notas activas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="pin"></i></span><span><b>0</b><small>Notas fijadas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-alert"></i></span><span><b>0</b><small>Fuera de plazo</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-arrow-down"></i></span><span><b>0</b><small>Gestiones recientes</small></span></div></div>
@@ -4233,5 +4311,60 @@ main.flex.min-w-0.flex-1{background:radial-gradient(ellipse at 90% 0%,rgba(14,16
 })();
 </script>
 
+<script id="simi-dashboard-interactions-v1">
+(function(){
+  const chartDefs=[
+    {id:'dashboard-chart-incidencias',title:'Ranking de incidencias',module:'reportes'},
+    {id:'dashboard-chart-atrasos',title:'Índice de atrasos',module:'asistencia'},
+    {id:'dashboard-chart-carga',title:'Carga operativa',module:'tareas'}
+  ];
+  function byId(id){return document.getElementById(id)}
+  function safeText(el){return (el&&el.innerText||'').replace(/\n{3,}/g,'\n\n').trim()}
+  function meta(){const p=byId('dashboard-periodo'),s=byId('dashboard-sucursal');return {period:p&&p.selectedOptions[0]?p.selectedOptions[0].textContent:'Período no seleccionado',branch:s&&s.selectedOptions[0]?s.selectedOptions[0].textContent:'Todas las sucursales'}}
+  function ensureModal(){
+    let modal=byId('simi-chart-detail-modal');if(modal)return modal;
+    modal=document.createElement('div');modal.id='simi-chart-detail-modal';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-labelledby','simi-chart-detail-title');
+    modal.innerHTML='<section class="simi-chart-detail-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px"><div><p style="font-size:10px;font-weight:900;letter-spacing:.16em;color:#087fa3;text-transform:uppercase">Detalle interactivo</p><h3 id="simi-chart-detail-title">Detalle del gráfico</h3></div><button type="button" data-close-detail aria-label="Cerrar" style="border:1px solid #dbe5f1;border-radius:10px;padding:7px 10px;font-weight:800">✕</button></div><div class="simi-chart-detail-meta"></div><div class="simi-chart-detail-content"></div><div class="simi-chart-detail-actions"><button type="button" data-close-detail>Volver al panel</button><button type="button" class="primary" data-open-module>Ver módulo relacionado →</button></div></section>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click',e=>{if(e.target===modal||e.target.closest('[data-close-detail]'))modal.classList.remove('open');if(e.target.closest('[data-open-module]')){const mod=modal.dataset.module||'reportes';modal.classList.remove('open');if(typeof window.cambiarModulo==='function')window.cambiarModulo(mod)}});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')modal.classList.remove('open')});
+    return modal;
+  }
+  function openDetail(def,extra){
+    const el=byId(def.id),m=meta(),modal=ensureModal();
+    byId('simi-chart-detail-title').textContent=def.title;
+    modal.querySelector('.simi-chart-detail-meta').innerHTML='';
+    [m.period,m.branch].forEach(t=>{const span=document.createElement('span');span.textContent=t;modal.querySelector('.simi-chart-detail-meta').appendChild(span)});
+    modal.querySelector('.simi-chart-detail-content').textContent=extra||safeText(el)||'Este gráfico todavía no tiene datos para mostrar. Pulsa “Calcular indicadores” para consultar la fuente de datos.';
+    modal.dataset.module=def.module;modal.classList.add('open');
+  }
+  function csvFor(def){
+    const el=byId(def.id),m=meta(),rows=[['Gráfico',def.title],['Período',m.period],['Sucursal',m.branch],['Última actualización',new Date().toLocaleString('es-CL')],[],['Detalle']];
+    const lines=safeText(el).split('\n').map(x=>x.trim()).filter(Boolean);
+    lines.forEach(x=>rows.push([x]));
+    return '\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  }
+  function download(def,format){
+    const csv=csvFor(def),base=def.title.toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi,'-').replace(/^-|-$/g,'');
+    if(format==='xlsx'&&window.XLSX){const lines=csv.replace(/^\ufeff/,'').split('\r\n').map(line=>line.split(';').map(x=>x.replace(/^"|"$/g,'').replace(/""/g,'"')));const ws=window.XLSX.utils.aoa_to_sheet(lines);const wb=window.XLSX.utils.book_new();window.XLSX.utils.book_append_sheet(wb,ws,'Detalle');window.XLSX.writeFile(wb,base+'.xlsx');return}
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=base+'.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  }
+  function addTools(def){
+    const target=byId(def.id);if(!target||target.dataset.simiToolsReady)return;
+    const article=target.closest('article');if(!article)return;
+    const head=article.querySelector(':scope > div');if(!head)return;
+    const tools=document.createElement('div');tools.className='simi-chart-tools';tools.innerHTML='<button type="button" data-chart-detail><i data-lucide="mouse-pointer-click"></i> Ver detalle</button><button type="button" data-chart-export="csv"><i data-lucide="file-down"></i> CSV</button><button type="button" data-chart-export="xlsx"><i data-lucide="file-spreadsheet"></i> Excel</button>';
+    head.appendChild(tools);target.dataset.simiToolsReady='1';
+    tools.addEventListener('click',e=>{const detail=e.target.closest('[data-chart-detail]'),exp=e.target.closest('[data-chart-export]');if(detail)openDetail(def);if(exp)download(def,exp.dataset.chartExport)});
+    target.addEventListener('click',e=>{if(e.target.closest('button,a,input,select'))return;openDetail(def,safeText(target))});
+    if(window.lucide&&typeof window.lucide.createIcons==='function')window.lucide.createIcons();
+  }
+  function init(){chartDefs.forEach(addTools)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+  window.addEventListener('load',init);
+  new MutationObserver(init).observe(document.body,{childList:true,subtree:true});
+  document.addEventListener('change',e=>{if(e.target&&['dashboard-periodo','dashboard-sucursal','dashboard-fecha-desde','dashboard-fecha-hasta'].includes(e.target.id)){const modal=byId('simi-chart-detail-modal');if(modal)modal.classList.remove('open')}});
+})();
+</script>
 </body>
 </html>
