@@ -72,14 +72,10 @@ def click_texto(page, texto, timeout=15000):
         )),
     ]
     while time.monotonic() < deadline:
-        # Talana abre modales de generación de forma asíncrona; nunca intentes
-        # pulsar el siguiente reporte mientras el modal esté bloqueando la página.
-        try:
-            if modal_progreso_visible(page):
-                esperar_fin_modal_progreso(page, timeout_segundos=600)
-                page.wait_for_timeout(500)
-        except NameError:
-            pass
+        # Talana puede dejar el modal de progreso por encima del menú de reportes.
+        # Espera directamente a que desaparezca el modal y su backdrop; la detección
+        # por texto sola no basta en algunos estados de carga de Talana.
+        esperar_modal_bloqueante(page, timeout_segundos=600)
         cerrar_popups(page)
         for strategy_name, build_locator in strategies:
             for frame in list(page.frames):
@@ -215,6 +211,47 @@ def modal_progreso_visible(page):
             except Exception:
                 pass
     return False
+
+
+def esperar_modal_bloqueante(page, timeout_segundos=600):
+    """Espera al modal de generación y a su capa visual antes de interactuar con reportes."""
+    inicio = time.monotonic()
+    for frame in list(page.frames):
+        try:
+            modal = frame.locator("#liquidacionesProgressModal")
+            if modal.count() and modal.first.is_visible():
+                restante_ms = max(1000, int((timeout_segundos - (time.monotonic() - inicio)) * 1000))
+                modal.first.wait_for(state="hidden", timeout=restante_ms)
+        except Exception as exc:
+            # Si el modal sigue visible al vencer el tiempo, fallar con un mensaje claro;
+            # no usar force=True ni hacer clic detrás de una ventana activa.
+            if modal_progreso_visible(page):
+                raise RuntimeError(
+                    "El modal de progreso de Talana sigue bloqueando los reportes; "
+                    f"se esperó {int(time.monotonic() - inicio)} s. Detalle: {str(exc)[:220]}"
+                ) from exc
+    # Bootstrap puede mantener el backdrop unos milisegundos después de ocultar el modal.
+    deadline = time.monotonic() + min(15, max(3, timeout_segundos))
+    while time.monotonic() < deadline:
+        visible_backdrop = False
+        for frame in list(page.frames):
+            try:
+                overlays = frame.locator(".modal-backdrop")
+                for i in range(min(overlays.count(), 5)):
+                    if overlays.nth(i).is_visible():
+                        visible_backdrop = True
+                        break
+            except Exception:
+                pass
+            if visible_backdrop:
+                break
+        if not visible_backdrop and not modal_progreso_visible(page):
+            return
+        page.wait_for_timeout(250)
+    if modal_progreso_visible(page):
+        raise RuntimeError("El modal de progreso de Talana sigue visible y bloquea los clics.")
+    # Si queda un backdrop sin modal de progreso, dar una última espera a la animación.
+    page.wait_for_timeout(500)
 
 
 def esperar_fin_modal_progreso(page, timeout_segundos=600):
