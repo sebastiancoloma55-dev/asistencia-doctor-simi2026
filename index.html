@@ -3722,9 +3722,9 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         </div>
         <div id="simi-context-content"><p class="text-sm text-slate-600">Selecciona un módulo para ver sus recomendaciones.</p></div>
         <div id="simi-context-links" class="px-4 pb-4"></div>
-        <p class="border-t border-slate-100 px-4 py-3 text-[10px] leading-4 text-slate-500">Ayuda contextual de vista previa. Las recomendaciones son orientativas y no modifican datos ni ejecutan aprobaciones.</p>
+        <p class="border-t border-slate-100 px-4 py-3 text-[10px] leading-4 text-slate-500">Acceso rápido a búsqueda, módulos y acciones disponibles. Las operaciones sensibles requieren confirmación en su módulo.</p>
       </section>
-      <button id="simi-context-toggle" type="button" aria-expanded="false" aria-controls="simi-context-popover"><i data-lucide="sparkles" class="h-5 w-5"></i><span>Asistente RR. HH.</span></button>
+      <button id="simi-context-toggle" type="button" aria-expanded="false" aria-controls="simi-context-popover"><i data-lucide="sparkles" class="h-5 w-5"></i><span>Acciones RR. HH.</span></button>
     </div>
     <script>
     (function(){
@@ -3767,7 +3767,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         item.links.forEach(([label,module])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>{if(typeof window.cambiarModulo==='function')window.cambiarModulo(module);pop.hidden=true;toggle.setAttribute('aria-expanded','false');});links.appendChild(b);});
         if(window.lucide)window.lucide.createIcons();
       }
-      toggle.addEventListener('click',()=>{const opening=pop.hidden;render();pop.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));});
+      toggle.addEventListener('click',()=>{if(window.SimiIntelligenceCenter&&typeof window.SimiIntelligenceCenter.openSearch==='function'){window.SimiIntelligenceCenter.openSearch();return;}const opening=pop.hidden;render();pop.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));});
       document.getElementById('simi-context-close').addEventListener('click',()=>{pop.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();});
       const observer=new MutationObserver(()=>{render();});
       document.querySelectorAll('section[id^="view-"]').forEach(v=>observer.observe(v,{attributes:true,attributeFilter:['class']}));
@@ -4152,5 +4152,46 @@ window.setTimeout(scan,700);window.setTimeout(scan,1800);
 @media(max-width:600px){#simi-command-center{gap:12px;padding:12px!important}#simi-command-center .simi-command-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#simi-command-center .simi-command-actions button{justify-content:center;min-width:0;padding:10px 7px;font-size:10px}#simi-command-center .simi-command-actions button:last-child{grid-column:1/-1}}
 </style>
 
-</body>
+<style id="simi-contrast-and-assistant-fix">\n
+/* FIX CONTRASTE VISIBLE + ACCESO ÚTIL AL CENTRO DE INTELIGENCIA */
+#simi-context-assistant{z-index:90!important}
+#simi-context-toggle{background:linear-gradient(120deg,#087f9b,#1557a6)!important;color:#fff!important;border:1px solid rgba(255,255,255,.28)!important;box-shadow:0 12px 28px rgba(8,57,100,.25),0 0 0 4px rgba(8,127,155,.08)!important}
+#simi-context-toggle span{display:inline!important}
+#simi-context-popover{background:#fff!important;color:#142b45!important;border-color:#d7e4ef!important}
+#simi-context-head{background:#f2f8fc!important}
+#simi-context-title{color:#142b45!important}
+#simi-context-content p{color:#334e68!important}
+#simi-context-links button{background:#f8fbfd!important;color:#075985!important;border-color:#cbdce9!important}
+#simi-context-links button:hover{background:#eaf7fb!important}
+#simi-context-popover .text-slate-500,#simi-context-popover .text-slate-600{color:#526b83!important}
+main section[id^="view-"] .simi-v4-module-hero{
+ background:linear-gradient(120deg,#fff 0%,#f4f9fd 70%,#edf8fb 100%)!important;
+ border:1px solid #d7e6f1!important;box-shadow:0 12px 28px rgba(18,48,78,.07)!important;color:#17344e!important;
+}
+main section[id^="view-"] .simi-v4-hero-title{color:#15324d!important;text-shadow:none!important}
+main section[id^="view-"] .simi-v4-hero-description{color:#5f7891!important}
+main section[id^="view-"] .simi-v4-hero-kicker{color:#087f9b!important}
+main section[id^="view-"] .simi-v4-hero-status{background:#fff!important;border-color:#d7e6f1!important;color:#42617d!important}
+main section[id^="view-"] .ui-card{background:#fff!important;color:#17344e!important;border-color:#dce6ef!important}
+main section[id^="view-"] .table-scroll{background:#fff!important;border-color:#dce6ef!important}
+main section[id^="view-"] .table-scroll table,
+main section[id^="view-"] .table-scroll tbody,
+main section[id^="view-"] .table-scroll tr,
+main section[id^="view-"] .table-scroll td{background:#fff!important;color:#243f59!important}
+main section[id^="view-"] .table-scroll thead,
+main section[id^="view-"] .table-scroll thead tr,
+main section[id^="view-"] .table-scroll th{background:#edf4f9!important;color:#47647f!important}
+main section[id^="view-"] .table-scroll tbody tr:hover,
+main section[id^="view-"] .table-scroll tbody tr:hover td{background:#f2f9fc!important}
+main section[id^="view-"] .table-scroll td{border-bottom:1px solid #e6edf4!important}
+main section[id^="view-"] .text-slate-900,main section[id^="view-"] .text-slate-800,
+main section[id^="view-"] .text-gray-900,main section[id^="view-"] .text-gray-800{color:#17344e!important}
+main section[id^="view-"] .text-slate-700,main section[id^="view-"] .text-slate-600,
+main section[id^="view-"] .text-gray-700,main section[id^="view-"] .text-gray-600{color:#435d76!important}
+main section[id^="view-"] .text-slate-500,main section[id^="view-"] .text-gray-500{color:#657c92!important}
+main section[id^="view-"] input:not([type=checkbox]):not([type=radio]):not([type=file]),
+main section[id^="view-"] select,main section[id^="view-"] textarea{background:#fff!important;color:#17344e!important;border-color:#cbdbe8!important}
+main section[id^="view-"] input::placeholder,main section[id^="view-"] textarea::placeholder{color:#788da2!important}
+@media(max-width:640px){#simi-context-assistant{right:10px!important;bottom:14px!important}#simi-context-toggle{padding:11px 13px!important}#simi-context-toggle span{display:inline!important;font-size:11px!important}}
+\n</style>\n</body>
 </html>
