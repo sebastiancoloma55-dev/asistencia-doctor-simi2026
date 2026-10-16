@@ -3248,7 +3248,44 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       #simi-context-links button{border:1px solid #dbe4ee;border-radius:9px;background:#fff;padding:8px 10px;color:#075985;font-size:12px;font-weight:800;cursor:pointer}
       #simi-context-links button:hover{background:#f1f8fc}
       @media(max-width:640px){#simi-context-assistant{right:10px;bottom:44px}#simi-context-toggle{padding:11px 13px}#simi-context-toggle span{display:none}}
-    </style>
+    
+/* === Dashboard corporativo fiel a la identidad Doctor Simi 2026 === */
+:root{--simi-blue:#0869f7;--simi-navy:#062d5c;--simi-cyan:#13a8bd;--simi-border:#dce8f8;--simi-shadow:0 7px 24px rgba(14,54,105,.07)}
+body{background:#edf3fa!important;color:#10254b}
+#sidebar{background:linear-gradient(180deg,#062b59 0%,#073b70 100%)!important;width:242px!important;min-width:242px!important;border-right:1px solid rgba(255,255,255,.08)}
+#sidebar>div:first-child{min-height:94px;padding:14px 16px!important;background:linear-gradient(145deg,#082a54,#073c76);border-bottom:1px solid rgba(255,255,255,.12)!important}
+#sidebar>div:first-child h1{font-size:15px!important;font-weight:900!important;line-height:1.12;letter-spacing:-.02em}
+#sidebar>div:first-child p{font-size:10px!important;letter-spacing:.06em}
+#sidebar nav{padding:12px 10px!important;gap:4px!important}
+#sidebar .nova-nav-divider{margin:14px 5px 6px!important;padding-top:10px;border-top:1px solid rgba(255,255,255,.12);color:#a9c7eb!important;font-size:9px!important;letter-spacing:.15em;font-weight:900}
+#sidebar .menu-btn{display:flex!important;align-items:center!important;gap:11px!important;width:100%;min-height:39px;padding:9px 11px!important;border-radius:10px!important;color:#e7f1ff!important;font-size:12px!important;font-weight:600!important;text-align:left;transition:background .18s,transform .18s}
+#sidebar .menu-btn span{font-size:12px!important;line-height:1.2}
+#sidebar .menu-btn svg{width:17px!important;height:17px!important;flex-shrink:0}
+#sidebar .menu-btn:hover{background:rgba(255,255,255,.10)!important;transform:translateX(2px)}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current=page]{background:linear-gradient(100deg,#0879ff,#1762e9)!important;box-shadow:0 5px 16px rgba(0,85,220,.24);color:white!important}
+main{background:#edf3fa!important;min-width:0}
+main>header{background:rgba(255,255,255,.94)!important;border-bottom:1px solid #dce7f5!important;box-shadow:0 2px 10px rgba(16,48,92,.035);min-height:62px}
+#view-dashboard{padding:12px 16px 24px!important;gap:12px!important}
+#view-dashboard .dashboard-welcome{min-height:172px;padding:25px 28px!important;border:0!important;border-radius:18px!important;background:linear-gradient(110deg,#073b91 0%,#0875df 48%,#1bb9ef 100%)!important;box-shadow:0 12px 28px rgba(0,78,174,.18)!important;display:flex;align-items:center}
+#view-dashboard .dashboard-welcome:after{content:"";right:20px;top:5px;bottom:5px;width:min(34%,340px);height:auto;background-image:url('/doctor-simi-logo.jpg');background-repeat:no-repeat;background-position:center;background-size:contain;opacity:.95;font-size:0;letter-spacing:0;color:transparent}
+#view-dashboard .dashboard-welcome h2{font-size:clamp(25px,2.4vw,38px)!important;line-height:1.12;letter-spacing:-.04em}
+#view-dashboard .dashboard-welcome p{max-width:640px}
+#view-dashboard .dashboard-welcome-role{margin-right:32%;background:rgba(255,255,255,.12)!important}
+#view-dashboard .dash-space-card{border-radius:16px!important;background:#fff!important;box-shadow:var(--simi-shadow)!important;border:1px solid var(--simi-border)!important}
+#view-dashboard .dashboard-ops-summary,#view-dashboard .ui-card{border:1px solid var(--simi-border)!important;border-radius:14px!important;box-shadow:var(--simi-shadow)!important;background:#fff!important}
+#view-dashboard .grid.grid-cols-1.gap-5.sm\:grid-cols-2.lg\:grid-cols-4{gap:10px!important}
+#view-dashboard .ui-card{transition:transform .18s,box-shadow .18s}
+#view-dashboard .ui-card:hover{box-shadow:0 10px 26px rgba(14,54,105,.11)!important}
+#view-dashboard h3{letter-spacing:-.025em}
+#view-dashboard .dashboard-ops-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+#view-dashboard button{transition:transform .16s,box-shadow .16s}
+#view-dashboard button:hover{transform:translateY(-1px)}
+#quick-module-bar{background:#f8fbff!important;border-bottom:1px solid var(--simi-border)!important}
+@media(min-width:1200px){#view-dashboard{padding:14px 17px 25px!important}#view-dashboard .dashboard-welcome{min-height:176px}}
+@media(max-width:900px){#sidebar{width:242px!important;min-width:242px!important}#view-dashboard{padding:10px!important}#view-dashboard .dashboard-welcome{min-height:145px;padding:20px!important}#view-dashboard .dashboard-welcome:after{right:8px;width:28%;opacity:.45}#view-dashboard .dashboard-welcome-role{margin-right:24%}#view-dashboard .dashboard-ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:560px){#view-dashboard .dashboard-welcome{min-height:132px;padding:17px!important}#view-dashboard .dashboard-welcome:after{display:none}#view-dashboard .dashboard-welcome-role{margin-right:0}#view-dashboard .dashboard-welcome h2{font-size:25px!important}#view-dashboard .dashboard-ops-grid{grid-template-columns:1fr!important}}
+
+</style>
     <div id="simi-context-assistant">
       <section id="simi-context-popover" hidden aria-label="Asistente contextual de RR. HH." aria-live="polite">
         <div id="simi-context-head" class="flex items-start justify-between gap-3">
