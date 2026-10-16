@@ -28,6 +28,15 @@ class TalanaBotCloud:
   from importador_reportes import parse_report
   p=Path(path)
   rows,parse_errors,metadata=parse_report(p,report_type)
+  if report_type=="ausentismos_historico":
+   from datetime import datetime
+   from zoneinfo import ZoneInfo
+   first_day=datetime.now(ZoneInfo("America/Santiago")).date().replace(day=1).isoformat()
+   original_count=len(rows)
+   rows=[row for row in rows if row.get("fecha_inicio") and str(row["fecha_inicio"])[:10] >= first_day]
+   metadata={**metadata,"month_filter_from":first_day,"rows_before_month_filter":original_count,"rows_after_month_filter":len(rows)}
+   import logging
+   logging.getLogger("talana-cloud").info("Filtro ausentismos: desde %s; filas históricas descartadas=%s; filas del mes=%s",first_day,original_count-len(rows),len(rows))
   totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"planned_inserted":0,"planned_updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True,"diagnostics":{"missing_key_fields":{},"attendance":{"incoming_by_date":{},"planned_new_by_date":{}}}}
   attendance_employee_ids=set()
   if report_type=="reporte_jornadas_asistencia":
