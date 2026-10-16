@@ -2906,6 +2906,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   function updateSelectorCounts(){['usr-supervisores','usr-sucursales','correo-sucursales','correo-supervisores'].forEach(function(id){var el=document.getElementById(id);if(el&&el._uxUpdate2026)el._uxUpdate2026();});}
   window.actualizarContadoresSelectores2026=updateSelectorCounts;
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
+  var permissionsReady=false;
   var allowed=new Set(['dashboard']);
   var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
   var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
@@ -2925,6 +2926,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   }
   function paintPermissions(){moduleNames.forEach(function(m){var b=document.getElementById('btn-'+m);if(b)b.classList.toggle('permission-hidden-2026',!hasModulePermission(m));});}
   function finishPermissionLoad(){
+    permissionsReady=true;
     paintPermissions();
     // Mostrar el menú solo después de cargar y aplicar los permisos: evita el destello
     // de todos los módulos antes de que se oculten los no autorizados.
@@ -2968,9 +2970,18 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   var originalChange=window.cambiarModulo;
   if(typeof originalChange==='function'){
     window.cambiarModulo=async function(modulo,cargar){
-      // Releer la sesión y los permisos justo antes de validar cada navegación evita usar el Set inicial
-      // (solo Dashboard) si la restauración de sesión o la carga del perfil todavía no terminó.
-      await loadPermissions();
+      // Las autorizaciones se cargan al iniciar sesión. No consultar Supabase en cada clic:
+      // una consulta lenta no debe bloquear la navegación entre módulos.
+      if(!permissionsReady){
+        await Promise.race([
+          loadPermissions(),
+          new Promise(resolve=>setTimeout(resolve,5000))
+        ]);
+        if(!permissionsReady){
+          if(window.mostrarToast)mostrarToast('La verificación de permisos está tardando. Intenta de nuevo en unos segundos.','warning',7000);
+          return;
+        }
+      }
       if(!hasModulePermission(modulo)){
         if(window.mostrarToast)mostrarToast('Este apartado no está habilitado para tu usuario. Solicita al administrador que lo autorice en Usuarios y roles.','warning');
         return;
