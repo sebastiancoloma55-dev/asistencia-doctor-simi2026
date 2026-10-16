@@ -81,8 +81,10 @@ jobs:
           fi
           echo "Confirmación explícita recibida; se verificará además que el bot esté habilitado en Supabase."
 
-      - name: Descargar código
+      - name: Descargar código de la rama autorizada
         uses: actions/checkout@v4
+        with:
+          ref: feat/coberturas-responsables-multiselect
 
       - name: Preparar Python
         uses: actions/setup-python@v5
