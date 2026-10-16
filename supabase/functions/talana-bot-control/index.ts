@@ -176,8 +176,12 @@ if(a==="bot_import"){
       for(const candidate of candidates){const candidateKey=keyOf(candidate)||"__incomplete__:"+String(candidate.id);const group=groups.get(candidateKey)||[];group.push(candidate);groups.set(candidateKey,group);}
       if(groups.size===1){
        const sameKey=[...groups.values()][0], merged=mergeExactRows(sameKey);
-       if(!merged.conflicts.length){old=merged.merged;legacyDuplicateIds=sameKey.filter((candidate:any)=>candidate.id!==old.id).map((candidate:any)=>candidate.id);}
-       else {skipped++;blockedAmbiguousLegacy++;blockedExistingDuplicateConflicts++;continue;}
+       // Same complete natural key means the incoming Talana export is authoritative.
+       // Preserve the canonical row id, let incoming non-empty values replace old values,
+       // and retire other rows with this exact identity even if their fields conflict.
+       old=merged.merged;
+       legacyDuplicateIds=sameKey.filter((candidate:any)=>candidate.id!==old.id).map((candidate:any)=>candidate.id);
+       ambiguousLegacyMerged+=legacyDuplicateIds.length;
       }else{
        // Distintas licencias/solicitudes comparten la clave parcial: no se puede
        // decidir automáticamente cuál actualizar sin arriesgar datos.
@@ -190,11 +194,9 @@ if(a==="bot_import"){
     let canonical={...old};
     if(exactMatches.length){
      const merged=mergeExactRows([old,...exactMatches]);
-     if(merged.conflicts.length){
-      skipped++;blockedExistingDuplicateConflicts++;
-      errors.push(table+" RUT "+row.rut+": hay duplicados con datos contradictorios ("+merged.conflicts.join(", ")+"); requiere revisión manual y no se modificó.");
-      continue;
-     }
+     // A repeated complete natural key is the same business record. Do not block
+     // the refresh because legacy values differ: the incoming export wins below,
+     // and all other rows with this exact key are removed after the canonical update.
      canonical=merged.merged;
     }
     pendingUpdates.push({id:old.id,row,old:canonical,duplicateIds:[...new Set([...exactMatches.map((candidate:any)=>candidate.id),...legacyDuplicateIds])]});
