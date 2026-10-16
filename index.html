@@ -1143,6 +1143,35 @@ display:block!important;flex:1 1 auto!important;width:100%!important;min-width:0
 #form-login .nova-v3-input-wrap input#login-pass::placeholder,#form-login .nova-v3-input-wrap input#login-email::placeholder{color:#71869b!important;-webkit-text-fill-color:#71869b!important;opacity:1!important}
 #form-login .nova-v3-input-wrap input#login-pass:-webkit-autofill,#form-login .nova-v3-input-wrap input#login-email:-webkit-autofill{-webkit-text-fill-color:#142b43!important;box-shadow:0 0 0 1000px #f8fbff inset!important}
 </style>
+<style id="analista-ia-premium-styles">
+.ai-analyst-hero{background:radial-gradient(ellipse at 90% 10%,rgba(27,191,203,.18),transparent 32%),linear-gradient(120deg,#fff 0%,#f2faff 65%,#e9f8fb 100%)!important}
+.ai-analyst-tag{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid #d5e8f0;border-radius:999px;background:rgba(255,255,255,.75);font-size:10px;font-weight:800;color:#315d79}
+.ai-analyst-tag svg{width:13px;height:13px;color:#0789a4}
+.ai-analyst-chat{padding:clamp(16px,2vw,26px)!important}
+.ai-analyst-chat-head{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid #e4edf4}
+.ai-analyst-icon{width:46px;height:46px;display:grid;place-items:center;flex:none;border-radius:15px;background:linear-gradient(145deg,#0e9fb4,#166ac1);color:#fff;box-shadow:0 8px 20px rgba(14,135,178,.2)}
+.ai-analyst-icon svg{width:23px;height:23px}
+.ai-analyst-chat-head h4{font-size:17px;font-weight:900;color:#173752}
+.ai-analyst-chat-head p{margin-top:3px;font-size:11px;color:#6a8297}
+.ai-analyst-status{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font-size:9px;font-weight:800;color:#54718a}
+.ai-analyst-status i{width:7px;height:7px;border-radius:50%;background:#f5b544;box-shadow:0 0 0 3px #fff2d6}
+.ai-analyst-prompt{min-height:112px!important;width:100%;resize:vertical!important;background:#fbfdff!important;border:1px solid #d6e4ef!important;color:#173752!important}
+.ai-analyst-send{display:inline-flex;align-items:center;gap:8px}
+.ai-analyst-send svg{width:15px;height:15px}
+.ai-analyst-response-wrap{margin-top:24px;padding:18px;border:1px solid #cce9ef;border-radius:15px;background:linear-gradient(145deg,#f7fdff,#fff)}
+.ai-analyst-response-title{display:flex;align-items:center;gap:8px;color:#087f9c;font-size:9px;font-weight:900;letter-spacing:.14em}
+.ai-analyst-response-title svg{width:15px;height:15px}
+.ai-analyst-response{margin-top:12px;color:#23445e;font-size:13px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
+.ai-analyst-prompts{display:grid;gap:8px}
+.ai-analyst-prompts button{padding:11px 12px;border:1px solid #e0eaf2;border-radius:11px;background:#f8fbfe;color:#294d69;text-align:left;font-size:11px;font-weight:750;transition:all .16s}
+.ai-analyst-prompts button:hover{border-color:#9edce4;background:#effbfc;transform:translateY(-1px)}
+body.theme-dark .ai-analyst-hero{background:linear-gradient(120deg,#12283e,#0f2035)!important}
+body.theme-dark .ai-analyst-chat-head h4,body.theme-dark #view-analista_ia h4{color:#e5f0fb}
+body.theme-dark .ai-analyst-prompt{background:#0b1a2b!important;color:#e5f0fb!important;border-color:#304a63!important}
+body.theme-dark .ai-analyst-prompts button{background:#13283e;color:#dbe9f7;border-color:#29445e}
+body.theme-dark .ai-analyst-response-wrap{background:#10263b;border-color:#294c62}
+body.theme-dark .ai-analyst-response{color:#d8e8f7}
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -1268,7 +1297,7 @@ display:block!important;flex:1 1 auto!important;width:100%!important;min-width:0
   <button id="btn-inteligencia-asistencia" class="menu-btn" onclick="cambiarModulo('inteligencia')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Centro de inteligencia de asistencia</span></button>
   <button id="btn-centro-operaciones" class="menu-btn" onclick="cambiarModulo('operaciones')"><i data-lucide="list-todo" class="h-4 w-4"></i><span>Centro de operaciones</span></button>
   <button id="btn-mapa-inteligente" class="menu-btn" onclick="cambiarModulo('mapas')"><i data-lucide="map-pinned" class="h-4 w-4"></i><span>Mapa inteligente de sucursales</span></button>
-  <button id="btn-inteligencia" class="menu-btn" onclick="cambiarModulo('inteligencia')"><i data-lucide="sparkles" class="h-4 w-4"></i><span>Analista de RR. HH. con IA</span></button>
+  <button id="btn-analista_ia" class="menu-btn" onclick="cambiarModulo('analista_ia')"><i data-lucide="sparkles" class="h-4 w-4"></i><span>Analista de RR. HH. con IA</span></button>
   <div class="nova-nav-divider" data-nav-group><span>ANÁLISIS Y CONTROL</span></div>
   <button id="btn-reportes" class="menu-btn" onclick="cambiarModulo('reportes')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Reportes</span></button>
   <button id="btn-mapas" class="menu-btn" onclick="cambiarModulo('mapas')"><i data-lucide="map-pinned" class="h-4 w-4"></i><span>Mapa y distancias</span></button>
@@ -2268,6 +2297,37 @@ display:block!important;flex:1 1 auto!important;width:100%!important;min-width:0
                 </div>
                 <div class="ui-card p-5"><h3 class="section-title">Análisis inteligente de archivos</h3><p class="mt-1 text-xs text-slate-500">El archivo solo se envía al análisis externo si autorizas el envío.</p><div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3"><input id="ai-archivo" type="file" accept=".xlsx,.xls,.csv,.pdf" class="form-field"><textarea id="ai-prompt" rows="5" class="form-field lg:col-span-2" placeholder="Ejemplo: identifica personas con tres atrasos o más y agrupa por sucursal."></textarea><label class="lg:col-span-3 flex gap-2 rounded-lg bg-amber-50 p-3 text-xs"><input id="ai-consentimiento" type="checkbox"> Autorizo enviar el archivo a Gemini para este análisis.</label><div class="lg:col-span-3"><button id="ai-btn" onclick="analizarConGeminiSeguro()" class="corp-button">Analizar archivo</button> <button onclick="descargarRespuestaIA()" class="corp-button-dark">Descargar análisis PDF</button></div><pre id="ai-resultado" class="lg:col-span-3 whitespace-pre-wrap rounded-xl bg-slate-50 p-4 text-sm">Aquí aparecerá el resultado.</pre></div></div>
 
+            </section>
+
+            <!-- ANALISTA DE RR. HH. CON IA -->
+            <section id="view-analista_ia" class="hidden space-y-6 p-4 sm:p-8">
+              <div class="module-intro ai-analyst-hero">
+                <span class="module-kicker"><i data-lucide="sparkles" class="h-3 w-3"></i> ANALISTA INTELIGENTE · RECURSOS HUMANOS</span>
+                <h3 class="mt-3">Analista de RR. HH. con IA</h3>
+                <p class="mt-2 max-w-3xl">Consulta procedimientos, solicita análisis y recibe recomendaciones en español. La IA debe indicar cuando no dispone de datos suficientes; no inventa cifras ni reemplaza la revisión del equipo.</p>
+                <div class="mt-5 flex flex-wrap gap-2"><span class="ai-analyst-tag"><i data-lucide="shield-check"></i> Acceso autenticado</span><span class="ai-analyst-tag"><i data-lucide="lock-keyhole"></i> Clave de IA protegida en servidor</span><span class="ai-analyst-tag"><i data-lucide="file-search"></i> Respuestas con limitaciones explícitas</span></div>
+              </div>
+              <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.5fr)_minmax(260px,.8fr)] gap-5">
+                <section class="ui-card ai-analyst-chat">
+                  <div class="ai-analyst-chat-head"><span class="ai-analyst-icon"><i data-lucide="brain-circuit"></i></span><div><h4>¿Qué necesitas analizar?</h4><p>Escribe tu consulta o selecciona un ejemplo para empezar.</p></div><span class="ai-analyst-status"><i></i> IA disponible según configuración</span></div>
+                  <label for="analista-ia-prompt" class="block text-xs font-bold text-slate-600 mb-2">TU CONSULTA</label>
+                  <textarea id="analista-ia-prompt" rows="4" maxlength="12000" class="form-field ai-analyst-prompt" placeholder="Ej.: Explícame cómo detectar diferencias entre turnos asignados y horas trabajadas."></textarea>
+                  <div class="flex flex-wrap items-center justify-between gap-3 mt-3"><span id="analista-ia-status" class="text-xs text-slate-500" role="status" aria-live="polite">La consulta se enviará al servicio de IA de forma segura.</span><button type="button" id="analista-ia-send" class="corp-button ai-analyst-send"><i data-lucide="send"></i> Consultar al analista</button></div>
+                  <div id="analista-ia-response-wrap" class="ai-analyst-response-wrap hidden"><div class="ai-analyst-response-title"><i data-lucide="message-square-text"></i> RESPUESTA DEL ANALISTA</div><div id="analista-ia-response" class="ai-analyst-response" aria-live="polite"></div><div class="flex justify-end mt-3"><button type="button" id="analista-ia-copy" class="text-xs font-bold text-cyan-800 hover:text-cyan-950"><i data-lucide="copy"></i> Copiar respuesta</button></div></div>
+                </section>
+                <aside class="space-y-4">
+                  <div class="ui-card p-5"><h4 class="font-extrabold text-slate-900 flex items-center gap-2"><i data-lucide="lightbulb" class="text-amber-500"></i> Consultas sugeridas</h4><p class="text-xs text-slate-500 mt-1 mb-4">Selecciona una para cargarla en el cuadro de consulta.</p>
+                    <div class="ai-analyst-prompts">
+                      <button type="button" data-analista-prompt="¿Cómo identificar atrasos recurrentes sin confundirlos con marcaciones faltantes?">Atrasos recurrentes</button>
+                      <button type="button" data-analista-prompt="¿Cómo comparar turnos asignados con horas efectivamente trabajadas y qué diferencias revisar?">Turnos vs. horas trabajadas</button>
+                      <button type="button" data-analista-prompt="¿Qué controles conviene aplicar al revisar licencias médicas y ausentismos?">Licencias y ausentismos</button>
+                      <button type="button" data-analista-prompt="Prepara una pauta para comparar indicadores de asistencia entre sucursales y períodos, indicando qué datos hacen falta.">Comparación por sucursal</button>
+                      <button type="button" data-analista-prompt="¿Cómo priorizar las incidencias pendientes del equipo de asistencia por urgencia e impacto?">Priorizar incidencias</button>
+                    </div>
+                  </div>
+                  <div class="ui-card p-5"><h4 class="font-extrabold text-slate-900 flex items-center gap-2"><i data-lucide="database" class="text-cyan-700"></i> Sobre los datos</h4><p class="mt-2 text-sm text-slate-600">Esta primera conexión responde consultas con IA. Para conclusiones cuantitativas debe contar con datos agregados o un reporte autorizado; no se envían automáticamente fichas personales ni datos médicos.</p><button type="button" class="mt-4 corp-button-dark w-full" onclick="cambiarModulo('reportes')"><i data-lucide="chart-no-axes-combined"></i> Abrir reportes autorizados</button></div>
+                </aside>
+              </div>
             </section>
 
             <!-- USUARIOS -->
@@ -3496,8 +3556,8 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   window.actualizarContadoresSelectores2026=updateSelectorCounts;
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
   var allowed=new Set(['dashboard']);
-  var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','inteligencia','operaciones','calidad','notificaciones','integraciones','chat','traslados','ayuda'];
-  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','inteligencia','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
+  var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','inteligencia','analista_ia','operaciones','calidad','notificaciones','integraciones','chat','traslados','ayuda'];
+  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','inteligencia','analista_ia','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
   function permissionName(m){return m;}
   function hasModulePermission(m){
     if(m==='ayuda')return true;
@@ -4211,6 +4271,7 @@ window.setTimeout(scan,700);window.setTimeout(scan,1800);
 })();
 </script>
 <script src="/js/intelligence-center.js?v=centro-inteligencia-161026"></script>
+    <script src="/js/analista-ia.js?v=analista-ia-161026"></script>
 
 <style id="simi-dashboard-toolbar-dedup-v1">
 /* Una sola barra de acciones: evita repetir tarea, nota y búsqueda en dos zonas. */
