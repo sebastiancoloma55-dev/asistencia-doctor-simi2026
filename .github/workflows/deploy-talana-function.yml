@@ -1,10 +1,6 @@
 name: Desplegar función Talana en Supabase
 on:
-  push:
-    branches: [main]
-    paths:
-      - "supabase/functions/talana-bot-control/**"
-      - ".github/workflows/deploy-talana-function.yml"
+  # Despliegue deliberadamente manual: fusionar cambios a main NO publica en producción.
   workflow_dispatch:
 permissions:
   contents: read

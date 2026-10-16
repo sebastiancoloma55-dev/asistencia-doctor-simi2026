@@ -172,23 +172,39 @@ if(a==="bot_import"){
     const candidates=legacyCandidates.get(legacyKey(row))||[];
     if(candidates.length===1)old=candidates[0];
     else if(candidates.length>1){
-      const groups=new Map<string,any[]>();
-      for(const candidate of candidates){const candidateKey=keyOf(candidate)||"__incomplete__:"+String(candidate.id);const group=groups.get(candidateKey)||[];group.push(candidate);groups.set(candidateKey,group);}
-      if(groups.size===1){
-       const sameKey=[...groups.values()][0], merged=mergeExactRows(sameKey);
-       if(!merged.conflicts.length){old=merged.merged;legacyDuplicateIds=sameKey.filter((candidate:any)=>candidate.id!==old.id).map((candidate:any)=>candidate.id);}
-       else {skipped++;blockedAmbiguousLegacy++;blockedExistingDuplicateConflicts++;continue;}
-      }else{
-       // Distintas licencias/solicitudes comparten la clave parcial: no se puede
-       // decidir automáticamente cuál actualizar sin arriesgar datos.
-       skipped++;blockedAmbiguousLegacy++;continue;
+      // Priorizar candidatos cuyo discriminador disponible coincide con el XLSX.
+      // Un valor presente que contradice la fila entrante descarta el candidato.
+      // Si hay empate o ninguna evidencia, se bloquea en lugar de adivinar.
+      const scored=candidates.flatMap((candidate:any)=>{
+       let score=0, incompatible=false;
+       for(const field of legacyDiscriminators||[]){
+        const current=candidate[field], incoming=row[field];
+        const currentPresent=current!==null&&current!==undefined&&String(current).trim()!=="";
+        const incomingPresent=incoming!==null&&incoming!==undefined&&String(incoming).trim()!=="";
+        if(!currentPresent||!incomingPresent)continue;
+        if(norm(current)!==norm(incoming)){incompatible=true;break;}
+        score++;
+       }
+       return incompatible?[]:[{candidate,score}];
+      }).sort((a:any,b:any)=>b.score-a.score);
+      const best=scored[0];
+      const tied=best?scored.filter((item:any)=>item.score===best.score):[];
+      if(best&&best.score>0&&tied.length===1)old=best.candidate;
+      else{
+       skipped++;blockedAmbiguousLegacy++;
+       errors.push(table+" RUT "+row.rut+": existen varias licencias/solicitudes históricas compatibles con la clave parcial; se conservan sin cambios para revisión.");
+       continue;
       }
     }
    }
    if(old){
     const exactMatches=(existingMatchesByKey.get(k)||[]).filter((candidate:any)=>candidate.id!==old.id);
     let canonical={...old};
-    if(exactMatches.length){
+    // Para asistencia, RUT + fecha identifica el día del trabajador y la fila
+    // nueva ya viene consolidada desde Talana. Las marcas antiguas pueden diferir
+    // legítimamente (entrada/salida editadas), por lo que no se comparan entre sí:
+    // la fila entrante sustituye el día y solo se retiran filas con esa misma clave.
+    if(exactMatches.length&&!attendanceFallback){
      const merged=mergeExactRows([old,...exactMatches]);
      if(merged.conflicts.length){
       skipped++;blockedExistingDuplicateConflicts++;
