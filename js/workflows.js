@@ -253,7 +253,7 @@
             await registrarAuditoria('reportes','GENERA_REPORTE',`${tipo} · ${formato} · ${desde||'s/f'} a ${hasta||'s/f'} · ${datos.length} registros`);mostrarToast('Reporte generado y descargado.','success');
         }
 
-        const listaPermisos=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','inteligencia','operaciones','calidad','notificaciones','integraciones','chat','traslados','traslados_aprobar'];
+        const listaPermisos=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','inteligencia','analista_ia','operaciones','calidad','notificaciones','integraciones','chat','traslados','traslados_aprobar'];
         let perfilActualSistema=null, modulosPermitidosActuales=[];
         const EMAIL_ADMIN_PRINCIPAL='scoloma@farmaciasdoctorsimi.cl';
         function esAdminPrincipalActual(){return String(perfilActualSistema?.email||'').trim().toLowerCase()===EMAIL_ADMIN_PRINCIPAL;}
@@ -371,7 +371,7 @@
             asistencia:'Asistencia y atrasos', licencias:'Licencias médicas', envio_licencias:'Envío de licencias médicas', vacaciones:'Vacaciones',
             papeletas:'Permisos y ausencias', amonestaciones:'Coberturas', traslados:'Traslados de personal',
             correos:'Borradores de correo', configcorreos:'Correos de sucursales', chat:'Chat interno',
-            reportes:'Reportes', mapas:'Mapa y distancias', inteligencia:'Analista de RR. HH. con IA', operaciones:'Centro de operaciones',
+            reportes:'Reportes', mapas:'Mapa y distancias', inteligencia:'Centro de inteligencia de asistencia', analista_ia:'Analista de RR. HH. con IA', operaciones:'Centro de operaciones',
             calidad:'Calidad de datos', notificaciones:'Notificaciones', integraciones:'Integraciones y monitoreo',
             auditoria:'Bitácora y auditoría', traslados_aprobar:'Aprobar traslados'
         };
@@ -380,7 +380,7 @@
             {label:'Personas y estructura',icon:'users',keys:['colaboradores','sucursales','usuarios']},
             {label:'Asistencia y beneficios',icon:'clock',keys:['asistencia','licencias','envio_licencias','vacaciones','papeletas']},
             {label:'Coberturas y comunicación',icon:'calendar-check',keys:['amonestaciones','traslados','correos','configcorreos','chat']},
-            {label:'Análisis y control',icon:'chart-no-axes-combined',keys:['inteligencia','reportes','mapas','operaciones','calidad','notificaciones','integraciones','auditoria']},
+            {label:'Análisis y control',icon:'chart-no-axes-combined',keys:['inteligencia','analista_ia','reportes','mapas','operaciones','calidad','notificaciones','integraciones','auditoria']},
             {label:'Privilegios especiales',icon:'shield-check',keys:['traslados_aprobar']}
         ];
         function construirChecksPermisos(){
