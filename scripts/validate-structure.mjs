@@ -99,6 +99,21 @@ if (!html.includes('id="mapa14-mostrar-todas"') || !html.includes('id="mapa14-es
 if (!html.includes('id="col-filtro-estado"') || !html.includes('id="colab-kpi-grid"')) fail('El directorio de colaboradores necesita KPI y filtro de estado.');
 
 
+const intelligenceCenter = readFileSync(path.join(root, 'js/intelligence-center.js'), 'utf8');
+const commandCenterCount = (html.match(/id="simi-command-center"/g) || []).length;
+if (commandCenterCount !== 1) fail('El Dashboard debe tener una sola barra de Centro de acciones.');
+for (const duplicateMarker of [
+  'id="topbar-quick-note"',
+  'class="topbar-search hidden md:inline-flex"',
+  'class="topbar-quick-action hidden sm:inline-flex"'
+]) {
+  if (html.includes(duplicateMarker)) fail('Se encontró un acceso rápido duplicado en el encabezado: ' + duplicateMarker);
+}
+if (!html.includes('simi-dashboard-toolbar-dedup-v1')) fail('Falta el ajuste visual de la barra unificada del Dashboard.');
+for (const marker of ['function openTaskForPriority(item)', 'Crear tarea de seguimiento', 'No modificar datos automáticamente.']) {
+  if (!intelligenceCenter.includes(marker)) fail('El Centro de inteligencia no contiene la acción segura esperada: ' + marker + '.');
+}
+
 const operationalSummary = readFileSync(path.join(root, 'js/operational-summary.js'), 'utf8');
 for (const marker of ['dashboard-ops-cards', 'cargarResumenOperativoRRHH', 'talana-bot-control', 'solicitudes_dotacion', 'Promise.all']) {
   if (!operationalSummary.includes(marker)) fail("El resumen operativo no contiene la integración esperada: " + marker + ".");
