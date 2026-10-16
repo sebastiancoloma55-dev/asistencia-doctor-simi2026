@@ -198,9 +198,29 @@ function buildPriorityPanel(){
  foot.textContent='Detectado a partir de los indicadores actuales. La plataforma no modifica ni cierra registros automáticamente.'+(updated?.innerText?' · '+updated.innerText:'');
  if(window.lucide?.createIcons)window.lucide.createIcons({root:panel});
 }
+function decorateFreshness(){
+ const list=document.getElementById('dashboard-freshness-list');if(!list)return;
+ [...list.children].forEach(card=>{
+  if(!card||card.dataset.simiFreshnessDecorated==='1')return;
+  const text=(card.innerText||card.textContent||'').replace(/\s+/g,' ');
+  const m=text.match(/(\d{1,2})-(\d{1,2})-(\d{4})/);
+  if(!m)return;
+  const date=new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));
+  if(!Number.isFinite(date.getTime()))return;
+  const hours=(Date.now()-date.getTime())/3600000;
+  if(hours<0||hours>24*365)return;
+  const status=hours>=48?{label:'Revisar actualización',bg:'#fff2e8',fg:'#a24b0b',border:'#f4d0b2',icon:'clock-alert'}:hours>=24?{label:'Actualización de ayer',bg:'#fff9e8',fg:'#8a6410',border:'#f0e0a9',icon:'clock-3'}:{label:'Actualizada recientemente',bg:'#eaf8f2',fg:'#16734b',border:'#c4ead8',icon:'check-circle-2'};
+  const badge=document.createElement('span');badge.style.cssText='display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:5px 8px;border:1px solid '+status.border+';border-radius:999px;background:'+status.bg+';color:'+status.fg+';font-size:9px;font-weight:850;line-height:1.2';
+  badge.innerHTML='<i data-lucide="'+status.icon+'" style="width:12px;height:12px"></i>'+status.label;
+  card.appendChild(badge);card.dataset.simiFreshnessDecorated='1';
+ });
+ if(window.lucide?.createIcons)window.lucide.createIcons({root:list});
+}
+
 function init(){
- ensureStyles();installTrigger();createSearch();buildPriorityPanel();
+ ensureStyles();installTrigger();createSearch();buildPriorityPanel();decorateFreshness();
  const bar=document.getElementById('simi-command-center');if(bar&&!bar.dataset.simiSearchBound){bar.dataset.simiSearchBound='1';bar.addEventListener('click',e=>{const b=e.target.closest('[data-simi-action]');if(b&&b.dataset.simiAction==='refresh')setTimeout(buildPriorityPanel,500);});}
+ const freshness=document.getElementById('dashboard-freshness-list');if(freshness)new MutationObserver(()=>{freshness.querySelectorAll(':scope > *').forEach(c=>{if(c.dataset)c.dataset.simiFreshnessDecorated='';});decorateFreshness();}).observe(freshness,{childList:true,subtree:true});
  const ops=document.getElementById('dashboard-ops-cards');
  if(ops)new MutationObserver(()=>{clearTimeout(init._priorityTimer);init._priorityTimer=setTimeout(buildPriorityPanel,100);}).observe(ops,{childList:true,subtree:true,characterData:true});
  document.addEventListener('keydown',e=>{
