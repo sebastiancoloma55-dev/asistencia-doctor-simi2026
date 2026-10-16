@@ -68,7 +68,7 @@ jobs:
     needs: validate-python
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
     steps:
       - name: Bloquear importación sin confirmación explícita
         if: github.event_name == 'workflow_dispatch' && inputs.mode == 'full_import'
