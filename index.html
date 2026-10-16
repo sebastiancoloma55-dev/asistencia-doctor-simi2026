@@ -1106,6 +1106,7 @@ main.flex.min-w-0.flex-1{background:linear-gradient(145deg,#f7faff 0%,#edf3fa 65
 @media(max-width:640px){#view-dashboard{padding:14px!important}.simi-dashboard-hero{padding:22px 18px!important;min-height:190px;align-items:flex-start}.simi-hero-copy{max-width:100%;padding-top:18px}.simi-hero-copy h2{font-size:27px!important}.simi-hero-art{position:absolute;right:-18px;bottom:-28px;width:125px;min-width:125px;opacity:.28}.simi-hero-art img{width:120px;height:120px}.simi-hero-role{right:12px;top:10px}.simi-hero-pills{max-width:78%}.simi-command-grid{grid-template-columns:1fr;gap:8px}.simi-command-card{padding:12px}.simi-chart-tools button{padding:6px}.simi-chart-detail-card{padding:16px}}
 @media(prefers-reduced-motion:reduce){.simi-command-card,#view-dashboard #dashboard-gerencial-graficos article,#view-dashboard #dashboard-chart-incidencias>div,#view-dashboard #dashboard-chart-atrasos>div,#view-dashboard #dashboard-chart-carga>div{transition:none!important}}
 
+.simi-chart-crossfilter{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border:1px solid #a9d7f0;background:#edf8ff;color:#154c78;border-radius:12px;padding:10px 13px;font-size:11px;font-weight:800;margin:10px 0}.simi-chart-crossfilter button{border:1px solid #b8d6ed;background:#fff;border-radius:8px;padding:6px 9px;color:#145c9b;font-weight:850}.simi-chart-crossfilter button:hover{background:#dff1ff}body.theme-dark .simi-chart-crossfilter{background:#142c43;border-color:#294b68;color:#d8eeff}body.theme-dark .simi-chart-crossfilter button{background:#102038;border-color:#294b68;color:#d8eeff}
 /* Sistema de diseño transversal para todas las pantallas */
 [id^="view-"]{color:var(--user-text,#10294b)}
 [id^="view-"] .ui-card,[id^="view-"] .bg-white.rounded-xl,[id^="view-"] .bg-white.rounded-2xl{background:var(--user-panel,#fff)!important;border-color:var(--user-line,#dce7f5)!important;border-radius:16px!important;box-shadow:0 6px 20px rgba(19,48,82,.045)}
@@ -4370,6 +4371,12 @@ main.flex.min-w-0.flex-1{background:radial-gradient(ellipse at 90% 0%,rgba(14,16
     if(format==='xlsx'&&window.XLSX){const m=meta(),lines=[['Gráfico',def.title],['Período',m.period],['Sucursal',m.branch],['Última actualización',new Date().toLocaleString('es-CL')],[],['Detalle'],...safeText(byId(def.id)).split('\\n').filter(Boolean).map(x=>[x])];const ws=window.XLSX.utils.aoa_to_sheet(lines);const wb=window.XLSX.utils.book_new();window.XLSX.utils.book_append_sheet(wb,ws,'Detalle');window.XLSX.writeFile(wb,base+'.xlsx');return}
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=base+'.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
   }
+  function crossFilter(label,sourceId){
+    const root=byId('dashboard-gerencial-graficos');if(!root)return;
+    let bar=byId('simi-chart-crossfilter');if(!bar){bar=document.createElement('div');bar.id='simi-chart-crossfilter';bar.className='simi-chart-crossfilter';root.parentElement.insertBefore(bar,root);}
+    bar.replaceChildren();const text=document.createElement('span');text.textContent='Filtro del gráfico: '+label;const clear=document.createElement('button');clear.type='button';clear.textContent='Limpiar filtro';clear.addEventListener('click',()=>{chartDefs.forEach(d=>{const el=byId(d.id);if(el)Array.from(el.children).forEach(row=>row.style.display='')});bar.remove();});bar.append(text,clear);
+    chartDefs.forEach(d=>{const el=byId(d.id);if(!el)return;Array.from(el.children).forEach(row=>{row.style.display=(d.id===sourceId||row.textContent.toLocaleLowerCase('es-CL').includes(label.toLocaleLowerCase('es-CL')))?'':'none'});});
+  }
   function addTools(def){
     const target=byId(def.id);if(!target||target.dataset.simiToolsReady)return;
     const article=target.closest('article');if(!article)return;
@@ -4378,7 +4385,7 @@ main.flex.min-w-0.flex-1{background:radial-gradient(ellipse at 90% 0%,rgba(14,16
     head.appendChild(tools);target.dataset.simiToolsReady='1';
     const search=tools.querySelector('[data-chart-search]');search.addEventListener('input',()=>{const q=search.value.trim().toLocaleLowerCase('es-CL');Array.from(target.children).forEach(row=>{row.style.display=!q||row.textContent.toLocaleLowerCase('es-CL').includes(q)?'':'none'});});
     tools.addEventListener('click',e=>{const detail=e.target.closest('[data-chart-detail]'),exp=e.target.closest('[data-chart-export]');if(detail)openDetail(def);if(exp)download(def,exp.dataset.chartExport)});
-    target.addEventListener('click',e=>{if(e.target.closest('button,a,input,select'))return;openDetail(def,safeText(target))});
+    target.addEventListener('click',e=>{if(e.target.closest('button,a,input,select'))return;let row=e.target;while(row&&row.parentElement!==target)row=row.parentElement;if(row&&row.parentElement===target&&row.textContent.trim()){const label=row.textContent.trim().replace(/\\s+/g,' ').slice(0,120);crossFilter(label,def.id);openDetail(def,label+'\\n\\nEl panel de gráficos se filtró usando esta selección. El detalle completo del gráfico se mantiene disponible abajo.');}else openDetail(def,safeText(target))});
     if(window.lucide&&typeof window.lucide.createIcons==='function')window.lucide.createIcons();
   }
   function init(){chartDefs.forEach(addTools)}
