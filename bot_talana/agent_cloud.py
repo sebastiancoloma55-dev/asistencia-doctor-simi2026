@@ -14,7 +14,7 @@ LOG = logging.getLogger("talana-cloud")
 
 def safe_error_sample(value):
     """Evita exponer RUT completos en los registros de GitHub Actions."""
-    text = re.sub(r"(?i)(RUT\\s+)[0-9.kK.-]+", r"\\1[REDACTADO]", str(value))
+    text = re.sub(r"(?i)(RUT\s+)[0-9.kK.-]+", r"\1[REDACTADO]", str(value))
     return text[:260]
 
 

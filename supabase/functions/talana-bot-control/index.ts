@@ -48,7 +48,7 @@ if(a==="bot_import"){
  const errors:string[]=[...parseErrors.map((x:any)=>String(x).slice(0,250))], valid:any[]=[];
  const missingKeyFieldCounts:Record<string,number>={};
  let inserted=0,updated=0,skipped=0,failed=parseErrors.length;
- for(let i=0;i<rows.length;i++){const row=clean(rows[i]);if(!row.rut){errors.push("lote fila "+(i+1)+": falta RUT");failed++;continue;}
+ for(let i=0;i<rows.length;i++){const row=clean(rows[i]);if(reportType==="reporte_jornadas_asistencia"){for(const field of allowed){if(!(field in row))row[field]=null;}}if(!row.rut){errors.push("lote fila "+(i+1)+": falta RUT");failed++;continue;}
   if(table==="vacaciones_historico"&&(!row.fecha_inicio||!row.fecha_fin||!row.tipo_vacaciones)){errors.push("lote fila "+(i+1)+": faltan campos obligatorios de vacaciones");failed++;continue;}
   if(table==="registros_asistencia"&&!row.fecha){errors.push("lote fila "+(i+1)+": falta fecha de asistencia");failed++;continue;}
   // Existing employees may have incomplete name cells in historical exports.
@@ -58,6 +58,31 @@ if(a==="bot_import"){
   if(missingKeyFields.length){for(const field of missingKeyFields)missingKeyFieldCounts[field]=(missingKeyFieldCounts[field]||0)+1;errors.push("lote fila "+(i+1)+": faltan campos de identificación para evitar duplicados ("+missingKeyFields.join(", ")+")");failed++;continue;}
   if(table==="registros_asistencia"){row.sin_marca=Boolean(row.sin_marca);row.marca_incompleta=Boolean(row.marca_incompleta);row.tiene_atraso=Boolean(row.tiene_atraso);row.sin_turno_marcas=Boolean(row.sin_turno_marcas);}
   valid.push(row);
+ }
+ let incomingRowsMerged=0;
+ if(reportType==="ausentismos_historico"){
+  // Identidad segura: RUT + inicio + tipo + fecha de creación + horas.
+  // Dos licencias con la misma fecha y tipo pueden ser distintas; solo se
+  // fusionan filas con la misma clave completa. Los casos ambiguos se rechazan.
+  const byLicense=new Map<string,any>();
+  for(const row of valid){
+   const identity=keyOf(row);
+   const previous=byLicense.get(identity);
+   if(!previous){byLicense.set(identity,{...row});continue;}
+   incomingRowsMerged++;
+   for(const field of allowed){
+    const value=row[field];
+    if(value!==null&&value!==undefined&&String(value).trim()!=="")previous[field]=value;
+   }
+  }
+  valid.splice(0,valid.length,...byLicense.values());
+ }
+ if(reportType==="reporte_jornadas_asistencia"){
+  // El XLSX más reciente manda para cada trabajador/día. Si el propio archivo trae filas partidas (por ejemplo, entrada y salida en filas separadas), consolidarlas antes de reemplazar el día existente.
+  const byEmployeeDay=new Map<string,any>();
+  const booleanFields=new Set(["sin_marca","marca_incompleta","tiene_atraso","sin_turno_marcas"]);
+  for(const row of valid){const key=keyOf(row);const previous=byEmployeeDay.get(key);if(!previous){byEmployeeDay.set(key,{...row});continue;}for(const field of allowed){if(field==="rut"||field==="fecha"||booleanFields.has(field))continue;const value=row[field];if(value!==null&&value!==undefined&&String(value).trim()!=="")previous[field]=value;}for(const field of booleanFields)previous[field]=Boolean(previous[field])||Boolean(row[field]);}
+  valid.splice(0,valid.length,...byEmployeeDay.values());
  }
  if(table==="colaboradores"){
   const unique=new Map<string,any>();for(const row of valid)unique.set(normRut(row.rut),row);
@@ -78,7 +103,7 @@ if(a==="bot_import"){
    inserted=toUpsert.filter((row:any)=>!existingMap.has(normRut(row.rut))).length;
    updated=toUpsert.filter((row:any)=>existingMap.has(normRut(row.rut))).length;
    skipped+=valid.length-toUpsert.length;
-   return json({dry_run:true,write_performed:false,report_type:reportType,table,received:rows.length,valid:valid.length,planned_inserted:inserted,planned_updated:updated,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts}});
+   return json({dry_run:true,write_performed:false,report_type:reportType,table,received:rows.length,valid:valid.length,planned_inserted:inserted,planned_updated:updated,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts,incoming_rows_merged:incomingRowsMerged}});
   }
   if(toUpsert.length){const {data,error}=await admin.from(table).upsert(toUpsert,{onConflict:"rut"}).select("rut");if(error){return json({error:"No se pudieron actualizar colaboradores: "+error.message,inserted,updated,skipped,failed:failed+toUpsert.length,errors:errors.slice(0,100)},500);}
    for(const r of data||[]){if(existingMap.has(normRut(r.rut)))updated++;else inserted++;}
@@ -103,13 +128,27 @@ if(a==="bot_import"){
    }
   }
   const existingByKey=new Map<string,any>();
+  const existingMatchesByKey=new Map<string,any[]>();
   const attendanceFallback=reportType==="reporte_jornadas_asistencia";
   const legacyFields=reportType==="ausentismos_historico"?["rut","fecha_inicio","tipo_ausencia"]:reportType==="solicitudes_vacaciones_historicas"?["rut","fecha_inicio","tipo_vacaciones"]:attendanceFallback?["rut","fecha"]:null;
   const legacyDiscriminators=reportType==="ausentismos_historico"?["fecha_creacion","hora_inicio","hora_fin"]:reportType==="solicitudes_vacaciones_historicas"?["fecha_solicitud","jornada"]:null;
   const legacyCandidates=new Map<string,any[]>();
   const legacyKey=(r:any)=>legacyFields?legacyFields.map((field:string)=>field==="rut"?normRut(r[field]):norm(r[field])).join("|"):null;
+  const mergeExactRows=(records:any[])=>{
+   const merged={...records[0]}, conflicts:string[]=[];
+   for(const record of records.slice(1)){
+    for(const field of allowed){
+     const current=merged[field], incoming=record[field];
+     const currentPresent=current!==null&&current!==undefined&&String(current).trim()!=="";
+     const incomingPresent=incoming!==null&&incoming!==undefined&&String(incoming).trim()!=="";
+     if(currentPresent&&incomingPresent&&norm(current)!==norm(incoming)){conflicts.push(field);continue;}
+     if(!currentPresent&&incomingPresent)merged[field]=incoming;
+    }
+   }
+   return {merged,conflicts:[...new Set(conflicts)]};
+  };
   for(const old of existingRows){
-   const oldKey=keyOf(old);if(oldKey&&!existingByKey.has(oldKey))existingByKey.set(oldKey,old);
+   const oldKey=keyOf(old);if(oldKey){if(!existingByKey.has(oldKey))existingByKey.set(oldKey,old);const matches=existingMatchesByKey.get(oldKey)||[];matches.push(old);existingMatchesByKey.set(oldKey,matches);}
    // Attendance can change its entry/exit marks between exports. Reconcile by
    // employee + date only when exactly one stored row exists for that day.
    // If multiple shifts/records exist, refuse the fallback rather than duplicate or overwrite.
@@ -120,22 +159,50 @@ if(a==="bot_import"){
    }
   }
   const seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
+  let ambiguousLegacyMerged=0, blockedAmbiguousLegacy=0, blockedExistingDuplicateConflicts=0, duplicateRowsRemoved=0, duplicateRowsDetected=0;
+
   for(const row of valid){
    const k=keyOf(row);
    if(!k){failed++;errors.push(table+" RUT "+row.rut+": clave natural incompleta; fila rechazada para no generar duplicados.");continue;}
    if(seenIncoming.has(k)){skipped++;continue;}
    seenIncoming.add(k);
    let old=existingByKey.get(k);
+   let legacyDuplicateIds:string[]=[];
    if(!old&&legacyFields){
     const candidates=legacyCandidates.get(legacyKey(row))||[];
     if(candidates.length===1)old=candidates[0];
-    else if(candidates.length>1){failed++;errors.push(table+" RUT "+row.rut+": hay "+candidates.length+" registros históricos que coinciden por clave base; se requiere revisión manual y no se insertó.");continue;}
+    else if(candidates.length>1){
+      const groups=new Map<string,any[]>();
+      for(const candidate of candidates){const candidateKey=keyOf(candidate)||"__incomplete__:"+String(candidate.id);const group=groups.get(candidateKey)||[];group.push(candidate);groups.set(candidateKey,group);}
+      if(groups.size===1){
+       const sameKey=[...groups.values()][0], merged=mergeExactRows(sameKey);
+       if(!merged.conflicts.length){old=merged.merged;legacyDuplicateIds=sameKey.filter((candidate:any)=>candidate.id!==old.id).map((candidate:any)=>candidate.id);}
+       else {skipped++;blockedAmbiguousLegacy++;blockedExistingDuplicateConflicts++;continue;}
+      }else{
+       // Distintas licencias/solicitudes comparten la clave parcial: no se puede
+       // decidir automáticamente cuál actualizar sin arriesgar datos.
+       skipped++;blockedAmbiguousLegacy++;continue;
+      }
+    }
    }
-   if(old){pendingUpdates.push({id:old.id,row,old});}
-   else pending.push(row);
+   if(old){
+    const exactMatches=(existingMatchesByKey.get(k)||[]).filter((candidate:any)=>candidate.id!==old.id);
+    let canonical={...old};
+    if(exactMatches.length){
+     const merged=mergeExactRows([old,...exactMatches]);
+     if(merged.conflicts.length){
+      skipped++;blockedExistingDuplicateConflicts++;
+      errors.push(table+" RUT "+row.rut+": hay duplicados con datos contradictorios ("+merged.conflicts.join(", ")+"); requiere revisión manual y no se modificó.");
+      continue;
+     }
+     canonical=merged.merged;
+    }
+    pendingUpdates.push({id:old.id,row,old:canonical,duplicateIds:[...new Set([...exactMatches.map((candidate:any)=>candidate.id),...legacyDuplicateIds])]});
+   }else pending.push(row);
   }
+  const safeDuplicateIds=[...new Set(pendingUpdates.flatMap((item:any)=>item.duplicateIds||[]))];
   if(dryRun){
-   const diagnostics:any={missing_key_fields:missingKeyFieldCounts};
+   const diagnostics:any={missing_key_fields:missingKeyFieldCounts,incoming_rows_merged:incomingRowsMerged,ambiguous_legacy_rows_merged:ambiguousLegacyMerged,blocked_ambiguous_legacy_rows:blockedAmbiguousLegacy,blocked_existing_duplicate_conflicts:blockedExistingDuplicateConflicts,planned_duplicate_rows_removed:safeDuplicateIds.length,existing_duplicate_rows_detected:safeDuplicateIds.length};
    if(attendanceFallback){
     const countByDate=(items:any[])=>{const counts:Record<string,number>={};for(const item of items){const day=norm(item.fecha);if(day)counts[day]=(counts[day]||0)+1;}return counts;};
     const incomingByDate=countByDate(valid), plannedByDate=countByDate(pending);
@@ -150,15 +217,25 @@ if(a==="bot_import"){
   // that are not present in this particular Talana export.
   if(pendingUpdates.length){
    const updatesToUpsert=pendingUpdates.map((item:any)=>{
-    const merged={...item.old};
-    for(const [field,value] of Object.entries(item.row)){if(value!==undefined&&value!==null&&value!=="")merged[field]=value;}
+    const merged=attendanceFallback?{...item.row,id:item.id}:{...item.old};
+    if(!attendanceFallback){for(const [field,value] of Object.entries(item.row)){if(value!==undefined&&value!==null&&value!=="")merged[field]=value;}}
     merged.id=item.id;
-    for(const field of importKeyFields(reportType)||[]){merged[field]=item.old[field]??merged[field];}
+    for(const field of importKeyFields(reportType)||[]){merged[field]=reportType==="ausentismos_historico"?(item.row[field]??item.old[field]??merged[field]):(item.old[field]??merged[field]);}
     return merged;
    });
    const {error}=await admin.from(table).upsert(updatesToUpsert,{onConflict:"id"});
    if(error){failed+=pendingUpdates.length;errors.push(table+": falló la actualización por lote ("+error.message.slice(0,180)+").");}
-   else updated+=pendingUpdates.length;
+   else {
+    updated+=pendingUpdates.length;
+    for(const item of pendingUpdates){
+     const ids=[...new Set(item.duplicateIds||[])];
+     if(!ids.length)continue;
+     const {data:deleted,error:deleteError}=await admin.from(table).delete().in("id",ids).select("id");
+     if(deleteError){failed++;errors.push(table+" RUT "+item.row.rut+": se actualizó el registro principal, pero no se pudieron retirar "+ids.length+" duplicados seguros ("+deleteError.message.slice(0,140)+").");}
+     else duplicateRowsRemoved+=(deleted||[]).length;
+    }
+    duplicateRowsDetected=safeDuplicateIds.length;
+   }
   }
   if(pending.length){const {data,error}=await admin.from(table).insert(pending).select("id");if(error){
     for(const row of pending){
@@ -191,7 +268,7 @@ if(a==="bot_import"){
  if(b.final_batch!==false){
   for(const moduleName of moduleNames){const {error}=await admin.from("actualizaciones_fuentes").upsert({modulo:moduleName,actualizado_en:new Date().toISOString(),archivo:String(b.file_name||"Talana"),origen:"bot",usuario_email:"Bot Talana",registros:inserted+updated,detalles:{report_type:reportType,run_id:b.run_id||null,inserted,updated,skipped,failed}},{onConflict:"modulo"});if(error){trackingRegistered=false;console.error("Tracking de importación:",error.message);}}
  }
- return json({report_type:reportType,table,received:rows.length,inserted,updated,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts},tracking_registered:trackingRegistered});
+ return json({report_type:reportType,table,received:rows.length,inserted,updated,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts,incoming_rows_merged:incomingRowsMerged,ambiguous_legacy_rows_merged:ambiguousLegacyMerged,blocked_ambiguous_legacy_rows:blockedAmbiguousLegacy,blocked_existing_duplicate_conflicts:blockedExistingDuplicateConflicts,planned_duplicate_rows_removed:0,existing_duplicate_rows_detected:duplicateRowsDetected,duplicate_rows_removed:duplicateRowsRemoved},tracking_registered:trackingRegistered});
 }
 if(a==="bot_finish"){const runId=String(b.run_id||""),status=["success","partial","failed"].includes(b.status)?b.status:"success";const {count,error:ce}=await admin.from("talana_bot_files").select("id",{count:"exact",head:true}).eq("run_id",runId);if(ce)return json({error:ce.message},500);const {data,error}=await admin.from("talana_bot_runs").update({status,finished_at:new Date().toISOString(),reports_downloaded:Number(b.reports_downloaded||0),reports_uploaded:count||0,error_summary:b.error_summary?String(b.error_summary).slice(0,4000):null,details:b.details&&typeof b.details==="object"?b.details:{}}).eq("id",runId).select("*").single();if(error)return json({error:error.message},500);return json({run:data});}
 return json({error:"Acción desconocida"},400);

@@ -68,7 +68,7 @@ jobs:
     needs: validate-python
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
     steps:
       - name: Bloquear importación sin confirmación explícita
         if: github.event_name == 'workflow_dispatch' && inputs.mode == 'full_import'
@@ -81,8 +81,10 @@ jobs:
           fi
           echo "Confirmación explícita recibida; se verificará además que el bot esté habilitado en Supabase."
 
-      - name: Descargar código
+      - name: Descargar código de la rama autorizada
         uses: actions/checkout@v4
+        with:
+          ref: feat/coberturas-responsables-multiselect
 
       - name: Preparar Python
         uses: actions/setup-python@v5
