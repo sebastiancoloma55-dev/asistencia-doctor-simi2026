@@ -59,6 +59,23 @@ if(a==="bot_import"){
   if(table==="registros_asistencia"){row.sin_marca=Boolean(row.sin_marca);row.marca_incompleta=Boolean(row.marca_incompleta);row.tiene_atraso=Boolean(row.tiene_atraso);row.sin_turno_marcas=Boolean(row.sin_turno_marcas);}
   valid.push(row);
  }
+ if(reportType==="ausentismos_historico"){
+  // Una licencia se identifica por RUT + fecha de inicio + tipo de ausencia.
+  // Fusionar filas del mismo archivo antes de comparar con Supabase: los campos
+  // no vacíos de la fila más reciente completan la licencia, sin crear duplicados
+  // solo porque cambien la hora o la fecha de creación del registro.
+  const byLicense=new Map<string,any>();
+  for(const row of valid){
+   const identity=[normRut(row.rut),norm(row.fecha_inicio),norm(row.tipo_ausencia)].join("|");
+   const previous=byLicense.get(identity);
+   if(!previous){byLicense.set(identity,{...row});continue;}
+   for(const field of allowed){
+    const value=row[field];
+    if(value!==null&&value!==undefined&&String(value).trim()!=="")previous[field]=value;
+   }
+  }
+  valid.splice(0,valid.length,...byLicense.values());
+ }
  if(reportType==="reporte_jornadas_asistencia"){
   // El XLSX más reciente manda para cada trabajador/día. Si el propio archivo trae filas partidas (por ejemplo, entrada y salida en filas separadas), consolidarlas antes de reemplazar el día existente.
   const byEmployeeDay=new Map<string,any>();
