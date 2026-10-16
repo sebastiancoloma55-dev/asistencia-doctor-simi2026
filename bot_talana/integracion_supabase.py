@@ -28,7 +28,9 @@ class TalanaBotCloud:
   from importador_reportes import parse_report
   p=Path(path)
   rows,parse_errors,metadata=parse_report(p,report_type)
-  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"planned_inserted":0,"planned_updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True,"diagnostics":{"missing_key_fields":{},"attendance":{"incoming_by_date":{},"planned_new_by_date":{}}}}
+  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"planned_inserted":0,"planned_updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True,"diagnostics":{"missing_key_fields":{},"incoming_rows_merged":int(metadata.get("rows_deduplicated",0) or 0),"ambiguous_legacy_rows_merged":0,"planned_duplicate_rows_removed":0,"duplicate_rows_removed":0,"attendance":{"incoming_by_date":{},"planned_new_by_date":{}}}}
+  # Count XLSX rows consolidated before batching as skipped source duplicates.
+  totals["skipped"] += int(metadata.get("rows_deduplicated",0) or 0)
   attendance_employee_ids=set()
   if report_type=="reporte_jornadas_asistencia":
    import re
@@ -45,6 +47,8 @@ class TalanaBotCloud:
    diag=result.get("diagnostics") or {}
    for field,count in (diag.get("missing_key_fields") or {}).items():
     totals["diagnostics"]["missing_key_fields"][field]=totals["diagnostics"]["missing_key_fields"].get(field,0)+int(count or 0)
+   for field in ("incoming_rows_merged","ambiguous_legacy_rows_merged","planned_duplicate_rows_removed","duplicate_rows_removed"):
+    totals["diagnostics"][field]=totals["diagnostics"].get(field,0)+int(diag.get(field,0) or 0)
    attendance=diag.get("attendance") or {}
    for bucket in ("incoming_by_date","planned_new_by_date"):
     target=totals["diagnostics"]["attendance"][bucket]
