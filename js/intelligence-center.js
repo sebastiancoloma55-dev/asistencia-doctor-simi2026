@@ -221,7 +221,7 @@ function decorateFreshness(){
 function init(){
  ensureStyles();installTrigger();createSearch();buildPriorityPanel();decorateFreshness();
  const bar=document.getElementById('simi-command-center');if(bar&&!bar.dataset.simiSearchBound){bar.dataset.simiSearchBound='1';bar.addEventListener('click',e=>{const b=e.target.closest('[data-simi-action]');if(b&&b.dataset.simiAction==='refresh')setTimeout(buildPriorityPanel,500);});}
- const freshness=document.getElementById('dashboard-freshness-list');if(freshness)new MutationObserver(()=>{freshness.querySelectorAll(':scope > *').forEach(c=>{if(c.dataset)c.dataset.simiFreshnessDecorated='';});decorateFreshness();}).observe(freshness,{childList:true,subtree:true});
+ const freshness=document.getElementById('dashboard-freshness-list');if(freshness)new MutationObserver(records=>{if(records.some(record=>record.target===freshness))decorateFreshness();}).observe(freshness,{childList:true});
  const ops=document.getElementById('dashboard-ops-cards');
  if(ops)new MutationObserver(()=>{clearTimeout(init._priorityTimer);init._priorityTimer=setTimeout(buildPriorityPanel,100);}).observe(ops,{childList:true,subtree:true,characterData:true});
  document.addEventListener('keydown',e=>{
