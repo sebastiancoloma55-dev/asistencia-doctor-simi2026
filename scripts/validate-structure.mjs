@@ -50,6 +50,8 @@ for (const moduleName of ['operaciones', 'calidad', 'notificaciones', 'integraci
 }
 const gemini = readFileSync(path.join(root, 'api/gemini.js'), 'utf8');
 if (!html.includes('id="view-analista_ia"') || !html.includes('id="btn-analista_ia"')) fail('El Analista IA debe tener pantalla y acceso de navegación propios.');
+if (!html.includes('id="view-inteligencia_asistencia"') || !html.includes('id="btn-inteligencia_asistencia"')) fail('El Centro de inteligencia de asistencia debe tener pantalla y navegación propios.');
+if (!readFileSync(path.join(root, 'js/workflows.js'), 'utf8').includes("'inteligencia_asistencia'")) fail('El permiso del Centro de inteligencia de asistencia no está disponible para asignar a usuarios.');
 if (!readFileSync(path.join(root, 'js/workflows.js'), 'utf8').includes("'analista_ia'")) fail('El permiso analista_ia no está disponible para asignar a usuarios.');
 if (!existsSync(path.join(root, 'js/analista-ia.js'))) fail('Falta el controlador del módulo Analista IA.');
 const geo = readFileSync(path.join(root, 'api/geocodificar.js'), 'utf8');
