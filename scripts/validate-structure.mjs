@@ -13,7 +13,8 @@ const localScripts = [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]
   .map(match => match[1])
   .filter(src => src.startsWith('/') && !src.startsWith('//'));
 for (const src of localScripts) {
-  const file = path.join(root, src.replace(/^\//, ''));
+  const localPath = src.split(/[?#]/, 1)[0]; // Los parámetros de versión son cache-busters, no parte de la ruta del archivo.
+  const file = path.join(root, localPath.replace(/^\//, ''));
   if (!existsSync(file)) fail(`El script local ${src} no existe.`);
 }
 

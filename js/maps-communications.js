@@ -22,11 +22,57 @@
             select.innerHTML='<option value="">Selecciona una sucursal</option>'+(data||[]).map(x=>'<option value="'+escaparHTML(x.id)+'">'+escaparHTML(x.nombre)+'</option>').join('');
         }
         let solicitudCoberturaSeleccionada=null;
+        function actualizarSelectorResponsablesCobertura(){
+            const select=document.getElementById('dot-responsables'),list=document.getElementById('dot-responsables-list'),chips=document.getElementById('dot-responsables-chips'),count=document.getElementById('dot-responsables-count'),search=document.getElementById('dot-responsables-search');
+            if(!select||!list||!chips||!count)return;
+            const opciones=[...select.options].filter(o=>o.value&&o.value!=='');
+            const seleccionadas=opciones.filter(o=>o.selected);
+            const termino=(search?.value||'').trim().toLocaleLowerCase('es');
+            const visibles=opciones.filter(o=>o.textContent.toLocaleLowerCase('es').includes(termino));
+            count.textContent=seleccionadas.length+' seleccionado'+(seleccionadas.length===1?'':'s');
+            chips.innerHTML=seleccionadas.length?seleccionadas.map(o=>'<span class="inline-flex max-w-full items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 py-1 pl-2.5 pr-1.5 text-xs font-bold text-cyan-900"><span class="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-cyan-700 text-[10px] font-black text-white">'+escaparHTML((o.textContent.trim()[0]||'U').toLocaleUpperCase('es'))+'</span><span class="max-w-[220px] truncate">'+escaparHTML(o.textContent)+'</span><button type="button" data-remove-responsable="'+escaparHTML(o.value)+'" aria-label="Quitar '+escaparHTML(o.textContent)+'" class="ml-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-cyan-800 hover:bg-cyan-200">×</button></span>').join(''):'<span class="text-xs text-slate-400">Todavía no has seleccionado responsables.</span>';
+            if(!opciones.length){
+                const fallo=select.options.length&&select.options[0].textContent.includes('No disponible');
+                list.innerHTML='<div class="rounded-xl border border-dashed border-slate-200 p-4 text-center"><p class="text-sm font-bold text-slate-600">'+(fallo?'No fue posible cargar usuarios para este perfil.':'No hay usuarios autorizados disponibles.')+'</p><p class="mt-1 text-xs text-slate-400">Si crees que esto es un error, revisa los permisos de coberturas.</p></div>';
+                return;
+            }
+            if(!visibles.length){
+                list.innerHTML='<div class="p-5 text-center"><p class="text-sm font-bold text-slate-600">No encontramos coincidencias</p><p class="mt-1 text-xs text-slate-400">Prueba con otro nombre o correo.</p></div>';
+                return;
+            }
+            list.innerHTML=visibles.map(o=>'<label class="flex cursor-pointer items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 transition hover:border-cyan-100 hover:bg-cyan-50/70 '+(o.selected?'border-cyan-100 bg-cyan-50/50':'')+'"><input type="checkbox" data-responsable-checkbox="'+escaparHTML(o.value)+'" '+(o.selected?'checked':'')+' class="h-4 w-4 shrink-0 rounded border-slate-300 text-cyan-700 focus:ring-cyan-600"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl '+(o.selected?'bg-cyan-700 text-white':'bg-slate-100 text-slate-600')+' text-sm font-black">'+escaparHTML((o.textContent.trim()[0]||'U').toLocaleUpperCase('es'))+'</span><span class="min-w-0 flex-1"><span class="block truncate text-sm font-bold '+(o.selected?'text-cyan-950':'text-slate-800')+'">'+escaparHTML(o.textContent.split(' · ')[0])+'</span><span class="block truncate text-xs text-slate-500">'+escaparHTML(o.textContent.includes(' · ')?o.textContent.split(' · ').slice(1).join(' · '):'Usuario autorizado')+'</span></span><span class="text-[10px] font-extrabold uppercase tracking-wide '+(o.selected?'text-cyan-700':'text-slate-300')+'">'+(o.selected?'Seleccionado':'')+'</span></label>').join('');
+        }
+        function inicializarSelectorResponsablesCobertura(){
+            const picker=document.getElementById('dot-responsables-picker'),search=document.getElementById('dot-responsables-search');
+            if(!picker||picker.dataset.bound==='1')return;
+            picker.dataset.bound='1';
+            search?.addEventListener('input',actualizarSelectorResponsablesCobertura);
+            picker.addEventListener('change',event=>{
+                const checkbox=event.target.closest('[data-responsable-checkbox]');if(!checkbox)return;
+                const option=[...document.getElementById('dot-responsables').options].find(o=>o.value===checkbox.dataset.responsableCheckbox);
+                if(option)option.selected=checkbox.checked;
+                actualizarSelectorResponsablesCobertura();
+            });
+            picker.addEventListener('click',event=>{
+                const remove=event.target.closest('[data-remove-responsable]');
+                if(remove){const option=[...document.getElementById('dot-responsables').options].find(o=>o.value===remove.dataset.removeResponsable);if(option)option.selected=false;actualizarSelectorResponsablesCobertura();return;}
+                const clear=event.target.closest('#dot-responsables-clear');
+                if(clear){[...document.getElementById('dot-responsables').options].forEach(o=>o.selected=false);actualizarSelectorResponsablesCobertura();return;}
+                const all=event.target.closest('#dot-responsables-select-visible');
+                if(all){
+                    const select=document.getElementById('dot-responsables'),term=(search?.value||'').trim().toLocaleLowerCase('es');
+                    const visible=[...select.options].filter(o=>o.value&&o.textContent.toLocaleLowerCase('es').includes(term));
+                    const marcar=visible.some(o=>!o.selected);visible.forEach(o=>o.selected=marcar);actualizarSelectorResponsablesCobertura();
+                }
+            });
+        }
         async function cargarResponsablesCobertura(){
             const select=document.getElementById('dot-responsables');if(!select)return;
+            inicializarSelectorResponsablesCobertura();
             const {data,error}=await _supabase.rpc('listar_responsables_cobertura');
-            if(error){select.innerHTML='<option value="">No disponible para este perfil</option>';return;}
+            if(error){select.innerHTML='<option value="">No disponible para este perfil</option>';actualizarSelectorResponsablesCobertura();return;}
             select.innerHTML=(data||[]).map(u=>'<option value="'+escaparHTML(u.id)+'">'+escaparHTML((u.nombre||u.email||('Usuario '+u.id))+(u.email?' · '+u.email:''))+'</option>').join('');
+            actualizarSelectorResponsablesCobertura();
         }
         async function crearSolicitudDotacion(event){
             event.preventDefault();
