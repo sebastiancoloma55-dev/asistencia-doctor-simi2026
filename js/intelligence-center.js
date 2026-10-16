@@ -145,7 +145,7 @@ function bindResults(){
   const kind=b.dataset.kind;
   if(kind==='module'){goModule(b.dataset.id);return;}
   if(kind==='action'){closeSearch();runAction(b.dataset.action);return;}
-  const q=normalize(input.value),items=currentContentResults(q),item=items[Number(b.dataset.index)||i];
+  const q=normalize(input.value),items=currentContentResults(q),label=b.querySelector('.sgs-label')?.textContent,item=items.find(x=>x.label===label)||items[Number(b.dataset.index)||0];
   closeSearch();if(item?.el){item.el.scrollIntoView({behavior:'smooth',block:'center'});if(item.el.focus)item.el.focus({preventScroll:true});item.el.style.outline='3px solid rgba(7,140,168,.35)';setTimeout(()=>item.el.style.outline='',1300);}
  }));
  if(window.lucide?.createIcons)window.lucide.createIcons({root:results});
