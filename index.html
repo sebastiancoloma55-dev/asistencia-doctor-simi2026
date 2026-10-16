@@ -3668,5 +3668,31 @@ body.simi-compact-mode .module-title-card{padding:14px 18px!important}
 @media(max-width:900px){main section[id^="view-"]{padding:17px 15px!important;gap:15px!important}main>header.sticky{padding:12px 16px!important}#quick-module-bar{padding:9px 16px!important}#simi-command-center{padding:11px 16px}}
 @media(max-width:600px){#sidebar{width:min(86vw,310px)!important;min-width:min(86vw,310px)!important}main section[id^="view-"]{padding:12px 10px!important;gap:12px!important}.module-intro,.module-title-card{padding:15px!important}.module-logo-mark{width:41px!important;height:41px!important;min-width:41px!important}#simi-command-center{gap:10px;padding:10px}.simi-command-brand{width:100%}.simi-command-actions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.simi-command-actions button{width:100%;justify-content:flex-start}.simi-command-actions button:last-child{grid-column:1/-1}}
 </style>
+<script id="simi-command-center-actions">
+(function(){
+ const bar=document.getElementById('simi-command-center');
+ if(!bar||bar.dataset.bound==='1')return;
+ bar.dataset.bound='1';
+ bar.addEventListener('click',function(event){
+  const button=event.target.closest('button[data-simi-action]');
+  if(!button)return;
+  const action=button.dataset.simiAction;
+  if(action==='home'&&typeof cambiarModulo==='function')cambiarModulo('dashboard');
+  if(action==='task'&&typeof cambiarModulo==='function'){cambiarModulo('tareas');setTimeout(function(){document.getElementById('tarea-titulo')?.focus();},300);}
+  if(action==='note'&&typeof cambiarModulo==='function'){cambiarModulo('espacio');setTimeout(function(){document.getElementById('rrhh-nota-titulo')?.focus();},300);}
+  if(action==='refresh'){
+   if(typeof cargarResumenOperativoRRHH==='function')cargarResumenOperativoRRHH();
+   if(typeof cargarResumenActualizaciones==='function')cargarResumenActualizaciones();
+   button.classList.add('simi-action-flash');setTimeout(function(){button.classList.remove('simi-action-flash');},700);
+  }
+  if(action==='compact'){
+   const active=document.body.classList.toggle('simi-compact-mode');
+   button.setAttribute('aria-pressed',String(active));
+   const label=button.querySelector('.simi-compact-label');
+   if(label)label.textContent=active?'Vista cómoda':'Vista compacta';
+  }
+ });
+})();
+</script>
 </body>
 </html>
