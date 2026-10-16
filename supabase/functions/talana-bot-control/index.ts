@@ -84,6 +84,7 @@ if(a==="bot_import"){
   for(const row of valid){const key=keyOf(row);const previous=byEmployeeDay.get(key);if(!previous){byEmployeeDay.set(key,{...row});continue;}for(const field of allowed){if(field==="rut"||field==="fecha"||booleanFields.has(field))continue;const value=row[field];if(value!==null&&value!==undefined&&String(value).trim()!=="")previous[field]=value;}for(const field of booleanFields)previous[field]=Boolean(previous[field])||Boolean(row[field]);}
   valid.splice(0,valid.length,...byEmployeeDay.values());
  }
+ let ambiguousLegacyMerged=0, blockedAmbiguousLegacy=0, blockedExistingDuplicateConflicts=0, duplicateRowsRemoved=0, duplicateRowsDetected=0;
  if(table==="colaboradores"){
   const unique=new Map<string,any>();for(const row of valid)unique.set(normRut(row.rut),row);
   const rutList=[...new Set([...unique.values()].flatMap((r:any)=>rutLookupVariants(r.rut)))];
@@ -159,7 +160,6 @@ if(a==="bot_import"){
    }
   }
   const seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
-  let ambiguousLegacyMerged=0, blockedAmbiguousLegacy=0, blockedExistingDuplicateConflicts=0, duplicateRowsRemoved=0, duplicateRowsDetected=0;
 
   for(const row of valid){
    const k=keyOf(row);
