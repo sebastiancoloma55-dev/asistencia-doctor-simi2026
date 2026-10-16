@@ -4428,6 +4428,34 @@ main.flex.min-w-0.flex-1{background:radial-gradient(ellipse at 90% 0%,rgba(14,16
 .map14-combo-empty{padding:12px;color:#647b8d;font-size:12px}
 .map14-combo-count{padding:7px 10px 5px;color:#668096;font-size:10px;border-bottom:1px solid #edf2f6;margin-bottom:3px}
 #map14-origen-wrap,#map14-destino-wrap{margin-top:4px}
+
+/* PREVIEW DASHBOARD DOCTOR SIMI 2026 — solo presentación, sin cambios de datos */
+#view-dashboard{display:flex!important;flex-direction:column!important;gap:18px!important;padding:18px!important}
+#view-dashboard>*{order:20}
+#view-dashboard>.simi-dashboard-hero{order:1;min-height:176px!important;padding:26px 30px!important;border-radius:20px!important;background:radial-gradient(ellipse at 57% 45%,rgba(37,195,255,.42),transparent 29%),radial-gradient(circle at 8% 115%,rgba(255,255,255,.13),transparent 25%),linear-gradient(110deg,#123bb5 0%,#087fda 52%,#00a6c1 100%)!important;overflow:hidden!important}
+#view-dashboard>.simi-dashboard-hero:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(135deg,transparent 0 28px,rgba(255,255,255,.045) 29px 30px,transparent 31px 54px);mask-image:linear-gradient(90deg,#000,transparent 85%)}
+#view-dashboard .simi-hero-copy{max-width:63%!important}
+#view-dashboard .simi-hero-copy h2{font-size:clamp(28px,3.2vw,42px)!important;margin:8px 0 5px!important}
+#view-dashboard .simi-hero-copy>p:not(.simi-hero-eyebrow){font-size:14px!important;line-height:1.45!important}
+#view-dashboard .simi-hero-pills{margin-top:10px!important;gap:6px!important}
+#view-dashboard .simi-hero-pills span{padding:5px 9px!important}
+#view-dashboard .simi-hero-art{width:35%!important;max-width:390px!important;min-width:210px!important}
+#view-dashboard .simi-hero-art img{width:clamp(120px,12vw,165px)!important;height:clamp(120px,12vw,165px)!important}
+#view-dashboard>.grid.grid-cols-1.gap-5.sm\:grid-cols-2.lg\:grid-cols-4{order:2;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important}
+#view-dashboard>.grid.grid-cols-1.gap-5.sm\:grid-cols-2.lg\:grid-cols-4>.ui-card{min-height:104px!important;padding:17px!important;border-radius:14px!important;display:flex!important;align-items:center!important}
+#view-dashboard .simi-command-grid{order:3;grid-template-columns:repeat(4,minmax(0,1fr))!important}
+#view-dashboard #dashboard-gerencial-graficos{order:4}
+#view-dashboard #dashboard-ops-summary{order:6}
+#view-dashboard #dashboard-freshness-list{min-height:38px}
+#view-dashboard #dashboard-space-summary{order:7}
+#view-dashboard .ui-card{border-radius:15px!important;border-color:#d8e6f4!important;box-shadow:0 5px 18px rgba(19,57,99,.055)!important}
+#view-dashboard .simi-command-card{min-height:76px!important;border-radius:14px!important}
+#view-dashboard .simi-command-card b{font-size:12px!important}
+#view-dashboard .simi-command-card small{font-size:10px!important}
+#view-dashboard .dash-space-card{background:linear-gradient(145deg,#fff,#f5faff)!important}
+@media(max-width:900px){#view-dashboard{padding:12px!important}#view-dashboard>.grid.grid-cols-1.gap-5.sm\:grid-cols-2.lg\:grid-cols-4,#view-dashboard .simi-command-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#view-dashboard .simi-hero-art{min-width:130px!important;width:28%!important}#view-dashboard .simi-hero-copy{max-width:72%!important}}
+@media(max-width:560px){#view-dashboard>.simi-dashboard-hero{padding:22px 18px!important;min-height:190px!important}#view-dashboard .simi-hero-art{display:none!important}#view-dashboard .simi-hero-copy{max-width:100%!important}#view-dashboard>.grid.grid-cols-1.gap-5.sm\:grid-cols-2.lg\:grid-cols-4,#view-dashboard .simi-command-grid{grid-template-columns:1fr!important}}
+
 </style>
 <script id="map14-real-searchable-combobox-script">
 (function(){
