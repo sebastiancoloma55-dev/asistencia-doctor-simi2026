@@ -867,18 +867,34 @@
                 if (vista) {
                     vista.classList.remove('rrhh-view-enter');
                     vista.classList.add('hidden');
+                    // Ocultación explícita: evita que reglas de diseño o scripts externos
+                    // dejen visible el dashboard al cambiar el título del módulo.
+                    vista.style.display = 'none';
+                    vista.setAttribute('aria-hidden', 'true');
                 }
             });
 
-            document
-                .getElementById('view-generic')
-                .classList
-                .add('hidden');
+            const genericView = document.getElementById('view-generic');
+            if (genericView) {
+                genericView.classList.add('hidden');
+                genericView.style.display = 'none';
+                genericView.setAttribute('aria-hidden', 'true');
+            }
 
-            const dashboardView=document.getElementById('view-dashboard');
-            if(dashboardView)dashboardView.classList.toggle('hidden',modulo!=='dashboard');
-            const dashboardPanel=document.getElementById('dashboard-panel-inteligente');
-            if(dashboardPanel)dashboardPanel.classList.toggle('hidden',modulo!=='dashboard');
+            const dashboardView = document.getElementById('view-dashboard');
+            if (dashboardView) {
+                const mostrarDashboard = modulo === 'dashboard';
+                dashboardView.classList.toggle('hidden', !mostrarDashboard);
+                dashboardView.style.display = mostrarDashboard ? '' : 'none';
+                dashboardView.setAttribute('aria-hidden', String(!mostrarDashboard));
+            }
+            const dashboardPanel = document.getElementById('dashboard-panel-inteligente');
+            if (dashboardPanel) {
+                const mostrarPanelDashboard = modulo === 'dashboard';
+                dashboardPanel.classList.toggle('hidden', !mostrarPanelDashboard);
+                dashboardPanel.style.display = mostrarPanelDashboard ? '' : 'none';
+                dashboardPanel.setAttribute('aria-hidden', String(!mostrarPanelDashboard));
+            }
             document.getElementById('header-title').innerText =
                 titulos[modulo] || modulo;
 
@@ -886,6 +902,8 @@
 
             if (vista) {
                 vista.classList.remove('hidden');
+                vista.style.display = '';
+                vista.setAttribute('aria-hidden', 'false');
                 requestAnimationFrame(() => {
                     if (secuenciaActual === secuenciaCambioModulo && !vista.classList.contains('hidden')) {
                         vista.classList.add('rrhh-view-enter');
@@ -896,6 +914,8 @@
             } else {
                 const generic = document.getElementById('view-generic');
                 generic.classList.remove('hidden');
+                generic.style.display = '';
+                generic.setAttribute('aria-hidden', 'false');
                 requestAnimationFrame(() => {
                     if (secuenciaActual === secuenciaCambioModulo && !generic.classList.contains('hidden')) {
                         generic.classList.add('rrhh-view-enter');
