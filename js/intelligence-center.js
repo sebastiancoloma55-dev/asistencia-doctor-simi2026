@@ -175,6 +175,7 @@ function buildPriorityPanel(){
   {match:/tareas? abiertas?|pendientes?/,title:'Trabajo pendiente',detail:'Prioriza las tareas abiertas y verifica sus fechas límite.',icon:'list-checks',module:'tareas',priority:2},
   {match:/avisos? sin leer|notificaciones? pendientes?/,title:'Avisos sin leer',detail:'Revisa los avisos pendientes para evitar que una gestión quede sin respuesta.',icon:'bell-ring',module:'notificaciones',priority:3},
   {match:/dotacion.*revisar|solicitudes?.*revisar/,title:'Solicitudes por revisar',detail:'Abre la gestión operativa y revisa las solicitudes que requieren decisión.',icon:'users-round',module:'operaciones',priority:4},
+  {match:/importaciones? con errores/,title:'Importaciones con errores',detail:'Revisa las cargas recientes para corregir filas rechazadas o fallidas.',icon:'file-warning',module:'reportes',priority:4.5},
   {match:/errores?|fallas?|no disponible/,title:'Estado por verificar',detail:'Comprueba el origen del dato antes de tomar decisiones.',icon:'shield-alert',module:'dashboard',priority:5}
  ];
  const items=[];
