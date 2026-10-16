@@ -4112,5 +4112,66 @@ main.flex.min-w-0.flex-1{background:radial-gradient(ellipse at 90% 0%,rgba(14,16
 #simi-context-toggle span{color:#fff!important}
 @media(max-width:640px){#view-ayuda>div:first-child{padding:20px!important}#view-ayuda>div:first-child:after{right:-220px}#simi-command-center{padding:12px!important}}
 </style>
+
+<style id="map14-searchable-selects">
+#map14-buscar-origen,#map14-buscar-destino{display:block;width:100%;min-height:46px;padding:11px 13px!important;border:1px solid #a9c7dc!important;border-radius:11px!important;background:#fafdff!important;color:#173752!important;font-size:14px!important;box-shadow:0 0 0 3px rgba(14,155,181,.055)!important}
+#map14-buscar-origen:focus,#map14-buscar-destino:focus{outline:none!important;border-color:#0e9bb5!important;box-shadow:0 0 0 3px rgba(14,155,181,.14)!important}
+#map14-origen,#map14-destino{width:100%;min-height:43px!important;border-radius:10px!important;border-color:#c7d9e7!important;background-color:#fff!important}
+.map14-search-hint{display:flex;align-items:center;gap:6px;margin-top:6px;color:#55738b;font-size:11px;line-height:1.5}
+.map14-search-hint:before{content:"⌕";font-size:16px;font-weight:800;color:#078ca8}
+</style>
+<script id="map14-searchable-selects-script">
+(function(){
+  var configs=[{input:'map14-buscar-origen',select:'map14-origen',label:'origen'},{input:'map14-buscar-destino',select:'map14-destino',label:'destino'}];
+  function setupOne(cfg){
+    var input=document.getElementById(cfg.input),sel=document.getElementById(cfg.select);
+    if(!input||!sel)return;
+    if(!sel.dataset.searchReady){sel.dataset.searchReady='1';sel.dataset.searchOriginal=[];}
+    var cache=sel._map14AllOptions||[];
+    var current=Array.from(sel.options);
+    // Recupera la lista completa si la aplicación termina de cargar sucursales después de este script.
+    if(!cache.length||current.length>cache.length){
+      cache=current.map(function(o){return o.cloneNode(true);});
+      sel._map14AllOptions=cache;
+    }
+    if(!cache.length)return;
+    function applyFilter(){
+      var now=Array.from(sel.options);
+      if(now.length>cache.length){cache=now.map(function(o){return o.cloneNode(true);});sel._map14AllOptions=cache;}
+      var query=String(input.value||'').trim().toLocaleLowerCase('es-CL');
+      var placeholder=cache.find(function(o){return o.value==='';});
+      var selectedValue=sel.value;
+      var matching=cache.filter(function(o){return o.value!==''&&(!query||o.textContent.toLocaleLowerCase('es-CL').normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(query.normalize('NFD').replace(/[\u0300-\u036f]/g,''));});
+      // Limita la lista inicial para que el desplegable nativo no bloquee el navegador.
+      if(!query)matching=matching.slice(0,40);
+      if(selectedValue){var chosen=cache.find(function(o){return o.value===selectedValue;});if(chosen&&!matching.some(function(o){return o.value===selectedValue;}))matching.unshift(chosen);}
+      var fragment=document.createDocumentFragment();
+      if(placeholder){var p=placeholder.cloneNode(true);p.textContent=query?'Coincidencias para: '+input.value:'Escribe para buscar o elige una sucursal';fragment.appendChild(p);}
+      matching.forEach(function(o){fragment.appendChild(o.cloneNode(true));});
+      sel.replaceChildren(fragment);
+      if(selectedValue&&Array.from(sel.options).some(function(o){return o.value===selectedValue;}))sel.value=selectedValue;
+      var hint=input.parentElement&&input.parentElement.querySelector('.map14-search-hint');
+      if(hint)hint.textContent=query?(matching.length+' sucursal(es) encontrada(s). Selecciona una en la lista inferior.'):'Escribe el nombre o la comuna para filtrar; se muestran hasta 40 opciones inicialmente.';
+    }
+    if(input.dataset.searchReady==='1')return;
+    input.dataset.searchReady='1';
+    input.setAttribute('aria-label','Buscar sucursal de '+cfg.label+' escribiendo nombre o comuna');
+    input.setAttribute('autocomplete','off');
+    var hint=document.createElement('div');hint.className='map14-search-hint';hint.setAttribute('aria-live','polite');
+    var help=input.parentElement&&input.parentElement.querySelector('p');
+    if(help){help.replaceWith(hint);}else input.insertAdjacentElement('afterend',hint);
+    input.addEventListener('input',applyFilter);
+    input.addEventListener('focus',applyFilter);
+    sel.addEventListener('change',function(){var chosen=sel.options[sel.selectedIndex];if(chosen&&chosen.value){input.dataset.selectedLabel=chosen.textContent;}});
+    applyFilter();
+  }
+  function init(){configs.forEach(setupOne);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+  window.addEventListener('load',init);
+  // Reintenta cuando la app haya terminado de poblar las sucursales, sin observar todo el documento.
+  var attempts=0;var retry=setInterval(function(){init();attempts++;if(attempts>=8)clearInterval(retry);},700);
+})();
+</script>
+
 </body>
 </html>
