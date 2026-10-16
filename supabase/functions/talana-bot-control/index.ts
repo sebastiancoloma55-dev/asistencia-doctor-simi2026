@@ -146,7 +146,7 @@ if(a==="bot_import"){
    }
   }
   const seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
-  let ambiguousLegacyMerged=0, duplicateRowsRemoved=0;
+  let ambiguousLegacyMerged=0, blockedAmbiguousLegacy=0, duplicateRowsRemoved=0, duplicateRowsDetected=0;
 
   for(const row of valid){
    const k=keyOf(row);
@@ -159,9 +159,9 @@ if(a==="bot_import"){
     const candidates=legacyCandidates.get(legacyKey(row))||[];
     if(candidates.length===1)old=candidates[0];
     else if(candidates.length>1){
-      // No borrar ni fusionar automáticamente licencias históricas ambiguas:
-      // sin folio identificador no se puede asegurar que sean la misma licencia.
-      failed++;errors.push(table+" RUT "+row.rut+": hay "+candidates.length+" registros históricos con clave parcial; se requiere revisión para no fusionar licencias distintas.");continue;
+      // No bloquear toda la previsualización por una fila ambigua. Se omite
+      // de forma segura y se informa en diagnostics; nunca se inserta ni fusiona.
+      skipped++;blockedAmbiguousLegacy++;continue;
     }
    }
    if(old){
@@ -170,7 +170,7 @@ if(a==="bot_import"){
    }else pending.push(row);
   }
   if(dryRun){
-   const diagnostics:any={missing_key_fields:missingKeyFieldCounts,incoming_rows_merged:incomingRowsMerged,ambiguous_legacy_rows_merged:ambiguousLegacyMerged,planned_duplicate_rows_removed:[...new Set(pendingUpdates.flatMap((item:any)=>item.duplicateIds||[]))].length};
+   const diagnostics:any={missing_key_fields:missingKeyFieldCounts,incoming_rows_merged:incomingRowsMerged,ambiguous_legacy_rows_merged:ambiguousLegacyMerged,blocked_ambiguous_legacy_rows:blockedAmbiguousLegacy,planned_duplicate_rows_removed:0,existing_duplicate_rows_detected:[...new Set(pendingUpdates.flatMap((item:any)=>item.duplicateIds||[]))].length};
    if(attendanceFallback){
     const countByDate=(items:any[])=>{const counts:Record<string,number>={};for(const item of items){const day=norm(item.fecha);if(day)counts[day]=(counts[day]||0)+1;}return counts;};
     const incomingByDate=countByDate(valid), plannedByDate=countByDate(pending);
@@ -193,7 +193,7 @@ if(a==="bot_import"){
    });
    const {error}=await admin.from(table).upsert(updatesToUpsert,{onConflict:"id"});
    if(error){failed+=pendingUpdates.length;errors.push(table+": falló la actualización por lote ("+error.message.slice(0,180)+").");}
-   else {updated+=pendingUpdates.length;const duplicateIds=[...new Set(pendingUpdates.flatMap((item:any)=>item.duplicateIds||[]))];if(duplicateIds.length){const {error:deleteError}=await admin.from(table).delete().in("id",duplicateIds);if(deleteError){failed+=duplicateIds.length;errors.push(table+": se actualizaron los registros canónicos, pero no se pudieron retirar "+duplicateIds.length+" filas duplicadas ("+deleteError.message.slice(0,160)+").");}else duplicateRowsRemoved=duplicateIds.length;}}
+   else {updated+=pendingUpdates.length;duplicateRowsDetected=[...new Set(pendingUpdates.flatMap((item:any)=>item.duplicateIds||[]))].length;}
   }
   if(pending.length){const {data,error}=await admin.from(table).insert(pending).select("id");if(error){
     for(const row of pending){
@@ -226,7 +226,7 @@ if(a==="bot_import"){
  if(b.final_batch!==false){
   for(const moduleName of moduleNames){const {error}=await admin.from("actualizaciones_fuentes").upsert({modulo:moduleName,actualizado_en:new Date().toISOString(),archivo:String(b.file_name||"Talana"),origen:"bot",usuario_email:"Bot Talana",registros:inserted+updated,detalles:{report_type:reportType,run_id:b.run_id||null,inserted,updated,skipped,failed}},{onConflict:"modulo"});if(error){trackingRegistered=false;console.error("Tracking de importación:",error.message);}}
  }
- return json({report_type:reportType,table,received:rows.length,inserted,updated,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts,incoming_rows_merged:incomingRowsMerged,ambiguous_legacy_rows_merged:ambiguousLegacyMerged,planned_duplicate_rows_removed:0,duplicate_rows_removed:duplicateRowsRemoved},tracking_registered:trackingRegistered});
+ return json({report_type:reportType,table,received:rows.length,inserted,updated,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts,incoming_rows_merged:incomingRowsMerged,ambiguous_legacy_rows_merged:ambiguousLegacyMerged,blocked_ambiguous_legacy_rows:blockedAmbiguousLegacy,planned_duplicate_rows_removed:0,existing_duplicate_rows_detected:duplicateRowsDetected,duplicate_rows_removed:duplicateRowsRemoved},tracking_registered:trackingRegistered});
 }
 if(a==="bot_finish"){const runId=String(b.run_id||""),status=["success","partial","failed"].includes(b.status)?b.status:"success";const {count,error:ce}=await admin.from("talana_bot_files").select("id",{count:"exact",head:true}).eq("run_id",runId);if(ce)return json({error:ce.message},500);const {data,error}=await admin.from("talana_bot_runs").update({status,finished_at:new Date().toISOString(),reports_downloaded:Number(b.reports_downloaded||0),reports_uploaded:count||0,error_summary:b.error_summary?String(b.error_summary).slice(0,4000):null,details:b.details&&typeof b.details==="object"?b.details:{}}).eq("id",runId).select("*").single();if(error)return json({error:error.message},500);return json({run:data});}
 return json({error:"Acción desconocida"},400);
