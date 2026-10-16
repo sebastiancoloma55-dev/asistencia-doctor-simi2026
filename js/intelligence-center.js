@@ -84,7 +84,7 @@ function ensureStyles(){
  #simi-global-search-trigger kbd{padding:3px 6px;border:1px solid #dce5ee;border-radius:5px;background:#f7fafc;color:#6d8296;font-size:9px}
  @keyframes simiSearchFade{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
  @media(max-width:1100px){.simi-priority-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
- @media(max-width:600px){#simi-global-search{padding:5vh 9px 12px}#simi-global-search .sgs-dialog{border-radius:16px;max-height:88vh}#simi-global-search .sgs-head{padding:16px}.simi-priority-head{padding:15px}.simi-priority-grid{grid-template-columns:1fr;padding:10px}.simi-priority-item{display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:10px}.simi-priority-item .sp-number{margin:0}.simi-priority-item .sp-detail{grid-column:2/-1}.simi-command-actions{flex-wrap:wrap}}
+ @media(max-width:600px){#simi-global-search{padding:5vh 9px 12px}#simi-global-search .sgs-dialog{border-radius:16px;max-height:88vh}#simi-global-search .sgs-head{padding:16px}.simi-priority-head{padding:15px}.simi-priority-grid{grid-template-columns:1fr;padding:10px}.simi-priority-main{grid-template-columns:38px minmax(0,1fr) auto}.simi-priority-task{grid-column:1/-1}.simi-priority-item .sp-number{margin:0}.simi-command-actions{flex-wrap:wrap}}
  @media(prefers-reduced-motion:reduce){#simi-global-search *,.simi-priority-item{animation:none!important;transition:none!important}}
  `;
  document.head.appendChild(s);
@@ -156,7 +156,7 @@ function bindResults(){
  if(window.lucide?.createIcons)window.lucide.createIcons({root:results});
 }
 function openTaskForPriority(item){
- if(!allowedModule('tareas')){goModule('tareas');return;}
+ if(!allowedModule('tareas'))return;
  goModule('tareas');
  setTimeout(()=>{
   const title=document.getElementById('tarea-titulo'),description=document.getElementById('tarea-descripcion');
