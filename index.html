@@ -925,6 +925,26 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 @media(max-width:900px){#view-dashboard>.grid.grid-cols-1.gap-5.sm\\:grid-cols-2.lg\\:grid-cols-4{grid-template-columns:repeat(2,minmax(0,1fr))!important}#view-dashboard .simi-command-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:600px){#view-dashboard{padding:8px!important}#view-dashboard .dashboard-welcome.simi-dashboard-hero{grid-template-columns:1fr!important;padding:17px!important;min-height:0!important}#view-dashboard .simi-hero-art{height:76px!important;justify-content:flex-start!important}#view-dashboard .simi-hero-art img{width:68px!important;height:68px!important}#view-dashboard .simi-command-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 </style>
+<style id="simi-dashboard-reference-layout-20261016">
+#view-dashboard{display:flex!important;flex-direction:column!important;gap:14px!important;padding:14px!important;background:#f2f6fc!important}
+#dashboard-panel-inteligente,#dashboard-indicators-section,#dashboard-space-summary,#dashboard-ops-summary,#dashboard-freshness-list,#view-dashboard>div:has(>#connection-box){display:none!important}
+#view-dashboard>.dashboard-welcome{order:1!important}
+#view-dashboard>.grid.grid-cols-1.gap-5.sm\\:grid-cols-2.lg\\:grid-cols-4{display:none!important}
+#dashboard-reference-layout{order:2!important;display:flex;flex-direction:column;gap:12px}
+#view-dashboard .dashboard-welcome.simi-dashboard-hero{min-height:176px!important;padding:22px 28px!important;border-radius:18px!important;background:radial-gradient(ellipse at 82% 8%,rgba(55,215,255,.9),transparent 30%),linear-gradient(112deg,#06318c 0%,#0879e1 56%,#20c5ed 100%)!important}
+.simi-reference-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.simi-reference-kpis article{display:flex;align-items:center;gap:10px;min-width:0;background:#fff;border:1px solid #e0eafa;border-radius:13px;padding:13px;box-shadow:0 3px 10px #1231640b}
+.simi-reference-kpis article>span{width:43px;height:43px;display:grid;place-items:center;border-radius:11px;font-size:25px;flex-shrink:0}
+.simi-reference-kpis .people{background:#dcecff;color:#1671e8}.simi-reference-kpis .attendance{background:#d9f9eb;color:#08a778}.simi-reference-kpis .licenses{background:#ffe2e9;color:#f43f5e}.simi-reference-kpis .vacations{background:#fff3ce;color:#f59e0b}.simi-reference-kpis .incidents{background:#eee4ff;color:#8b5cf6}
+.simi-reference-kpis article div{display:flex;flex-direction:column;gap:3px;min-width:0}.simi-reference-kpis small{font-size:11px;color:#263b68}.simi-reference-kpis strong{font-size:25px;font-weight:850;color:#0a1e4d}.simi-reference-kpis em{font-size:10px;font-style:normal;color:#72819c}
+.simi-reference-mid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(300px,.8fr);gap:12px}.simi-reference-lower{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.simi-reference-card{background:#fff;border:1px solid #e0eafa;border-radius:14px;min-width:0;overflow:hidden;box-shadow:0 3px 10px #1231640b}.simi-reference-card>header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 14px;border-bottom:1px solid #edf2fa}.simi-reference-card h3{margin:0;font-size:13px;font-weight:800;color:#0b204e}.simi-reference-card header button{font-size:11px;color:#0867e8;font-weight:700;white-space:nowrap}.simi-chart{height:220px;padding:20px;background:repeating-linear-gradient(to bottom,#fff 0,#fff 39px,#eaf0f8 40px)}.simi-chart .bars{height:150px;display:flex;align-items:flex-end;justify-content:space-around;gap:12px;border-bottom:1px solid #cbd7e9}.simi-chart .bars i{width:9%;max-width:44px;background:linear-gradient(#5da5ff,#1475ed);border-radius:5px 5px 0 0}.simi-chart .bars i:not(.future){border-top:8px solid #fb7898}.simi-chart .bars i.future{background:#e8eff8}.simi-chart p,.map-legend{font-size:10px;color:#71809a;margin-top:10px}
+.simi-map{height:180px;position:relative;overflow:hidden;background-color:#e7f4e9;background-image:linear-gradient(32deg,transparent 46%,#fff 47%,#fff 49%,transparent 50%),linear-gradient(112deg,transparent 43%,#fff 44%,#fff 46%,transparent 47%),linear-gradient(0deg,transparent 60%,#d2e5f5 61%,#d2e5f5 64%,transparent 65%);background-size:115px 90px,150px 120px,100% 100%}.simi-map .pin{position:absolute;width:15px;height:15px;border:3px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#10a77b;box-shadow:0 2px 5px #789}.simi-map .a{left:18%;top:22%}.simi-map .b{left:48%;top:16%;background:#f6a800}.simi-map .c{left:72%;top:34%}.simi-map .d{left:31%;top:64%}.simi-map .e{left:59%;top:72%;background:#f43f5e}.simi-map .f{left:83%;top:67%}.simi-map label{position:absolute;left:24%;top:43%;background:#fff;border-radius:7px;padding:7px 10px;font-size:10px;font-weight:700}.map-legend{padding:0 12px 10px}.empty{min-height:155px;padding:22px 16px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;color:#71809a}.empty b{color:#142a54;font-size:13px}.empty p{font-size:11px;line-height:1.5}.empty button{border-radius:8px;background:#126ee5;color:#fff;padding:8px 11px;font-size:11px;font-weight:700}
+#view-dashboard>.simi-command-grid{order:3!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+@media(max-width:1100px){.simi-reference-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.simi-reference-mid{grid-template-columns:1fr}.simi-reference-lower{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.simi-reference-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.simi-reference-lower{grid-template-columns:1fr}#view-dashboard .dashboard-welcome.simi-dashboard-hero{grid-template-columns:1fr!important;padding:17px!important}#view-dashboard>.simi-command-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+</style>
+<script id="simi-dashboard-reference-bindings">(function(){function sync(){[['ref-kpi-colaboradores','kpi-colaboradores'],['ref-kpi-asistencia','kpi-asistencia'],['ref-kpi-licencias','kpi-licencias']].forEach(function(p){var a=document.getElementById(p[0]),b=document.getElementById(p[1]);if(a&&b)a.textContent=b.textContent.trim()||'—';});}document.addEventListener('DOMContentLoaded',sync);setTimeout(sync,1500);setTimeout(sync,4000);})();</script>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -1217,6 +1237,25 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     </div>
                 </div>
 
+
+                <section id="dashboard-reference-layout" aria-label="Panel ejecutivo de asistencia">
+                  <div class="simi-reference-kpis">
+                    <article><span class="people">♟</span><div><small>Total colaboradores</small><strong id="ref-kpi-colaboradores">—</strong><em>Base de colaboradores</em></div></article>
+                    <article><span class="attendance">◎</span><div><small>Asistencia hoy</small><strong id="ref-kpi-asistencia">—</strong><em>Registros disponibles</em></div></article>
+                    <article><span class="licenses">✚</span><div><small>Licencias médicas</small><strong id="ref-kpi-licencias">—</strong><em>Registros del sistema</em></div></article>
+                    <article><span class="vacations">▣</span><div><small>Vacaciones activas</small><strong>—</strong><em>Consultar módulo</em></div></article>
+                    <article><span class="incidents">⚠</span><div><small>Incidencias pendientes</small><strong>—</strong><em>Consultar alertas</em></div></article>
+                  </div>
+                  <div class="simi-reference-mid">
+                    <article class="simi-reference-card"><header><h3>▥ Asistencia semanal</h3><span>Presentes · Ausentes · % asistencia</span></header><div class="simi-chart"><div class="bars"><i style="height:58%"></i><i style="height:70%"></i><i style="height:49%"></i><i style="height:62%"></i><i style="height:80%"></i><i class="future"></i><i class="future"></i></div><p>Vista de tendencia · los valores se cargarán desde asistencia</p></div></article>
+                    <article class="simi-reference-card"><header><h3>⌖ Sucursales</h3><button onclick="cambiarModulo('sucursales')">Ver todas →</button></header><div class="simi-map"><i class="pin a"></i><i class="pin b"></i><i class="pin c"></i><i class="pin d"></i><i class="pin e"></i><i class="pin f"></i><label>Ubicaciones de sucursales</label></div><p class="map-legend">● Operativas　● Con incidencias　● Sin reporte</p></article>
+                  </div>
+                  <div class="simi-reference-lower">
+                    <article class="simi-reference-card"><header><h3>▣ Turnos de hoy</h3><button onclick="cambiarModulo('asistencia')">Ver todos →</button></header><div class="empty"><b>Consulta de turnos</b><p>Revisa horarios y estados en Asistencia y Turnos.</p><button onclick="cambiarModulo('asistencia')">Abrir asistencia</button></div></article>
+                    <article class="simi-reference-card"><header><h3>✚ Licencias médicas recientes</h3><button onclick="cambiarModulo('licencias')">Ver todas →</button></header><div class="empty"><b>Seguimiento de licencias</b><p>Consulta días, fechas y estados en el módulo de licencias.</p><button onclick="cambiarModulo('licencias')">Abrir licencias</button></div></article>
+                    <article class="simi-reference-card"><header><h3>⚠ Alertas y tareas pendientes</h3><button onclick="cambiarModulo('tareas')">Ver todas →</button></header><div class="empty"><b>Seguimiento operativo</b><p>Revisa las alertas y tareas pendientes de gestión.</p><button onclick="cambiarModulo('tareas')">Abrir tareas</button></div></article>
+                  </div>
+                </section>
                 <div class="ui-card p-6">
                     <h3 class="mb-2 font-bold text-slate-900">
                         Estado general
