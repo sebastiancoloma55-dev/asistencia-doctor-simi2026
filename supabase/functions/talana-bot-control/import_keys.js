@@ -7,7 +7,7 @@ export const IMPORT_KEY_FIELDS = Object.freeze({
   ausentismos_historico: Object.freeze(["rut", "fecha_inicio", "tipo_ausencia", "fecha_creacion", "hora_inicio", "hora_fin"]),
   solicitudes_vacaciones_historicas: Object.freeze(["rut", "fecha_inicio", "tipo_vacaciones", "fecha_solicitud", "jornada"]),
   maestro_empleado: Object.freeze(["rut"]),
-  reporte_jornadas_asistencia: Object.freeze(["rut", "fecha", "entrada", "salida", "tipo_ausentismo"]),
+  reporte_jornadas_asistencia: Object.freeze(["rut", "fecha"]),
 });
 
 export function normalizeImportValue(value) {
