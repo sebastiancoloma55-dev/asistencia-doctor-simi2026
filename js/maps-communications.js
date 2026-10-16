@@ -22,11 +22,101 @@
             select.innerHTML='<option value="">Selecciona una sucursal</option>'+(data||[]).map(x=>'<option value="'+escaparHTML(x.id)+'">'+escaparHTML(x.nombre)+'</option>').join('');
         }
         let solicitudCoberturaSeleccionada=null;
+        let vistaResponsablesSeleccionados=false;
+        let pickerResponsablesInicializado=false;
+        function inicialesResponsable(nombre){
+            return String(nombre||'').trim().split(/\s+/).filter(Boolean).slice(0,2).map(p=>p.charAt(0)).join('').toUpperCase()||'US';
+        }
+        function renderResponsablesCoberturaPicker(){
+            const select=document.getElementById('dot-responsables'),lista=document.getElementById('dot-responsables-lista');
+            const busqueda=document.getElementById('dot-responsables-busqueda'),chips=document.getElementById('dot-responsables-chips');
+            const contador=document.getElementById('dot-responsables-contador'),resultados=document.getElementById('dot-responsables-resultados');
+            const vista=document.getElementById('dot-responsables-vista');
+            if(!select||!lista)return;
+            const options=[...select.options],seleccionados=options.filter(o=>o.selected);
+            const query=String(busqueda?.value||'').trim().toLocaleLowerCase('es-CL');
+            const filtrados=options.filter(o=>{
+                const match=!query||o.textContent.toLocaleLowerCase('es-CL').includes(query);
+                return match&&(!vistaResponsablesSeleccionados||o.selected);
+            });
+            if(contador)contador.textContent=seleccionados.length+' seleccionado'+(seleccionados.length===1?'':'s');
+            if(resultados)resultados.textContent=filtrados.length+' resultado'+(filtrados.length===1?'':'s')+(filtrados.length>150?' · mostrando los primeros 150':'');
+            if(vista){vista.setAttribute('aria-pressed',String(vistaResponsablesSeleccionados));vista.textContent=vistaResponsablesSeleccionados?'Ver todos los usuarios':'Ver seleccionados';}
+            if(chips){
+                chips.innerHTML=seleccionados.map(o=>{
+                    const label=o.dataset.nombre||o.textContent.split(' · ')[0]||'Usuario';
+                    return '<span class="dot-picker-chip"><span title="'+escaparHTML(label)+'">'+escaparHTML(label)+'</span><button type="button" data-dot-quitar="'+escaparHTML(o.value)+'" aria-label="Quitar '+escaparHTML(label)+'" title="Quitar">×</button></span>';
+                }).join('');
+                chips.querySelectorAll('[data-dot-quitar]').forEach(b=>b.addEventListener('click',()=>{
+                    const option=[...select.options].find(o=>o.value===b.dataset.dotQuitar);
+                    if(option)option.selected=false;
+                    select.dispatchEvent(new Event('change',{bubbles:true}));
+                }));
+            }
+            if(!options.length){
+                lista.innerHTML='<div class="dot-picker-empty">No hay usuarios disponibles para este perfil.</div>';
+                return;
+            }
+            if(!filtrados.length){
+                lista.innerHTML='<div class="dot-picker-empty">'+(vistaResponsablesSeleccionados?'Aún no has seleccionado personas.':'No hay coincidencias. Prueba con otro nombre o correo.')+'</div>';
+                return;
+            }
+            lista.innerHTML=filtrados.slice(0,150).map(o=>{
+                const nombre=o.dataset.nombre||o.textContent.split(' · ')[0]||'Usuario';
+                const email=o.dataset.email||'';
+                const selected=o.selected;
+                return '<label class="dot-picker-person'+(selected?' is-selected':'')+'"><input type="checkbox" data-dot-responsable="'+escaparHTML(o.value)+'" '+(selected?'checked':'')+' aria-label="Seleccionar '+escaparHTML(nombre)+'"><span class="dot-picker-avatar" aria-hidden="true">'+escaparHTML(inicialesResponsable(nombre))+'</span><span class="dot-picker-person-copy"><span class="dot-picker-person-name">'+escaparHTML(nombre)+'</span><span class="dot-picker-person-email">'+escaparHTML(email||'Usuario autorizado')+'</span></span></label>';
+            }).join('');
+            lista.querySelectorAll('[data-dot-responsable]').forEach(input=>input.addEventListener('change',()=>{
+                const option=[...select.options].find(o=>o.value===input.dataset.dotResponsable);
+                if(option)option.selected=input.checked;
+                select.dispatchEvent(new Event('change',{bubbles:true}));
+            }));
+        }
+        function inicializarPickerResponsablesCobertura(){
+            if(pickerResponsablesInicializado)return;
+            const select=document.getElementById('dot-responsables');
+            const search=document.getElementById('dot-responsables-busqueda');
+            if(!select||!search)return;
+            pickerResponsablesInicializado=true;
+            search.addEventListener('input',renderResponsablesCoberturaPicker);
+            document.getElementById('dot-responsables-vista')?.addEventListener('click',()=>{
+                vistaResponsablesSeleccionados=!vistaResponsablesSeleccionados;
+                renderResponsablesCoberturaPicker();
+            });
+            document.getElementById('dot-responsables-seleccionar')?.addEventListener('click',()=>{
+                const query=String(search.value||'').trim().toLocaleLowerCase('es-CL');
+                const matching=[...select.options].filter(o=>(!query||o.textContent.toLocaleLowerCase('es-CL').includes(query))&&(!vistaResponsablesSeleccionados||o.selected));
+                matching.forEach(o=>o.selected=true);
+                renderResponsablesCoberturaPicker();
+                mostrarToast(matching.length?'Se seleccionaron '+matching.length+' usuario(s) del resultado.':'No hay resultados para seleccionar.','success',3500);
+            });
+            document.getElementById('dot-responsables-limpiar')?.addEventListener('click',()=>{
+                [...select.options].forEach(o=>o.selected=false);
+                vistaResponsablesSeleccionados=false;
+                renderResponsablesCoberturaPicker();
+            });
+            select.addEventListener('change',renderResponsablesCoberturaPicker);
+            renderResponsablesCoberturaPicker();
+        }
         async function cargarResponsablesCobertura(){
             const select=document.getElementById('dot-responsables');if(!select)return;
+            inicializarPickerResponsablesCobertura();
             const {data,error}=await _supabase.rpc('listar_responsables_cobertura');
-            if(error){select.innerHTML='<option value="">No disponible para este perfil</option>';return;}
-            select.innerHTML=(data||[]).map(u=>'<option value="'+escaparHTML(u.id)+'">'+escaparHTML((u.nombre||u.email||('Usuario '+u.id))+(u.email?' · '+u.email:''))+'</option>').join('');
+            if(error){
+                select.innerHTML='';
+                const lista=document.getElementById('dot-responsables-lista');
+                if(lista)lista.innerHTML='<div class="dot-picker-empty">No se pudieron cargar los usuarios autorizados. Comprueba tus permisos o vuelve a intentarlo.</div>';
+                const resultados=document.getElementById('dot-responsables-resultados');if(resultados)resultados.textContent='Listado no disponible';
+                console.error('Cargar responsables de cobertura:',error);
+                return;
+            }
+            select.innerHTML=(data||[]).map(u=>{
+                const nombre=u.nombre||u.email||('Usuario '+u.id),email=u.email||'';
+                return '<option value="'+escaparHTML(u.id)+'" data-nombre="'+escaparHTML(nombre)+'" data-email="'+escaparHTML(email)+'">'+escaparHTML(nombre+(email?' · '+email:''))+'</option>';
+            }).join('');
+            renderResponsablesCoberturaPicker();
+            if(typeof lucide!=='undefined')lucide.createIcons();
         }
         async function crearSolicitudDotacion(event){
             event.preventDefault();
