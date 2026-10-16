@@ -3539,5 +3539,77 @@ hr{border-color:#e8edf3}
 }
 </style>
 
+
+<style id="simi-visible-redesign-v2">
+/* Rediseño visual perceptible. Conserva colores corporativos y colores configurados por usuario. */
+:root{--simi-card-radius:18px;--simi-card-line:#dce5ef;--simi-depth:0 8px 24px rgba(17,42,70,.07);--simi-depth-hover:0 16px 34px rgba(17,42,70,.12)}
+/* Estructura general */
+body{background:#f3f6fa}
+body>div.flex.h-screen.overflow-hidden{background:#f3f6fa}
+#sidebar{width:286px!important;min-width:286px!important;box-shadow:8px 0 32px rgba(8,25,46,.13);border-right:1px solid rgba(255,255,255,.09)}
+#sidebar>div:first-child{min-height:88px;padding:19px!important;background:linear-gradient(145deg,rgba(255,255,255,.07),transparent);border-bottom:1px solid rgba(255,255,255,.13)!important}
+#sidebar>div:first-child img{border-radius:13px!important}
+#sidebar>div:first-child h1{font-size:14px;letter-spacing:.09em}
+#sidebar>div:first-child p{font-size:11px;letter-spacing:.025em}
+#sidebar nav{padding:14px 12px!important;gap:4px!important}
+.nova-nav-divider{margin:18px 5px 8px!important;padding:10px 4px 7px!important;font-size:9px!important;letter-spacing:.14em!important;border-top:1px solid rgba(255,255,255,.16)!important}
+.nova-nav-divider:first-child{margin-top:3px!important;border-top:0!important}
+#sidebar .menu-btn{min-height:45px!important;padding:10px 12px!important;margin:3px 0!important;border-radius:12px!important;gap:12px!important;font-size:12px!important;font-weight:650!important;letter-spacing:.005em;border:1px solid transparent!important}
+#sidebar .menu-btn svg{width:18px!important;height:18px!important;opacity:1!important;padding:0;transition:transform .18s ease}
+#sidebar .menu-btn:hover svg{transform:scale(1.09)}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{box-shadow:inset 3px 0 var(--user-accent,#0870e8),0 5px 14px rgba(0,0,0,.12)!important;border-color:rgba(255,255,255,.16)!important}
+.sidebar-credit{margin:10px 12px 14px!important;padding:13px!important;border-radius:14px!important;background:rgba(255,255,255,.07)!important;border:1px solid rgba(255,255,255,.13)!important}
+/* Barra superior: aspecto de aplicación empresarial */
+main.flex.min-w-0.flex-1{background:#f4f7fb}
+main>header.sticky{min-height:76px;padding:15px 28px!important;background:rgba(255,255,255,.96)!important;border-bottom:1px solid #dce5ef!important;box-shadow:0 4px 18px rgba(18,43,71,.045);backdrop-filter:blur(18px)}
+#header-title{font-size:20px!important;font-weight:850!important;letter-spacing:-.035em;color:#162d46}
+.topbar-quick-action,#btn-theme-settings,.topbar-search{min-height:40px!important;border-radius:11px!important;border:1px solid #dce5ef!important;box-shadow:0 2px 5px rgba(17,42,70,.035)}
+#quick-module-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 28px!important;background:#fff;border-bottom:1px solid #e3eaf2}
+#quick-module-bar .quick-label{font-size:9px!important;font-weight:900!important;letter-spacing:.12em!important;text-transform:uppercase;color:#72849a!important;margin-right:5px}
+#quick-module-bar button,#quick-module-bar a{border-radius:10px!important;min-height:32px;padding:7px 11px!important;border:1px solid #e1e8f0!important;background:#f8fafc;transition:all .16s ease}
+#quick-module-bar button:hover,#quick-module-bar a:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(15,42,70,.08)}
+/* Espacio de trabajo: más respiración y tarjetas reconocibles */
+main section[id^="view-"]{padding:26px 28px!important;gap:22px!important}
+.ui-card{border:1px solid var(--simi-card-line)!important;border-radius:var(--simi-card-radius)!important;box-shadow:var(--simi-depth)!important;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease!important}
+.ui-card:hover{box-shadow:var(--simi-depth-hover)!important;border-color:#c6d5e5!important}
+.ui-card:focus-within{border-color:var(--user-accent,#0870e8)!important}
+.ui-card h3,.ui-card h4{letter-spacing:-.025em}
+.module-title-card{padding:21px 23px!important;background:linear-gradient(115deg,#fff 0%,#f8fafc 100%)!important;border-left:4px solid var(--user-accent,#0870e8)!important;box-shadow:0 6px 18px rgba(17,42,70,.045)!important}
+.module-title-row,.module-title-with-logo{display:flex;align-items:center;gap:15px}
+.module-logo-mark{display:grid!important;place-items:center;width:48px!important;height:48px!important;min-width:48px;border-radius:15px!important;background:color-mix(in srgb,var(--user-accent,#0870e8) 11%,white)!important;color:var(--user-accent,#0870e8)!important;border:1px solid color-mix(in srgb,var(--user-accent,#0870e8) 22%,white)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.9)}
+.module-logo-mark svg{width:23px!important;height:23px!important;stroke-width:1.9!important}
+.module-overline,.module-kicker{display:inline-block;margin-bottom:5px;font-size:9px!important;font-weight:900!important;letter-spacing:.14em!important}
+.section-title{font-size:21px!important;font-weight:850!important;line-height:1.25}
+.module-section-caption{display:flex;align-items:center;gap:12px;margin:5px 0 0;padding:14px 17px;border-radius:13px;background:#fff;border:1px solid #e1e8f0;box-shadow:0 3px 10px rgba(17,42,70,.035)}
+.module-section-caption>span{display:grid;place-items:center;width:38px;height:38px;flex:0 0 auto;border-radius:11px;background:color-mix(in srgb,var(--user-accent,#0870e8) 10%,white);color:var(--user-accent,#0870e8)}
+.module-section-caption>span svg{width:19px;height:19px}
+.module-section-caption b{font-size:13px;font-weight:850;color:#233b55}
+.module-section-caption small{display:block;margin-top:3px;color:#72849a;font-size:11px}
+/* Dashboard y KPI: tarjetas más diferenciadas */
+.dashboard-welcome{position:relative;overflow:hidden;padding:28px 30px!important;border-radius:22px!important;box-shadow:0 14px 32px rgba(15,42,70,.15);border:1px solid rgba(255,255,255,.22)}
+.dashboard-welcome:after{content:"";position:absolute;right:-45px;top:-90px;width:260px;height:260px;border:1px solid rgba(255,255,255,.17);border-radius:50%;box-shadow:0 0 0 28px rgba(255,255,255,.045),0 0 0 58px rgba(255,255,255,.035);pointer-events:none}
+.dash-space-card{border-radius:20px!important;border:1px solid #dce5ef!important;box-shadow:var(--simi-depth)!important;padding:22px!important}
+.dash-space-intro h3{font-size:20px!important;font-weight:850!important;letter-spacing:-.03em}
+.dash-space-stat-grid>div{border-radius:13px!important;border:1px solid #e1e8f0;background:#fff;padding:13px!important;transition:transform .18s ease,box-shadow .18s ease}
+.dash-space-stat-grid>div:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(17,42,70,.08)}
+.colab-kpi-grid,.task-kpi-grid{gap:14px!important}
+.colab-kpi,.task-kpi{border-radius:16px!important;border:1px solid #dce5ef!important;box-shadow:0 6px 17px rgba(17,42,70,.055)!important;padding:17px!important;min-height:105px;transition:transform .18s ease,box-shadow .18s ease}
+.colab-kpi:hover,.task-kpi:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(17,42,70,.10)!important}
+.colab-kpi>span,.task-kpi-icon{width:42px!important;height:42px!important;display:grid;place-items:center;border-radius:13px!important}
+.colab-kpi strong,.task-kpi strong{font-size:25px!important;font-weight:900!important;letter-spacing:-.04em}
+.colab-kpi small,.task-kpi-label{font-size:10px!important;font-weight:800!important;letter-spacing:.035em}
+/* Formularios, tablas y acciones */
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea{border-radius:10px!important;border-color:#d5e0ec!important;background-color:#fff;box-shadow:0 1px 2px rgba(17,42,70,.025)}
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):focus,select:focus,textarea:focus{border-color:var(--user-accent,#0870e8)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--user-accent,#0870e8) 13%,transparent)!important;outline:0}
+table thead th{padding:13px 14px!important;font-size:10px!important;letter-spacing:.08em!important;text-transform:uppercase;background:#f3f6fa!important}
+table tbody td{padding:12px 14px!important}
+table tbody tr:hover td{background:#f5f9fd}
+.table-scroll{border-radius:15px!important;border-color:#dce5ef!important;box-shadow:0 4px 14px rgba(17,42,70,.035)}
+.corp-button,.corp-button-dark,.ui-button{min-height:40px!important;border-radius:11px!important;padding:10px 15px!important;font-weight:800!important;letter-spacing:.005em}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline-offset:3px!important}
+@media(max-width:900px){#sidebar{width:286px!important;min-width:286px!important}main section[id^="view-"]{padding:18px 16px!important;gap:16px!important}main>header.sticky{padding:13px 16px!important}#quick-module-bar{padding:9px 16px!important}}
+@media(max-width:600px){#sidebar{width:min(86vw,310px)!important;min-width:min(86vw,310px)!important}main section[id^="view-"]{padding:13px 11px!important;gap:13px!important}.module-title-card{padding:15px!important}.module-logo-mark{width:40px!important;height:40px!important;min-width:40px}.dashboard-welcome{padding:20px!important}.colab-kpi,.task-kpi{padding:12px!important}#quick-module-bar{gap:6px}}
+@media(prefers-reduced-motion:reduce){.ui-card,.colab-kpi,.task-kpi,.menu-btn{transition:none!important}}
+</style>
 </body>
 </html>
