@@ -223,9 +223,12 @@ def esperar_modal_bloqueante(page, timeout_segundos=600):
                 restante_ms = max(1000, int((timeout_segundos - (time.monotonic() - inicio)) * 1000))
                 modal.first.wait_for(state="hidden", timeout=restante_ms)
         except Exception as exc:
-            # Si el modal sigue visible al vencer el tiempo, fallar con un mensaje claro;
-            # no usar force=True ni hacer clic detrás de una ventana activa.
-            if modal_progreso_visible(page):
+            # No continuar si el modal que se detectó sigue visible.
+            try:
+                sigue_visible = modal.count() > 0 and modal.first.is_visible()
+            except Exception:
+                sigue_visible = modal_progreso_visible(page)
+            if sigue_visible:
                 raise RuntimeError(
                     "El modal de progreso de Talana sigue bloqueando los reportes; "
                     f"se esperó {int(time.monotonic() - inicio)} s. Detalle: {str(exc)[:220]}"
