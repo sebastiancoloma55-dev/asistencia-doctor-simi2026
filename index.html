@@ -802,6 +802,12 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 
 </style>
 <link rel="stylesheet" href="/css/help-center.css">
+<style id="simi-dashboard-navigation-fix">
+/* The dashboard has custom display rules; .hidden must always win during module navigation. */
+#view-dashboard.hidden,
+#view-dashboard.simi-dashboard.hidden { display: none !important; }
+#view-dashboard:not(.hidden) { display: block; }
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
