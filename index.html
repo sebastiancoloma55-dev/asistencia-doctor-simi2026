@@ -4196,51 +4196,40 @@ main.flex.min-w-0.flex-1{background:radial-gradient(ellipse at 90% 0%,rgba(14,16
     var sel=document.getElementById(d.id);if(!sel)return;
     var old=document.getElementById(d.old);if(old)old.style.setProperty('display','none','important');
     sel.classList.add('map14-native-hidden');
-    var wrap=document.getElementById(d.id+'-combo');
-    if(!wrap){
-      wrap=document.createElement('div');wrap.className='map14-combo';wrap.id=d.id+'-combo';
-      var input=document.createElement('input');input.type='search';input.className='map14-combo-input';input.placeholder='Escribe para buscar sucursal…';input.autocomplete='off';input.setAttribute('role','combobox');input.setAttribute('aria-expanded','false');input.setAttribute('aria-label','Buscar sucursal de '+d.label);
-      var results=document.createElement('div');results.className='map14-combo-results';results.hidden=true;results.setAttribute('role','listbox');
-      wrap.append(input,results);sel.insertAdjacentElement('beforebegin',wrap);
-      var active=-1;
-      function options(){return Array.from(sel.options).filter(function(o){return o.value!=='';});}
-      function normalize(s){return String(s||'').toLocaleLowerCase('es-CL').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();}
-      function render(){
-        var q=normalize(input.value),all=options();
-        var matches=all.filter(function(o){return !q||normalize(o.textContent).includes(q);});
-        results.replaceChildren();active=-1;
-        var count=document.createElement('div');count.className='map14-combo-count';count.textContent=matches.length+' sucursal(es)'+(q?' encontradas':' disponibles');results.appendChild(count);
-        if(!matches.length){var empty=document.createElement('div');empty.className='map14-combo-empty';empty.textContent='No hay coincidencias. Prueba con otra comuna o nombre.';results.appendChild(empty);}
-        matches.slice(0,100).forEach(function(o,i){
-          var b=document.createElement('button');b.type='button';b.className='map14-combo-option';b.setAttribute('role','option');b.setAttribute('aria-selected',o.value===sel.value?'true':'false');b.textContent=o.textContent;b.dataset.value=o.value;
-          b.addEventListener('mousedown',function(e){e.preventDefault();sel.value=o.value;input.value=o.textContent;results.hidden=true;input.setAttribute('aria-expanded','false');sel.dispatchEvent(new Event('change',{bubbles:true}));});
-          results.appendChild(b);
-        });
-        results.hidden=false;input.setAttribute('aria-expanded','true');
-      }
-      input.addEventListener('focus',function(){if(!input.value&&sel.value){var selected=options().find(function(o){return o.value===sel.value;});if(selected)input.value=selected.textContent;}render();});
-      input.addEventListener('input',render);
-      input.addEventListener('keydown',function(e){
-        var items=Array.from(results.querySelectorAll('.map14-combo-option'));
-        if(e.key==='ArrowDown'){e.preventDefault();active=Math.min(active+1,items.length-1);items.forEach(function(x,i){x.setAttribute('aria-selected',i===active?'true':'false');});if(items[active])items[active].scrollIntoView({block:'nearest'});}
-        else if(e.key==='ArrowUp'){e.preventDefault();active=Math.max(active-1,0);items.forEach(function(x,i){x.setAttribute('aria-selected',i===active?'true':'false');});if(items[active])items[active].scrollIntoView({block:'nearest'});}
-        else if(e.key==='Enter'&&items.length){e.preventDefault();var chosen=items[active>=0?active:0];sel.value=chosen.dataset.value;input.value=chosen.textContent;results.hidden=true;input.setAttribute('aria-expanded','false');sel.dispatchEvent(new Event('change',{bubbles:true}));}
-        else if(e.key==='Escape'){results.hidden=true;input.setAttribute('aria-expanded','false');}
-      });
-      document.addEventListener('mousedown',function(e){if(!wrap.contains(e.target)){results.hidden=true;input.setAttribute('aria-expanded','false');}});
-      sel.addEventListener('change',function(){var chosen=options().find(function(o){return o.value===sel.value;});if(chosen)input.value=chosen.textContent;});
-      sel._map14ComboRefresh=function(){if(sel.value){var chosen=options().find(function(o){return o.value===sel.value;});if(chosen&&!input.value)input.value=chosen.textContent;}};
-      sel._map14ComboInput=input;
+    if(sel.dataset.map14ComboReady==='1')return;
+    var wrap=document.createElement('div');wrap.className='map14-combo';wrap.id=d.id+'-combo';
+    var input=document.createElement('input');input.type='search';input.className='map14-combo-input';input.placeholder='Escribe para buscar sucursal…';input.autocomplete='off';input.setAttribute('role','combobox');input.setAttribute('aria-expanded','false');input.setAttribute('aria-label','Buscar sucursal de '+d.label);
+    var results=document.createElement('div');results.className='map14-combo-results';results.hidden=true;results.setAttribute('role','listbox');results.style.position='fixed';results.style.zIndex='2147483000';results.style.maxHeight='min(280px, 45vh)';
+    wrap.append(input);sel.insertAdjacentElement('beforebegin',wrap);document.body.appendChild(results);
+    var active=-1;
+    function options(){return Array.from(sel.options).filter(function(o){return o.value!=='';});}
+    function normalize(s){return String(s||'').toLocaleLowerCase('es-CL').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();}
+    function place(){var r=input.getBoundingClientRect();results.style.left=Math.max(8,Math.min(r.left,window.innerWidth-r.width-8))+'px';results.style.top=Math.min(r.bottom+5,window.innerHeight-90)+'px';results.style.width=r.width+'px';results.style.maxHeight=Math.max(100,window.innerHeight-Math.min(r.bottom+8,window.innerHeight-80)-12)+'px';}
+    function close(){results.hidden=true;input.setAttribute('aria-expanded','false');}
+    function render(){
+      var q=normalize(input.value),all=options(),matches=all.filter(function(o){return !q||normalize(o.textContent).includes(q);});
+      results.replaceChildren();active=-1;
+      var count=document.createElement('div');count.className='map14-combo-count';count.textContent=matches.length+' sucursal(es)'+(q?' encontradas':' disponibles');results.appendChild(count);
+      if(!matches.length){var empty=document.createElement('div');empty.className='map14-combo-empty';empty.textContent='No hay coincidencias. Prueba con otra comuna o nombre.';results.appendChild(empty);}
+      matches.slice(0,100).forEach(function(o){var b=document.createElement('button');b.type='button';b.className='map14-combo-option';b.setAttribute('role','option');b.setAttribute('aria-selected',o.value===sel.value?'true':'false');b.textContent=o.textContent;b.dataset.value=o.value;b.addEventListener('mousedown',function(e){e.preventDefault();sel.value=o.value;input.value=o.textContent;close();sel.dispatchEvent(new Event('change',{bubbles:true}));});results.appendChild(b);});
+      place();results.hidden=false;input.setAttribute('aria-expanded','true');
     }
-    // Re-sincroniza el combo cuando la aplicación carga o actualiza las opciones.
-    if(sel._map14ComboRefresh)sel._map14ComboRefresh();
+    input.addEventListener('focus',function(){if(!input.value&&sel.value){var s=options().find(function(o){return o.value===sel.value;});if(s)input.value=s.textContent;}render();});
+    input.addEventListener('click',function(){render();});
+    input.addEventListener('input',render);
+    input.addEventListener('keydown',function(e){var items=Array.from(results.querySelectorAll('.map14-combo-option'));if(e.key==='ArrowDown'){e.preventDefault();active=Math.min(active+1,items.length-1);items.forEach(function(x,i){x.setAttribute('aria-selected',i===active?'true':'false');});if(items[active])items[active].scrollIntoView({block:'nearest'});}else if(e.key==='ArrowUp'){e.preventDefault();active=Math.max(active-1,0);items.forEach(function(x,i){x.setAttribute('aria-selected',i===active?'true':'false');});if(items[active])items[active].scrollIntoView({block:'nearest'});}else if(e.key==='Enter'&&items.length){e.preventDefault();var chosen=items[active>=0?active:0];sel.value=chosen.dataset.value;input.value=chosen.textContent;close();sel.dispatchEvent(new Event('change',{bubbles:true}));}else if(e.key==='Escape')close();});
+    document.addEventListener('mousedown',function(e){if(!wrap.contains(e.target)&&!results.contains(e.target))close();});
+    window.addEventListener('resize',function(){if(!results.hidden)place();});
+    window.addEventListener('scroll',function(){if(!results.hidden)place();},true);
+    sel.addEventListener('change',function(){var s=options().find(function(o){return o.value===sel.value;});if(s)input.value=s.textContent;});
+    sel._map14ComboRefresh=function(){if(sel.value){var s=options().find(function(o){return o.value===sel.value;});if(s&&!input.value)input.value=s.textContent;}};
+    sel._map14ComboInput=input;sel.dataset.map14ComboReady='1';
   }
   function init(){defs.forEach(initOne);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
   window.addEventListener('load',init);
-  var tries=0;var timer=setInterval(function(){init();tries++;if(tries>=20)clearInterval(timer);},500);
-  var observer=new MutationObserver(function(){init();});
-  observer.observe(document.body,{childList:true,subtree:true});
+  var tries=0;var timer=setInterval(function(){init();tries++;if(tries>=30)clearInterval(timer);},500);
+  var observer=new MutationObserver(function(){init();});observer.observe(document.body,{childList:true,subtree:true});
 })();
 </script>
 
