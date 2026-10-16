@@ -987,203 +987,83 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 
             <div id="quick-module-bar" aria-label="Accesos rápidos a módulos autorizados"><span class="quick-label">Accesos rápidos</span></div>
 
-            <!-- DASHBOARD -->
-            <section id="view-dashboard" class="space-y-6 p-4 sm:p-8">
-                <div class="dashboard-welcome">
-                    <div class="flex flex-wrap items-start justify-between gap-4">
-                        <div>
-                            <p class="text-xs font-extrabold uppercase tracking-[.18em] text-sky-100">Plataforma de gestión · Recursos Humanos</p>
-                            <h2 class="mt-2 text-2xl font-black tracking-tight sm:text-3xl">¡Bienvenido/a, <span id="dashboard-welcome-name">equipo de Asistencia</span>!</h2>
-                            <p id="dashboard-welcome-subtitle" class="mt-2 max-w-2xl text-sm text-blue-50">Tu centro de control para asistencia, ausentismo y operaciones.</p>
-                        </div>
-                        <span id="dashboard-welcome-role" class="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-2 text-xs font-bold text-white"><i data-lucide="shield-check" class="h-4 w-4"></i> Usuario autorizado</span>
-                    </div>
-                </div>
-                <div id="dashboard-space-summary" class="dash-space-card" aria-live="polite">
-                    <div class="dash-space-intro"><div><span class="dash-space-kicker">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo('espacio')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div>
-                    <div class="dash-space-stat-grid"><div><span class="dash-space-stat-icon"><i data-lucide="sticky-note"></i></span><span><b>0</b><small>Notas activas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="pin"></i></span><span><b>0</b><small>Notas fijadas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-alert"></i></span><span><b>0</b><small>Fuera de plazo</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-arrow-down"></i></span><span><b>0</b><small>Gestiones recientes</small></span></div></div>
-                </div>
-                <div id="dashboard-ops-summary" class="ui-card dashboard-ops-summary p-4 sm:p-5" aria-live="polite">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                        <div><span class="dash-space-kicker">SEGUIMIENTO EN TIEMPO REAL</span><h3 class="mt-1 font-extrabold text-slate-900">Resumen operativo</h3><p class="mt-1 text-xs text-slate-500">Tareas abiertas, vencimientos, solicitudes de dotación, avisos y salud del bot. Los errores de lectura se muestran como no disponibles, nunca como cero.</p></div>
-                        <button type="button" class="corp-button-dark text-xs" onclick="cargarResumenOperativoRRHH()"><i data-lucide="refresh-cw" class="mr-1 inline h-4 w-4"></i>Actualizar resumen</button>
-                    </div>
-                    <div id="dashboard-ops-cards" class="dashboard-ops-grid mt-4"><div class="ops-summary-loading"><span class="space-loader-ring"></span><span>Consultando estado operativo…</span></div></div>
-                    <p id="dashboard-ops-updated" class="mt-3 text-right text-[10px] text-slate-400">Pendiente de actualización</p>
-                </div>
-                <div class="ui-card p-4 sm:p-5">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                        <div><h3 class="font-extrabold text-slate-900">Actualización de datos</h3><p class="mt-1 text-xs text-slate-500">Últimas cargas registradas en los módulos a los que tienes acceso, en hora de Chile.</p></div>
-                        <button type="button" class="corp-button-dark text-xs" onclick="cargarResumenActualizaciones()">Actualizar fechas</button>
-                    </div>
-                    <div id="dashboard-freshness-list" class="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2">
-                        <p class="text-sm text-slate-500">Consultando última carga…</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    <div class="ui-card flex items-start justify-between p-5">
-                        <div>
-                            <p class="text-xs font-semibold uppercase text-slate-500">
-                                Colaboradores
-                            </p>
+            <!-- DASHBOARD · composición corporativa Doctor Simi -->
+<section id="view-dashboard" class="simi-dashboard">
+  <header class="simi-dashboard-hero">
+    <div class="simi-hero-copy">
+      <p class="simi-eyebrow">ASISTENCIA DOCTOR SIMI 2026</p>
+      <h2>¡Bienvenido, <span id="dashboard-welcome-name">equipo de Asistencia</span>!</h2>
+      <p id="dashboard-welcome-subtitle">Panel de control de Asistencia y Recursos Humanos.</p>
+      <p class="simi-hero-subline">Todo el equipo, todas las sucursales, en un solo lugar.</p>
+      <div class="simi-hero-pills"><span>♙ Personas</span><span>◷ Asistencia</span><span>⌖ Sucursales</span><span>▤ Reportes</span><span>✧ IA</span></div>
+      <span id="dashboard-welcome-role" class="simi-hero-role">Usuario autorizado</span>
+    </div>
+    <div class="simi-hero-brand" aria-hidden="true"><img src="/doctor-simi-logo.jpg" alt=""></div>
+  </header>
 
-                            <h3 id="kpi-colaboradores" class="mt-2 text-3xl font-black">
-                                --
-                            </h3>
-                        </div>
+  <div class="simi-kpi-grid">
+    <article class="simi-kpi"><span class="simi-kpi-icon kpi-blue"><i data-lucide="users"></i></span><div><p>Total colaboradores</p><strong id="kpi-colaboradores">—</strong><small>Registros disponibles</small></div></article>
+    <article class="simi-kpi"><span class="simi-kpi-icon kpi-green"><i data-lucide="fingerprint"></i></span><div><p>Asistencia registrada</p><strong id="kpi-asistencia">—</strong><small>Datos conectados al sistema</small></div></article>
+    <article class="simi-kpi"><span class="simi-kpi-icon kpi-red"><i data-lucide="file-heart"></i></span><div><p>Licencias médicas</p><strong id="kpi-licencias">—</strong><small>Registros disponibles</small></div></article>
+    <article class="simi-kpi"><span class="simi-kpi-icon kpi-violet"><i data-lucide="map-pin"></i></span><div><p>Sucursales</p><strong id="kpi-sucursales">—</strong><small>Centros registrados</small></div></article>
+  </div>
 
-                        <i data-lucide="users" class="h-6 w-6 text-simiRed"></i>
-                    </div>
+  <div class="simi-dashboard-main-grid">
+    <article class="simi-panel simi-attendance-panel">
+      <div class="simi-panel-heading"><div><h3><i data-lucide="chart-no-axes-combined"></i> Asistencia y análisis</h3><p>Indicadores calculados desde las fuentes conectadas.</p></div><button type="button" onclick="cambiarModulo('reportes')" class="simi-text-link">Ver reportes ↗</button></div>
+      <div class="simi-filter-row">
+        <label>Período<select id="dashboard-periodo" class="form-field" onchange="cambiarPeriodoDashboard()"><option value="mes">Mes actual</option><option value="7">Últimos 7 días</option><option value="30">Últimos 30 días</option><option value="90">Últimos 90 días</option><option value="personalizado">Rango personalizado</option></select></label>
+        <label>Sucursal<select id="dashboard-sucursal" class="form-field" onchange="cambiarPeriodoDashboard()"><option value="">Todas las sucursales</option></select></label>
+        <label id="dashboard-fecha-desde-wrap" class="hidden">Desde<input id="dashboard-fecha-desde" type="date" class="form-field" onchange="cambiarPeriodoDashboard()"></label>
+        <label id="dashboard-fecha-hasta-wrap" class="hidden">Hasta<input id="dashboard-fecha-hasta" type="date" class="form-field" onchange="cambiarPeriodoDashboard()"></label>
+      </div>
+      <div class="simi-chart-kpis">
+        <div><span>Registros</span><b id="ind-total">—</b></div><div><span>Atrasos</span><b id="ind-atrasos">—</b></div><div><span>Marcas incompletas</span><b id="ind-incompletas">—</b></div><div><span>Licencias vigentes</span><b id="ind-licencias-vigentes">—</b></div>
+      </div>
+      <div id="dashboard-indicadores-error" class="hidden" role="alert"></div><div id="dashboard-indicadores-loading" class="hidden">Calculando indicadores con la base de datos…</div>
+      <div class="simi-chart-area" id="dashboard-gerencial-graficos">
+        <article class="simi-chart-card"><h4>Incidencias por tipo</h4><div id="dashboard-chart-incidencias">Calcula los indicadores para generar el gráfico.</div></article>
+        <article class="simi-chart-card"><h4>Índice de atrasos</h4><div id="dashboard-chart-atrasos">Calcula los indicadores para generar el indicador.</div></article>
+        <article class="simi-chart-card"><h4>Carga operativa</h4><div id="dashboard-chart-carga">Calcula los indicadores para generar el gráfico.</div></article>
+      </div>
+      <div class="simi-panel-footer"><span id="dashboard-indicadores-periodo">Período: mes actual</span><button type="button" onclick="actualizarIndicadoresAsistencia()" class="simi-primary-btn"><i data-lucide="refresh-cw"></i> Actualizar análisis</button></div>
+    </article>
 
-                    <div class="ui-card flex items-start justify-between p-5">
-                        <div>
-                            <p class="text-xs font-semibold uppercase text-slate-500">
-                                Sucursales
-                            </p>
+    <aside class="simi-side-stack">
+      <article class="simi-panel simi-branches-panel">
+        <div class="simi-panel-heading"><div><h3><i data-lucide="map-pin"></i> Sucursales</h3><p>Ubicaciones y coordinación operativa.</p></div><button type="button" onclick="cambiarModulo('mapas')" class="simi-text-link">Ver mapa ↗</button></div>
+        <div class="simi-map-preview"><div class="simi-map-grid" aria-hidden="true"></div><span class="simi-map-pin pin-a">●</span><span class="simi-map-pin pin-b">●</span><span class="simi-map-pin pin-c">●</span><span class="simi-map-pin pin-d">●</span><div class="simi-map-message"><i data-lucide="map-pinned"></i><span>Mapa operativo de sucursales</span></div></div>
+        <div class="simi-branch-summary"><span><i class="dot-green"></i> Operación y cobertura</span><button type="button" onclick="cambiarModulo('mapas')" class="simi-primary-btn">Abrir mapa completo →</button></div>
+      </article>
+      <article class="simi-panel simi-quick-panel"><div class="simi-panel-heading"><div><h3><i data-lucide="zap"></i> Accesos rápidos</h3><p>Ir directamente a las gestiones más utilizadas.</p></div></div>
+        <button type="button" class="simi-quick-link" onclick="cambiarModulo('asistencia')"><span class="quick-icon qi-blue"><i data-lucide="clock"></i></span><span><b>Asistencia y atrasos</b><small>Revisar marcas e incidencias</small></span><i data-lucide="arrow-up-right"></i></button>
+        <button type="button" class="simi-quick-link" onclick="cambiarModulo('licencias')"><span class="quick-icon qi-red"><i data-lucide="file-heart"></i></span><span><b>Licencias médicas</b><small>Consultar períodos y estados</small></span><i data-lucide="arrow-up-right"></i></button>
+        <button type="button" class="simi-quick-link" onclick="cambiarModulo('traslados')"><span class="quick-icon qi-orange"><i data-lucide="map-pinned"></i></span><span><b>Traslados y coberturas</b><small>Coordinar sucursales</small></span><i data-lucide="arrow-up-right"></i></button>
+        <button type="button" class="simi-quick-link" onclick="cambiarModulo('analista_ia')"><span class="quick-icon qi-purple"><i data-lucide="brain-circuit"></i></span><span><b>Analista IA</b><small>Analizar archivos y responder preguntas</small></span><i data-lucide="arrow-up-right"></i></button>
+      </article>
+    </aside>
+  </div>
 
-                            <h3 id="kpi-sucursales" class="mt-2 text-3xl font-black">
-                                --
-                            </h3>
-                        </div>
+  <div class="simi-dashboard-lower-grid">
+    <article class="simi-panel"><div class="simi-panel-heading"><div><h3><i data-lucide="calendar-days"></i> Turnos y asistencia</h3><p>Accede a los registros originales; no se muestran datos de ejemplo.</p></div><button type="button" onclick="cambiarModulo('asistencia')" class="simi-text-link">Ver asistencia ↗</button></div><div class="simi-empty-state"><i data-lucide="calendar-check"></i><p>Consulta turnos, marcaciones y diferencias en el módulo de asistencia.</p><button type="button" onclick="cambiarModulo('asistencia')" class="simi-primary-btn">Abrir asistencia</button></div></article>
+    <article class="simi-panel"><div class="simi-panel-heading"><div><h3><i data-lucide="file-heart"></i> Licencias médicas recientes</h3><p>Consulta estados y períodos registrados.</p></div><button type="button" onclick="cambiarModulo('licencias')" class="simi-text-link">Ver licencias ↗</button></div><div class="simi-empty-state"><i data-lucide="files"></i><p>Abre el módulo para revisar los registros y sus estados reales.</p><button type="button" onclick="cambiarModulo('licencias')" class="simi-primary-btn">Abrir licencias</button></div></article>
+    <article class="simi-panel"><div class="simi-panel-heading"><div><h3><i data-lucide="bell-ring"></i> Alertas y tareas pendientes</h3><p>Resumen de trabajo y actualizaciones del sistema.</p></div><button type="button" onclick="cambiarModulo('operaciones')" class="simi-text-link">Ver todas ↗</button></div><div id="dashboard-ops-cards" class="simi-alert-list"><div class="ops-summary-loading">Consultando estado operativo…</div></div><p id="dashboard-ops-updated" class="simi-last-updated">Pendiente de actualización</p></article>
+  </div>
 
-                        <i data-lucide="building" class="h-6 w-6 text-simiNavy"></i>
-                    </div>
+  <div id="dashboard-space-summary" class="simi-panel simi-workspace-panel" aria-live="polite">
+    <div class="simi-panel-heading"><div><span class="simi-eyebrow simi-eyebrow-blue">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo('espacio')" class="simi-primary-btn">Abrir mi espacio ↗</button></div>
+    <div class="dash-space-stat-grid"><div><span class="dash-space-stat-icon"><i data-lucide="sticky-note"></i></span><span><b>0</b><small>Notas activas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="pin"></i></span><span><b>0</b><small>Notas fijadas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-alert"></i></span><span><b>0</b><small>Fuera de plazo</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-arrow-down"></i></span><span><b>0</b><small>Gestiones recientes</small></span></div></div>
+  </div>
 
-                    <div class="ui-card flex items-start justify-between p-5">
-                        <div>
-                            <p class="text-xs font-semibold uppercase text-slate-500">
-                                Asistencias
-                            </p>
+  <div class="simi-panel simi-data-status"><div class="simi-panel-heading"><div><h3>Conexión y actualización de datos</h3><p>El estado se informa desde la plataforma, sin inventar cifras cuando una fuente no responde.</p></div><button type="button" onclick="inicializarDashboard()" class="simi-primary-btn">Actualizar datos</button></div><div id="connection-box" role="status" aria-live="polite">Conectando con Supabase…</div><div id="dashboard-freshness-list" class="simi-freshness-list">Consultando última carga…</div><p id="dashboard-updated-at" class="simi-last-updated">Datos pendientes de actualización</p></div>
 
-                            <h3 id="kpi-asistencia" class="mt-2 text-3xl font-black">
-                                --
-                            </h3>
-                        </div>
+  <div class="simi-legacy-data hidden" aria-hidden="true">
+    <span id="ind-sin-marca">—</span><span id="ind-faltas">—</span><span id="ind-inexistentes">—</span><span id="ind-anomalias">—</span><span id="ind-licencias-proximas">—</span>
+    <span id="bar-count-colaboradores">—</span><span id="bar-colaboradores"></span><span id="bar-count-sucursales">—</span><span id="bar-sucursales"></span><span id="bar-count-asistencia">—</span><span id="bar-asistencia"></span><span id="bar-count-licencias">—</span><span id="bar-licencias"></span>
+  </div>
+</section>
 
-                        <i data-lucide="clock" class="h-6 w-6 text-amber-600"></i>
-                    </div>
-
-                    <div class="ui-card flex items-start justify-between p-5">
-                        <div>
-                            <p class="text-xs font-semibold uppercase text-slate-500">
-                                Licencias
-                            </p>
-
-                            <h3 id="kpi-licencias" class="mt-2 text-3xl font-black">
-                                --
-                            </h3>
-                        </div>
-
-                        <i data-lucide="file-heart" class="h-6 w-6 text-indigo-600"></i>
-                    </div>
-                </div>
-
-                <div class="ui-card p-6">
-                    <h3 class="mb-2 font-bold text-slate-900">
-                        Estado general
-                    </h3>
-
-                    <div
-                        id="connection-box"
-                        role="status"
-                        aria-live="polite"
-                        class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600"
-                    >
-                        Conectando con Supabase...
-                    </div>
-                    <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                            <h4 class="font-bold text-slate-900">Volumen de información por módulo</h4>
-                            <p class="mt-1 text-xs text-slate-500">Resumen de registros disponibles en la base de datos.</p>
-                        </div>
-                        <button type="button" onclick="inicializarDashboard()" class="ui-button inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
-                            <i data-lucide="refresh-cw" class="h-4 w-4"></i> Actualizar datos
-                        </button>
-                    </div>
-                    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-                            <div class="mb-2 flex items-center justify-between gap-3"><span class="text-sm font-semibold text-slate-700">Colaboradores</span><strong id="bar-count-colaboradores" class="text-sm text-slate-900">--</strong></div>
-                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-200"><div id="bar-colaboradores" class="h-full rounded-full bg-cyan-600 transition-all duration-500" style="width:0%"></div></div>
-                        </div>
-                        <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-                            <div class="mb-2 flex items-center justify-between gap-3"><span class="text-sm font-semibold text-slate-700">Sucursales</span><strong id="bar-count-sucursales" class="text-sm text-slate-900">--</strong></div>
-                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-200"><div id="bar-sucursales" class="h-full rounded-full bg-blue-700 transition-all duration-500" style="width:0%"></div></div>
-                        </div>
-                        <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-                            <div class="mb-2 flex items-center justify-between gap-3"><span class="text-sm font-semibold text-slate-700">Registros de asistencia</span><strong id="bar-count-asistencia" class="text-sm text-slate-900">--</strong></div>
-                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-200"><div id="bar-asistencia" class="h-full rounded-full bg-amber-500 transition-all duration-500" style="width:0%"></div></div>
-                        </div>
-                        <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-                            <div class="mb-2 flex items-center justify-between gap-3"><span class="text-sm font-semibold text-slate-700">Licencias médicas</span><strong id="bar-count-licencias" class="text-sm text-slate-900">--</strong></div>
-                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-200"><div id="bar-licencias" class="h-full rounded-full bg-violet-600 transition-all duration-500" style="width:0%"></div></div>
-                        </div>
-                    </div>
-                    <div class="mt-5 flex flex-wrap gap-2">
-                        <button type="button" onclick="cambiarModulo('colaboradores')" class="ui-button rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200">Ver colaboradores</button>
-                        <button type="button" onclick="cambiarModulo('sucursales')" class="ui-button rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200">Ver sucursales</button>
-                        <button type="button" onclick="cambiarModulo('asistencia')" class="ui-button rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200">Ver asistencia</button>
-                        <button type="button" onclick="cambiarModulo('licencias')" class="ui-button rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200">Ver licencias</button>
-                    </div>
-                    <p id="dashboard-updated-at" class="mt-4 text-right text-[11px] text-slate-400">Datos pendientes de actualización</p>
-                </div>
-
-                <!-- INDICADORES EJECUTIVOS DE ASISTENCIA Y AUSENTISMO -->
-                <div class="ui-card p-5 sm:p-6">
-                    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                        <div>
-                            <h3 class="text-lg font-extrabold text-slate-900">Indicadores de asistencia y ausentismo</h3>
-                            <p class="mt-1 text-sm text-slate-500">Métricas calculadas desde los registros de asistencia y licencias médicas.</p>
-                        </div>
-                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:min-w-[520px]">
-                            <label class="text-xs font-semibold text-slate-600">Período
-                                <select id="dashboard-periodo" class="form-field mt-1" onchange="cambiarPeriodoDashboard()">
-                                    <option value="mes">Mes actual</option>
-                                    <option value="7">Últimos 7 días</option>
-                                    <option value="30">Últimos 30 días</option>
-                                    <option value="90">Últimos 90 días</option>
-                                    <option value="personalizado">Rango personalizado</option>
-                                </select>
-                            </label>
-                            <label class="text-xs font-semibold text-slate-600">Sucursal
-                                <select id="dashboard-sucursal" class="form-field mt-1" onchange="cambiarPeriodoDashboard()">
-                                    <option value="">Todas las sucursales</option>
-                                </select>
-                            </label>
-                            <label id="dashboard-fecha-desde-wrap" class="hidden text-xs font-semibold text-slate-600">Desde
-                                <input id="dashboard-fecha-desde" type="date" class="form-field mt-1" onchange="cambiarPeriodoDashboard()">
-                            </label>
-                            <label id="dashboard-fecha-hasta-wrap" class="hidden text-xs font-semibold text-slate-600">Hasta
-                                <input id="dashboard-fecha-hasta" type="date" class="form-field mt-1" onchange="cambiarPeriodoDashboard()">
-                            </label>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex flex-wrap items-center gap-3">
-                        <button type="button" onclick="actualizarIndicadoresAsistencia()" class="ui-button inline-flex items-center gap-2 rounded-lg bg-simiRed px-4 py-2.5 text-sm font-bold text-white hover:opacity-90">
-                            <i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i> Calcular indicadores
-                        </button>
-                        <span id="dashboard-indicadores-periodo" class="text-xs text-slate-500">Período: mes actual</span>
-                    </div>
-                    <div id="dashboard-indicadores-error" class="mt-4 hidden rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700" role="alert"></div>
-                    <div id="dashboard-indicadores-loading" class="mt-4 hidden rounded-lg bg-slate-50 p-4 text-sm text-slate-500">Calculando indicadores con la base de datos...</div>
-                    <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        <div class="rounded-xl border border-slate-200 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Registros de asistencia</p><p id="ind-total" class="mt-2 text-3xl font-black text-slate-900">--</p><p class="mt-1 text-xs text-slate-500">En el período seleccionado</p></div>
-                        <div class="rounded-xl border border-amber-200 bg-amber-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-amber-800">Registros con atraso</p><p id="ind-atrasos" class="mt-2 text-3xl font-black text-amber-700">--</p><p class="mt-1 text-xs text-slate-500">Marcados como atraso en la fuente</p></div>
-                        <div class="rounded-xl border border-orange-200 bg-orange-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-orange-800">Marcas incompletas</p><p id="ind-incompletas" class="mt-2 text-3xl font-black text-orange-700">--</p><p class="mt-1 text-xs text-slate-500">Requieren revisión</p></div>
-                        <div class="rounded-xl border border-rose-200 bg-rose-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-rose-800">Registros sin marca</p><p id="ind-sin-marca" class="mt-2 text-3xl font-black text-rose-700">--</p><p class="mt-1 text-xs text-slate-500">Incluye ausencias justificadas y por revisar</p></div>
-                        <div class="rounded-xl border border-red-200 bg-red-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-red-800">Faltas injustificadas</p><p id="ind-faltas" class="mt-2 text-3xl font-black text-red-700">--</p><p class="mt-1 text-xs text-slate-500">Según tipo de ausentismo registrado</p></div>
-                        <div class="rounded-xl border border-slate-200 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Estado inexistente</p><p id="ind-inexistentes" class="mt-2 text-3xl font-black text-slate-900">--</p><p class="mt-1 text-xs text-slate-500">Registros con estado “Inexistente”</p></div>
-                        <div class="rounded-xl border border-violet-200 bg-violet-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-violet-800">Anomalías / en revisión</p><p id="ind-anomalias" class="mt-2 text-3xl font-black text-violet-700">--</p><p class="mt-1 text-xs text-slate-500">Pendientes de análisis de asistencia</p></div>
-                        <div class="rounded-xl border border-cyan-200 bg-cyan-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-cyan-800">Licencias vigentes hoy</p><p id="ind-licencias-vigentes" class="mt-2 text-3xl font-black text-cyan-800">--</p><p class="mt-1 text-xs text-slate-500">Licencias cuya fecha cubre hoy</p></div>
-                        <div class="rounded-xl border border-blue-200 bg-blue-50/50 p-4"><p class="text-xs font-semibold uppercase tracking-wide text-blue-800">Licencias que terminan pronto</p><p id="ind-licencias-proximas" class="mt-2 text-3xl font-black text-blue-800">--</p><p class="mt-1 text-xs text-slate-500">Terminan dentro de los próximos 7 días</p></div>
-                    </div>
-                    <div class="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3" id="dashboard-gerencial-graficos">
-                        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div class="border-b bg-gradient-to-r from-sky-50 to-indigo-50 p-4"><div class="flex items-center gap-2"><i data-lucide="chart-bar-increasing" class="h-5 w-5 text-sky-700"></i><h4 class="font-extrabold text-slate-900">Ranking de incidencias</h4></div><p class="mt-1 text-[11px] text-slate-500">Comparación por tipo, período seleccionado</p></div><div id="dashboard-chart-incidencias" class="space-y-4 p-4"><p class="text-xs text-slate-400">Calcula los indicadores para generar el gráfico.</p></div></article>
-                        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div class="border-b bg-gradient-to-r from-violet-50 to-fuchsia-50 p-4"><div class="flex items-center gap-2"><i data-lucide="gauge" class="h-5 w-5 text-violet-700"></i><h4 class="font-extrabold text-slate-900">Índice de atrasos</h4></div><p class="mt-1 text-[11px] text-slate-500">Atrasos respecto de los registros de asistencia</p></div><div id="dashboard-chart-atrasos" class="p-5"><p class="text-xs text-slate-400">Calcula los indicadores para generar el indicador.</p></div></article>
-                        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div class="border-b bg-gradient-to-r from-emerald-50 to-cyan-50 p-4"><div class="flex items-center gap-2"><i data-lucide="chart-no-axes-combined" class="h-5 w-5 text-emerald-700"></i><h4 class="font-extrabold text-slate-900">Carga operativa</h4></div><p class="mt-1 text-[11px] text-slate-500">Incidencias que requieren seguimiento</p></div><div id="dashboard-chart-carga" class="p-4"><p class="text-xs text-slate-400">Calcula los indicadores para generar el gráfico.</p></div></article>
-                    </div>
-                    <p class="mt-4 text-xs leading-5 text-slate-500">Nota: estos valores cuentan registros, no personas únicas. Los registros sin marca no equivalen automáticamente a faltas injustificadas; esa categoría se calcula por separado según el campo de ausentismo.</p>
-                </div>
-            <!-- PANEL INTELIGENTE OPERATIVO · métricas consultadas desde Supabase -->
+<!-- PANEL INTELIGENTE OPERATIVO · métricas consultadas desde Supabase -->
             <section id="dashboard-panel-inteligente" class="hidden space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -3249,41 +3129,18 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       #simi-context-links button:hover{background:#f1f8fc}
       @media(max-width:640px){#simi-context-assistant{right:10px;bottom:44px}#simi-context-toggle{padding:11px 13px}#simi-context-toggle span{display:none}}
     
-/* === Dashboard corporativo fiel a la identidad Doctor Simi 2026 === */
-:root{--simi-blue:#0869f7;--simi-navy:#062d5c;--simi-cyan:#13a8bd;--simi-border:#dce8f8;--simi-shadow:0 7px 24px rgba(14,54,105,.07)}
-body{background:#edf3fa!important;color:#10254b}
-#sidebar{background:linear-gradient(180deg,#062b59 0%,#073b70 100%)!important;width:242px!important;min-width:242px!important;border-right:1px solid rgba(255,255,255,.08)}
-#sidebar>div:first-child{min-height:94px;padding:14px 16px!important;background:linear-gradient(145deg,#082a54,#073c76);border-bottom:1px solid rgba(255,255,255,.12)!important}
-#sidebar>div:first-child h1{font-size:15px!important;font-weight:900!important;line-height:1.12;letter-spacing:-.02em}
-#sidebar>div:first-child p{font-size:10px!important;letter-spacing:.06em}
-#sidebar nav{padding:12px 10px!important;gap:4px!important}
-#sidebar .nova-nav-divider{margin:14px 5px 6px!important;padding-top:10px;border-top:1px solid rgba(255,255,255,.12);color:#a9c7eb!important;font-size:9px!important;letter-spacing:.15em;font-weight:900}
-#sidebar .menu-btn{display:flex!important;align-items:center!important;gap:11px!important;width:100%;min-height:39px;padding:9px 11px!important;border-radius:10px!important;color:#e7f1ff!important;font-size:12px!important;font-weight:600!important;text-align:left;transition:background .18s,transform .18s}
-#sidebar .menu-btn span{font-size:12px!important;line-height:1.2}
-#sidebar .menu-btn svg{width:17px!important;height:17px!important;flex-shrink:0}
-#sidebar .menu-btn:hover{background:rgba(255,255,255,.10)!important;transform:translateX(2px)}
-#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current=page]{background:linear-gradient(100deg,#0879ff,#1762e9)!important;box-shadow:0 5px 16px rgba(0,85,220,.24);color:white!important}
-main{background:#edf3fa!important;min-width:0}
-main>header{background:rgba(255,255,255,.94)!important;border-bottom:1px solid #dce7f5!important;box-shadow:0 2px 10px rgba(16,48,92,.035);min-height:62px}
-#view-dashboard{padding:12px 16px 24px!important;gap:12px!important}
-#view-dashboard .dashboard-welcome{min-height:172px;padding:25px 28px!important;border:0!important;border-radius:18px!important;background:linear-gradient(110deg,#073b91 0%,#0875df 48%,#1bb9ef 100%)!important;box-shadow:0 12px 28px rgba(0,78,174,.18)!important;display:flex;align-items:center}
-#view-dashboard .dashboard-welcome:after{content:"";right:20px;top:5px;bottom:5px;width:min(34%,340px);height:auto;background-image:url('/doctor-simi-logo.jpg');background-repeat:no-repeat;background-position:center;background-size:contain;opacity:.95;font-size:0;letter-spacing:0;color:transparent}
-#view-dashboard .dashboard-welcome h2{font-size:clamp(25px,2.4vw,38px)!important;line-height:1.12;letter-spacing:-.04em}
-#view-dashboard .dashboard-welcome p{max-width:640px}
-#view-dashboard .dashboard-welcome-role{margin-right:32%;background:rgba(255,255,255,.12)!important}
-#view-dashboard .dash-space-card{border-radius:16px!important;background:#fff!important;box-shadow:var(--simi-shadow)!important;border:1px solid var(--simi-border)!important}
-#view-dashboard .dashboard-ops-summary,#view-dashboard .ui-card{border:1px solid var(--simi-border)!important;border-radius:14px!important;box-shadow:var(--simi-shadow)!important;background:#fff!important}
-#view-dashboard .grid.grid-cols-1.gap-5.sm\:grid-cols-2.lg\:grid-cols-4{gap:10px!important}
-#view-dashboard .ui-card{transition:transform .18s,box-shadow .18s}
-#view-dashboard .ui-card:hover{box-shadow:0 10px 26px rgba(14,54,105,.11)!important}
-#view-dashboard h3{letter-spacing:-.025em}
-#view-dashboard .dashboard-ops-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
-#view-dashboard button{transition:transform .16s,box-shadow .16s}
-#view-dashboard button:hover{transform:translateY(-1px)}
-#quick-module-bar{background:#f8fbff!important;border-bottom:1px solid var(--simi-border)!important}
-@media(min-width:1200px){#view-dashboard{padding:14px 17px 25px!important}#view-dashboard .dashboard-welcome{min-height:176px}}
-@media(max-width:900px){#sidebar{width:242px!important;min-width:242px!important}#view-dashboard{padding:10px!important}#view-dashboard .dashboard-welcome{min-height:145px;padding:20px!important}#view-dashboard .dashboard-welcome:after{right:8px;width:28%;opacity:.45}#view-dashboard .dashboard-welcome-role{margin-right:24%}#view-dashboard .dashboard-ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
-@media(max-width:560px){#view-dashboard .dashboard-welcome{min-height:132px;padding:17px!important}#view-dashboard .dashboard-welcome:after{display:none}#view-dashboard .dashboard-welcome-role{margin-right:0}#view-dashboard .dashboard-welcome h2{font-size:25px!important}#view-dashboard .dashboard-ops-grid{grid-template-columns:1fr!important}}
+
+/* Dashboard reconstruido con la composición corporativa solicitada */
+.simi-dashboard{display:flex;flex-direction:column;gap:12px;padding:12px 16px 24px!important;background:#edf3fa}
+.simi-dashboard *{box-sizing:border-box}
+.simi-dashboard-hero{position:relative;display:flex;align-items:center;justify-content:space-between;min-height:176px;overflow:hidden;padding:24px 28px;border-radius:18px;color:#fff;background:linear-gradient(112deg,#063eaa 0%,#087be8 47%,#16b9ef 100%);box-shadow:0 8px 24px rgba(0,70,180,.18)}
+.simi-dashboard-hero:before{content:"";position:absolute;inset:0;background:repeating-radial-gradient(ellipse at 78% 45%,transparent 0 28px,rgba(255,255,255,.12) 29px 30px,transparent 31px 45px);pointer-events:none}
+.simi-hero-copy{position:relative;z-index:2;max-width:76%}.simi-eyebrow{font-size:9px;letter-spacing:.17em;font-weight:900;text-transform:uppercase;color:#d7f7ff;margin:0 0 9px}.simi-dashboard-hero h2{font-size:clamp(25px,2.6vw,38px);line-height:1.08;font-weight:900;letter-spacing:-.04em;margin:0 0 8px}.simi-dashboard-hero p{margin:0;font-size:14px}.simi-hero-subline{margin-top:3px!important;color:#d6eaff;font-size:12px!important}.simi-hero-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.simi-hero-pills span{border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(255,255,255,.13);padding:5px 9px;font-size:10px;font-weight:750}.simi-hero-role{position:absolute;right:0;top:0;font-size:10px;color:#fff}.simi-hero-brand{position:relative;z-index:1;width:155px;height:145px;flex:0 0 155px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:7px solid rgba(255,255,255,.75);background:#fff;box-shadow:0 8px 24px rgba(0,31,91,.28)}.simi-hero-brand img{width:100%;height:100%;object-fit:contain;border-radius:50%}
+.simi-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.simi-kpi{display:flex;align-items:center;gap:12px;min-width:0;min-height:102px;padding:14px;border:1px solid #dce8f8;border-radius:13px;background:#fff;box-shadow:0 4px 16px rgba(20,65,120,.045)}.simi-kpi-icon{display:grid;place-items:center;flex:0 0 52px;width:52px;height:52px;border-radius:12px}.simi-kpi-icon svg{width:27px;height:27px}.kpi-blue{background:#e2efff;color:#1473ed}.kpi-green{background:#d9fbea;color:#0b9c70}.kpi-red{background:#ffe2e8;color:#ed3157}.kpi-violet{background:#eee5ff;color:#8148e8}.simi-kpi p{margin:0 0 3px;font-size:11px;font-weight:700;color:#2d4269}.simi-kpi strong{display:block;font-size:26px;line-height:1.05;font-weight:900;color:#10234d}.simi-kpi small{display:block;margin-top:5px;font-size:9px;color:#70809c}
+.simi-dashboard-main-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,.9fr);gap:10px;align-items:start}.simi-side-stack{display:grid;gap:10px}.simi-panel{min-width:0;padding:15px;border:1px solid #dce8f8;border-radius:14px;background:#fff;box-shadow:0 5px 18px rgba(20,65,120,.045)}.simi-panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}.simi-panel-heading h3{display:flex;align-items:center;gap:7px;margin:0;color:#122951;font-size:14px;font-weight:900;letter-spacing:-.02em}.simi-panel-heading h3 svg{width:17px;height:17px;color:#0875ec}.simi-panel-heading p{margin:4px 0 0;color:#77849a;font-size:10px;line-height:1.45}.simi-text-link{flex-shrink:0;border:0;background:transparent;color:#0869f7;font-size:10px;font-weight:800}.simi-filter-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}.simi-filter-row label{font-size:10px;font-weight:800;color:#52617a}.simi-filter-row .form-field{margin-top:4px;min-height:34px;padding:6px 8px;font-size:11px}.simi-chart-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:12px}.simi-chart-kpis>div{padding:10px;border-radius:9px;background:#f4f8fe;border:1px solid #e5edf9}.simi-chart-kpis span{display:block;color:#687995;font-size:9px}.simi-chart-kpis b{display:block;margin-top:4px;color:#10254b;font-size:20px;font-weight:900}.simi-chart-area{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.simi-chart-card{min-width:0;overflow:hidden;border:1px solid #e5edf8;border-radius:10px;background:#fff;padding:11px}.simi-chart-card:first-child{grid-column:1/-1}.simi-chart-card h4{margin:0 0 8px;color:#2d4269;font-size:11px;font-weight:850}.simi-chart-card [id^="dashboard-chart"]{font-size:10px;color:#8794a9}.simi-panel-footer{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;color:#75839b;font-size:10px}.simi-primary-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;border:0;border-radius:8px;background:linear-gradient(100deg,#0879ee,#0756d8);color:#fff;font-size:10px;font-weight:850;box-shadow:0 4px 10px rgba(0,91,220,.16)}.simi-primary-btn svg{width:13px;height:13px}.simi-map-preview{height:154px;position:relative;overflow:hidden;border:1px solid #d7e4f3;border-radius:10px;background-color:#e4f2e9;background-image:linear-gradient(34deg,transparent 46%,#fff 47%,#fff 49%,transparent 50%),linear-gradient(120deg,transparent 45%,#c9d9e8 46%,#c9d9e8 48%,transparent 49%),linear-gradient(0deg,transparent 48%,#fff 49%,#fff 51%,transparent 52%);background-size:80px 60px,95px 75px,65px 65px}.simi-map-grid{position:absolute;inset:0;background:repeating-linear-gradient(65deg,transparent 0 23px,rgba(129,169,196,.28) 24px 26px,transparent 27px 43px)}.simi-map-pin{position:absolute;z-index:1;color:#009d7a;font-size:23px;text-shadow:0 2px 3px #fff}.pin-a{left:25%;top:19%;color:#ed3859}.pin-b{left:66%;top:30%;color:#00a77e}.pin-c{left:44%;top:58%;color:#f3a51c}.pin-d{left:79%;top:72%;color:#00a77e}.simi-map-message{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:6px;white-space:nowrap;padding:8px 10px;border-radius:8px;background:#fff;box-shadow:0 4px 14px #1c42631f;color:#2b4268;font-size:10px;font-weight:800}.simi-map-message svg{width:15px;height:15px;color:#078e76}.simi-branch-summary{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;font-size:10px;color:#4c607e}.dot-green{display:inline-block;width:7px;height:7px;border-radius:50%;background:#00a77e;margin-right:5px}.simi-quick-link{display:flex;align-items:center;gap:9px;width:100%;padding:9px 0;border:0;border-top:1px solid #edf1f7;background:transparent;text-align:left}.simi-quick-link:first-of-type{border-top:0}.simi-quick-link>span:nth-child(2){flex:1;min-width:0}.simi-quick-link b{display:block;color:#243a5e;font-size:10px}.simi-quick-link small{display:block;margin-top:3px;color:#8591a4;font-size:9px}.simi-quick-link>svg{width:13px;height:13px;color:#8b9ab1}.quick-icon{display:grid;place-items:center;width:35px;height:35px;flex:0 0 35px;border-radius:9px}.quick-icon svg{width:17px;height:17px}.qi-blue{background:#e4efff;color:#1877e9}.qi-red{background:#ffe8ed;color:#e23b5d}.qi-orange{background:#fff1dc;color:#e99a20}.qi-purple{background:#f0e9ff;color:#8352d8}
+.simi-dashboard-lower-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.simi-empty-state{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:13px;border-radius:10px;background:#f7faff;color:#75849a;font-size:10px}.simi-empty-state>svg{width:23px;height:23px;color:#1286ca}.simi-empty-state p{flex:1;min-width:120px;margin:0;line-height:1.5}.simi-workspace-panel .dash-space-stat-grid{margin-top:12px}.simi-data-status{font-size:11px}.simi-freshness-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.simi-last-updated{margin:8px 0 0;text-align:right;color:#8996a9;font-size:9px}.simi-alert-list{display:grid;gap:6px}.simi-alert-list .ops-summary-loading{padding:12px;color:#73819a;font-size:10px}.simi-legacy-data{display:none!important}
+@media(max-width:1100px){.simi-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.simi-dashboard-main-grid{grid-template-columns:minmax(0,1fr)}.simi-side-stack{grid-template-columns:repeat(2,minmax(0,1fr))}.simi-dashboard-lower-grid{grid-template-columns:1fr 1fr}.simi-dashboard-lower-grid>.simi-panel:last-child{grid-column:1/-1}}
+@media(max-width:650px){.simi-dashboard{padding:10px!important}.simi-dashboard-hero{min-height:150px;padding:18px}.simi-hero-copy{max-width:100%}.simi-hero-brand{width:72px;height:72px;flex-basis:72px;border-width:4px;align-self:flex-start}.simi-hero-brand img{object-fit:contain}.simi-dashboard-hero h2{font-size:25px}.simi-dashboard-hero p{font-size:12px}.simi-hero-role{display:none}.simi-kpi-grid{gap:7px}.simi-kpi{min-height:85px;padding:10px;gap:8px}.simi-kpi-icon{width:38px;height:38px;flex-basis:38px}.simi-kpi-icon svg{width:20px;height:20px}.simi-kpi strong{font-size:22px}.simi-kpi p{font-size:10px}.simi-side-stack,.simi-dashboard-lower-grid{grid-template-columns:1fr}.simi-dashboard-lower-grid>.simi-panel:last-child{grid-column:auto}.simi-chart-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.simi-chart-area{grid-template-columns:1fr}.simi-chart-card:first-child{grid-column:auto}.simi-panel-footer{align-items:flex-start;flex-direction:column}.simi-filter-row{grid-template-columns:1fr}.simi-freshness-list{grid-template-columns:1fr}}
 
 </style>
     <div id="simi-context-assistant">
