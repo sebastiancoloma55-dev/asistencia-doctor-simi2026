@@ -3629,20 +3629,28 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       // FIX 2026-10-16: garantizar una sola vista principal visible.
       // Algunos módulos heredados (como inteligencia) no están en el catálogo antiguo
       // y quedaban visibles al entrar a Analista IA, dejando título y contenido distintos.
-      var vistasPrincipales=Array.from(document.querySelectorAll('main section[id^="view-"]'));
-      var vistaSolicitada=document.getElementById('view-'+String(modulo||'').trim());
-      if(vistasPrincipales.length){
-        vistasPrincipales.forEach(function(seccion){
-          if(seccion.id==='view-generic')return;
-          seccion.classList.toggle('hidden',seccion!==vistaSolicitada);
-        });
-        var vistaGenerica=document.getElementById('view-generic');
-        if(vistaGenerica){
-          vistaGenerica.classList.toggle('hidden',!!vistaSolicitada);
-          if(!vistaSolicitada){
-            var tituloGenerico=document.getElementById('generic-title');
-            if(tituloGenerico)tituloGenerico.textContent=(window.titulos&&window.titulos[modulo])||String(modulo||'Módulo');
-          }
+      // No depender de que las vistas estén dentro de <main>: la estructura heredada
+      // tiene contenedores distintos. Ocultar explícitamente todas las vistas evita que
+      // el dashboard quede debajo de otro título al cambiar de módulo.
+      var vistasPrincipales=Array.from(document.querySelectorAll('section[id^="view-"]'));
+      var claveModulo=String(modulo||'').trim();
+      var vistaSolicitada=document.getElementById('view-'+claveModulo);
+      vistasPrincipales.forEach(function(seccion){
+        if(seccion.id==='view-generic')return;
+        var activa=seccion===vistaSolicitada;
+        seccion.classList.toggle('hidden',!activa);
+        seccion.style.display=activa?'':'none';
+        seccion.setAttribute('aria-hidden',String(!activa));
+      });
+      var vistaGenerica=document.getElementById('view-generic');
+      if(vistaGenerica){
+        var mostrarGenerica=!vistaSolicitada;
+        vistaGenerica.classList.toggle('hidden',!mostrarGenerica);
+        vistaGenerica.style.display=mostrarGenerica?'':'none';
+        vistaGenerica.setAttribute('aria-hidden',String(!mostrarGenerica));
+        if(mostrarGenerica){
+          var tituloGenerico=document.getElementById('generic-title');
+          if(tituloGenerico)tituloGenerico.textContent=(window.titulos&&window.titulos[claveModulo])||String(claveModulo||'Módulo');
         }
       }
       // Cinturón de seguridad: el Dashboard y su panel inteligente solo pueden verse en la ruta Dashboard.
