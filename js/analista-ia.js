@@ -74,9 +74,16 @@
         if(!rows.length)await loadFile();
         if(!rows.length)throw new Error('No se pudieron leer filas del archivo.');
         const selected=filtered.length?filtered:rows;
-        const sample=selected.slice(0,700);
         const unique={};headers.forEach(h=>{unique[h]=new Set(selected.slice(0,5000).map(r=>String(r[h]??'').trim()).filter(Boolean)).size;});
-        payload.textData=JSON.stringify({totalFilasOriginales:rows.length,totalFilasTrasFiltros:selected.length,columnas:headers,valoresUnicosEnMuestra:unique,muestra:sample,nota:sample.length<selected.length?'La muestra contiene '+sample.length+' de '+selected.length+' filas filtradas. No extrapoles conteos exactos de la muestra.': 'Se incluyeron todas las filas filtradas.'});
+        let sampleSize=Math.min(700,selected.length), serialized='';
+        do {
+          const sample=selected.slice(0,sampleSize);
+          serialized=JSON.stringify({totalFilasOriginales:rows.length,totalFilasTrasFiltros:selected.length,columnas:headers,valoresUnicosEnMuestra:unique,muestra:sample,nota:sample.length<selected.length?'La muestra contiene '+sample.length+' de '+selected.length+' filas filtradas. No extrapoles conteos exactos de la muestra.':'Se incluyeron todas las filas filtradas.'});
+          if(serialized.length<=1800000||sampleSize<=1)break;
+          sampleSize=Math.max(1,Math.floor(sampleSize/2));
+        } while(sampleSize>0);
+        if(serialized.length>1950000)throw new Error('El archivo contiene campos demasiado extensos. Reduce el archivo o elimina columnas innecesarias.');
+        payload.textData=serialized;
       }else{
         const buf=await file.arrayBuffer();let binary='';const bytes=new Uint8Array(buf);for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
         payload.base64=btoa(binary);
