@@ -3626,6 +3626,25 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         return;
       }
       var resultado=await originalChange.apply(this,arguments);
+      // FIX 2026-10-16: garantizar una sola vista principal visible.
+      // Algunos módulos heredados (como inteligencia) no están en el catálogo antiguo
+      // y quedaban visibles al entrar a Analista IA, dejando título y contenido distintos.
+      var vistasPrincipales=Array.from(document.querySelectorAll('main section[id^="view-"]'));
+      var vistaSolicitada=document.getElementById('view-'+String(modulo||'').trim());
+      if(vistasPrincipales.length){
+        vistasPrincipales.forEach(function(seccion){
+          if(seccion.id==='view-generic')return;
+          seccion.classList.toggle('hidden',seccion!==vistaSolicitada);
+        });
+        var vistaGenerica=document.getElementById('view-generic');
+        if(vistaGenerica){
+          vistaGenerica.classList.toggle('hidden',!!vistaSolicitada);
+          if(!vistaSolicitada){
+            var tituloGenerico=document.getElementById('generic-title');
+            if(tituloGenerico)tituloGenerico.textContent=(window.titulos&&window.titulos[modulo])||String(modulo||'Módulo');
+          }
+        }
+      }
       // Cinturón de seguridad: el Dashboard y su panel inteligente solo pueden verse en la ruta Dashboard.
       // Evita que el contenido del Dashboard quede visible al navegar a Coberturas, Traslados u otro módulo.
       var dashboardView=document.getElementById('view-dashboard');
