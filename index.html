@@ -1261,7 +1261,7 @@ display:block!important;flex:1 1 auto!important;width:100%!important;min-width:0
   <button id="btn-configcorreos" class="menu-btn" onclick="cambiarModulo('configcorreos')"><i data-lucide="mail-check" class="h-4 w-4"></i><span>Correos de sucursales</span></button>
   <button id="btn-chat" class="menu-btn" onclick="cambiarModulo('chat')"><i data-lucide="messages-square" class="h-4 w-4"></i><span>Chat interno</span></button>
   <div class="nova-nav-divider" data-nav-group><span>CENTROS FUNCIONALES</span></div>
-  <button id="btn-inteligencia-asistencia" class="menu-btn" onclick="cambiarModulo('asistencia')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Centro de inteligencia de asistencia</span></button>
+  <button id="btn-inteligencia-asistencia" class="menu-btn" onclick="cambiarModulo('inteligencia')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Centro de inteligencia de asistencia</span></button>
   <button id="btn-centro-operaciones" class="menu-btn" onclick="cambiarModulo('operaciones')"><i data-lucide="list-todo" class="h-4 w-4"></i><span>Centro de operaciones</span></button>
   <button id="btn-mapa-inteligente" class="menu-btn" onclick="cambiarModulo('mapas')"><i data-lucide="map-pinned" class="h-4 w-4"></i><span>Mapa inteligente de sucursales</span></button>
   <button id="btn-analista-rrhh-ia" class="menu-btn" onclick="window.SimiIntelligenceCenter&&typeof window.SimiIntelligenceCenter.openSearch==='function'?window.SimiIntelligenceCenter.openSearch():document.getElementById('simi-context-toggle')?.click()"><i data-lucide="sparkles" class="h-4 w-4"></i><span>Analista de RR. HH. con IA</span></button>
@@ -2460,6 +2460,46 @@ display:block!important;flex:1 1 auto!important;width:100%!important;min-width:0
                     <div id="tarea-kpi-resumen" class="task-analytics-summary"><div class="task-analytics-empty"><span>Tareas medibles</span><b>0</b></div></div>
                     <div class="task-user-performance"><div class="task-user-heading"><div><h5>Rendimiento por usuario</h5><p>Compara asignaciones, aprobaciones y atrasos por persona.</p></div><select id="tarea-kpi-filtro-usuario" class="form-field" onchange="renderizarTareas()"><option value="TODOS">Todos los usuarios</option></select></div><div id="tabla-kpi-usuarios" class="space-y-2"><p class="text-sm text-slate-400">Cargando métricas…</p></div></div>
                 </div>
+            </section>
+
+            <!-- CENTRO DE INTELIGENCIA DE ASISTENCIA -->
+            <section id="view-inteligencia" class="hidden space-y-6 p-4 sm:p-8">
+              <div class="module-intro">
+                <span class="module-kicker"><i data-lucide="chart-no-axes-combined" class="h-3 w-3"></i> Análisis de asistencia</span>
+                <h3 class="mt-3">Centro de inteligencia de asistencia</h3>
+                <p class="mt-2 max-w-3xl">Investiga diferencias entre turnos, marcaciones y ausentismos. Cada acceso abre el módulo que administra los registros originales; no se inventan indicadores cuando una fuente no está disponible.</p>
+                <div class="mt-5 flex flex-wrap gap-2">
+                  <button type="button" class="corp-button-dark" onclick="cambiarModulo('asistencia')"><i data-lucide="clock" class="h-4 w-4"></i> Revisar asistencia</button>
+                  <button type="button" class="corp-button-dark" onclick="cambiarModulo('reportes')"><i data-lucide="file-chart-column" class="h-4 w-4"></i> Abrir análisis y reportes</button>
+                  <button type="button" class="corp-button-dark" onclick="cambiarModulo('calidad')"><i data-lucide="shield-check" class="h-4 w-4"></i> Revisar calidad de datos</button>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                <article class="ui-card p-5">
+                  <div class="flex items-center gap-3"><span class="grid h-11 w-11 place-items-center rounded-xl bg-blue-50 text-blue-600"><i data-lucide="git-compare" class="h-5 w-5"></i></span><div><h4 class="font-extrabold text-slate-900">Turnos vs. horas trabajadas</h4><p class="text-xs text-slate-500 mt-1">Contrasta planificación y marcaciones.</p></div></div>
+                  <button type="button" class="mt-5 w-full corp-button" onclick="cambiarModulo('asistencia')">Revisar diferencias <i data-lucide="arrow-up-right" class="h-4 w-4"></i></button>
+                </article>
+                <article class="ui-card p-5">
+                  <div class="flex items-center gap-3"><span class="grid h-11 w-11 place-items-center rounded-xl bg-amber-50 text-amber-600"><i data-lucide="timer" class="h-5 w-5"></i></span><div><h4 class="font-extrabold text-slate-900">Atrasos y marcaciones</h4><p class="text-xs text-slate-500 mt-1">Revisa atrasos y registros incompletos.</p></div></div>
+                  <button type="button" class="mt-5 w-full corp-button" onclick="cambiarModulo('asistencia')">Ver asistencia <i data-lucide="arrow-up-right" class="h-4 w-4"></i></button>
+                </article>
+                <article class="ui-card p-5">
+                  <div class="flex items-center gap-3"><span class="grid h-11 w-11 place-items-center rounded-xl bg-rose-50 text-rose-600"><i data-lucide="heart-pulse" class="h-5 w-5"></i></span><div><h4 class="font-extrabold text-slate-900">Ausentismos y licencias</h4><p class="text-xs text-slate-500 mt-1">Consulta períodos y estados registrados.</p></div></div>
+                  <button type="button" class="mt-5 w-full corp-button" onclick="cambiarModulo('licencias')">Ver licencias <i data-lucide="arrow-up-right" class="h-4 w-4"></i></button>
+                </article>
+                <article class="ui-card p-5">
+                  <div class="flex items-center gap-3"><span class="grid h-11 w-11 place-items-center rounded-xl bg-teal-50 text-teal-600"><i data-lucide="building-2" class="h-5 w-5"></i></span><div><h4 class="font-extrabold text-slate-900">Comparación por sucursal</h4><p class="text-xs text-slate-500 mt-1">Filtra y compara desde los reportes.</p></div></div>
+                  <button type="button" class="mt-5 w-full corp-button" onclick="cambiarModulo('reportes')">Comparar reportes <i data-lucide="arrow-up-right" class="h-4 w-4"></i></button>
+                </article>
+              </div>
+              <div class="ui-card p-5 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3"><div><h4 class="text-lg font-extrabold text-slate-900">Cómo interpretar este centro</h4><p class="mt-1 text-sm text-slate-500">Las cifras y conclusiones se deben consultar en los módulos conectados.</p></div><span class="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold text-sky-800">Fuentes existentes</span></div>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                  <div class="rounded-xl bg-slate-50 p-4"><b class="text-slate-800">1. Selecciona un análisis</b><p class="mt-1 text-slate-500">Abre el módulo que contiene los registros originales.</p></div>
+                  <div class="rounded-xl bg-slate-50 p-4"><b class="text-slate-800">2. Aplica los filtros</b><p class="mt-1 text-slate-500">Usa el período, la sucursal y los filtros disponibles en cada módulo.</p></div>
+                  <div class="rounded-xl bg-slate-50 p-4"><b class="text-slate-800">3. Exporta o investiga</b><p class="mt-1 text-slate-500">Continúa desde reportes y calidad de datos para validar diferencias.</p></div>
+                </div>
+              </div>
             </section>
 
             <!-- GENÉRICO -->
