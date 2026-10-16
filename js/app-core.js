@@ -1148,8 +1148,6 @@
             const consultas=await Promise.all([
                 opsConsultar('tareas','id,titulo,estado,fecha_limite,prioridad,responsable:usuarios_roles!tareas_responsable_rol_id_fkey(nombre,email),sucursal:sucursales(nombre)',['tareas'],q=>q.order('fecha_limite',{ascending:true})),
                 opsConsultar('gestiones_correo','id,asunto,estado,plazo_respuesta,supervisor',['correos'],q=>q.order('plazo_respuesta',{ascending:true})),
-                opsConsultar('registros_asistencia','id,sin_marca,marca_incompleta,sin_turno_marcas',['asistencia','reportes'],q=>q.order('id',{ascending:false})),
-                opsConsultar('notificaciones','id,titulo,mensaje,leida,created_at',['tareas'],q=>q.eq('leida',false).order('created_at',{ascending:false})),
                 opsContar('tareas',['tareas'],q=>q.not('estado','in','("APROBADA","CANCELADA")')),
                 opsContar('tareas',['tareas'],q=>q.not('estado','in','("APROBADA","CANCELADA")').lt('fecha_limite',ahoraIso)),
                 opsContar('gestiones_correo',['correos'],q=>q.not('estado','in','("RESPONDIDO","CERRADO","CANCELADO")')),
@@ -1157,11 +1155,9 @@
                 opsContar('registros_asistencia',['asistencia','reportes'],q=>q.or('sin_marca.eq.true,marca_incompleta.eq.true,sin_turno_marcas.eq.true')),
                 opsContar('notificaciones',['tareas'],q=>q.eq('leida',false))
             ]);
-            const [t,c,a,n,tp,tv,cp,cv,incidencias,notificacionesSinLeer]=consultas,disponible=x=>x.disponible,now=new Date();
+            const [t,c,tp,tv,cp,cv,incidencias,notificacionesSinLeer]=consultas,disponible=x=>x.disponible,now=new Date();
             const tareas=t.data||[],tPend=tareas.filter(x=>!['APROBADA','CANCELADA'].includes(String(x.estado||'').toUpperCase())),tVenc=tPend.filter(x=>x.fecha_limite&&new Date(x.fecha_limite)<now);
             const correos=c.data||[],cPend=correos.filter(x=>!['RESPONDIDO','CERRADO','CANCELADO'].includes(String(x.estado||'').toUpperCase())),cVenc=cPend.filter(x=>x.plazo_respuesta&&new Date(x.plazo_respuesta)<now);
-            const asist=a.data||[],sinMarca=incidencias.disponible?incidencias.count:null;
-            const notis=n.data||[];
             const metricas=[
                 {label:'Tareas abiertas',value:tp.disponible?tp.count:'—',desc:tp.disponible?(tv.disponible?tv.count+' vencidas':'Plazos vencidos no disponibles'):'Sin permiso de tareas',icon:'list-checks',color:'blue',module:'tareas'},
                 {label:'Gestiones de correo abiertas',value:cp.disponible?cp.count:'—',desc:cp.disponible?(cv.disponible?cv.count+' con plazo vencido':'Plazos vencidos no disponibles'):'Sin permiso de correos',icon:'mail-clock',color:'cyan',module:'correos'},
@@ -1175,7 +1171,18 @@
             tPend.filter(x=>x.fecha_limite&&new Date(x.fecha_limite)>=now&&new Date(x.fecha_limite)-now<48*60*60*1000).slice(0,3).forEach(x=>items.push({tipo:'Tarea próxima a vencer',titulo:x.titulo,detalle:x.responsable?.nombre||x.responsable?.email||'Sin responsable',fecha:x.fecha_limite,modulo:'tareas',urgente:false}));
             cPend.filter(x=>x.plazo_respuesta&&new Date(x.plazo_respuesta)>=now&&new Date(x.plazo_respuesta)-now<48*60*60*1000).slice(0,3).forEach(x=>items.push({tipo:'Respuesta próxima a vencer',titulo:x.asunto,detalle:x.supervisor||'Gestión de correo',fecha:x.plazo_respuesta,modulo:'correos',urgente:false}));
             items.sort((x,y)=>new Date(x.fecha)-new Date(y.fecha));
-            alertas.innerHTML=items.length?items.slice(0,10).map(x=>'<button type="button" onclick="cambiarModulo(\''+x.modulo+'\')" class="ops-alert-row flex w-full items-start gap-3 rounded-xl p-3 text-left"><span class="ops-alert-dot '+(x.urgente?'urgent':'soon')+'"></span><span class="min-w-0 flex-1"><strong class="block truncate text-sm">'+opsEsc(x.titulo||x.tipo)+'</strong><span class="mt-1 block text-xs text-slate-500">'+opsEsc(x.tipo)+' · '+opsEsc(x.detalle)+'</span></span><span class="shrink-0 text-right text-xs '+(x.urgente?'text-rose-600':'text-amber-700')+'">'+opsEsc(new Date(x.fecha).toLocaleDateString('es-CL'))+'</span></button>').join(''):'<div class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-800"><strong>No se detectan vencimientos próximos en los datos consultados.</strong><p class="mt-1 text-xs">Si alguna fuente no está autorizada o no tiene datos, su indicador aparecerá como no disponible.</p></div>';
+            const fuentesAlertas=[tp, tv, cp, cv, incidencias, notificacionesSinLeer];
+            const fuentesDisponibles=fuentesAlertas.filter(f=>f&&f.disponible).length;
+            const fuentesNoDisponibles=fuentesAlertas.length-fuentesDisponibles;
+            const listaAlertas=items.length?items.slice(0,10).map(x=>'<button type="button" onclick="cambiarModulo(\''+x.modulo+'\')" class="ops-alert-row flex w-full items-start gap-3 rounded-xl p-3 text-left"><span class="ops-alert-dot '+(x.urgente?'urgent':'soon')+'"></span><span class="min-w-0 flex-1"><strong class="block truncate text-sm">'+opsEsc(x.titulo||x.tipo)+'</strong><span class="mt-1 block text-xs text-slate-500">'+opsEsc(x.tipo)+' · '+opsEsc(x.detalle)+'</span></span><span class="shrink-0 text-right text-xs '+(x.urgente?'text-rose-600':'text-amber-700')+'">'+opsEsc(new Date(x.fecha).toLocaleDateString('es-CL'))+'</span></button>').join(''):'';
+            if(items.length){alertas.innerHTML=listaAlertas;}
+            else if(fuentesDisponibles===0){
+                alertas.innerHTML='<div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"><strong>No se pudo confirmar el estado de las alertas.</strong><p class="mt-1 text-xs">Todas las fuentes consultadas están no disponibles o no autorizadas. Actualiza la consulta o revisa los permisos antes de concluir que no hay pendientes.</p></div>';
+            }else if(fuentesNoDisponibles>0){
+                alertas.innerHTML='<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><strong>No se detectan alertas en las fuentes disponibles.</strong><p class="mt-1 text-xs">'+fuentesNoDisponibles+' de '+fuentesAlertas.length+' consultas no están disponibles. El resumen es parcial y no confirma que todos los módulos estén al día.</p></div>';
+            }else{
+                alertas.innerHTML='<div class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-800"><strong>No se detectan vencimientos próximos en las fuentes consultadas.</strong><p class="mt-1 text-xs">Todas las consultas de alertas terminaron correctamente.</p></div>';
+            }
             const links=[['Asistencia','clock','asistencia'],['Licencias','file-heart','licencias'],['Correos y seguimiento','mail','correos'],['Tareas diarias','list-checks','tareas'],['Reportes','chart-no-axes-combined','reportes'],['Mapa de sucursales','map-pinned','mapas']];
             accesos.innerHTML=links.filter(x=>tienePermisoModulo(x[2])).map(x=>'<button type="button" onclick="cambiarModulo(\''+x[2]+'\')" class="ops-shortcut flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-left"><span class="ops-shortcut-icon"><i data-lucide="'+x[1]+'" class="h-4 w-4"></i></span><span class="flex-1 text-sm font-bold">'+opsEsc(x[0])+'</span><i data-lucide="arrow-up-right" class="h-4 w-4 text-slate-400"></i></button>').join('')||'<p class="text-sm text-slate-500">No hay accesos disponibles para los permisos actuales.</p>';
             const stamp=document.getElementById('ops-actualizado');if(stamp)stamp.textContent='Actualizado '+now.toLocaleString('es-CL');

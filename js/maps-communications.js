@@ -813,10 +813,14 @@
                 if (!list.length) { actualizarProgresoCorreos(100, 'ZIP no generado', 'No quedaron borradores válidos después de revalidar ausencias.', 'error'); return; }
                 if (!window.JSZip) { actualizarProgresoCorreos(100, 'ZIP no generado', 'No se pudo cargar el generador ZIP. Recarga la página.', 'error'); return mostrarToast('No se pudo cargar el generador ZIP. Recarga la página.', 'error'); }
                 const zip = new JSZip(), folder = zip.folder('Borradores_Outlook');
-                list.forEach((b, i) => {
-                    const slug = String(b.nombre || 'Borrador_' + (i + 1)).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 60) || 'Borrador_' + (i + 1);
+                for (let i = 0; i < list.length; i++) {
+                    const b = list[i];
+                    const slug = String(b.nombre || 'Correo_' + (i + 1)).normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 60) || 'Correo_' + (i + 1);
                     folder.file(String(i + 1).padStart(3, '0') + '_' + slug + '.eml', crearEmlOutlook(b));
-                });
+                    const pct = 38 + Math.round(((i + 1) / list.length) * 25);
+                    actualizarProgresoCorreos(pct, 'Preparando archivos EML', 'Archivo ' + (i + 1).toLocaleString('es-CL') + ' de ' + list.length.toLocaleString('es-CL') + ' preparado.');
+                    await esperarPintadoCorreo();
+                }
                 zip.file('LEEME.txt', 'Borradores para Outlook de escritorio. Extrae el ZIP, abre los archivos .eml con Outlook, revisa destinatarios y contenido y pulsa Enviar. No se envían automáticamente. Los casos se revalidaron contra las ausencias actuales antes de crear este paquete.');
                 actualizarProgresoCorreos(65, 'Comprimiendo ZIP', list.length.toLocaleString('es-CL') + ' archivo(s) preparados. Comprimiendo…');
                 await esperarPintadoCorreo();
@@ -828,6 +832,7 @@
                 a.href = url; a.download = 'Borradores_Outlook_' + fechaActualChileISO() + '.zip';
                 document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
                 actualizarProgresoCorreos(100, 'ZIP listo para descargar', list.length.toLocaleString('es-CL') + ' borrador(es) comprimidos. La descarga se inició en el navegador.', 'completado');
+                await esperarPintadoCorreo();
                 mostrarToast('ZIP revalidado: ' + list.length + ' borrador(es) descargados después de excluir ausencias actuales.', 'success', 10000);
             } catch (error) {
                 actualizarProgresoCorreos(100, 'No se pudo generar el ZIP', error.message || 'Error desconocido', 'error');
