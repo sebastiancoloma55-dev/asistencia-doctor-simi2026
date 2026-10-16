@@ -167,13 +167,22 @@ if(a==="bot_import"){
    if(seenIncoming.has(k)){skipped++;continue;}
    seenIncoming.add(k);
    let old=existingByKey.get(k);
+   let legacyDuplicateIds:string[]=[];
    if(!old&&legacyFields){
     const candidates=legacyCandidates.get(legacyKey(row))||[];
     if(candidates.length===1)old=candidates[0];
     else if(candidates.length>1){
-      // Registros históricos sin discriminadores suficientes: no adivinar cuál
-      // corresponde a la fila nueva y no crear un duplicado adicional.
-      skipped++;blockedAmbiguousLegacy++;continue;
+      const groups=new Map<string,any[]>();
+      for(const candidate of candidates){const candidateKey=keyOf(candidate)||"__incomplete__:"+String(candidate.id);const group=groups.get(candidateKey)||[];group.push(candidate);groups.set(candidateKey,group);}
+      if(groups.size===1){
+       const sameKey=[...groups.values()][0], merged=mergeExactRows(sameKey);
+       if(!merged.conflicts.length){old=merged.merged;legacyDuplicateIds=sameKey.filter((candidate:any)=>candidate.id!==old.id).map((candidate:any)=>candidate.id);}
+       else {skipped++;blockedAmbiguousLegacy++;blockedExistingDuplicateConflicts++;continue;}
+      }else{
+       // Distintas licencias/solicitudes comparten la clave parcial: no se puede
+       // decidir automáticamente cuál actualizar sin arriesgar datos.
+       skipped++;blockedAmbiguousLegacy++;continue;
+      }
     }
    }
    if(old){
@@ -188,7 +197,7 @@ if(a==="bot_import"){
      }
      canonical=merged.merged;
     }
-    pendingUpdates.push({id:old.id,row,old:canonical,duplicateIds:exactMatches.map((candidate:any)=>candidate.id)});
+    pendingUpdates.push({id:old.id,row,old:canonical,duplicateIds:[...new Set([...exactMatches.map((candidate:any)=>candidate.id),...legacyDuplicateIds])]});
    }else pending.push(row);
   }
   const safeDuplicateIds=[...new Set(pendingUpdates.flatMap((item:any)=>item.duplicateIds||[]))];
