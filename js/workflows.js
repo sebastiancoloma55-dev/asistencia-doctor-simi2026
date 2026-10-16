@@ -266,6 +266,8 @@
             if(esAdministradorConAccesoGlobal())return true;
             // Mi espacio acompaña a Tareas para evitar quitarle al equipo una herramienta de seguimiento útil.
             if(modulo==='espacio')return modulosPermitidosActuales.includes('espacio')||modulosPermitidosActuales.includes('tareas');
+            // El Analista IA hereda el acceso de Reportes para no romper los perfiles ya configurados.
+            if(modulo==='analista_ia')return modulosPermitidosActuales.includes('analista_ia')||modulosPermitidosActuales.includes('reportes');
             if(modulo==='operaciones')return ['tareas','correos','asistencia','licencias','amonestaciones','reportes'].some(p=>modulosPermitidosActuales.includes(p));
             if(modulo==='calidad'||modulo==='integraciones')return false;
             if(modulo==='notificaciones')return ['tareas','traslados','amonestaciones'].some(p=>modulosPermitidosActuales.includes(p));
