@@ -2086,7 +2086,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                         <div class="task-filter-field task-search-field"><label for="tarea-filtro-buscar">Búsqueda</label><div class="task-search-wrap"><i data-lucide="search" class="h-4 w-4"></i><input id="tarea-filtro-buscar" class="form-field" oninput="renderizarTareas()" placeholder="Tarea, persona o sucursal"></div></div>
                         <button type="button" class="task-filter-reset" onclick="document.getElementById('tarea-filtro-responsable').value='TODOS';document.getElementById('tarea-filtro-estado').value='TODOS';document.getElementById('tarea-filtro-buscar').value='';renderizarTareas()"><i data-lucide="list-filter" class="h-4 w-4"></i> Limpiar filtros</button>
                     </div>
-                    <div class="table-scroll task-table-scroll"><table id="tabla-tareas" class="w-full min-w-[1000px]"><thead><tr><th>Tarea</th><th>Responsable</th><th>Revisor</th><th>Prioridad</th><th>Vencimiento</th><th>Realización / estado</th><th>Acciones</th></tr></thead><tbody></tbody></table></div>
+                    <div class="table-scroll task-table-scroll"><table class="w-full min-w-[1000px]"><thead><tr><th>Tarea</th><th>Responsable</th><th>Revisor</th><th>Prioridad</th><th>Vencimiento</th><th>Realización / estado</th><th>Acciones</th></tr></thead><tbody id="tabla-tareas"></tbody></table></div>
                 </div>
 
                 <div class="task-analytics">
