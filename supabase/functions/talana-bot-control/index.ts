@@ -48,7 +48,7 @@ if(a==="bot_import"){
  const errors:string[]=[...parseErrors.map((x:any)=>String(x).slice(0,250))], valid:any[]=[];
  const missingKeyFieldCounts:Record<string,number>={};
  let inserted=0,updated=0,skipped=0,failed=parseErrors.length;
- for(let i=0;i<rows.length;i++){const row=clean(rows[i]);if(!row.rut){errors.push("lote fila "+(i+1)+": falta RUT");failed++;continue;}
+ for(let i=0;i<rows.length;i++){const row=clean(rows[i]);if(reportType==="reporte_jornadas_asistencia"){for(const field of allowed){if(!(field in row))row[field]=null;}}if(!row.rut){errors.push("lote fila "+(i+1)+": falta RUT");failed++;continue;}
   if(table==="vacaciones_historico"&&(!row.fecha_inicio||!row.fecha_fin||!row.tipo_vacaciones)){errors.push("lote fila "+(i+1)+": faltan campos obligatorios de vacaciones");failed++;continue;}
   if(table==="registros_asistencia"&&!row.fecha){errors.push("lote fila "+(i+1)+": falta fecha de asistencia");failed++;continue;}
   // Existing employees may have incomplete name cells in historical exports.
@@ -58,6 +58,13 @@ if(a==="bot_import"){
   if(missingKeyFields.length){for(const field of missingKeyFields)missingKeyFieldCounts[field]=(missingKeyFieldCounts[field]||0)+1;errors.push("lote fila "+(i+1)+": faltan campos de identificación para evitar duplicados ("+missingKeyFields.join(", ")+")");failed++;continue;}
   if(table==="registros_asistencia"){row.sin_marca=Boolean(row.sin_marca);row.marca_incompleta=Boolean(row.marca_incompleta);row.tiene_atraso=Boolean(row.tiene_atraso);row.sin_turno_marcas=Boolean(row.sin_turno_marcas);}
   valid.push(row);
+ }
+ if(attendanceFallback){
+  // El XLSX más reciente manda para cada trabajador/día. Si el propio archivo trae filas partidas (por ejemplo, entrada y salida en filas separadas), consolidarlas antes de reemplazar el día existente.
+  const byEmployeeDay=new Map<string,any>();
+  const booleanFields=new Set(["sin_marca","marca_incompleta","tiene_atraso","sin_turno_marcas"]);
+  for(const row of valid){const key=keyOf(row);const previous=byEmployeeDay.get(key);if(!previous){byEmployeeDay.set(key,{...row});continue;}for(const field of allowed){if(field==="rut"||field==="fecha"||booleanFields.has(field))continue;const value=row[field];if(value!==null&&value!==undefined&&String(value).trim()!=="")previous[field]=value;}for(const field of booleanFields)previous[field]=Boolean(previous[field])||Boolean(row[field]);}
+  valid.splice(0,valid.length,...byEmployeeDay.values());
  }
  if(table==="colaboradores"){
   const unique=new Map<string,any>();for(const row of valid)unique.set(normRut(row.rut),row);
@@ -103,13 +110,14 @@ if(a==="bot_import"){
    }
   }
   const existingByKey=new Map<string,any>();
+  const existingMatchesByKey=new Map<string,any[]>();
   const attendanceFallback=reportType==="reporte_jornadas_asistencia";
   const legacyFields=reportType==="ausentismos_historico"?["rut","fecha_inicio","tipo_ausencia"]:reportType==="solicitudes_vacaciones_historicas"?["rut","fecha_inicio","tipo_vacaciones"]:attendanceFallback?["rut","fecha"]:null;
   const legacyDiscriminators=reportType==="ausentismos_historico"?["fecha_creacion","hora_inicio","hora_fin"]:reportType==="solicitudes_vacaciones_historicas"?["fecha_solicitud","jornada"]:null;
   const legacyCandidates=new Map<string,any[]>();
   const legacyKey=(r:any)=>legacyFields?legacyFields.map((field:string)=>field==="rut"?normRut(r[field]):norm(r[field])).join("|"):null;
   for(const old of existingRows){
-   const oldKey=keyOf(old);if(oldKey&&!existingByKey.has(oldKey))existingByKey.set(oldKey,old);
+   const oldKey=keyOf(old);if(oldKey){if(!existingByKey.has(oldKey))existingByKey.set(oldKey,old);const matches=existingMatchesByKey.get(oldKey)||[];matches.push(old);existingMatchesByKey.set(oldKey,matches);}
    // Attendance can change its entry/exit marks between exports. Reconcile by
    // employee + date only when exactly one stored row exists for that day.
    // If multiple shifts/records exist, refuse the fallback rather than duplicate or overwrite.
@@ -131,7 +139,7 @@ if(a==="bot_import"){
     if(candidates.length===1)old=candidates[0];
     else if(candidates.length>1){failed++;errors.push(table+" RUT "+row.rut+": hay "+candidates.length+" registros históricos que coinciden por clave base; se requiere revisión manual y no se insertó.");continue;}
    }
-   if(old){pendingUpdates.push({id:old.id,row,old});}
+   if(old){pendingUpdates.push({id:old.id,row,old,duplicateIds:attendanceFallback?(existingMatchesByKey.get(k)||[]).filter((candidate:any)=>candidate.id!==old.id).map((candidate:any)=>candidate.id):[]});}
    else pending.push(row);
   }
   if(dryRun){
@@ -150,15 +158,15 @@ if(a==="bot_import"){
   // that are not present in this particular Talana export.
   if(pendingUpdates.length){
    const updatesToUpsert=pendingUpdates.map((item:any)=>{
-    const merged={...item.old};
-    for(const [field,value] of Object.entries(item.row)){if(value!==undefined&&value!==null&&value!=="")merged[field]=value;}
+    const merged=attendanceFallback?{...item.row,id:item.id}:{...item.old};
+    if(!attendanceFallback){for(const [field,value] of Object.entries(item.row)){if(value!==undefined&&value!==null&&value!=="")merged[field]=value;}}
     merged.id=item.id;
     for(const field of importKeyFields(reportType)||[]){merged[field]=item.old[field]??merged[field];}
     return merged;
    });
    const {error}=await admin.from(table).upsert(updatesToUpsert,{onConflict:"id"});
    if(error){failed+=pendingUpdates.length;errors.push(table+": falló la actualización por lote ("+error.message.slice(0,180)+").");}
-   else updated+=pendingUpdates.length;
+   else {updated+=pendingUpdates.length;const duplicateIds=[...new Set(pendingUpdates.flatMap((item:any)=>item.duplicateIds||[]))];if(attendanceFallback&&duplicateIds.length){const {error:deleteError}=await admin.from(table).delete().in("id",duplicateIds);if(deleteError){failed+=duplicateIds.length;errors.push(table+": se actualizaron los días, pero no se pudieron retirar "+duplicateIds.length+" filas antiguas duplicadas ("+deleteError.message.slice(0,160)+").");}}}
   }
   if(pending.length){const {data,error}=await admin.from(table).insert(pending).select("id");if(error){
     for(const row of pending){
