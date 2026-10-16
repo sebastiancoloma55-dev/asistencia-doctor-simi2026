@@ -90,7 +90,7 @@ class TalanaBotCloud:
    diag=result.get("diagnostics") or {}
    for field,count in (diag.get("missing_key_fields") or {}).items():
     totals["diagnostics"]["missing_key_fields"][field]=totals["diagnostics"]["missing_key_fields"].get(field,0)+int(count or 0)
-   for field in ("incoming_rows_merged","ambiguous_legacy_rows_merged","blocked_ambiguous_legacy_rows","planned_duplicate_rows_removed","existing_duplicate_rows_detected","duplicate_rows_removed"):
+   for field in ("incoming_rows_merged","ambiguous_legacy_rows_merged","blocked_ambiguous_legacy_rows","blocked_existing_duplicate_conflicts","planned_duplicate_rows_removed","existing_duplicate_rows_detected","duplicate_rows_removed"):
     totals["diagnostics"][field]=totals["diagnostics"].get(field,0)+int(diag.get(field,0) or 0)
    attendance=diag.get("attendance") or {}
    for bucket in ("incoming_by_date","planned_new_by_date"):
