@@ -1138,6 +1138,10 @@ display:block!important;flex:1 1 auto!important;width:100%!important;min-width:0
 #form-login .nova-v3-input-wrap input#login-pass:-webkit-autofill,#form-login .nova-v3-input-wrap input#login-email:-webkit-autofill{-webkit-text-fill-color:#142b43!important;box-shadow:0 0 0 1000px #f8fbff inset!important;caret-color:#087f9e!important}
 #form-login .nova-v3-eye{flex:0 0 30px!important;min-width:30px!important;color:#527087!important}
 #form-login .nova-v3-eye svg{stroke:currentColor!important}
+/* Refuerzo final de contraste para texto escrito y autocompletado del navegador. */
+#form-login .nova-v3-input-wrap input#login-email,#form-login .nova-v3-input-wrap input#login-pass{color:#142b43!important;-webkit-text-fill-color:#142b43!important;background:#f8fbff!important;caret-color:#087f9e!important;opacity:1!important}
+#form-login .nova-v3-input-wrap input#login-pass::placeholder,#form-login .nova-v3-input-wrap input#login-email::placeholder{color:#71869b!important;-webkit-text-fill-color:#71869b!important;opacity:1!important}
+#form-login .nova-v3-input-wrap input#login-pass:-webkit-autofill,#form-login .nova-v3-input-wrap input#login-email:-webkit-autofill{-webkit-text-fill-color:#142b43!important;box-shadow:0 0 0 1000px #f8fbff inset!important}
 </style>
 </head>
 
@@ -1264,7 +1268,7 @@ display:block!important;flex:1 1 auto!important;width:100%!important;min-width:0
   <button id="btn-inteligencia-asistencia" class="menu-btn" onclick="cambiarModulo('inteligencia')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Centro de inteligencia de asistencia</span></button>
   <button id="btn-centro-operaciones" class="menu-btn" onclick="cambiarModulo('operaciones')"><i data-lucide="list-todo" class="h-4 w-4"></i><span>Centro de operaciones</span></button>
   <button id="btn-mapa-inteligente" class="menu-btn" onclick="cambiarModulo('mapas')"><i data-lucide="map-pinned" class="h-4 w-4"></i><span>Mapa inteligente de sucursales</span></button>
-  <button id="btn-analista-rrhh-ia" class="menu-btn" onclick="window.SimiIntelligenceCenter&&typeof window.SimiIntelligenceCenter.openSearch==='function'?window.SimiIntelligenceCenter.openSearch():document.getElementById('simi-context-toggle')?.click()"><i data-lucide="sparkles" class="h-4 w-4"></i><span>Analista de RR. HH. con IA</span></button>
+  <button id="btn-inteligencia" class="menu-btn" onclick="cambiarModulo('inteligencia')"><i data-lucide="sparkles" class="h-4 w-4"></i><span>Analista de RR. HH. con IA</span></button>
   <div class="nova-nav-divider" data-nav-group><span>ANÁLISIS Y CONTROL</span></div>
   <button id="btn-reportes" class="menu-btn" onclick="cambiarModulo('reportes')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Reportes</span></button>
   <button id="btn-mapas" class="menu-btn" onclick="cambiarModulo('mapas')"><i data-lucide="map-pinned" class="h-4 w-4"></i><span>Mapa y distancias</span></button>
@@ -3492,8 +3496,8 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   window.actualizarContadoresSelectores2026=updateSelectorCounts;
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
   var allowed=new Set(['dashboard']);
-  var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','ayuda'];
-  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
+  var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','inteligencia','operaciones','calidad','notificaciones','integraciones','chat','traslados','ayuda'];
+  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','inteligencia','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
   function permissionName(m){return m;}
   function hasModulePermission(m){
     if(m==='ayuda')return true;
