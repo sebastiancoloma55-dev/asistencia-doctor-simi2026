@@ -107,7 +107,7 @@
         metric("Tareas vencidas","clock-alert","tareas",()=>c.from("tareas").select("id",{count:"exact",head:true}).lt("fecha_limite",now).not("estado","in",'("APROBADA","CANCELADA")'),n=>n===0?"Sin vencimientos atrasados.":"Requieren seguimiento prioritario."),
         metric("Dotación por revisar","users-round","traslados",()=>c.from("solicitudes_dotacion").select("id",{count:"exact",head:true}).eq("estado","PENDIENTE"),n=>n===0?"No hay solicitudes pendientes.":"Solicitudes de sucursales pendientes de revisión.")
       ]);
-      const [notifications,bot] = await Promise.all([
+      const [notifications,bot,imports] = await Promise.all([
         (async function(){
           if (!hasPermission("notificaciones")) return {label:"Avisos sin leer",icon:"bell-ring",module:null,value:"—",detail:"Notificaciones no habilitadas para tu perfil.",unavailable:true};
           try {
@@ -137,8 +137,21 @@
             return {label:"Bot Talana",icon:"workflow",module:"integraciones",value:"No disponible",detail:String(error && error.message || "No se pudo consultar el estado del bot."),unavailable:true};
           }
         })()
+      ,
+        (async function(){
+          if (!hasPermission("reportes")) return {label:"Importaciones con errores",icon:"file-warning",module:null,value:"—",detail:"El módulo Reportes no está habilitado para tu perfil.",unavailable:true};
+          try {
+            const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            const result = await c.from("importaciones").select("id",{count:"exact",head:true}).gt("filas_error",0).gte("created_at",since);
+            if (result.error) throw result.error;
+            const n = Number(result.count || 0);
+            return {label:"Importaciones con errores",icon:"file-warning",module:"reportes",value:n.toLocaleString("es-CL"),detail:n===0?"Sin importaciones con errores en los últimos 7 días.":"Revisa las cargas con errores de los últimos 7 días.",alert:n>0};
+          } catch (error) {
+            return {label:"Importaciones con errores",icon:"file-warning",module:"reportes",value:"No disponible",detail:String(error && error.message || "No se pudo consultar la calidad de las cargas."),unavailable:true};
+          }
+        })()
       ]);
-      render([tasksOpen,tasksLate,coverage,notifications,bot]);
+      render([tasksOpen,tasksLate,coverage,notifications,bot,imports]);
     } catch (error) {
       render([{label:"Estado operativo",icon:"cloud-off",module:null,value:"Error",detail:String(error && error.message || "No se pudo consultar Supabase."),unavailable:true}],"No se pudo actualizar el resumen.");
     } finally {
