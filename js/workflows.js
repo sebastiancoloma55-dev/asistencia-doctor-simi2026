@@ -253,7 +253,7 @@
             await registrarAuditoria('reportes','GENERA_REPORTE',`${tipo} · ${formato} · ${desde||'s/f'} a ${hasta||'s/f'} · ${datos.length} registros`);mostrarToast('Reporte generado y descargado.','success');
         }
 
-        const listaPermisos=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','traslados_aprobar'];
+        const listaPermisos=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','analista_ia','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','traslados_aprobar'];
         let perfilActualSistema=null, modulosPermitidosActuales=[];
         const EMAIL_ADMIN_PRINCIPAL='scoloma@farmaciasdoctorsimi.cl';
         function esAdminPrincipalActual(){return String(perfilActualSistema?.email||'').trim().toLowerCase()===EMAIL_ADMIN_PRINCIPAL;}
@@ -266,6 +266,8 @@
             if(esAdministradorConAccesoGlobal())return true;
             // Mi espacio acompaña a Tareas para evitar quitarle al equipo una herramienta de seguimiento útil.
             if(modulo==='espacio')return modulosPermitidosActuales.includes('espacio')||modulosPermitidosActuales.includes('tareas');
+            // El Analista IA hereda el acceso de Reportes para no romper los perfiles ya configurados.
+            if(modulo==='analista_ia')return modulosPermitidosActuales.includes('analista_ia')||modulosPermitidosActuales.includes('reportes');
             if(modulo==='operaciones')return ['tareas','correos','asistencia','licencias','amonestaciones','reportes'].some(p=>modulosPermitidosActuales.includes(p));
             if(modulo==='calidad'||modulo==='integraciones')return false;
             if(modulo==='notificaciones')return ['tareas','traslados','amonestaciones'].some(p=>modulosPermitidosActuales.includes(p));
