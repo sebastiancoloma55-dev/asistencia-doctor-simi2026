@@ -128,6 +128,7 @@ if(a==="bot_import"){
    }
   }
   const seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
+  let ambiguousLegacyInserts=0;
   for(const row of valid){
    const k=keyOf(row);
    if(!k){failed++;errors.push(table+" RUT "+row.rut+": clave natural incompleta; fila rechazada para no generar duplicados.");continue;}
@@ -137,13 +138,19 @@ if(a==="bot_import"){
    if(!old&&legacyFields){
     const candidates=legacyCandidates.get(legacyKey(row))||[];
     if(candidates.length===1)old=candidates[0];
-    else if(candidates.length>1){failed++;errors.push(table+" RUT "+row.rut+": hay "+candidates.length+" registros históricos que coinciden por clave base; se requiere revisión manual y no se insertó.");continue;}
+    else if(candidates.length>1){
+      // No asociar una licencia nueva a un registro antiguo arbitrario: si varias filas históricas
+      // incompletas comparten la clave base, insertar la fila entrante con su clave completa.
+      // La clave natural completa la hará idempotente en las siguientes ejecuciones y evita
+      // sobrescribir o borrar licencias históricas potencialmente distintas.
+      pending.push(row);ambiguousLegacyInserts++;continue;
+    }
    }
    if(old){pendingUpdates.push({id:old.id,row,old,duplicateIds:attendanceFallback?(existingMatchesByKey.get(k)||[]).filter((candidate:any)=>candidate.id!==old.id).map((candidate:any)=>candidate.id):[]});}
    else pending.push(row);
   }
   if(dryRun){
-   const diagnostics:any={missing_key_fields:missingKeyFieldCounts};
+   const diagnostics:any={missing_key_fields:missingKeyFieldCounts,ambiguous_legacy_rows_inserted:ambiguousLegacyInserts};
    if(attendanceFallback){
     const countByDate=(items:any[])=>{const counts:Record<string,number>={};for(const item of items){const day=norm(item.fecha);if(day)counts[day]=(counts[day]||0)+1;}return counts;};
     const incomingByDate=countByDate(valid), plannedByDate=countByDate(pending);
