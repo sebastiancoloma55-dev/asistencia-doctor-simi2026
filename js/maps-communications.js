@@ -25,7 +25,7 @@
         let vistaResponsablesSeleccionados=false;
         let pickerResponsablesInicializado=false;
         function inicialesResponsable(nombre){
-            return String(nombre||'').trim().split(/\\s+/).filter(Boolean).slice(0,2).map(p=>p.charAt(0)).join('').toUpperCase()||'US';
+            return String(nombre||'').trim().split(/\s+/).filter(Boolean).slice(0,2).map(p=>p.charAt(0)).join('').toUpperCase()||'US';
         }
         function renderResponsablesCoberturaPicker(){
             const select=document.getElementById('dot-responsables'),lista=document.getElementById('dot-responsables-lista');
