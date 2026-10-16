@@ -59,7 +59,7 @@ if(a==="bot_import"){
   if(table==="registros_asistencia"){row.sin_marca=Boolean(row.sin_marca);row.marca_incompleta=Boolean(row.marca_incompleta);row.tiene_atraso=Boolean(row.tiene_atraso);row.sin_turno_marcas=Boolean(row.sin_turno_marcas);}
   valid.push(row);
  }
- if(attendanceFallback){
+ if(reportType==="reporte_jornadas_asistencia"){
   // El XLSX más reciente manda para cada trabajador/día. Si el propio archivo trae filas partidas (por ejemplo, entrada y salida en filas separadas), consolidarlas antes de reemplazar el día existente.
   const byEmployeeDay=new Map<string,any>();
   const booleanFields=new Set(["sin_marca","marca_incompleta","tiene_atraso","sin_turno_marcas"]);
