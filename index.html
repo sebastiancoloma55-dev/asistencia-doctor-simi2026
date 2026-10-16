@@ -1300,8 +1300,6 @@ body.theme-dark .ai-analyst-response{color:#d8e8f7}
   <button id="btn-analista_ia" class="menu-btn" onclick="cambiarModulo('analista_ia')"><i data-lucide="sparkles" class="h-4 w-4"></i><span>Analista de RR. HH. con IA</span></button>
   <div class="nova-nav-divider" data-nav-group><span>ANÁLISIS Y CONTROL</span></div>
   <button id="btn-reportes" class="menu-btn" onclick="cambiarModulo('reportes')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Reportes</span></button>
-  <button id="btn-mapas" class="menu-btn" onclick="cambiarModulo('mapas')"><i data-lucide="map-pinned" class="h-4 w-4"></i><span>Mapa y distancias</span></button>
-  <button id="btn-operaciones" class="menu-btn" onclick="cambiarModulo('operaciones')"><i data-lucide="gauge" class="h-4 w-4"></i><span>Centro de operaciones</span></button>
   <button id="btn-calidad" class="menu-btn" onclick="cambiarModulo('calidad')"><i data-lucide="shield-check" class="h-4 w-4"></i><span>Calidad de datos</span></button>
   <button id="btn-notificaciones" class="menu-btn" onclick="cambiarModulo('notificaciones')"><i data-lucide="bell-ring" class="h-4 w-4"></i><span>Notificaciones</span><span id="nav-notif-count" class="nav-count hidden">0</span></button>
   <button id="btn-integraciones" class="menu-btn" onclick="cambiarModulo('integraciones')"><i data-lucide="plug-zap" class="h-4 w-4"></i><span>Integraciones y monitoreo</span></button>
@@ -1383,11 +1381,25 @@ body.theme-dark .ai-analyst-response{color:#d8e8f7}
                     <span id="dashboard-welcome-role" class="simi-hero-role"><i data-lucide="shield-check"></i> Usuario autorizado</span>
                 </div>
                 <section class="simi-command-grid" aria-label="Centros de trabajo">
-                    <button type="button" class="simi-command-card simi-command-card-blue" onclick="cambiarModulo('reportes')"><span class="simi-command-card-icon"><i data-lucide="chart-no-axes-combined"></i></span><span><b>Inteligencia de asistencia</b><small>Tendencias, atrasos y diferencias</small></span><i data-lucide="arrow-up-right" class="simi-command-arrow"></i></button>
-                    <button type="button" class="simi-command-card simi-command-card-teal" onclick="cambiarModulo('tareas')"><span class="simi-command-card-icon"><i data-lucide="list-todo"></i></span><span><b>Centro de operaciones</b><small>Prioridades y pendientes del equipo</small></span><i data-lucide="arrow-up-right" class="simi-command-arrow"></i></button>
+                    <button type="button" class="simi-command-card simi-command-card-blue" onclick="cambiarModulo('inteligencia')"><span class="simi-command-card-icon"><i data-lucide="chart-no-axes-combined"></i></span><span><b>Inteligencia de asistencia</b><small>Tendencias, atrasos y diferencias</small></span><i data-lucide="arrow-up-right" class="simi-command-arrow"></i></button>
+                    <button type="button" class="simi-command-card simi-command-card-teal" onclick="cambiarModulo('operaciones')"><span class="simi-command-card-icon"><i data-lucide="list-todo"></i></span><span><b>Centro de operaciones</b><small>Prioridades y pendientes del equipo</small></span><i data-lucide="arrow-up-right" class="simi-command-arrow"></i></button>
                     <button type="button" class="simi-command-card simi-command-card-amber" onclick="cambiarModulo('traslados')"><span class="simi-command-card-icon"><i data-lucide="map-pinned"></i></span><span><b>Mapa y coberturas</b><small>Ubicaciones y coordinación operativa</small></span><i data-lucide="arrow-up-right" class="simi-command-arrow"></i></button>
                     <button type="button" class="simi-command-card simi-command-card-violet" onclick="cambiarModulo('integraciones')"><span class="simi-command-card-icon"><i data-lucide="workflow"></i></span><span><b>Automatización Talana</b><small>Importaciones y estado de sincronización</small></span><i data-lucide="arrow-up-right" class="simi-command-arrow"></i></button>
-                </section>
+                
+                <article class="simi-dashboard-map-card ui-card p-4">
+                  <div class="simi-dashboard-card-heading"><div><h3><i data-lucide="map-pin"></i> Sucursales</h3><p>Ubicación y coordinación operativa.</p></div><button type="button" onclick="cambiarModulo('mapas')">Ver todas ↗</button></div>
+                  <div class="simi-mini-map" aria-label="Vista ilustrativa del mapa de sucursales"><span class="simi-mini-road road-one"></span><span class="simi-mini-road road-two"></span><span class="simi-mini-road road-three"></span><i class="simi-mini-pin pin-one"></i><i class="simi-mini-pin pin-two"></i><i class="simi-mini-pin pin-three"></i><i class="simi-mini-pin pin-four"></i><div class="simi-mini-map-label"><i data-lucide="map-pinned"></i> Mapa de sucursales</div></div>
+                  <button type="button" class="simi-map-open" onclick="cambiarModulo('mapas')">Ver mapa completo <i data-lucide="arrow-up-right"></i></button>
+                </article>
+                <article class="simi-dashboard-shortcut ui-card p-4">
+                  <div class="simi-dashboard-card-heading"><div><h3><i data-lucide="calendar-days"></i> Turnos y asistencia</h3><p>Consulta turnos, marcaciones y diferencias en los registros originales.</p></div></div>
+                  <button type="button" class="simi-map-open" onclick="cambiarModulo('asistencia')">Revisar asistencia <i data-lucide="arrow-up-right"></i></button>
+                </article>
+                <article class="simi-dashboard-shortcut ui-card p-4">
+                  <div class="simi-dashboard-card-heading"><div><h3><i data-lucide="file-heart"></i> Licencias médicas</h3><p>Consulta los estados y períodos registrados.</p></div></div>
+                  <button type="button" class="simi-map-open" onclick="cambiarModulo('licencias')">Ver licencias <i data-lucide="arrow-up-right"></i></button>
+                </article>
+</section>
                 <div id="dashboard-space-summary" class="dash-space-card" aria-live="polite">
                     <div class="dash-space-intro"><div><span class="dash-space-kicker">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo('espacio')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div>
                     <div class="dash-space-stat-grid"><div><span class="dash-space-stat-icon"><i data-lucide="sticky-note"></i></span><span><b>0</b><small>Notas activas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="pin"></i></span><span><b>0</b><small>Notas fijadas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-alert"></i></span><span><b>0</b><small>Fuera de plazo</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-arrow-down"></i></span><span><b>0</b><small>Gestiones recientes</small></span></div></div>
@@ -1409,7 +1421,7 @@ body.theme-dark .ai-analyst-response{color:#d8e8f7}
                         <p class="text-sm text-slate-500">Consultando última carga…</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="simi-dashboard-kpi-grid grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     <div class="ui-card flex items-start justify-between p-5">
                         <div>
                             <p class="text-xs font-semibold uppercase text-slate-500">
@@ -2531,7 +2543,7 @@ body.theme-dark .ai-analyst-response{color:#d8e8f7}
               <div class="module-intro">
                 <span class="module-kicker"><i data-lucide="chart-no-axes-combined" class="h-3 w-3"></i> Análisis de asistencia</span>
                 <h3 class="mt-3">Centro de inteligencia de asistencia</h3>
-                <p class="mt-2 max-w-3xl">Investiga diferencias entre turnos, marcaciones y ausentismos. Cada acceso abre el módulo que administra los registros originales; no se inventan indicadores cuando una fuente no está disponible.</p>
+                <p class="mt-2 max-w-3xl">Centro de análisis operativo — no es un chat de IA. Revisa diferencias entre turnos, marcaciones y ausentismos usando los módulos que administran los registros originales. Para preguntas en lenguaje natural, utiliza “Analista de RR. HH. con IA”. No se inventan indicadores cuando una fuente no está disponible.</p>
                 <div class="mt-5 flex flex-wrap gap-2">
                   <button type="button" class="corp-button-dark" onclick="cambiarModulo('asistencia')"><i data-lucide="clock" class="h-4 w-4"></i> Revisar asistencia</button>
                   <button type="button" class="corp-button-dark" onclick="cambiarModulo('reportes')"><i data-lucide="file-chart-column" class="h-4 w-4"></i> Abrir análisis y reportes</button>
@@ -4409,6 +4421,54 @@ main.flex.min-w-0.flex-1{background:radial-gradient(ellipse at 90% 0%,rgba(14,16
 .map14-combo-empty{padding:12px;color:#647b8d;font-size:12px}
 .map14-combo-count{padding:7px 10px 5px;color:#668096;font-size:10px;border-bottom:1px solid #edf2f6;margin-bottom:3px}
 #map14-origen-wrap,#map14-destino-wrap{margin-top:4px}
+
+/* Reorganización estructural del dashboard hacia el diseño de referencia */
+#view-dashboard{display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px!important;padding:12px 16px 24px!important;align-content:start}
+#view-dashboard>.dashboard-welcome{grid-column:1/-1;order:1;min-height:176px!important;border-radius:17px!important;padding:24px 28px!important;background:linear-gradient(110deg,#063b9e 0%,#0879e7 49%,#13b9ed 100%)!important;box-shadow:0 9px 25px rgba(0,75,180,.17)!important}
+#view-dashboard>.dashboard-welcome .simi-hero-art{width:40%!important;min-width:260px!important;max-width:560px!important;right:0!important}
+#view-dashboard>.simi-command-grid{grid-column:1/-1;order:8;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+#view-dashboard>.simi-dashboard-kpi-grid{grid-column:1/-1;order:2;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+#view-dashboard>.simi-dashboard-kpi-grid>.ui-card{min-height:96px;border:1px solid #dce8f8!important;border-radius:13px!important;background:#fff!important;box-shadow:0 4px 15px rgba(15,55,110,.05)!important}
+#view-dashboard>#dashboard-space-summary{grid-column:1/-1;order:9}
+#view-dashboard>#dashboard-ops-summary{grid-column:1/-1;order:7}
+#view-dashboard>#dashboard-ops-summary .dashboard-ops-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+#view-dashboard>#dashboard-ops-summary .ops-summary-tile{min-height:76px;border-radius:12px!important}
+#view-dashboard>.ui-card:has(#dashboard-freshness-list){grid-column:1/-1;order:10}
+#view-dashboard>.ui-card:has(#connection-box){grid-column:1/-1;order:11}
+#view-dashboard>.ui-card:has(#dashboard-gerencial-graficos){grid-column:1/span 8;order:3;min-width:0}
+#view-dashboard>.simi-dashboard-map-card{grid-column:9/span 4;order:4;min-width:0;border:1px solid #dce8f8!important;border-radius:14px!important;box-shadow:0 5px 18px rgba(15,55,110,.05)!important}
+#view-dashboard>.simi-dashboard-shortcut{grid-column:span 2;order:5;min-height:108px;border:1px solid #dce8f8!important;border-radius:14px!important;box-shadow:0 5px 18px rgba(15,55,110,.05)!important}
+#view-dashboard>.simi-dashboard-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+#view-dashboard .simi-dashboard-card-heading h3{display:flex;align-items:center;gap:7px;margin:0;color:#122951;font-size:13px;font-weight:900}
+#view-dashboard .simi-dashboard-card-heading h3 svg{width:16px;height:16px;color:#0875ec}
+#view-dashboard .simi-dashboard-card-heading p{margin:5px 0 0;color:#77849a;font-size:10px;line-height:1.45}
+#view-dashboard .simi-dashboard-card-heading button{white-space:nowrap;border:0;background:transparent;color:#0869f7;font-size:10px;font-weight:800}
+#view-dashboard .simi-mini-map{height:155px;position:relative;overflow:hidden;margin-top:12px;border:1px solid #d8e5ef;border-radius:10px;background-color:#e6f2e9;background-image:linear-gradient(28deg,transparent 46%,#fff 47%,#fff 49%,transparent 50%),linear-gradient(112deg,transparent 46%,#c7d9e6 47%,#c7d9e6 49%,transparent 50%),linear-gradient(0deg,transparent 48%,#fff 49%,#fff 51%,transparent 52%);background-size:80px 60px,95px 75px,65px 65px}
+#view-dashboard .simi-mini-road{position:absolute;height:3px;background:#fff;box-shadow:0 0 0 1px #cfdfeb;transform-origin:left center}
+#view-dashboard .road-one{width:120%;left:-8%;top:36%;transform:rotate(15deg)}
+#view-dashboard .road-two{width:115%;left:8%;top:70%;transform:rotate(-25deg)}
+#view-dashboard .road-three{width:110%;left:46%;top:-10%;transform:rotate(72deg)}
+#view-dashboard .simi-mini-pin{position:absolute;width:13px;height:13px;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#009e7a;box-shadow:0 2px 5px #16385b55}
+#view-dashboard .pin-one{left:24%;top:22%;background:#f43f5e}#view-dashboard .pin-two{left:64%;top:27%}#view-dashboard .pin-three{left:44%;top:57%;background:#f59e0b}#view-dashboard .pin-four{left:78%;top:72%}
+#view-dashboard .simi-mini-map-label{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:6px;padding:8px 10px;white-space:nowrap;border-radius:8px;background:#fff;box-shadow:0 4px 14px #1c42631f;color:#2b4268;font-size:10px;font-weight:800}
+#view-dashboard .simi-mini-map-label svg{width:15px;height:15px;color:#078e76}
+#view-dashboard .simi-map-open{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;padding:10px;border:0;border-radius:8px;background:linear-gradient(100deg,#0879ee,#0756d8);color:#fff;font-size:10px;font-weight:850}
+#view-dashboard .simi-map-open svg{width:13px;height:13px}
+#view-dashboard>.ui-card:has(#dashboard-gerencial-graficos) .grid.grid-cols-1.gap-3.sm\:grid-cols-2.xl\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+@media(max-width:1100px){#view-dashboard>.ui-card:has(#dashboard-gerencial-graficos){grid-column:1/-1}#view-dashboard>.simi-dashboard-map-card{grid-column:1/-1}#view-dashboard>.simi-dashboard-shortcut{grid-column:span 6}#view-dashboard>.simi-command-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#view-dashboard>.simi-dashboard-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#view-dashboard>#dashboard-ops-summary .dashboard-ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:600px){#view-dashboard{padding:10px!important}#view-dashboard>.dashboard-welcome{padding:18px!important;min-height:145px!important}#view-dashboard>.dashboard-welcome .simi-hero-art{min-width:110px!important;width:30%!important;opacity:.65}#view-dashboard>.simi-dashboard-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#view-dashboard>.simi-command-grid{grid-template-columns:1fr 1fr!important}#view-dashboard>.simi-dashboard-shortcut{grid-column:1/-1}#view-dashboard>#dashboard-ops-summary .dashboard-ops-grid{grid-template-columns:1fr!important}}
+
+
+/* Separación funcional clara entre analítica operativa y asistente conversacional */
+#view-inteligencia .module-intro{border:1px solid #bfe3e8!important;border-left:5px solid #0d9baa!important;border-radius:18px!important;background:linear-gradient(120deg,#fff 0%,#f0fbfc 100%)!important;box-shadow:0 8px 22px rgba(7,99,122,.07)!important}
+#view-inteligencia .module-kicker{color:#087f8c!important}
+#view-inteligencia .ui-card{border-radius:14px!important;border-color:#d7e9ed!important;box-shadow:0 5px 18px rgba(16,61,83,.045)!important}
+#view-inteligencia .corp-button,#view-inteligencia .corp-button-dark{background:#087d91!important;color:#fff!important}
+#view-analista_ia .ai-analyst-hero{border-radius:20px!important;border:1px solid #1e3a8a!important;background:radial-gradient(circle at 90% 0%,rgba(139,92,246,.34),transparent 32%),linear-gradient(125deg,#071b46 0%,#123d7a 58%,#312e81 100%)!important;color:#fff!important}
+#view-analista_ia .ai-analyst-chat{border:1px solid #d9def7!important;box-shadow:0 8px 24px rgba(49,46,129,.07)!important}
+#view-analista_ia .ai-analyst-icon{background:linear-gradient(135deg,#4f46e5,#7c3aed)!important;color:#fff!important}
+#view-analista_ia .ai-analyst-send{background:linear-gradient(100deg,#4f46e5,#6d28d9)!important;color:#fff!important}
+
 </style>
 <script id="map14-real-searchable-combobox-script">
 (function(){
