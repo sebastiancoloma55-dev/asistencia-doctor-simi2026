@@ -29,6 +29,7 @@
       return true;
     });
     const count=$('aia-filter-count');if(count)count.textContent=rows.length?filtered.length.toLocaleString('es-CL')+' de '+rows.length.toLocaleString('es-CL')+' filas': 'Sin archivo cargado';
+    const kpis=$('aia-kpis');if(kpis){const pct=rows.length?Math.round(filtered.length/rows.length*100):0;kpis.innerHTML='<div class="rounded-xl bg-slate-50 p-3"><p class="text-xs text-slate-500">Filas filtradas</p><p class="mt-1 text-xl font-black text-slate-800">'+filtered.length.toLocaleString('es-CL')+'</p></div><div class="rounded-xl bg-slate-50 p-3"><p class="text-xs text-slate-500">Columnas detectadas</p><p class="mt-1 text-xl font-black text-slate-800">'+headers.length.toLocaleString('es-CL')+'</p></div><div class="rounded-xl bg-slate-50 p-3"><p class="text-xs text-slate-500">Cobertura del archivo</p><p class="mt-1 text-xl font-black text-slate-800">'+pct+'%</p></div>';}
     const preview=$('aia-preview');
     if(preview){
       if(!filtered.length){preview.innerHTML='<div class="p-6 text-center text-slate-500">Carga un archivo para revisar sus datos.</div>';return;}
