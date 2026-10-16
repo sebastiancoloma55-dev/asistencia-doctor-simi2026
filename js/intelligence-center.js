@@ -66,9 +66,14 @@ function ensureStyles(){
  .simi-priority-panel{border:1px solid #d6e5ef;border-radius:20px;background:linear-gradient(120deg,#fff,#f4f9fc);box-shadow:0 8px 22px rgba(17,47,75,.055);overflow:hidden}
  .simi-priority-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:20px 22px;border-bottom:1px solid #e3edf4}
  .simi-priority-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:14px}
- .simi-priority-item{min-width:0;padding:15px;border:1px solid #e0e9f0;border-radius:14px;background:#fff;text-align:left;transition:transform .16s,box-shadow .16s,border-color .16s}
+ .simi-priority-item{min-width:0;padding:13px;border:1px solid #e0e9f0;border-radius:14px;background:#fff;transition:transform .16s,box-shadow .16s,border-color .16s;display:flex;flex-direction:column;gap:10px}
  .simi-priority-item:hover{transform:translateY(-2px);border-color:#bcd8e5;box-shadow:0 9px 20px rgba(17,47,75,.08)}
- .simi-priority-item .sp-number{display:block;margin:10px 0 5px;font-size:27px;font-weight:950;letter-spacing:-.05em;color:#17344e}
+ .simi-priority-main{display:grid;width:100%;grid-template-columns:35px minmax(0,1fr) auto;align-items:start;gap:10px;text-align:left;background:transparent;border:0;padding:0;color:inherit}
+ .simi-priority-main:focus-visible,.simi-priority-task:focus-visible{outline:3px solid #8dd9e3;outline-offset:3px;border-radius:8px}
+ .simi-priority-item .sp-number{display:block;margin:2px 0 0;font-size:24px;font-weight:950;letter-spacing:-.05em;color:#17344e}
+ .simi-priority-task{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:31px;width:100%;padding:7px 9px;border:1px solid #cfe1eb;border-radius:9px;background:#f5fafc;color:#17435d;font-size:10px;font-weight:850}
+ .simi-priority-task:hover{background:#eaf7fa;border-color:#9acbd8}
+ .simi-priority-task svg{width:13px;height:13px}
  .simi-priority-item .sp-title{font-size:11px;font-weight:900;color:#17344e}
  .simi-priority-item .sp-detail{margin-top:5px;color:#718398;font-size:10px;line-height:1.5}
  .simi-priority-item .sp-icon{display:grid;place-items:center;width:35px;height:35px;border:1px solid #f3d8bc;border-radius:11px;background:#fff7ed;color:#b65a18}
@@ -150,6 +155,17 @@ function bindResults(){
  }));
  if(window.lucide?.createIcons)window.lucide.createIcons({root:results});
 }
+function openTaskForPriority(item){
+ if(!allowedModule('tareas')){goModule('tareas');return;}
+ goModule('tareas');
+ setTimeout(()=>{
+  const title=document.getElementById('tarea-titulo'),description=document.getElementById('tarea-descripcion');
+  if(title)title.value=('Seguimiento: '+item.title).slice(0,140);
+  if(description)description.value='Origen: Centro de inteligencia RR. HH.\\nIndicador observado: '+item.number+' caso(s).\\nRecomendación: '+item.detail+'\\n\\nRevisar los registros de origen, confirmar los casos y documentar la resolución. No modificar datos automáticamente.';
+  title?.focus();
+  title?.scrollIntoView({behavior:'smooth',block:'center'});
+ },350);
+}
 function runAction(action){
  if(action==='task'){goModule('tareas');setTimeout(()=>document.getElementById('tarea-titulo')?.focus(),350);}
  if(action==='note'){goModule('espacio');setTimeout(()=>document.getElementById('rrhh-nota-titulo')?.focus(),350);}
@@ -194,8 +210,11 @@ function buildPriorityPanel(){
   grid.innerHTML='<div class="simi-priority-empty" style="grid-column:1/-1">'+(loading?'Los indicadores todavía se están cargando. Actualiza el resumen cuando termine la consulta.':error?'No es posible determinar prioridades hasta recuperar los indicadores. Revisa el estado del resumen operativo.':'No se detectaron alertas pendientes en los indicadores disponibles. Esto no sustituye la revisión de cada módulo.')+'</div>';
   foot.textContent=updated?.innerText?'Fuente: resumen operativo · '+updated.innerText:'Fuente: resumen operativo';return;
  }
- grid.innerHTML=unique.map(it=>'<button type="button" class="simi-priority-item" data-priority-module="'+it.module+'"><span class="sp-icon"><i data-lucide="'+it.icon+'"></i></span><span style="min-width:0"><span class="sp-title" style="display:block">'+escapeHtml(it.title)+'</span><span class="sp-detail" style="display:block">'+escapeHtml(it.detail)+'</span></span><span class="sp-number">'+it.number.toLocaleString('es-CL')+'</span></button>').join('');
+ grid.innerHTML=unique.map((it,index)=>'<article class="simi-priority-item"><button type="button" class="simi-priority-main" data-priority-module="'+escapeHtml(it.module)+'" aria-label="Abrir módulo para revisar '+escapeHtml(it.title)+'"><span class="sp-icon"><i data-lucide="'+escapeHtml(it.icon)+'"></i></span><span style="min-width:0"><span class="sp-title" style="display:block">'+escapeHtml(it.title)+'</span><span class="sp-detail" style="display:block">'+escapeHtml(it.detail)+'</span></span><span class="sp-number">'+it.number.toLocaleString('es-CL')+'</span></button><button type="button" class="simi-priority-task" data-priority-task="'+index+'"><i data-lucide="list-plus"></i>Crear tarea de seguimiento</button></article>').join('');
  grid.querySelectorAll('[data-priority-module]').forEach(b=>b.addEventListener('click',()=>goModule(b.dataset.priorityModule)));
+ grid.querySelectorAll('[data-priority-task]').forEach(b=>b.addEventListener('click',()=>{
+  const item=unique[Number(b.dataset.priorityTask)];if(item)openTaskForPriority(item);
+ }));
  foot.textContent='Detectado a partir de los indicadores actuales. La plataforma no modifica ni cierra registros automáticamente.'+(updated?.innerText?' · '+updated.innerText:'');
  if(window.lucide?.createIcons)window.lucide.createIcons({root:panel});
 }
