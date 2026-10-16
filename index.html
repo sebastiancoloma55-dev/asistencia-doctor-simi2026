@@ -3248,7 +3248,33 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       #simi-context-links button{border:1px solid #dbe4ee;border-radius:9px;background:#fff;padding:8px 10px;color:#075985;font-size:12px;font-weight:800;cursor:pointer}
       #simi-context-links button:hover{background:#f1f8fc}
       @media(max-width:640px){#simi-context-assistant{right:10px;bottom:44px}#simi-context-toggle{padding:11px 13px}#simi-context-toggle span{display:none}}
-    </style>
+    
+/* Dashboard Doctor Simi 2026: rediseño visual sobre el markup funcional existente */
+#view-dashboard{display:flex;flex-direction:column;gap:14px!important;padding:12px 16px 24px!important;background:#edf3fa}
+#view-dashboard .dashboard-welcome{position:relative;overflow:hidden;min-height:176px;padding:26px 30px!important;border:0!important;border-radius:18px!important;background:linear-gradient(112deg,#0640ae 0%,#0879e8 53%,#16b8ee 100%)!important;box-shadow:0 8px 24px rgba(0,70,180,.18)}
+#view-dashboard .dashboard-welcome:after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-radial-gradient(ellipse at 76% 46%,transparent 0 28px,rgba(255,255,255,.13) 29px 30px,transparent 31px 45px)}
+#view-dashboard .dashboard-welcome>div{position:relative;z-index:1}
+#view-dashboard .dashboard-welcome h2{font-size:clamp(28px,2.8vw,42px);font-weight:900;letter-spacing:-.045em;line-height:1.08;color:#fff}
+#view-dashboard .dashboard-welcome p{color:#e7f6ff}
+#view-dashboard #dashboard-welcome-role{position:relative;z-index:2;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.28)}
+#view-dashboard .ui-card{border:1px solid #dce8f8;border-radius:14px;background:#fff;box-shadow:0 5px 18px rgba(20,65,120,.05)}
+#view-dashboard .ui-card h3{color:#122951}
+#view-dashboard .ui-button,#view-dashboard button{transition:transform .16s ease,box-shadow .16s ease}
+#view-dashboard .ui-button:hover,#view-dashboard button:hover{transform:translateY(-1px)}
+#view-dashboard #dashboard-space-summary{border-color:#dce8f8;border-radius:15px;background:linear-gradient(120deg,#fff,#f6faff)}
+#view-dashboard #dashboard-ops-summary{border-radius:15px;border-color:#dce8f8}
+#view-dashboard #dashboard-freshness-list>div{border:1px solid #e2ebf7;border-radius:10px;background:#f8fbff;padding:10px}
+#view-dashboard #connection-box{border-radius:10px;border-color:#dce8f8;background:#f7faff}
+#view-dashboard .dashboard-ops-grid>div{border:1px solid #e4edf8;border-radius:11px;background:#f9fbff}
+#view-dashboard .grid.grid-cols-1.gap-5.sm\:grid-cols-2.lg\:grid-cols-4{gap:10px!important}
+#view-dashboard .grid.grid-cols-1.gap-5.sm\:grid-cols-2.lg\:grid-cols-4>.ui-card{display:flex;align-items:center;min-height:100px;padding:15px!important}
+#view-dashboard .grid.grid-cols-1.gap-5.sm\:grid-cols-2.lg\:grid-cols-4 h3{font-size:28px;font-weight:900;color:#10234d}
+#view-analista_ia .ai-analyst-hero{background:linear-gradient(125deg,#072f73,#0756b8 55%,#08a9c7)!important;border-radius:18px}
+#view-analista_ia .ai-analyst-chat{border:1px solid #cde7f4;border-radius:16px;box-shadow:0 8px 24px rgba(0,77,130,.08)}
+#view-analista_ia .ai-analyst-response-wrap{border-radius:12px}
+@media(max-width:650px){#view-dashboard{padding:10px!important}#view-dashboard .dashboard-welcome{padding:18px!important;min-height:145px}#view-dashboard .dashboard-welcome h2{font-size:25px}#view-dashboard .dashboard-welcome>div{gap:8px}}
+
+</style>
     <div id="simi-context-assistant">
       <section id="simi-context-popover" hidden aria-label="Asistente contextual de RR. HH." aria-live="polite">
         <div id="simi-context-head" class="flex items-start justify-between gap-3">
