@@ -801,6 +801,42 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 @media(max-width:640px){.colab-pagination{align-items:stretch;padding:12px}.colab-pagination-controls{justify-content:space-between;gap:5px}.colab-pagination-controls button{padding:8px}.colab-pagination-info span{max-width:100%}}
 
 </style>
+
+<style id="dot-responsables-professional-picker">
+.dot-responsables-field{min-width:0}
+.dot-selection-count{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #b8e5ec;border-radius:999px;background:#effcff;color:#087c91;font-size:11px;font-weight:850;white-space:nowrap}
+.dot-responsables-picker{overflow:hidden;border:1px solid #d8e5ef;border-radius:16px;background:#fff;box-shadow:0 5px 18px rgba(20,55,84,.045)}
+.dot-picker-toolbar{display:flex;align-items:center;gap:9px;padding:12px;border-bottom:1px solid #e7eef4;background:linear-gradient(120deg,#f8fbfe,#fff)}
+.dot-picker-search{display:flex;align-items:center;gap:9px;flex:1;min-width:180px;padding:10px 12px;border:1px solid #d6e3ed;border-radius:10px;background:#fff;color:#6b8196}
+.dot-picker-search:focus-within{border-color:#21a8bb;box-shadow:0 0 0 3px rgba(16,165,188,.12)}
+.dot-picker-search input{width:100%;min-width:0;outline:0;border:0;background:transparent;color:#16344d;font-size:12px}
+.dot-picker-search kbd{flex:0 0 auto;border:1px solid #e2eaf0;border-radius:5px;padding:2px 5px;color:#7c8fa2;font-size:9px;background:#f8fafc}
+.dot-picker-secondary{flex:0 0 auto;padding:9px 11px;border:1px solid #d9e5ee;border-radius:9px;background:#fff;color:#27445e;font-size:11px;font-weight:800}
+.dot-picker-secondary[aria-pressed="true"]{border-color:#8fd7e1;background:#eafcff;color:#087c91}
+.dot-picker-bulk{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 13px;border-bottom:1px solid #edf2f6}
+.dot-picker-link{font-size:11px;font-weight:850;color:#087f98;padding:4px 2px}
+.dot-picker-link:hover{text-decoration:underline}
+.dot-picker-muted{color:#667c90}
+.dot-picker-chips{display:flex;flex-wrap:wrap;gap:7px;padding:10px 12px;border-bottom:1px solid #edf2f6;min-height:12px}
+.dot-picker-chips:empty{display:none}
+.dot-picker-chip{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:6px 8px 6px 10px;border:1px solid #c6e9ee;border-radius:999px;background:#effcff;color:#145267;font-size:10px;font-weight:800}
+.dot-picker-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px}
+.dot-picker-chip button{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#d9f3f7;color:#12687a;font-size:14px;line-height:1}
+.dot-picker-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;max-height:270px;overflow:auto;overscroll-behavior:contain}
+.dot-picker-person{display:flex;align-items:center;gap:10px;min-width:0;padding:11px 13px;border-bottom:1px solid #f0f4f7;cursor:pointer;transition:background .12s}
+.dot-picker-person:nth-child(odd){border-right:1px solid #f0f4f7}
+.dot-picker-person:hover{background:#f6fbfd}
+.dot-picker-person.is-selected{background:#f0fbfd}
+.dot-picker-person input{width:16px;height:16px;flex:0 0 auto;accent-color:#079ab0}
+.dot-picker-avatar{display:flex;align-items:center;justify-content:center;width:34px;height:34px;flex:0 0 auto;border-radius:11px;background:#eaf2fb;color:#285b8d;font-size:11px;font-weight:900}
+.dot-picker-person.is-selected .dot-picker-avatar{background:#d9f5f8;color:#087e91}
+.dot-picker-person-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.dot-picker-person-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1c3852;font-size:11px;font-weight:850}
+.dot-picker-person-email{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#73869a;font-size:10px}
+.dot-picker-empty{grid-column:1/-1;padding:22px 14px;text-align:center;color:#73869a;font-size:12px}
+@media(max-width:700px){.dot-picker-toolbar{align-items:stretch;flex-direction:column}.dot-picker-search{min-width:0}.dot-picker-secondary{width:100%}.dot-picker-list{grid-template-columns:1fr;max-height:240px}.dot-picker-person:nth-child(odd){border-right:0}.dot-picker-chip span{max-width:190px}}
+</style>
+
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -1858,7 +1894,17 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                         <div><label class="text-xs font-bold text-slate-700">Hora de término</label><input id="dot-hora-fin" type="time" class="form-field mt-1"></div>
                         <div class="sm:col-span-2 xl:col-span-4"><label class="text-xs font-bold text-slate-700">Motivo de la necesidad *</label><textarea id="dot-motivo" required maxlength="1500" rows="2" class="form-field mt-1" placeholder="Ej.: licencia médica, vacaciones, apertura, refuerzo operativo…"></textarea></div>
                         <div class="sm:col-span-2 xl:col-span-4"><label class="text-xs font-bold text-slate-700">Observaciones adicionales</label><textarea id="dot-observaciones" maxlength="1500" rows="2" class="form-field mt-1" placeholder="Requisitos, restricciones de turno u otros detalles"></textarea></div>
-                        <div class="sm:col-span-2 xl:col-span-4"><label for="dot-responsables" class="text-xs font-bold text-slate-700">Usuarios responsables de gestionar la alerta *</label><select id="dot-responsables" multiple required size="5" class="form-field mt-1" aria-describedby="dot-responsables-ayuda"></select><p id="dot-responsables-ayuda" class="mt-1 text-xs text-slate-500">Puedes elegir una o varias personas. Solo ellas recibirán la notificación y la tarea diaria.</p></div>
+                        <div class="sm:col-span-2 xl:col-span-4 dot-responsables-field">
+                            <div class="flex flex-wrap items-start justify-between gap-2"><div><label for="dot-responsables-busqueda" class="text-xs font-extrabold text-slate-800">Responsables de gestionar la alerta <span class="text-rose-600">*</span></label><p class="mt-1 text-xs text-slate-500">Busca, filtra y selecciona a todas las personas que deban recibir la alerta.</p></div><span id="dot-responsables-contador" class="dot-selection-count" aria-live="polite">0 seleccionados</span></div>
+                            <select id="dot-responsables" multiple class="hidden" aria-hidden="true" tabindex="-1"></select>
+                            <div id="dot-responsables-selector" class="dot-responsables-picker mt-3" aria-describedby="dot-responsables-ayuda">
+                              <div class="dot-picker-toolbar"><label class="dot-picker-search"><i data-lucide="search" class="h-4 w-4"></i><input id="dot-responsables-busqueda" type="search" autocomplete="off" placeholder="Buscar por nombre o correo…" aria-label="Buscar responsables por nombre o correo"><kbd>⌘ / Ctrl + K</kbd></label><button type="button" id="dot-responsables-vista" class="dot-picker-secondary" aria-pressed="false">Ver seleccionados</button></div>
+                              <div class="dot-picker-bulk"><span id="dot-responsables-resultados" class="text-xs text-slate-500">Cargando usuarios autorizados…</span><div class="flex flex-wrap gap-2"><button type="button" id="dot-responsables-seleccionar" class="dot-picker-link">Seleccionar resultados</button><button type="button" id="dot-responsables-limpiar" class="dot-picker-link dot-picker-muted">Limpiar selección</button></div></div>
+                              <div id="dot-responsables-chips" class="dot-picker-chips" aria-label="Personas seleccionadas"></div>
+                              <div id="dot-responsables-lista" class="dot-picker-list" role="group" aria-label="Listado de responsables"><div class="dot-picker-empty">Cargando personas autorizadas…</div></div>
+                            </div>
+                            <p id="dot-responsables-ayuda" class="mt-2 text-xs text-slate-500">Puedes asignar la alerta a muchas personas a la vez. Solo las personas seleccionadas recibirán la notificación y la tarea diaria.</p>
+                          </div>
                         <div class="sm:col-span-2 xl:col-span-4 flex flex-wrap items-center justify-between gap-3"><p id="dot-estado" class="text-xs text-slate-500" aria-live="polite">La solicitud se guardará en la nube para revisión.</p><button class="corp-button inline-flex items-center gap-2"><i data-lucide="send" class="h-4 w-4"></i>Enviar alerta de cobertura</button></div>
                     </form>
                 </div>
