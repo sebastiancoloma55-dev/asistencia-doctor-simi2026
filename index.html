@@ -1128,6 +1128,17 @@ body.theme-dark [id^="view-"] table tbody td{border-color:#293b55}
 body.theme-dark [id^="view-"] input:not([type=checkbox]):not([type=radio]):not([type=color]),body.theme-dark [id^="view-"] select,body.theme-dark [id^="view-"] textarea{background:#101e32!important;color:#e5eefb!important;border-color:#293b55!important}
 @media(max-width:640px){#quick-module-bar{padding:8px 12px}#header-title{font-size:17px!important}}
 </style>
+<style id="simi-login-input-visibility-fix">
+/* Contraste accesible para el formulario de acceso */
+#form-login .nova-v3-input-wrap{display:flex!important;align-items:center!important;gap:10px!important}
+#form-login .nova-v3-input-wrap input#login-email,#form-login .nova-v3-input-wrap input#login-pass{
+display:block!important;flex:1 1 auto!important;width:100%!important;min-width:0!important;min-height:44px!important;box-sizing:border-box!important;padding:12px 11px!important;border:1px solid #cbd9e8!important;border-radius:10px!important;background:#f8fbff!important;color:#142b43!important;-webkit-text-fill-color:#142b43!important;caret-color:#087f9e!important;font-size:13px!important;line-height:1.4!important;opacity:1!important;box-shadow:none!important}
+#form-login .nova-v3-input-wrap input#login-email::placeholder,#form-login .nova-v3-input-wrap input#login-pass::placeholder{color:#7b8da1!important;-webkit-text-fill-color:#7b8da1!important;opacity:1!important}
+#form-login .nova-v3-input-wrap input#login-email:focus,#form-login .nova-v3-input-wrap input#login-pass:focus{background:#fff!important;border-color:#079bb0!important;box-shadow:0 0 0 3px rgba(7,155,176,.14)!important}
+#form-login .nova-v3-input-wrap input#login-pass:-webkit-autofill,#form-login .nova-v3-input-wrap input#login-email:-webkit-autofill{-webkit-text-fill-color:#142b43!important;box-shadow:0 0 0 1000px #f8fbff inset!important;caret-color:#087f9e!important}
+#form-login .nova-v3-eye{flex:0 0 30px!important;min-width:30px!important;color:#527087!important}
+#form-login .nova-v3-eye svg{stroke:currentColor!important}
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -1249,6 +1260,11 @@ body.theme-dark [id^="view-"] input:not([type=checkbox]):not([type=radio]):not([
   <button id="btn-correos" class="menu-btn" onclick="cambiarModulo('correos')"><i data-lucide="mail" class="h-4 w-4"></i><span>Borradores de correo</span></button>
   <button id="btn-configcorreos" class="menu-btn" onclick="cambiarModulo('configcorreos')"><i data-lucide="mail-check" class="h-4 w-4"></i><span>Correos de sucursales</span></button>
   <button id="btn-chat" class="menu-btn" onclick="cambiarModulo('chat')"><i data-lucide="messages-square" class="h-4 w-4"></i><span>Chat interno</span></button>
+  <div class="nova-nav-divider" data-nav-group><span>CENTROS FUNCIONALES</span></div>
+  <button id="btn-inteligencia-asistencia" class="menu-btn" onclick="cambiarModulo('asistencia')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Centro de inteligencia de asistencia</span></button>
+  <button id="btn-centro-operaciones" class="menu-btn" onclick="cambiarModulo('operaciones')"><i data-lucide="list-todo" class="h-4 w-4"></i><span>Centro de operaciones</span></button>
+  <button id="btn-mapa-inteligente" class="menu-btn" onclick="cambiarModulo('mapas')"><i data-lucide="map-pinned" class="h-4 w-4"></i><span>Mapa inteligente de sucursales</span></button>
+  <button id="btn-analista-rrhh-ia" class="menu-btn" onclick="window.SimiIntelligenceCenter&&typeof window.SimiIntelligenceCenter.openSearch==='function'?window.SimiIntelligenceCenter.openSearch():document.getElementById('simi-context-toggle')?.click()"><i data-lucide="sparkles" class="h-4 w-4"></i><span>Analista de RR. HH. con IA</span></button>
   <div class="nova-nav-divider" data-nav-group><span>ANÁLISIS Y CONTROL</span></div>
   <button id="btn-reportes" class="menu-btn" onclick="cambiarModulo('reportes')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Reportes</span></button>
   <button id="btn-mapas" class="menu-btn" onclick="cambiarModulo('mapas')"><i data-lucide="map-pinned" class="h-4 w-4"></i><span>Mapa y distancias</span></button>
