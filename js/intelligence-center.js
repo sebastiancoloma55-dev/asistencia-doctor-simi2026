@@ -14,6 +14,8 @@ const MODULES=[
  ['correos','Correos y comunicaciones','mail','Comunicaciones RR. HH.'],
  ['envio_licencias','Envío de licencias','send','Documentación de licencias'],
  ['amonestaciones','Amonestaciones','file-warning','Documentos disciplinarios'],
+ ['inteligencia','Centro de inteligencia de asistencia','chart-no-axes-combined','Tendencias, atrasos y diferencias'],
+ ['analista_ia','Analista de RR. HH. con IA','sparkles','Consultas con inteligencia artificial'],
  ['reportes','Reportes y análisis','chart-no-axes-combined','Indicadores e informes'],
  ['usuarios','Usuarios y permisos','shield-check','Roles y accesos'],
  ['auditoria','Auditoría','scan-search','Trazabilidad'],
