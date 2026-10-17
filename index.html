@@ -1003,42 +1003,40 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 
             <!-- DASHBOARD -->
             <section id="view-dashboard" class="space-y-6 p-4 sm:p-8">
-                <!-- Banner principal nuevo: diseño limpio y responsive, sin modificar la lógica de los módulos -->
-                <div class="dashboard-welcome" aria-labelledby="dashboard-hero-heading">
+                <!-- Banner reconstruido para coincidir con el mockup aprobado -->
+                <div class="dashboard-welcome dashboard-welcome-approved" aria-labelledby="dashboard-hero-heading">
                     <div class="dashboard-hero-copy">
                         <div class="dashboard-hero-eyebrow">
                             <span class="dashboard-hero-live-dot" aria-hidden="true"></span>
                             <span>ASISTENCIA DOCTOR SIMI 2026</span>
-                            <span class="dashboard-hero-eyebrow-divider" aria-hidden="true">/</span>
-                            <span>PLATAFORMA DE GESTIÓN</span>
                         </div>
-                        <div class="dashboard-hero-title-row">
-                            <span class="dashboard-hero-icon" aria-hidden="true"><i data-lucide="heart-handshake"></i></span>
-                            <h2 id="dashboard-hero-heading">¡Bienvenido a tu espacio de trabajo!</h2>
-                        </div>
-                        <p class="dashboard-hero-subtitle">Centraliza la asistencia, los turnos y la gestión de personas en un solo lugar. <span class="dashboard-hero-highlight">Todo conectado, más claro y a tu alcance.</span></p>
-                        <div class="dashboard-hero-shortcuts" aria-label="Accesos directos">
-                            <button type="button" onclick="cambiarModulo('colaboradores')"><i data-lucide="users"></i><span>Colaboradores</span></button>
-                            <button type="button" onclick="cambiarModulo('asistencia')"><i data-lucide="clock-3"></i><span>Asistencia</span></button>
-                            <button type="button" onclick="cambiarModulo('licencias')"><i data-lucide="file-heart"></i><span>Licencias médicas</span></button>
+                        <h2 id="dashboard-hero-heading" class="dashboard-approved-title">¡Bienvenido/a, <span>Sebastián!</span></h2>
+                        <p class="dashboard-approved-lead">Panel de control de Asistencia y Recursos Humanos.</p>
+                        <p class="dashboard-hero-subtitle">Todo el equipo, todas las sucursales, en un solo lugar.</p>
+                        <div class="dashboard-hero-shortcuts dashboard-approved-shortcuts" aria-label="Accesos directos">
+                            <button type="button" onclick="cambiarModulo('colaboradores')"><i data-lucide="users"></i><span>Personas</span></button>
+                            <button type="button" onclick="cambiarModulo('asistencia')"><i data-lucide="calendar-clock"></i><span>Asistencia</span></button>
+                            <button type="button" onclick="cambiarModulo('sucursales')"><i data-lucide="store"></i><span>Sucursales</span></button>
+                            <button type="button" onclick="cambiarModulo('reportes')"><i data-lucide="file-text"></i><span>Reportes</span></button>
+                            <button type="button" class="dashboard-hero-ai" onclick="cambiarModulo('reportes')" title="Abrir reportes para análisis"><i data-lucide="sparkles"></i><span>IA</span></button>
                         </div>
                     </div>
-                    <div class="dashboard-hero-visual" aria-label="Identidad visual Doctor Simi">
+                    <div class="dashboard-hero-visual dashboard-approved-visual" aria-label="Doctor Simi y una sucursal Farmacias Doctor Simi">
                         <div class="dashboard-hero-orbit dashboard-hero-orbit-one" aria-hidden="true"></div>
                         <div class="dashboard-hero-orbit dashboard-hero-orbit-two" aria-hidden="true"></div>
-                        <div class="dashboard-hero-ghost" aria-hidden="true">SIMI</div>
+                        <div class="dashboard-approved-mascot-backdrop" aria-hidden="true"></div>
+                        <div class="dashboard-approved-mascot">
+                            <div class="dashboard-approved-coat" aria-hidden="true"><span>DR. SIMI</span></div>
+                            <img src="/doctor-simi-logo.jpg" alt="Mascota Doctor Simi" loading="eager">
+                        </div>
+                        <div class="dashboard-hero-quote">“Un equipo saludable,<br>una empresa más fuerte”</div>
                         <div class="dashboard-hero-storefront" aria-hidden="true">
                             <span>FARMACIAS</span>
                             <strong>DOCTOR SIMI</strong>
                             <small>Salud y bienestar</small>
                         </div>
-                        <div class="dashboard-hero-logo-frame">
-                            <img src="/doctor-simi-logo.jpg" alt="Logo de Doctor Simi" loading="eager">
-                        </div>
-                        <div class="dashboard-hero-glass-label">
-                            <i data-lucide="shield-check" aria-hidden="true"></i>
-                            <span><strong>Gestión centralizada</strong><br>Personas · Asistencia · Turnos</span>
-                        </div>
+                        <button type="button" class="dashboard-approved-doctor-button" onclick="cambiarModulo('dashboard')">DOCTOR SIMI <span aria-hidden="true">→</span></button>
+                        <div class="dashboard-hero-role"><i data-lucide="chart-no-axes-column-increasing" aria-hidden="true"></i><span>ASISTENCIA<br><strong>2026</strong></span></div>
                     </div>
                 </div>
 
