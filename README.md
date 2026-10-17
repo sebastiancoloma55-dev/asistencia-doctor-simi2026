@@ -48,7 +48,7 @@ El centro de operaciones consulta indicadores de las fuentes que el perfil tenga
 
 ## Variables de entorno para Netlify Preview (y Vercel más adelante)
 
-Configurar en el proyecto de Vercel (no en el navegador):
+Configurar en el sitio de Netlify Preview, dentro de Site configuration → Environment variables (no en el navegador). La migración a Vercel se deja para más adelante, cuando esté autorizada.
 
 - `SUPABASE_URL`: URL del proyecto Supabase.
 - `SUPABASE_ANON_KEY`: clave pública/anon para validar sesiones en servidor.
