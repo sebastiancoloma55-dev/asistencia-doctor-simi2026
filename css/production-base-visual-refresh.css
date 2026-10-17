@@ -1551,3 +1551,22 @@ button, input, select, textarea {
   #view-dashboard #dashboard-gerencial-graficos { grid-template-columns: 1fr !important; }
   #view-dashboard .dashboard-welcome-compact { min-height: 0 !important; }
 }
+
+/* Limpieza de duplicados: las métricas de este panel ya aparecen arriba.
+   Se mantienen en el DOM para conservar la actualización de datos; la vista destaca prioridades. */
+#view-dashboard #dashboard-panel-inteligente > .grid {
+  display: none !important;
+}
+#view-dashboard #dashboard-panel-inteligente > div:last-child {
+  margin-top: 14px !important;
+  border: 1px solid #dce8f1 !important;
+  border-radius: 15px !important;
+  background: #fff !important;
+  padding: 16px !important;
+}
+#view-dashboard #dashboard-panel-inteligente #pi-prioridades > * {
+  border: 1px solid #dce7f1;
+  background: linear-gradient(100deg,#f7fafc,#fff) !important;
+  padding: 12px 14px !important;
+  color: #29485f !important;
+}
