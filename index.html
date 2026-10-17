@@ -1003,7 +1003,44 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 
             <!-- DASHBOARD -->
             <section id="view-dashboard" class="space-y-6 p-4 sm:p-8">
-                <!-- Banner anterior eliminado por completo; se incorporará el nuevo diseño aprobado en una siguiente revisión. -->
+                <!-- Banner principal nuevo: diseño limpio y responsive, sin modificar la lógica de los módulos -->
+                <div class="dashboard-welcome" aria-labelledby="dashboard-hero-heading">
+                    <div class="dashboard-hero-copy">
+                        <div class="dashboard-hero-eyebrow">
+                            <span class="dashboard-hero-live-dot" aria-hidden="true"></span>
+                            <span>ASISTENCIA DOCTOR SIMI 2026</span>
+                            <span class="dashboard-hero-eyebrow-divider" aria-hidden="true">/</span>
+                            <span>PLATAFORMA DE GESTIÓN</span>
+                        </div>
+                        <div class="dashboard-hero-title-row">
+                            <span class="dashboard-hero-icon" aria-hidden="true"><i data-lucide="heart-handshake"></i></span>
+                            <h2 id="dashboard-hero-heading">¡Bienvenido a tu espacio de trabajo!</h2>
+                        </div>
+                        <p class="dashboard-hero-subtitle">Centraliza la asistencia, los turnos y la gestión de personas en un solo lugar. <span class="dashboard-hero-highlight">Todo conectado, más claro y a tu alcance.</span></p>
+                        <div class="dashboard-hero-shortcuts" aria-label="Accesos directos">
+                            <button type="button" onclick="cambiarModulo('colaboradores')"><i data-lucide="users"></i><span>Colaboradores</span></button>
+                            <button type="button" onclick="cambiarModulo('asistencia')"><i data-lucide="clock-3"></i><span>Asistencia</span></button>
+                            <button type="button" onclick="cambiarModulo('licencias')"><i data-lucide="file-heart"></i><span>Licencias médicas</span></button>
+                        </div>
+                    </div>
+                    <div class="dashboard-hero-visual" aria-label="Identidad visual Doctor Simi">
+                        <div class="dashboard-hero-orbit dashboard-hero-orbit-one" aria-hidden="true"></div>
+                        <div class="dashboard-hero-orbit dashboard-hero-orbit-two" aria-hidden="true"></div>
+                        <div class="dashboard-hero-ghost" aria-hidden="true">SIMI</div>
+                        <div class="dashboard-hero-storefront" aria-hidden="true">
+                            <span>FARMACIAS</span>
+                            <strong>DOCTOR SIMI</strong>
+                            <small>Salud y bienestar</small>
+                        </div>
+                        <div class="dashboard-hero-logo-frame">
+                            <img src="/doctor-simi-logo.jpg" alt="Logo de Doctor Simi" loading="eager">
+                        </div>
+                        <div class="dashboard-hero-glass-label">
+                            <i data-lucide="shield-check" aria-hidden="true"></i>
+                            <span><strong>Gestión centralizada</strong><br>Personas · Asistencia · Turnos</span>
+                        </div>
+                    </div>
+                </div>
 
                 <div id="dashboard-space-summary" class="dash-space-card" aria-live="polite">
                     <div class="dash-space-intro"><div><span class="dash-space-kicker">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo('espacio')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div>
