@@ -1262,12 +1262,12 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     <article><span class="people">♟</span><div><small>Total colaboradores</small><strong id="ref-kpi-colaboradores">—</strong><em>Base de colaboradores</em></div></article>
                     <article><span class="attendance">◎</span><div><small>Asistencia hoy</small><strong id="ref-kpi-asistencia">—</strong><em>Registros disponibles</em></div></article>
                     <article><span class="licenses">✚</span><div><small>Licencias médicas</small><strong id="ref-kpi-licencias">—</strong><em>Registros del sistema</em></div></article>
-                    <article><span class="vacations">▣</span><div><small>Vacaciones activas</small><strong>—</strong><em>Consultar módulo</em></div></article>
-                    <article><span class="incidents">⚠</span><div><small>Incidencias pendientes</small><strong>—</strong><em>Consultar alertas</em></div></article>
+                    <article><span class="vacations">▣</span><div><small>Vacaciones registradas</small><strong id="ref-kpi-vacaciones">—</strong><em id="ref-kpi-vacaciones-note">Consultando fuente…</em></div></article>
+                    <article><span class="incidents">⚠</span><div><small>Tareas pendientes</small><strong id="ref-kpi-incidencias">—</strong><em id="ref-kpi-incidencias-note">Consultando fuente…</em></div></article>
                   </div>
                   <div class="simi-reference-mid">
-                    <article class="simi-reference-card"><header><h3>▥ Asistencia semanal</h3><span>Presentes · Ausentes · % asistencia</span></header><div class="simi-chart"><div class="bars"><i style="height:58%"></i><i style="height:70%"></i><i style="height:49%"></i><i style="height:62%"></i><i style="height:80%"></i><i class="future"></i><i class="future"></i></div><p>Vista de tendencia · los valores se cargarán desde asistencia</p></div></article>
-                    <article class="simi-reference-card"><header><h3>⌖ Sucursales</h3><button onclick="cambiarModulo('sucursales')">Ver todas →</button></header><div class="simi-map"><i class="pin a"></i><i class="pin b"></i><i class="pin c"></i><i class="pin d"></i><i class="pin e"></i><i class="pin f"></i><label>Ubicaciones de sucursales</label></div><p class="map-legend">● Operativas　● Con incidencias　● Sin reporte</p></article>
+                    <article class="simi-reference-card"><header><h3>▥ Asistencia semanal</h3><span>Presentes · Ausentes · % asistencia</span></header><div class="simi-chart"><div class="bars" id="ref-attendance-bars" aria-label="Registros de asistencia de los últimos siete días"><i data-day="0"></i><i data-day="1"></i><i data-day="2"></i><i data-day="3"></i><i data-day="4"></i><i data-day="5"></i><i data-day="6"></i></div><p id="ref-attendance-caption">Consultando registros de asistencia…</p></div></article>
+                    <article class="simi-reference-card"><header><h3>⌖ Sucursales</h3><button onclick="cambiarModulo('sucursales')">Ver todas →</button></header><div class="simi-map simi-map-live"><div class="simi-map-live-inner"><strong id="ref-kpi-sucursales">—</strong><span>sucursales registradas</span><small id="ref-kpi-sucursales-note">Consultando directorio…</small></div></div><p class="map-legend">Indicador calculado desde el directorio cargado; abre Sucursales para ver el mapa real.</p></article>
                   </div>
                   <div class="simi-reference-lower">
                     <article class="simi-reference-card"><header><h3>▣ Turnos de hoy</h3><button onclick="cambiarModulo('asistencia')">Ver todos →</button></header><div class="empty"><b>Consulta de turnos</b><p>Revisa horarios y estados en Asistencia y Turnos.</p><button onclick="cambiarModulo('asistencia')">Abrir asistencia</button></div></article>
@@ -3585,6 +3585,12 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
 #view-tareas [id^="tk-"]{color:#07569a!important}
 #view-colaboradores .ui-card,#view-sucursales .ui-card,#view-asistencia .ui-card,#view-licencias .ui-card,#view-envio_licencias .ui-card,#view-vacaciones .ui-card{box-shadow:0 8px 24px rgba(22,65,120,.055)!important}
 @media(max-width:640px){#simi-context-assistant{right:10px!important;bottom:10px!important;width:min(330px,calc(100vw - 20px))!important}#simi-context-assistant #simi-context-toggle{padding:9px 12px!important;font-size:11px!important}#view-tareas #tarea-responsable{min-height:110px!important}}
+.simi-map-live{display:grid!important;place-items:center!important;background:radial-gradient(circle at 20% 20%,#d9f4ff,transparent 35%),linear-gradient(135deg,#e9f6ff,#dff4ec)!important}
+.simi-map-live .simi-map-live-inner{display:flex;flex-direction:column;align-items:center;gap:5px;padding:16px 24px;border:1px solid #c4e1f4;border-radius:16px;background:rgba(255,255,255,.92);box-shadow:0 8px 22px rgba(0,65,110,.08);text-align:center}
+.simi-map-live-inner strong{font-size:30px;font-weight:900;color:#07569a}.simi-map-live-inner span{font-size:12px;font-weight:800;color:#17395e}.simi-map-live-inner small{font-size:10px;color:#64748b}
+#dashboard-reference-layout .simi-reference-kpis article strong{font-variant-numeric:tabular-nums}
+#dashboard-reference-layout .simi-chart .bars i{transition:height .3s ease;min-height:3px}
+#dashboard-reference-layout .simi-chart .bars i[data-empty="true"]{background:#dce7f3!important;height:4px!important}
 </style>
     <div id="simi-context-assistant">
       <section id="simi-context-popover" hidden aria-label="Asistente contextual de RR. HH." aria-live="polite">
@@ -3661,5 +3667,28 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       window.addEventListener("resize",()=>{const r=root.getBoundingClientRect();root.style.left=Math.min(Math.max(8,r.left),Math.max(8,window.innerWidth-root.offsetWidth-8))+"px";root.style.top=Math.min(Math.max(8,r.top),Math.max(8,window.innerHeight-root.offsetHeight-8))+"px";});
     })();
     </script>
+<script id="dashboard-live-indicators-preview">
+(function(){
+  const $=id=>document.getElementById(id);
+  const fmt=n=>Number(n||0).toLocaleString("es-CL");
+  const todayISO=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");};
+  async function countTable(table, filters){let q=window._supabase.from(table).select("*",{count:"exact",head:true});(filters||[]).forEach(f=>{q=q[f[0]](...f.slice(1));});const r=await q;if(r.error)throw r.error;return r.count||0;}
+  async function load(){
+    if(!window._supabase||!window._supabase.from)return;
+    const date=todayISO(),today=new Date(date+"T00:00:00");
+    const jobs=[
+      ["ref-kpi-colaboradores","colaboradores",[]],
+      ["ref-kpi-asistencia","registros_asistencia",[["eq","fecha",date]]],
+      ["ref-kpi-licencias","licencias_medicas",[]],
+      ["ref-kpi-vacaciones","vacaciones_historico",[]],
+      ["ref-kpi-incidencias","tareas",[["in","estado",["PENDIENTE","EN_PROCESO","COMPLETADA_POR_VALIDAR","DEVUELTA"]]]],
+      ["ref-kpi-sucursales","sucursales",[]]
+    ];
+    await Promise.all(jobs.map(async([id,table,filters])=>{const el=$(id);if(!el)return;try{const n=await countTable(table,filters);el.textContent=fmt(n);const note=$(id+"-note");if(note)note.textContent=table==="registros_asistencia"?"marcas registradas hoy":table==="vacaciones_historico"?"registros históricos":"registros disponibles";}catch(e){el.textContent="—";const note=$(id+"-note");if(note)note.textContent="Fuente no disponible";console.warn("Indicador dashboard "+table,e.message||e);}}));
+    try{const since=new Date(today);since.setDate(since.getDate()-6);const iso=since.getFullYear()+"-"+String(since.getMonth()+1).padStart(2,"0")+"-"+String(since.getDate()).padStart(2,"0");const {data,error}=await window._supabase.from("registros_asistencia").select("fecha").gte("fecha",iso).lte("fecha",date).order("fecha");if(error)throw error;const counts=Array(7).fill(0);(data||[]).forEach(r=>{const d=new Date(String(r.fecha).slice(0,10)+"T00:00:00");const ix=Math.round((d-since)/86400000);if(ix>=0&&ix<7)counts[ix]++;});const max=Math.max(1,...counts);document.querySelectorAll("#ref-attendance-bars i").forEach((bar,i)=>{bar.style.height=Math.max(4,Math.round(counts[i]/max*82))+"%";bar.title=counts[i]+" registros";bar.dataset.empty=counts[i]===0?"true":"false";});const cap=$("ref-attendance-caption");if(cap)cap.textContent=(data||[]).length?("Registros reales por día · últimos 7 días · "+fmt(data.length)+" marcas"):"Sin registros de asistencia en los últimos 7 días.";}catch(e){const cap=$("ref-attendance-caption");if(cap)cap.textContent="No se pudo consultar la tendencia: revisa la carga de asistencia.";console.warn("Tendencia dashboard",e.message||e);}
+  }
+  document.addEventListener("DOMContentLoaded",()=>{load();const view=$("view-dashboard");if(view&&window.MutationObserver)new MutationObserver(()=>{if(!view.classList.contains("hidden"))load();}).observe(view,{attributes:true,attributeFilter:["class"]});});
+})();
+</script>
 </body>
 </html>
