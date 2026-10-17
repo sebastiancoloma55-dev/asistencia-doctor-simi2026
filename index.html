@@ -3790,6 +3790,20 @@ hr{border-color:#e8edf3}
  #view-espacio .space-compose-card .space-form-row{grid-template-columns:minmax(0,1fr)}
  #view-espacio .space-note-grid{grid-template-columns:minmax(0,1fr)}
 }
+
+/* FIX CRITICO DE NAVEGACION: los módulos inactivos no deben reservar altura ni dejar pantallas vacías. */
+section[id^="view-"].hidden,
+section[id^="view-"][hidden]{
+  display:none!important;
+}
+#view-tareas:not(.hidden):not([hidden]){
+  display:block!important;
+  min-height:0!important;
+  height:auto!important;
+  margin-top:0!important;
+}
+#view-tareas .task-page-heading{margin-top:0!important}
+
 </style>
 
 </body>
