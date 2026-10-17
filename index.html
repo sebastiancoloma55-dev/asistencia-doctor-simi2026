@@ -3915,5 +3915,65 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto > section[id^="view-"]:not(.hi
   #sidebar { max-width:min(84vw,18rem); }
 }
 </style>
+
+<script id="rrhh-module-visibility-recovery">
+/* Recuperación de navegación: mantiene visible la vista que corresponde al módulo activo.
+   No modifica datos, permisos ni contenido; solo sincroniza visibilidad de las secciones. */
+(function () {
+  function restoreActiveModuleView() {
+    var sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    var activeButton = sidebar.querySelector('.menu-btn.active[id^="btn-"]');
+    if (!activeButton) return;
+    var moduleId = activeButton.id.slice(4);
+    var target = document.getElementById('view-' + moduleId);
+    if (!target) return;
+
+    document.querySelectorAll('main.flex.min-w-0.flex-1.flex-col.overflow-y-auto > section[id^="view-"]').forEach(function (view) {
+      var isTarget = view === target;
+      if (isTarget) {
+        view.classList.remove('hidden');
+        view.removeAttribute('hidden');
+        view.style.setProperty('display', 'block', 'important');
+        view.style.setProperty('visibility', 'visible', 'important');
+        view.style.setProperty('opacity', '1', 'important');
+        view.style.setProperty('height', 'auto', 'important');
+        view.style.setProperty('min-height', '0', 'important');
+      } else {
+        view.classList.add('hidden');
+        view.style.removeProperty('display');
+        view.style.removeProperty('visibility');
+        view.style.removeProperty('opacity');
+        view.style.removeProperty('height');
+        view.style.removeProperty('min-height');
+      }
+    });
+
+    var generic = document.getElementById('view-generic');
+    if (generic) {
+      generic.classList.add('hidden');
+      generic.style.removeProperty('display');
+    }
+  }
+
+  function start() {
+    var sidebar = document.getElementById('sidebar');
+    if (!sidebar || sidebar.dataset.rrhhVisibilityRecovery === '1') return;
+    sidebar.dataset.rrhhVisibilityRecovery = '1';
+    var observer = new MutationObserver(function () {
+      restoreActiveModuleView();
+    });
+    observer.observe(sidebar, {subtree:true, attributes:true, attributeFilter:['class','aria-current']});
+    var title = document.getElementById('header-title');
+    if (title) observer.observe(title, {subtree:true, childList:true, characterData:true});
+    restoreActiveModuleView();
+    requestAnimationFrame(restoreActiveModuleView);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once:true});
+  else start();
+})();
+</script>
+
 </body>
 </html>
