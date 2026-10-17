@@ -152,7 +152,8 @@
   document.addEventListener('DOMContentLoaded',()=>{
     $('aia-file')?.addEventListener('change',loadFile);
     ['aia-search','aia-column','aia-value','aia-from','aia-to'].forEach(id=>$(id)?.addEventListener(id==='aia-column'?'change':'input',applyFilters));
-    $('aia-run')?.addEventListener('click',analyze);\n    $('aia-prompt')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();analyze();}});
+    $('aia-run')?.addEventListener('click',analyze);
+    $('aia-prompt')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();analyze();}});
     $('aia-export-txt')?.addEventListener('click',downloadText);
     $('aia-export-pdf')?.addEventListener('click',downloadPdf);
     $('aia-clear')?.addEventListener('click',()=>{ $('aia-file').value='';$('aia-prompt').value='';pdfText='';$('aia-consent').checked=false;rows=[];filtered=[];headers=[];lastResult='';chatHistory.length=0;$('aia-output').textContent='';$('aia-chat').innerHTML='<div class="aia-chat-empty">👋 Hola, soy tu asistente conectado a Ollama. Puedes preguntarme sobre RR. HH., redacción, Excel, ideas o cualquier tema de trabajo. No necesitas adjuntar archivos.</div>';$('aia-preview').innerHTML='<div class="p-6 text-center text-slate-500">Carga un archivo para revisar sus datos.</div>';$('aia-filter-count').textContent='Sin archivo cargado';status('Conversación limpiada.');});
