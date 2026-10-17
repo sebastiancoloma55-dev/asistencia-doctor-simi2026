@@ -195,3 +195,40 @@ button, input, select, textarea {
   #sidebar.sidebar-collapsed { width: 0 !important; min-width: 0 !important; flex-basis: 0 !important; max-width: 0 !important; }
 }
 @media (prefers-reduced-motion: reduce) { #sidebar { transition: none !important; } }
+
+
+/* Ajustes solicitados tras revisión visual del dashboard */
+.sidebar-expand-floating {
+  left: 12px !important;
+  top: auto !important;
+  bottom: 24px !important;
+  z-index: 10050 !important;
+}
+#sidebar.sidebar-collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  flex: 0 0 0 !important;
+  margin: 0 !important;
+}
+#sidebar.sidebar-collapsed + main,
+#sidebar.sidebar-collapsed ~ main {
+  min-width: 0 !important;
+  width: 100% !important;
+  flex: 1 1 100% !important;
+}
+#view-dashboard {
+  min-width: 0;
+}
+.dashboard-welcome {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 30%) !important;
+  min-height: 200px !important;
+}
+@media (max-width: 760px) {
+  .dashboard-welcome {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .sidebar-expand-floating {
+    bottom: 18px !important;
+    left: 10px !important;
+  }
+}
