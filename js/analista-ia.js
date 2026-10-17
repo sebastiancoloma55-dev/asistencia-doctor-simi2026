@@ -66,7 +66,8 @@
         headers=Object.keys(rows[0]);
       } else if(/\.pdf$/i.test(file.name)){
         if(file.size>5*1024*1024)throw new Error('El PDF supera 5 MB. Usa un archivo menor.');
-        pdfText=await extractPdfText(file);\n        status('PDF leído localmente. Solo se enviará el texto extraído después de autorizar el análisis.','info');
+        pdfText=await extractPdfText(file);
+        status('PDF leído localmente. Solo se enviará el texto extraído después de autorizar el análisis.','info');
         $('aia-filter-count').textContent='PDF · '+(file.size/1024).toFixed(0)+' KB';
         $('aia-preview').innerHTML='<div class="p-5 text-sm text-slate-600">PDF leído en este navegador. El texto se enviará al servidor Ollama solo después de autorizarlo. Los filtros por filas están disponibles para Excel y CSV.</div>';
         $('aia-output').textContent='Escribe una pregunta y autoriza el envío para comenzar.';
@@ -101,13 +102,13 @@
         if(serialized.length>1950000)throw new Error('El archivo contiene campos demasiado extensos. Reduce el archivo o elimina columnas innecesarias.');
         payload.textData=serialized;
       }else{
-        const buf=await file.arrayBuffer();let binary='';const bytes=new Uint8Array(buf);for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
-        payload.base64=btoa(binary);
+        payload.textData=pdfText||await extractPdfText(file);
       }
       status('Analizando con Ollama…');
       const {data}=await _supabase.auth.getSession();const token=data?.session?.access_token;
       if(!token)throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.');
-      if(/\\.pdf$/i.test(file.name))payload.textData=pdfText||await extractPdfText(file);\n      const response=await fetch('/api/ollama',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(payload)});
+      if(/\.pdf$/i.test(file.name))payload.textData=pdfText||await extractPdfText(file);
+      const response=await fetch('/api/ollama',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(payload)});
       const body=await response.json().catch(()=>({error:'Respuesta no válida del servidor.'}));
       if(!response.ok)throw new Error(body.error||'Error '+response.status);
       lastResult=String(body.text||'').trim();if(!lastResult)throw new Error('La IA devolvió un resultado vacío.');
