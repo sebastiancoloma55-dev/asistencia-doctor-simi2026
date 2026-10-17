@@ -3851,10 +3851,10 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto { scroll-behavior:auto; }
 
 /* FIX DEFINITIVO: el portal no debe desplazar el layout completo; solo el panel principal. */
 html, body { width:100%; height:100%; min-height:0; margin:0!important; overflow:hidden!important; }
-body > .flex.h-screen.overflow-hidden { height:100vh!important; height:100dvh!important; min-height:0!important; max-height:100vh!important; overflow:hidden!important; align-items:stretch!important; }
-body > .flex.h-screen.overflow-hidden > #sidebar { height:100%!important; min-height:0!important; overflow:hidden!important; }
-body > .flex.h-screen.overflow-hidden > #sidebar nav { min-height:0!important; overflow-y:auto!important; overscroll-behavior:contain; }
-body > .flex.h-screen.overflow-hidden > main.flex.min-w-0.flex-1.flex-col.overflow-y-auto { height:100%!important; min-height:0!important; max-height:100%!important; flex:1 1 0%!important; overflow-y:auto!important; overflow-x:hidden!important; margin:0!important; padding-top:0!important; scroll-padding-top:0!important; }
+.flex.h-screen.overflow-hidden { height:100vh!important; height:100dvh!important; min-height:0!important; max-height:100vh!important; overflow:hidden!important; align-items:stretch!important; }
+.flex.h-screen.overflow-hidden > #sidebar { height:100%!important; min-height:0!important; overflow:hidden!important; }
+.flex.h-screen.overflow-hidden > #sidebar nav { min-height:0!important; overflow-y:auto!important; overscroll-behavior:contain; }
+.flex.h-screen.overflow-hidden > main.flex.min-w-0.flex-1.flex-col.overflow-y-auto { height:100%!important; min-height:0!important; max-height:100%!important; flex:1 1 0%!important; overflow-y:auto!important; overflow-x:hidden!important; margin:0!important; padding-top:0!important; scroll-padding-top:0!important; }
 #view-tareas { margin-block-start:0!important; }
 #view-tareas:not(.hidden):not([hidden]) { position:relative!important; inset:auto!important; transform:none!important; }
 
@@ -3898,5 +3898,34 @@ body > .flex.h-screen.overflow-hidden > main.flex.min-w-0.flex-1.flex-col.overfl
 })();
 </script>
 
+<script id="task-view-recovery-final">
+(function(){
+  if(window.__taskViewRecoveryFinal) return;
+  window.__taskViewRecoveryFinal=true;
+  function restoreTaskView(){
+    var title=document.getElementById('header-title');
+    var taskButton=document.getElementById('btn-tareas');
+    var taskView=document.getElementById('view-tareas');
+    if(!taskView) return;
+    var titleText=(title&&title.textContent||'').trim().toLowerCase();
+    var taskSelected=titleText.indexOf('tareas diarias')!==-1 || !!(taskButton&&(taskButton.classList.contains('active')||taskButton.getAttribute('aria-current')==='page'));
+    if(!taskSelected) return;
+    document.querySelectorAll('section[id^="view-"]').forEach(function(view){
+      view.classList.toggle('hidden',view!==taskView);
+      if(view===taskView){view.style.removeProperty('display');view.removeAttribute('hidden');}
+    });
+    taskView.style.removeProperty('visibility');
+  }
+  function scheduleRestore(){[0,150,600,1400,2600].forEach(function(ms){setTimeout(restoreTaskView,ms);});}
+  document.addEventListener('DOMContentLoaded',scheduleRestore);
+  window.addEventListener('load',scheduleRestore);
+  window.addEventListener('pageshow',scheduleRestore);
+  document.addEventListener('click',function(e){
+    var button=e.target&&e.target.closest?e.target.closest('#btn-tareas'):null;
+    if(button)scheduleRestore();
+  },true);
+  scheduleRestore();
+})();
+</script>
 </body>
 </html>
