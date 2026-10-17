@@ -1799,3 +1799,184 @@ button, input, select, textarea {
     transition:none!important;animation:none!important;
   }
 }
+
+
+/* MI ESPACIO DE TRABAJO · renovación visual aislada 2026-10-17
+   Solo afecta a #view-espacio; no modifica Dashboard ni Tareas diarias. */
+#view-espacio {
+  --workspace-ink: #082f57;
+  --workspace-teal: #19a8a5;
+  --workspace-line: #dce9f3;
+  --workspace-muted: #66809a;
+  background:
+    radial-gradient(ellipse at 92% 0%, rgba(25,168,165,.055), transparent 34%),
+    linear-gradient(180deg, #f7fbff 0%, #f2f7fc 100%);
+  color: var(--workspace-ink);
+}
+#view-espacio > .space-hero {
+  display: block;
+  padding: clamp(18px, 2.3vw, 28px);
+  margin-bottom: 2px;
+  color: var(--workspace-ink);
+  background: linear-gradient(115deg, #ffffff 0%, #f7fbff 72%, #effaf9 100%);
+  border: 1px solid #dceaf4;
+  border-radius: 20px;
+  box-shadow: 0 9px 28px rgba(8,47,87,.055);
+}
+#view-espacio .space-hero-orb,
+#view-espacio .space-hero-graphic { display: none !important; }
+#view-espacio .space-hero-copy { max-width: 900px; }
+#view-espacio .space-hero-kicker {
+  width: fit-content;
+  margin-bottom: 9px;
+  padding: 6px 10px;
+  border: 1px solid #ccece9;
+  border-radius: 999px;
+  background: #effbf9;
+  color: #087f83;
+  font-size: 9px;
+  letter-spacing: .12em;
+}
+#view-espacio .space-hero-copy h3 {
+  margin: 0;
+  color: #082f57;
+  font-size: clamp(25px, 2.5vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -.045em;
+}
+#view-espacio .space-hero-copy > p {
+  max-width: 690px;
+  margin: 8px 0 13px;
+  color: #5c7690;
+  font-size: 13px;
+  line-height: 1.65;
+}
+#view-espacio .space-hero-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+#view-espacio .space-hero-pills > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid #e0ebf2;
+  border-radius: 999px;
+  background: rgba(255,255,255,.88);
+  color: #55728b;
+  font-size: 10px;
+  font-weight: 750;
+}
+#view-espacio .space-hero-pills svg { width: 13px; height: 13px; color: #159b98; }
+#view-espacio .space-metrics-grid { gap: 13px; margin: 0; }
+#view-espacio .space-metric {
+  position: relative;
+  min-height: 91px;
+  padding: 17px;
+  border-color: var(--workspace-line);
+  border-radius: 16px;
+  box-shadow: 0 5px 18px rgba(8,47,87,.035);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+#view-espacio .space-metric:hover {
+  transform: translateY(-2px);
+  border-color: #b8dcdF;
+  box-shadow: 0 12px 25px rgba(8,47,87,.075);
+}
+#view-espacio .space-metric-icon { width: 42px; height: 42px; border-radius: 14px; }
+#view-espacio .space-metric-copy small { color: var(--workspace-muted); font-size: 11px; font-weight: 700; }
+#view-espacio .space-metric-copy strong { color: var(--workspace-ink); font-size: 27px; }
+#view-espacio .space-tabbar {
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid var(--workspace-line);
+  border-radius: 14px;
+  background: rgba(255,255,255,.8);
+}
+#view-espacio .space-tab {
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 10px;
+  color: #6a8297;
+  transition: background .16s ease, color .16s ease;
+}
+#view-espacio .space-tab.is-active {
+  color: #087f83;
+  background: #eaf9f7;
+  box-shadow: inset 0 0 0 1px #ccece9;
+}
+#view-espacio .space-panel { min-width: 0; }
+#view-espacio .space-panel-heading { margin: 7px 0 15px; }
+#view-espacio .space-section-kicker {
+  color: #0b8c91;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+#view-espacio .space-panel-heading h3 { color: var(--workspace-ink); font-size: 22px; }
+#view-espacio .space-panel-heading p { color: var(--workspace-muted); font-size: 12px; }
+#view-espacio .space-count-chip { border-color: #dce9f3; color: #4e6b85; background: #fff; }
+#view-espacio .space-compose-card {
+  top: 84px;
+  padding: 18px;
+  border-color: #dce9f3;
+  border-radius: 17px;
+  box-shadow: 0 8px 24px rgba(8,47,87,.045);
+}
+#view-espacio .space-compose-icon {
+  color: #087f83;
+  background: #eaf9f7;
+  border-color: #ccece9;
+}
+#view-espacio .space-compose-label { color: #628098; }
+#view-espacio .space-compose-card > label,
+#view-espacio .space-log-fields label { color: #345671; font-size: 11px; }
+#view-espacio .space-compose-card .form-field,
+#view-espacio .space-log-fields .form-field {
+  border-color: #d9e6ef;
+  border-radius: 10px;
+  color: #183b59;
+  background: #fff;
+}
+#view-espacio .space-compose-card .form-field:focus,
+#view-espacio .space-log-fields .form-field:focus {
+  border-color: #19a8a5;
+  box-shadow: 0 0 0 3px rgba(25,168,165,.12);
+}
+#view-espacio .space-note-board-wrap,
+#view-espacio .space-log-compose {
+  border-color: #dce9f3;
+  border-radius: 17px;
+}
+#view-espacio .space-note-search {
+  border-color: #dce8f1;
+  border-radius: 11px;
+  box-shadow: 0 2px 7px rgba(8,47,87,.025);
+}
+#view-espacio .space-note-filters button { font-size: 10px; padding: 8px 11px; }
+#view-espacio .space-note-filters button.is-active {
+  color: #087f83;
+  border-color: #b9e6e2;
+  background: #eaf9f7;
+}
+#view-espacio .space-note {
+  border-radius: 16px;
+  box-shadow: 0 7px 20px rgba(8,47,87,.045);
+}
+#view-espacio .space-note:hover { box-shadow: 0 13px 26px rgba(8,47,87,.09); }
+#view-espacio .space-log-compose {
+  background: linear-gradient(145deg, #fff, #f7fbff);
+  box-shadow: 0 7px 22px rgba(8,47,87,.035);
+}
+@media (max-width: 760px) {
+  #view-espacio { padding: 14px !important; gap: 14px !important; }
+  #view-espacio > .space-hero { padding: 19px 17px; border-radius: 16px; }
+  #view-espacio .space-hero-copy h3 { font-size: 26px; }
+  #view-espacio .space-metric { padding: 12px; min-height: 78px; gap: 9px; }
+  #view-espacio .space-metric-copy strong { font-size: 23px; }
+  #view-espacio .space-tabbar { overflow-x: auto; }
+  #view-espacio .space-tab { padding: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #view-espacio .space-metric,
+  #view-espacio .space-tab { transition: none !important; }
+  #view-espacio .space-metric:hover,
+  #view-espacio .space-note:hover { transform: none !important; }
+}
