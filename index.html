@@ -3900,31 +3900,61 @@ html, body { width:100%; height:100%; min-height:0; margin:0!important; overflow
 
 <script id="task-view-recovery-final">
 (function(){
-  if(window.__taskViewRecoveryFinal) return;
-  window.__taskViewRecoveryFinal=true;
-  function restoreTaskView(){
+  if(window.__taskViewRecoveryFinalV2) return;
+  window.__taskViewRecoveryFinalV2=true;
+  function taskIsSelected(){
     var title=document.getElementById('header-title');
-    var taskButton=document.getElementById('btn-tareas');
-    var taskView=document.getElementById('view-tareas');
-    if(!taskView) return;
-    var titleText=(title&&title.textContent||'').trim().toLowerCase();
-    var taskSelected=titleText.indexOf('tareas diarias')!==-1 || !!(taskButton&&(taskButton.classList.contains('active')||taskButton.getAttribute('aria-current')==='page'));
-    if(!taskSelected) return;
-    document.querySelectorAll('section[id^="view-"]').forEach(function(view){
-      view.classList.toggle('hidden',view!==taskView);
-      if(view===taskView){view.style.removeProperty('display');view.removeAttribute('hidden');}
-    });
-    taskView.style.removeProperty('visibility');
+    var button=document.getElementById('btn-tareas');
+    return !!((title&&/tareas\s*diarias/i.test(title.textContent||''))||(button&&(button.classList.contains('active')||button.getAttribute('aria-current')==='page')));
   }
-  function scheduleRestore(){[0,150,600,1400,2600].forEach(function(ms){setTimeout(restoreTaskView,ms);});}
-  document.addEventListener('DOMContentLoaded',scheduleRestore);
-  window.addEventListener('load',scheduleRestore);
-  window.addEventListener('pageshow',scheduleRestore);
+  function restoreTaskView(){
+    if(!taskIsSelected()) return;
+    var target=document.getElementById('view-tareas');
+    if(!target) return;
+    document.querySelectorAll('section[id^="view-"]').forEach(function(view){
+      if(view!==target){
+        view.classList.add('hidden');
+        view.setAttribute('aria-hidden','true');
+      }else{
+        view.classList.remove('hidden');
+        view.removeAttribute('hidden');
+        view.removeAttribute('aria-hidden');
+        view.style.setProperty('display','block','important');
+        view.style.setProperty('visibility','visible','important');
+        view.style.setProperty('opacity','1','important');
+        view.style.setProperty('position','relative','important');
+        view.style.setProperty('width','100%','important');
+        view.style.setProperty('height','auto','important');
+        view.style.setProperty('min-height','500px','important');
+        view.style.setProperty('flex','0 0 auto','important');
+        view.style.setProperty('align-self','stretch','important');
+      }
+    });
+    var main=target.closest('main');
+    if(main){
+      main.style.setProperty('display','flex','important');
+      main.style.setProperty('flex-direction','column','important');
+      main.style.setProperty('min-height','0','important');
+      main.style.setProperty('overflow-y','auto','important');
+    }
+  }
+  function schedule(){[0,100,350,800,1600,2800].forEach(function(ms){setTimeout(restoreTaskView,ms);});}
+  document.addEventListener('DOMContentLoaded',schedule);
+  window.addEventListener('load',schedule);
+  window.addEventListener('pageshow',schedule);
   document.addEventListener('click',function(e){
-    var button=e.target&&e.target.closest?e.target.closest('#btn-tareas'):null;
-    if(button)scheduleRestore();
+    if(e.target&&e.target.closest&&e.target.closest('#btn-tareas')) schedule();
+    else if(e.target&&e.target.closest&&e.target.closest('[onclick*="cambiarModulo(\'tareas\')"]')) schedule();
   },true);
-  scheduleRestore();
+  var observer=new MutationObserver(function(){if(taskIsSelected()) restoreTaskView();});
+  function observe(){
+    var title=document.getElementById('header-title'),button=document.getElementById('btn-tareas');
+    if(title)observer.observe(title,{childList:true,subtree:true,characterData:true});
+    if(button)observer.observe(button,{attributes:true,attributeFilter:['class','aria-current']});
+    document.querySelectorAll('section[id^="view-"]').forEach(function(v){observer.observe(v,{attributes:true,attributeFilter:['class','hidden','style']});});
+  }
+  document.addEventListener('DOMContentLoaded',observe);
+  schedule();
 })();
 </script>
 </body>
