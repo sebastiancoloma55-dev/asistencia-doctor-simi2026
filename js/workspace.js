@@ -36,6 +36,8 @@ function metrics(){
  var active=state.notes.filter(function(n){return n.estado==="ACTIVA";}).length;
  var pinned=state.notes.filter(function(n){return n.fijada&&n.estado==="ACTIVA";}).length;
  var now=Date.now();
+ var overdue=state.notes.filter(function(n){return n.estado==="ACTIVA"&&n.vence_en&&new Date(n.vence_en)<new Date();}).length;
+ var overdueValue=state.notesError?"Error":overdue;
  var upcoming=state.notes.filter(function(n){var due=n.vence_en?new Date(n.vence_en).getTime():0;return n.estado==="ACTIVA"&&due>=now&&due<=now+7*86400000;}).length;
  var week=Date.now()-7*86400000;
  var logsWeek=state.logs.filter(function(l){return new Date(l.ocurrio_en).getTime()>=week;}).length;
