@@ -735,6 +735,8 @@
             const kpi=document.getElementById('tabla-kpi-usuarios');
             kpi.innerHTML=porUsuario.size?[...porUsuario.values()].sort((a,b)=>b.total-a.total).map(u=>{const medibles=tareasGlobal.filter(t=>String(t.responsable_rol_id||'sin-asignar')===u.id&&t.estado_calculado!=='CANCELADA').length;const pct=medibles?Math.round(100*u.aprobadas/medibles):0;return `<div class="kpi-persona-row rounded-xl border border-slate-100 p-3"><div><b class="block text-sm text-slate-800">${escaparHTML(u.nombre)}</b><span class="text-xs text-slate-500">${u.total} tarea(s) asignadas</span><div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full ${pct>=80?'bg-emerald-500':pct>=50?'bg-amber-500':'bg-rose-500'}" style="width:${pct}%"></div></div></div><div><span class="block text-[11px] text-slate-500">Aprobadas</span><b class="text-lg text-emerald-700">${u.aprobadas}</b></div><div><span class="block text-[11px] text-slate-500">Pendientes</span><b class="text-lg">${u.pendientes}</b></div><div><span class="block text-[11px] text-slate-500">Vencidas</span><b class="text-lg ${u.vencidas?'text-rose-700':''}">${u.vencidas}</b></div><div><span class="block text-[11px] text-slate-500">Cumplimiento</span><b class="text-lg">${pct}%</b><span class="block text-[10px] text-slate-400">${u.validar} por validar</span></div></div>`}).join(''):'<p class="p-4 text-sm text-slate-500">Todavía no hay tareas asignadas. Crea una tarea para empezar a medir.</p>';
             document.getElementById('tabla-tareas').innerHTML=f.length?f.map(t=>`<tr><td><b>${escaparHTML(t.titulo)}</b><br><span class="text-xs text-slate-500">${escaparHTML(t.descripcion)}</span></td><td>${escaparHTML(t.responsable?.nombre||t.responsable?.email||'Sin asignar')}</td><td>${escaparHTML(t.revisor?.nombre||t.revisor?.email||'—')}</td><td><span class="rounded-full px-2 py-1 text-xs font-bold ${t.prioridad==='URGENTE'?'bg-rose-100 text-rose-800':t.prioridad==='ALTA'?'bg-amber-100 text-amber-800':'bg-slate-100 text-slate-700'}">${escaparHTML(t.prioridad)}</span></td><td>${new Date(t.fecha_limite).toLocaleString('es-CL')}</td><td><span class="rounded-full px-2 py-1 text-xs font-bold ${['APROBADA','COMPLETADA_POR_VALIDAR'].includes(t.estado_calculado)?'bg-emerald-100 text-emerald-800':t.estado_calculado==='VENCIDA'?'bg-rose-100 text-rose-800':t.estado_calculado==='PENDIENTE'?'bg-amber-100 text-amber-800':'bg-slate-100 text-slate-700'}">${({'PENDIENTE':'No realizada · pendiente','EN_PROCESO':'En proceso','COMPLETADA_POR_VALIDAR':'Realizada · por validar','APROBADA':'Realizada · aprobada','DEVUELTA':'Devuelta · corregir','VENCIDA':'No realizada · vencida','CANCELADA':'Cancelada'})[t.estado_calculado]||t.estado_calculado}</span></td><td><select aria-label="Cambiar estado de tarea" class="form-field min-w-40" onchange="cambiarEstadoTarea(${t.id},this.value)"><option value="">Actualizar estado…</option>${(esAdminPrincipalActual()||(puedeRevisarTareasActual()&&String(t.revisor_rol_id)===String(perfilActualSistema?.id))?['EN_PROCESO','COMPLETADA_POR_VALIDAR','APROBADA','DEVUELTA','CANCELADA']:(String(t.responsable_rol_id)===String(perfilActualSistema?.id)?['EN_PROCESO','COMPLETADA_POR_VALIDAR']:[])).map(e=>`<option value="${e}">${({'EN_PROCESO':'Marcar en proceso','COMPLETADA_POR_VALIDAR':'Informar realizada · por validar','APROBADA':'Aprobar realización','DEVUELTA':'Devolver para corregir','CANCELADA':'Cancelar tarea'})[e]||e}</option>`).join('')}</select></td></tr>`).join(''):'<tr><td colspan="7" class="p-8 text-center text-sm text-slate-500">No hay tareas para estos filtros.</td></tr>';
+            renderTaskReferencePanels();
+
         }
         async function cambiarEstadoTarea(id,estado){if(!estado)return;const tarea=tareasGlobal.find(x=>String(x.id)===String(id));if(!tarea)return mostrarToast('No se encontró la tarea.','error');const idActual=String(perfilActualSistema?.id||'');const esResp=String(tarea.responsable_rol_id)===idActual;const esRev=String(tarea.revisor_rol_id)===idActual;if(!esAdminPrincipalActual()&&(['APROBADA','DEVUELTA','CANCELADA'].includes(estado)?(!puedeRevisarTareasActual()||!esRev):(!esResp&&!esRev)))return mostrarToast('No tienes permiso para cambiar este estado.','warning');const motivo=['DEVUELTA','CANCELADA'].includes(estado)?prompt('Indica el motivo del cambio:')||'Sin motivo':'';const {data:{session}}=await _supabase.auth.getSession();const {error}=await _supabase.from('tareas').update({estado,updated_at:new Date().toISOString()}).eq('id',id);if(error)return mostrarToast(error.message,'error');await _supabase.from('tareas_eventos').insert([{tarea_id:id,accion:'CAMBIO_ESTADO',estado_nuevo:estado,usuario_email:session?.user?.email||'',detalle:motivo}]);await cargarTareas();}
 
@@ -763,4 +765,107 @@ document.addEventListener('DOMContentLoaded',function(){
       if(typeof renderizarTareas==='function')renderizarTareas();
     });
   });
+});
+
+/* Paneles visuales de Tareas diarias: todos los indicadores se calculan desde tareasGlobal. */
+let taskCalendarCursor = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+function taskDateKey(value){
+  if(!value)return '';
+  const d=new Date(value);if(Number.isNaN(d.getTime()))return '';
+  return d.toLocaleDateString('sv-SE',{timeZone:'America/Santiago'});
+}
+function taskDateAtNoon(y,m,d){return new Date(y,m,d,12,0,0);}
+function taskIsRecurring(t){return !!t.recurrencia && !['NINGUNA','',null].includes(t.recurrencia);}
+function taskFormatShortDate(value){
+  if(!value)return 'Sin fecha';
+  const d=new Date(value);if(Number.isNaN(d.getTime()))return 'Sin fecha';
+  return d.toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/Santiago'});
+}
+function taskStatusColor(status){
+  if(status==='APROBADA'||status==='COMPLETADA_POR_VALIDAR')return 'done';
+  if(status==='EN_PROCESO')return 'progress';
+  if(status==='VENCIDA')return 'overdue';
+  return 'pending';
+}
+function renderTaskReferencePanels(){
+  const tasks=Array.isArray(tareasGlobal)?tareasGlobal:[];
+  const today=taskDateKey(new Date());
+  const dueToday=tasks.filter(t=>taskDateKey(t.fecha_limite)===today);
+  const doneToday=dueToday.filter(t=>t.estado_calculado==='APROBADA');
+  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=String(value);};
+  set('task-date-weekday',new Date().toLocaleDateString('es-CL',{weekday:'long',timeZone:'America/Santiago'}).replace(/^./,x=>x.toUpperCase()));
+  set('task-date-full',new Date().toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric',timeZone:'America/Santiago'}));
+  set('task-kpi-today',dueToday.length);
+  set('task-kpi-completed',doneToday.length);
+  set('task-kpi-completed-rate',dueToday.length?Math.round(doneToday.length*100/dueToday.length)+'% de cumplimiento':'Sin tareas con plazo hoy');
+  set('task-kpi-progress',dueToday.filter(t=>t.estado_calculado==='EN_PROCESO').length);
+  set('task-kpi-overdue',tasks.filter(t=>t.estado_calculado==='VENCIDA').length);
+  set('task-kpi-recurring',tasks.filter(taskIsRecurring).length);
+  set('task-kpi-occasional',tasks.filter(t=>!taskIsRecurring(t)).length);
+  renderTaskCalendar(tasks);
+  renderTaskUpcoming(tasks);
+  renderTaskPerformance(tasks);
+}
+function renderTaskCalendar(tasks){
+  const grid=document.getElementById('task-calendar-grid'),label=document.getElementById('task-calendar-month');
+  if(!grid||!label)return;
+  const year=taskCalendarCursor.getFullYear(),month=taskCalendarCursor.getMonth();
+  label.textContent=taskCalendarCursor.toLocaleDateString('es-CL',{month:'long',year:'numeric'}).replace(/^./,x=>x.toUpperCase());
+  const days=['L','M','M','J','V','S','D'];
+  let html=days.map(d=>'<div class="task-calendar-cell weekday">'+d+'</div>').join('');
+  const first=new Date(year,month,1,12),offset=(first.getDay()+6)%7;
+  const count=new Date(year,month+1,0).getDate(),total=Math.ceil((offset+count)/7)*7;
+  const today=taskDateKey(new Date());
+  for(let i=0;i<total;i++){
+    const d=taskDateAtNoon(year,month,1-offset+i),key=taskDateKey(d),dayTasks=tasks.filter(t=>taskDateKey(t.fecha_limite)===key);
+    const inMonth=d.getMonth()===month,classes=['task-calendar-cell'];
+    if(!inMonth)classes.push('outside');if(key===today)classes.push('today');
+    const dots=[...new Set(dayTasks.map(t=>taskStatusColor(t.estado_calculado)))].slice(0,3);
+    html+='<div class="'+classes.join(' ')+'" title="'+dayTasks.length+' tarea(s)">'+d.getDate()+'<span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></div>';
+  }
+  grid.innerHTML=html;
+}
+function renderTaskUpcoming(tasks){
+  const host=document.getElementById('task-upcoming-list');if(!host)return;
+  const now=Date.now();
+  const items=tasks.filter(t=>!['APROBADA','CANCELADA'].includes(t.estado_calculado))
+    .sort((a,b)=>new Date(a.fecha_limite||'2999-12-31')-new Date(b.fecha_limite||'2999-12-31')).slice(0,3);
+  if(!items.length){host.innerHTML='<p class="task-empty-state">No hay tareas próximas pendientes.</p>';return;}
+  host.innerHTML=items.map((t,i)=>{
+    const overdue=t.estado_calculado==='VENCIDA'||(t.fecha_limite&&new Date(t.fecha_limite).getTime()<now&&!['APROBADA','CANCELADA'].includes(t.estado_calculado));
+    const badge=overdue?'Vencida':t.fecha_limite&&taskDateKey(t.fecha_limite)===taskDateKey(new Date())?'Hoy':taskFormatShortDate(t.fecha_limite);
+    const icon=i===0?'calendar-check':i===1?'clipboard-list':'chart-no-axes-column-increasing';
+    return '<div class="task-upcoming-item"><span class="task-upcoming-icon"><i data-lucide="'+icon+'"></i></span><div class="task-upcoming-copy"><b title="'+escaparHTML(t.titulo||'Tarea')+'">'+escaparHTML(t.titulo||'Tarea')+'</b><small>'+taskFormatShortDate(t.fecha_limite)+'</small></div><span class="task-upcoming-state '+(overdue?'overdue':'')+'">'+badge+'</span></div>';
+  }).join('');
+  if(window.lucide&&typeof window.lucide.createIcons==='function')window.lucide.createIcons();
+}
+function renderTaskPerformance(tasks){
+  const days=Number(document.getElementById('task-performance-period')?.value||7);
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-days);cutoff.setHours(0,0,0,0);
+  const period=tasks.filter(t=>{const d=new Date(t.created_at||t.fecha_limite);return !Number.isNaN(d.getTime())&&d>=cutoff&&t.estado_calculado!=='CANCELADA';});
+  const approved=period.filter(t=>t.estado_calculado==='APROBADA').length;
+  const overdue=period.filter(t=>t.estado_calculado==='VENCIDA').length;
+  const host=document.getElementById('task-performance-metrics');
+  if(host)host.innerHTML='<div class="task-performance-metric"><small>Cumplimiento</small><b>'+(period.length?Math.round(approved*100/period.length):0)+'%</b><em>Sobre tareas medibles</em></div><div class="task-performance-metric"><small>Completadas</small><b>'+approved+'</b><em>Estado aprobado</em></div><div class="task-performance-metric"><small>Vencidas</small><b>'+overdue+'</b><em>Requieren seguimiento</em></div>';
+  const chart=document.getElementById('task-weekly-chart');
+  if(chart){
+    const daysLabels=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'],base=new Date();base.setHours(12,0,0,0);const mondayOffset=(base.getDay()+6)%7;base.setDate(base.getDate()-mondayOffset);
+    const week=daysLabels.map((label,i)=>{const d=new Date(base);d.setDate(base.getDate()+i);const key=taskDateKey(d);const done=tasks.filter(t=>t.estado_calculado==='APROBADA'&&taskDateKey(t.updated_at||t.created_at)===key).length;const late=tasks.filter(t=>t.estado_calculado==='VENCIDA'&&taskDateKey(t.fecha_limite)===key).length;return {label,done,late};});
+    const max=Math.max(1,...week.map(x=>Math.max(x.done,x.late)));
+    chart.innerHTML=week.map(x=>'<div class="task-chart-day"><div class="task-chart-bars"><i class="done" style="height:'+Math.max(2,x.done/max*72)+'px" title="'+x.done+' completadas"></i><i class="overdue" style="height:'+Math.max(2,x.late/max*72)+'px" title="'+x.late+' vencidas"></i></div><small>'+x.label+'</small></div>').join('');
+  }
+  const team=document.getElementById('task-team-performance-list');
+  if(team){
+    const map=new Map();
+    tasks.filter(t=>t.estado_calculado!=='CANCELADA').forEach(t=>{const name=t.responsable?.nombre||t.responsable?.email||'Sin responsable';if(!map.has(name))map.set(name,{name,total:0,done:0});const x=map.get(name);x.total++;if(t.estado_calculado==='APROBADA')x.done++;});
+    const people=[...map.values()].sort((a,b)=>(b.total?b.done/b.total:0)-(a.total?a.done/a.total:0)).slice(0,5);
+    team.innerHTML=people.length?people.map(p=>{const pct=p.total?Math.round(p.done*100/p.total):0;return '<div class="task-team-person"><span class="task-team-avatar">'+escaparHTML((p.name||'?').trim().charAt(0).toUpperCase())+'</span><div><b title="'+escaparHTML(p.name)+'">'+escaparHTML(p.name)+'</b><div class="task-team-bar"><i style="width:'+pct+'%"></i></div></div><span class="task-team-percent">'+pct+'%</span></div>';}).join(''):'<p class="task-empty-state">Sin tareas asignadas para comparar.</p>';
+  }
+}
+document.addEventListener('DOMContentLoaded',function(){
+  const prev=document.getElementById('task-calendar-prev'),next=document.getElementById('task-calendar-next'),today=document.getElementById('task-calendar-today'),period=document.getElementById('task-performance-period');
+  prev?.addEventListener('click',()=>{taskCalendarCursor=new Date(taskCalendarCursor.getFullYear(),taskCalendarCursor.getMonth()-1,1);renderTaskCalendar(Array.isArray(tareasGlobal)?tareasGlobal:[]);});
+  next?.addEventListener('click',()=>{taskCalendarCursor=new Date(taskCalendarCursor.getFullYear(),taskCalendarCursor.getMonth()+1,1);renderTaskCalendar(Array.isArray(tareasGlobal)?tareasGlobal:[]);});
+  today?.addEventListener('click',()=>{taskCalendarCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1);renderTaskCalendar(Array.isArray(tareasGlobal)?tareasGlobal:[]);});
+  period?.addEventListener('change',()=>renderTaskPerformance(Array.isArray(tareasGlobal)?tareasGlobal:[]));
 });
