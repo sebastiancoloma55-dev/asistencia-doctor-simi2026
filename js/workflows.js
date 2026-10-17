@@ -665,15 +665,22 @@
         async function guardarTarea(event){
             event.preventDefault();
             if(!puedeAsignarTareasActual())return mostrarToast('No tienes autorización para asignar tareas.','warning');
-            const responsable=document.getElementById('tarea-responsable').value;
+            const selector=document.getElementById('tarea-responsable');
+            const responsables=[...selector.selectedOptions].map(o=>Number(o.value)).filter(Number.isFinite);
             const vencimiento=document.getElementById('tarea-vencimiento').value;
-            if(!responsable)return mostrarToast('Selecciona un responsable para esta tarea.','warning');
+            if(!responsables.length)return mostrarToast('Selecciona al menos un responsable. Puedes elegir varios con Ctrl o ⌘.','warning');
             if(!vencimiento || Number.isNaN(new Date(vencimiento).getTime()))return mostrarToast('Indica una fecha límite válida.','warning');
+            const titulo=document.getElementById('tarea-titulo').value.trim(),descripcion=document.getElementById('tarea-descripcion').value.trim();
+            if(!titulo||!descripcion)return mostrarToast('Completa el título y la descripción antes de asignar.','warning');
             const {data:{session}}=await _supabase.auth.getSession();
-            const registro={titulo:document.getElementById('tarea-titulo').value.trim(),descripcion:document.getElementById('tarea-descripcion').value.trim(),responsable_rol_id:Number(responsable),revisor_rol_id:document.getElementById('tarea-revisor').value?Number(document.getElementById('tarea-revisor').value):null,prioridad:document.getElementById('tarea-prioridad').value,fecha_limite:new Date(vencimiento).toISOString(),recurrencia:document.getElementById('tarea-recurrencia').value,sucursal_id:document.getElementById('tarea-sucursal').value||null,estado:'PENDIENTE',creado_por_email:session?.user?.email||''};
-            const {data,error}=await _supabase.from('tareas').insert([registro]).select('id').single();if(error)return mostrarToast(error.message,'error');
-            await _supabase.from('tareas_eventos').insert([{tarea_id:data.id,accion:'CREADA',estado_nuevo:'PENDIENTE',usuario_email:session?.user?.email||'',detalle:'Tarea creada desde la aplicación'}]);
-            event.target.reset();document.getElementById('tarea-vencimiento').value='';await prepararModuloTareas();mostrarToast('Tarea creada y asignada.','success');
+            const base={titulo,descripcion,revisor_rol_id:document.getElementById('tarea-revisor').value?Number(document.getElementById('tarea-revisor').value):null,prioridad:document.getElementById('tarea-prioridad').value,fecha_limite:new Date(vencimiento).toISOString(),recurrencia:document.getElementById('tarea-recurrencia').value,sucursal_id:document.getElementById('tarea-sucursal').value||null,estado:'PENDIENTE',creado_por_email:session?.user?.email||''};
+            const registros=responsables.map(id=>({...base,responsable_rol_id:id}));
+            const {data,error}=await _supabase.from('tareas').insert(registros).select('id,responsable_rol_id');
+            if(error)return mostrarToast('No se pudieron asignar las tareas: '+error.message,'error');
+            const eventos=(data||[]).map(t=>({tarea_id:t.id,accion:'CREADA',estado_nuevo:'PENDIENTE',usuario_email:session?.user?.email||'',detalle:'Tarea creada en asignación masiva para '+responsables.length+' responsables'}));
+            if(eventos.length)await _supabase.from('tareas_eventos').insert(eventos);
+            event.target.reset();document.getElementById('tarea-vencimiento').value='';await prepararModuloTareas();
+            mostrarToast('Tarea asignada a '+(data||[]).length+' responsable(s).','success');
         }
         function estadoTareaCalculado(t){if(!['APROBADA','CANCELADA','DEVUELTA'].includes(t.estado)&&new Date(t.fecha_limite)<new Date())return'VENCIDA';return t.estado;}
         async function cargarTareas(){const {data,error}=await _supabase.from('tareas').select('*,responsable:usuarios_roles!tareas_responsable_rol_id_fkey(nombre,email),revisor:usuarios_roles!tareas_revisor_rol_id_fkey(nombre,email),sucursal:sucursales(nombre)').order('fecha_limite',{ascending:true});if(error)return mostrarToast(error.message,'error');tareasGlobal=(data||[]).map(x=>({...x,estado_calculado:estadoTareaCalculado(x)}));renderizarTareas();}
