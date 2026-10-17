@@ -2099,7 +2099,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     <div class="task-kpi task-kpi-overdue"><span class="task-kpi-icon"><i data-lucide="alert-triangle" class="h-5 w-5"></i></span><span class="task-kpi-label">Vencidas</span><b id="tk-vencida">0</b><small>Revisar prioridad</small></div>
                     <div class="task-kpi task-kpi-rate"><span class="task-kpi-icon"><i data-lucide="chart-no-axes-combined" class="h-5 w-5"></i></span><span class="task-kpi-label">Tasa de cierre</span><b id="tk-cumplimiento">0%</b><small>Trabajo completado</small></div>
                     <div class="task-kpi task-kpi-time"><span class="task-kpi-icon"><i data-lucide="clock-3" class="h-5 w-5"></i></span><span class="task-kpi-label">Cierre a tiempo</span><b id="tk-tiempo">0%</b><small>Cumplimiento del plazo</small></div>
-                
+                </div>
 <div class="task-reference-kpis">
 <article class="task-reference-kpi"><span class="task-ref-icon blue"><i data-lucide="list-todo"></i></span><div><small>Total tareas hoy</small><b id="task-kpi-today">0</b><em>Tareas con plazo de hoy</em></div></article>
 <article class="task-reference-kpi"><span class="task-ref-icon green"><i data-lucide="check-circle-2"></i></span><div><small>Completadas</small><b id="task-kpi-completed">0</b><em id="task-kpi-completed-rate">Aprobadas</em></div></article>
@@ -3806,35 +3806,28 @@ section[id^="view-"][hidden]{
 
 
 
-html, body { width:100%; max-width:100%; min-height:0; }
-body:has(#sidebar) { height:100dvh!important; min-height:0!important; overflow:hidden!important; }
-body:has(#sidebar) > div.flex.h-screen.overflow-hidden:has(> #sidebar) {
-  position:fixed!important; inset:0!important;
-  width:100vw!important; height:100dvh!important; min-height:0!important;
-  overflow:hidden!important; margin:0!important;
+/* TAREAS DIARIAS — distribución estable dentro del contenedor original de la aplicación. */
+#view-tareas { box-sizing:border-box; width:100%; max-width:100%; min-width:0; margin:0!important; }
+#view-tareas:not(.hidden):not([hidden]) { display:block!important; position:relative!important; align-self:stretch!important; height:auto!important; min-height:0!important; padding:18px 24px 28px!important; overflow:visible!important; }
+#view-tareas.hidden, #view-tareas[hidden] { display:none!important; }
+#view-tareas .task-page-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; margin:0 0 18px!important; }
+#view-tareas .task-kpi-source { display:none!important; }
+#view-tareas .task-reference-kpis { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; width:100%; margin:0 0 14px; }
+#view-tareas .task-workspace-tabs { width:100%; min-width:0; overflow-x:auto; }
+#view-tareas .task-main-columns { display:grid; grid-template-columns:minmax(0,1fr) 350px; gap:16px; align-items:start; width:100%; }
+#view-tareas .task-primary-column, #view-tareas .task-side-column { min-width:0; }
+#view-tareas .task-bottom-dashboard { display:grid; grid-template-columns:1.35fr 1fr .9fr; gap:14px; width:100%; margin-top:14px; }
+@media(max-width:1250px) {
+ #view-tareas .task-reference-kpis { grid-template-columns:repeat(3,minmax(0,1fr)); }
+ #view-tareas .task-main-columns { grid-template-columns:minmax(0,1fr) 300px; }
+ #view-tareas .task-bottom-dashboard { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
-body:has(#sidebar) > div.flex.h-screen.overflow-hidden:has(> #sidebar) > #sidebar {
-  height:100dvh!important; min-height:0!important; flex:0 0 17.25rem;
-  overflow-x:hidden!important; overflow-y:auto!important;
+@media(max-width:900px) {
+ #view-tareas:not(.hidden):not([hidden]) { padding:16px!important; }
+ #view-tareas .task-page-heading { align-items:flex-start; flex-direction:column; }
+ #view-tareas .task-main-columns, #view-tareas .task-bottom-dashboard { grid-template-columns:minmax(0,1fr); }
+ #view-tareas .task-reference-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
-body:has(#sidebar) > div.flex.h-screen.overflow-hidden:has(> #sidebar) > main {
-  height:100dvh!important; min-height:0!important; max-height:100dvh!important;
-  flex:1 1 0%!important; overflow-x:hidden!important; overflow-y:auto!important;
-  align-self:stretch!important; margin:0!important; padding-top:0!important;
-}
-body:has(#sidebar) > div.flex.h-screen.overflow-hidden:has(> #sidebar) > main > header,
-body:has(#sidebar) > div.flex.h-screen.overflow-hidden:has(> #sidebar) > main > #quick-module-bar {
-  flex-shrink:0!important;
-}
-#view-tareas { margin-block-start:0!important; align-self:stretch!important; }
-
-
-/* TAREAS DIARIAS: el módulo activo debe iniciar inmediatamente bajo la barra superior. */
-#view-tareas:not(.hidden) { display:block!important; position:relative!important; margin:0!important; padding-top:16px!important; min-height:0!important; }
-#view-tareas.hidden { display:none!important; }
-#view-tareas > .task-page-heading { margin-top:0!important; }
-#view-tareas .task-kpi-grid { margin-top:16px!important; }
-
 </style>
 
 </body>
