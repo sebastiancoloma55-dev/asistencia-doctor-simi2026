@@ -624,6 +624,33 @@
                 'success'
             );
         }
+        function renderTaskAssigneePicker(){
+            const select=document.getElementById('tarea-responsable');
+            if(!select)return;
+            select.removeAttribute('required');select.style.display='none';
+            let picker=document.getElementById('task-assignee-picker');
+            if(!picker){
+                picker=document.createElement('div');picker.id='task-assignee-picker';picker.className='task-assignee-picker';
+                picker.innerHTML='<div class="task-assignee-toolbar"><input class="task-assignee-search" id="task-assignee-search" type="search" placeholder="Buscar por nombre o correo…" aria-label="Buscar responsables"><button type="button" class="task-assignee-action" id="task-assignee-all">Seleccionar visibles</button><button type="button" class="task-assignee-action" id="task-assignee-clear">Limpiar</button><span class="task-assignee-count" id="task-assignee-count">0 seleccionados</span></div><div class="task-assignee-list" id="task-assignee-list"></div><p class="task-assignee-help">Selecciona con un clic; puedes asignar la misma tarea a varias personas. No necesitas mantener Ctrl ni ⌘.</p>';
+                select.insertAdjacentElement('afterend',picker);
+                picker.querySelector('#task-assignee-search').addEventListener('input',filterTaskAssignees);
+                picker.querySelector('#task-assignee-all').addEventListener('click',()=>{const q=picker.querySelector('#task-assignee-search').value.trim().toLowerCase();[...select.options].forEach(o=>{if(!q||(o.textContent||'').toLowerCase().includes(q))o.selected=true;});renderTaskAssigneeOptions();});
+                picker.querySelector('#task-assignee-clear').addEventListener('click',()=>{[...select.options].forEach(o=>o.selected=false);renderTaskAssigneeOptions();});
+            }
+            renderTaskAssigneeOptions();
+        }
+        function filterTaskAssignees(){
+            const picker=document.getElementById('task-assignee-picker');if(!picker)return;
+            const q=(picker.querySelector('#task-assignee-search').value||'').trim().toLowerCase();
+            picker.querySelectorAll('.task-assignee-option').forEach(card=>{card.hidden=!card.dataset.search.includes(q);});
+        }
+        function renderTaskAssigneeOptions(){
+            const select=document.getElementById('tarea-responsable'),picker=document.getElementById('task-assignee-picker');if(!select||!picker)return;
+            const list=picker.querySelector('#task-assignee-list');
+            list.innerHTML=[...select.options].map((o,i)=>{const parts=(o.textContent||'').split(' · '),name=parts[0],email=parts.slice(1).join(' · '),search=(o.textContent||'').toLowerCase();return '<label class="task-assignee-option '+(o.selected?'is-selected':'')+'" data-search="'+escaparHTML(search)+'"><input type="checkbox" data-index="'+i+'" '+(o.selected?'checked':'')+'><span><span class="task-assignee-name">'+escaparHTML(name)+'</span><span class="task-assignee-email">'+escaparHTML(email)+'</span></span></label>';}).join('');
+            list.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.addEventListener('change',()=>{const option=select.options[Number(cb.dataset.index)];if(option)option.selected=cb.checked;renderTaskAssigneeOptions();filterTaskAssignees();}));
+            const count=[...select.options].filter(o=>o.selected).length;picker.querySelector('#task-assignee-count').textContent=count+' seleccionado'+(count===1?'':'s');filterTaskAssignees();
+        }
         async function prepararModuloTareas(){
             const [usuarios,sucursales] = await Promise.all([
                 _supabase.rpc('usuarios_tareas_asignables'),
@@ -638,6 +665,7 @@
             document.getElementById('tarea-filtro-responsable').innerHTML=opcionesKpi;
             document.getElementById('tarea-kpi-filtro-usuario').innerHTML=opcionesKpi;
             document.getElementById('tarea-responsable').innerHTML=responsables.map(opt).join('');
+            renderTaskAssigneePicker();
             document.getElementById('tarea-revisor').innerHTML='<option value="">Sin revisor</option>'+revisores.map(opt).join('');
             document.getElementById('tarea-sucursal').innerHTML='<option value="">Todas / No aplica</option>'+(sucursales||[]).map(x=>`<option value="${x.id}">${escaparHTML(x.nombre)}</option>`).join('');
             const kpiBranch=document.getElementById('tarea-kpi-sucursal');
