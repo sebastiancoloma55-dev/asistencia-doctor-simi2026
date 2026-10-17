@@ -3805,8 +3805,7 @@ section[id^="view-"][hidden]{
 #view-tareas .task-page-heading{margin-top:0!important}
 
 
-/* FIX DEFINITIVO DE CONTENEDOR: el portal no debe desplazarse como documento.
-   El menú y el contenido comparten el alto de la ventana; solo main desplaza su contenido. */
+
 html, body { width:100%; max-width:100%; min-height:0; }
 body:has(#sidebar) { height:100dvh!important; min-height:0!important; overflow:hidden!important; }
 body:has(#sidebar) > div.flex.h-screen.overflow-hidden:has(> #sidebar) {
@@ -3828,6 +3827,13 @@ body:has(#sidebar) > div.flex.h-screen.overflow-hidden:has(> #sidebar) > main > 
   flex-shrink:0!important;
 }
 #view-tareas { margin-block-start:0!important; align-self:stretch!important; }
+
+
+/* TAREAS DIARIAS: el módulo activo debe iniciar inmediatamente bajo la barra superior. */
+#view-tareas:not(.hidden) { display:block!important; position:relative!important; margin:0!important; padding-top:16px!important; min-height:0!important; }
+#view-tareas.hidden { display:none!important; }
+#view-tareas > .task-page-heading { margin-top:0!important; }
+#view-tareas .task-kpi-grid { margin-top:16px!important; }
 
 </style>
 
