@@ -3951,7 +3951,7 @@ html, body { width:100%; height:100%; min-height:0; margin:0!important; overflow
     var title=document.getElementById('header-title'),button=document.getElementById('btn-tareas');
     if(title)observer.observe(title,{childList:true,subtree:true,characterData:true});
     if(button)observer.observe(button,{attributes:true,attributeFilter:['class','aria-current']});
-    document.querySelectorAll('section[id^="view-"]').forEach(function(v){observer.observe(v,{attributes:true,attributeFilter:['class','hidden','style']});});
+    document.querySelectorAll('section[id^="view-"]').forEach(function(v){observer.observe(v,{attributes:true,attributeFilter:['class','hidden']});});
   }
   document.addEventListener('DOMContentLoaded',observe);
   schedule();
