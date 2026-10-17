@@ -3848,65 +3848,53 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto { scroll-behavior:auto; }
  #view-tareas .task-main-columns, #view-tareas .task-bottom-dashboard { grid-template-columns:minmax(0,1fr); }
  #view-tareas .task-reference-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
+
+/* FIX DEFINITIVO: el portal no debe desplazar el layout completo; solo el panel principal. */
+html, body { width:100%; height:100%; min-height:0; margin:0!important; overflow:hidden!important; }
+body > .flex.h-screen.overflow-hidden { height:100vh!important; height:100dvh!important; min-height:0!important; max-height:100vh!important; overflow:hidden!important; align-items:stretch!important; }
+body > .flex.h-screen.overflow-hidden > #sidebar { height:100%!important; min-height:0!important; overflow:hidden!important; }
+body > .flex.h-screen.overflow-hidden > #sidebar nav { min-height:0!important; overflow-y:auto!important; overscroll-behavior:contain; }
+body > .flex.h-screen.overflow-hidden > main.flex.min-w-0.flex-1.flex-col.overflow-y-auto { height:100%!important; min-height:0!important; max-height:100%!important; flex:1 1 0%!important; overflow-y:auto!important; overflow-x:hidden!important; margin:0!important; padding-top:0!important; scroll-padding-top:0!important; }
+#view-tareas { margin-block-start:0!important; }
+#view-tareas:not(.hidden):not([hidden]) { position:relative!important; inset:auto!important; transform:none!important; }
+
 </style>
 
 
-<script id="task-module-scroll-reset">
-/* Al abrir otro módulo, reinicia el scroll del contenedor principal.
-   Evita que Tareas diarias aparezca pegado al fondo con un gran espacio vacío arriba. */
+
+
+
+
+
+
+<script id="workspace-scroll-stabilizer-final">
 (function(){
-  if (window.__taskModuleScrollResetInstalled) return;
-  window.__taskModuleScrollResetInstalled = true;
-  document.addEventListener('click', function(event){
-    const trigger = event.target && event.target.closest
-      ? event.target.closest('[onclick*="cambiarModulo("], [data-module-link], [data-module]')
-      : null;
-    if (!trigger) return;
-    const changesModule = (trigger.getAttribute('onclick') || '').includes('cambiarModulo(')
-      || trigger.hasAttribute('data-module-link')
-      || trigger.hasAttribute('data-module');
-    if (!changesModule) return;
-    requestAnimationFrame(function(){
-      const main = document.querySelector('main.flex.min-w-0.flex-1.flex-col.overflow-y-auto') || document.querySelector('main');
-      if (main) main.scrollTop = 0;
-      window.scrollTo(0, 0);
-    });
-  }, true);
-})();
-</script>
-
-
-<script>
-<!-- FIX FINAL: restablecer scroll después de completar navegación entre módulos -->
-(function () {
-  if (window.__finalModuleScrollFixInstalled) return;
-  window.__finalModuleScrollFixInstalled = true;
-  function resetApplicationScroll() {
-    var main = document.querySelector('main.flex.min-w-0.flex-1.flex-col.overflow-y-auto')
-      || (document.querySelector('#sidebar') && document.querySelector('#sidebar').parentElement.querySelector('main'))
-      || document.querySelector('main');
-    if (main) {
-      main.style.overflowAnchor = 'none';
-      main.scrollTop = 0;
-      if (typeof main.scrollTo === 'function') main.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    }
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  if(window.__workspaceScrollStabilizerFinal) return;
+  window.__workspaceScrollStabilizerFinal=true;
+  function reset(){
+    var shell=document.querySelector('body > .flex.h-screen.overflow-hidden');
+    var main=(shell&&shell.querySelector(':scope > main.flex.min-w-0.flex-1.flex-col.overflow-y-auto'))||document.querySelector('main.flex.min-w-0.flex-1.flex-col.overflow-y-auto');
+    var sidebar=document.getElementById('sidebar');
+    var nav=sidebar&&sidebar.querySelector('nav');
+    if(document.documentElement) document.documentElement.scrollTop=0;
+    if(document.body) document.body.scrollTop=0;
+    window.scrollTo(0,0);
+    if(main){main.scrollTop=0; if(main.scrollTo)main.scrollTo({top:0,left:0,behavior:'auto'});}
+    if(nav){nav.scrollTop=0;}
   }
-  var priorNavigate = window.cambiarModulo;
-  if (typeof priorNavigate === 'function') {
-    window.cambiarModulo = async function () {
-      var result = await priorNavigate.apply(this, arguments);
-      requestAnimationFrame(function () {
-        resetApplicationScroll();
-        requestAnimationFrame(resetApplicationScroll);
-      });
-      setTimeout(resetApplicationScroll, 180);
-      return result;
-    };
-  }
-  window.addEventListener('pageshow', function () {
-    requestAnimationFrame(resetApplicationScroll);
+  function delayedReset(){reset();requestAnimationFrame(reset);setTimeout(reset,80);setTimeout(reset,250);}
+  document.addEventListener('click',function(e){
+    var t=e.target&&e.target.closest?e.target.closest('[onclick*="cambiarModulo("], [data-module-link], [data-module]'):null;
+    if(t) delayedReset();
+  },true);
+  window.addEventListener('pageshow',delayedReset);
+  window.addEventListener('load',delayedReset);
+  document.addEventListener('DOMContentLoaded',delayedReset);
+  var mo=new MutationObserver(function(records){
+    if(records.some(function(r){return r.type==='attributes'&&(r.attributeName==='class'||r.attributeName==='hidden');})) delayedReset();
   });
+  document.querySelectorAll('section[id^="view-"]').forEach(function(el){mo.observe(el,{attributes:true,attributeFilter:['class','hidden']});});
+  delayedReset();
 })();
 </script>
 
