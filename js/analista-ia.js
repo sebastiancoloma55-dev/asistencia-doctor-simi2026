@@ -2,7 +2,7 @@
 (function(){
   'use strict';
   const $ = id => document.getElementById(id);
-  let rows = [], filtered = [], headers = [], fileName = '', lastResult = '';
+  let rows = [], filtered = [], headers = [], fileName = '', lastResult = '', pdfText = '';
   const safe = value => String(value == null ? '' : value).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const status = (msg, kind='info') => { const el=$('aia-status'); if(el){el.textContent=msg;el.dataset.kind=kind;} };
   const dateValue = v => { if(v instanceof Date && !isNaN(v)) return v; const s=String(v||'').trim(); if(!s)return null; let d=new Date(s); if(!isNaN(d))return d; const m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/); if(m){d=new Date(+m[3],+m[2]-1,+m[1]);if(!isNaN(d))return d;} return null; };
@@ -37,9 +37,24 @@
       preview.innerHTML='<div class="overflow-x-auto"><table class="w-full min-w-[700px] text-left text-xs"><thead><tr>'+headers.map(h=>'<th class="border-b p-2 font-bold text-slate-500">'+safe(h)+'</th>').join('')+'</tr></thead><tbody>'+sample.map(r=>'<tr>'+headers.map(h=>'<td class="border-b p-2">'+safe(r[h])+'</td>').join('')+'</tr>').join('')+'</tbody></table></div><p class="px-3 py-2 text-xs text-slate-500">Vista previa de '+sample.length+' filas · los filtros se combinan.</p>';
     }
   }
+  async function extractPdfText(file){
+    if(!window.pdfjsLib)throw new Error('No se cargó el lector PDF. Recarga la vista previa.');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf=await window.pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+    const pages=[];
+    for(let i=1;i<=pdf.numPages;i++){
+      const page=await pdf.getPage(i);
+      const content=await page.getTextContent();
+      pages.push(content.items.map(item=>item.str||'').join(' '));
+    }
+    const text=pages.join('\n\n').trim();
+    if(!text)throw new Error('El PDF no contiene texto seleccionable. Los PDF escaneados requieren OCR antes del análisis.');
+    if(text.length>1900000)throw new Error('El texto del PDF supera el límite permitido. Usa un archivo más pequeño.');
+    return text;
+  }
   async function loadFile(){
     const file=$('aia-file')?.files?.[0]; if(!file)return;
-    fileName=file.name; rows=[];filtered=[];headers=[];lastResult='';
+    fileName=file.name; rows=[];filtered=[];headers=[];lastResult='';pdfText='';
     $('aia-output').textContent='Leyendo archivo y preparando vista previa…';
     try{
       if(/\.(xlsx|xls|csv)$/i.test(file.name)){
@@ -51,9 +66,9 @@
         headers=Object.keys(rows[0]);
       } else if(/\.pdf$/i.test(file.name)){
         if(file.size>5*1024*1024)throw new Error('El PDF supera 5 MB. Usa un archivo menor.');
-        status('PDF seleccionado. Se enviará solo después de autorizar el análisis.','info');
+        pdfText=await extractPdfText(file);\n        status('PDF leído localmente. Solo se enviará el texto extraído después de autorizar el análisis.','info');
         $('aia-filter-count').textContent='PDF · '+(file.size/1024).toFixed(0)+' KB';
-        $('aia-preview').innerHTML='<div class="p-5 text-sm text-slate-600">El PDF se procesará mediante IA. Los filtros por filas están disponibles para Excel y CSV.</div>';
+        $('aia-preview').innerHTML='<div class="p-5 text-sm text-slate-600">PDF leído en este navegador. El texto se enviará al servidor Ollama solo después de autorizarlo. Los filtros por filas están disponibles para Excel y CSV.</div>';
         $('aia-output').textContent='Escribe una pregunta y autoriza el envío para comenzar.';
         return;
       } else throw new Error('Formato no compatible. Usa Excel (.xlsx/.xls), CSV o PDF.');
@@ -89,15 +104,15 @@
         const buf=await file.arrayBuffer();let binary='';const bytes=new Uint8Array(buf);for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
         payload.base64=btoa(binary);
       }
-      status('Analizando con Gemini…');
+      status('Analizando con Ollama…');
       const {data}=await _supabase.auth.getSession();const token=data?.session?.access_token;
       if(!token)throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.');
-      const response=await fetch('/api/gemini',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(payload)});
+      if(/\\.pdf$/i.test(file.name))payload.textData=pdfText||await extractPdfText(file);\n      const response=await fetch('/api/ollama',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(payload)});
       const body=await response.json().catch(()=>({error:'Respuesta no válida del servidor.'}));
       if(!response.ok)throw new Error(body.error||'Error '+response.status);
       lastResult=String(body.text||'').trim();if(!lastResult)throw new Error('La IA devolvió un resultado vacío.');
       $('aia-output').textContent=lastResult;status('Análisis completado · '+new Date().toLocaleString('es-CL'),'success');
-      if(typeof window.registrarAuditoria==='function')try{await window.registrarAuditoria('analista_ia','ANALISIS_GEMINI',file.name+' · '+prompt.slice(0,150));}catch(e){console.warn('No se pudo registrar auditoría del análisis',e);}
+      if(typeof window.registrarAuditoria==='function')try{await window.registrarAuditoria('analista_ia','ANALISIS_OLLAMA',file.name+' · '+prompt.slice(0,150));}catch(e){console.warn('No se pudo registrar auditoría del análisis',e);}
     }catch(e){$('aia-output').textContent='No se pudo completar el análisis.\n\n'+e.message;status(e.message,'error');}
     finally{btn.disabled=false;btn.classList.remove('opacity-60');}
   }
@@ -120,6 +135,6 @@
     $('aia-run')?.addEventListener('click',analyze);
     $('aia-export-txt')?.addEventListener('click',downloadText);
     $('aia-export-pdf')?.addEventListener('click',downloadPdf);
-    $('aia-clear')?.addEventListener('click',()=>{ $('aia-file').value='';$('aia-prompt').value='';$('aia-consent').checked=false;rows=[];filtered=[];headers=[];lastResult='';$('aia-output').textContent='Selecciona un archivo y formula una pregunta.';$('aia-preview').innerHTML='<div class="p-6 text-center text-slate-500">Carga un archivo para revisar sus datos.</div>';$('aia-filter-count').textContent='Sin archivo cargado';status('Listo para un nuevo análisis.');});
+    $('aia-clear')?.addEventListener('click',()=>{ $('aia-file').value='';$('aia-prompt').value='';pdfText='';$('aia-consent').checked=false;rows=[];filtered=[];headers=[];lastResult='';$('aia-output').textContent='Selecciona un archivo y formula una pregunta.';$('aia-preview').innerHTML='<div class="p-6 text-center text-slate-500">Carga un archivo para revisar sus datos.</div>';$('aia-filter-count').textContent='Sin archivo cargado';status('Listo para un nuevo análisis.');});
   });
 })();
