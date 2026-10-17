@@ -1983,7 +1983,7 @@ button, input, select, textarea {
 
 
 /* Tareas diarias — reorganización ejecutiva y adaptable */
-#view-tareas.task-center{--task-ink:#0b2f5b;--task-muted:#5b789f;--task-line:#dce8f7;--task-blue:#0878ef;display:block;max-width:100%;min-width:0;overflow-x:hidden;padding:clamp(14px,1.6vw,25px)!important;background:linear-gradient(135deg,#f4f9ff 0%,#eef6ff 60%,#f8fbff 100%)}
+#view-tareas.task-center{--task-ink:#0b2f5b;--task-muted:#5b789f;--task-line:#dce8f7;--task-blue:#0878ef;max-width:100%;min-width:0;overflow-x:hidden;padding:clamp(14px,1.6vw,25px)!important;background:linear-gradient(135deg,#f4f9ff 0%,#eef6ff 60%,#f8fbff 100%)}
 #view-tareas .task-page-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 18px}
 #view-tareas .task-page-title{min-width:0;flex:1}
 #view-tareas .task-page-breadcrumb{display:flex;align-items:center;gap:6px;color:#6682a5;font-size:10px;font-weight:800;letter-spacing:.08em}
