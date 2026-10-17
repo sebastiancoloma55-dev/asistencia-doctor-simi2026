@@ -563,3 +563,205 @@ button, input, select, textarea {
   .dashboard-approved-visual .dashboard-hero-quote { top: 2% !important; right: 2% !important; max-width: 55% !important; font-size: 10px !important; }
   .dashboard-approved-visual .dashboard-hero-role { top: auto !important; bottom: 2% !important; right: 0 !important; }
 }
+
+
+/* Sistema visual compartido para módulos internos — solo presentación */
+:root {
+  --simi-surface: #ffffff;
+  --simi-surface-soft: #f5f9fd;
+  --simi-text: #17324d;
+  --simi-muted: #667f96;
+  --simi-border: #dce7f1;
+  --simi-focus: rgba(25,168,165,.22);
+  --simi-card-shadow: 0 8px 24px rgba(8,47,87,.055);
+}
+#view-espacio, #view-colaboradores, #view-sucursales, #view-asistencia,
+#view-licencias, #view-vacaciones, #view-papeletas, #view-correos,
+#view-envio_licencias, #view-amonestaciones, #view-reportes, #view-usuarios,
+#view-auditoria, #view-ayuda, #view-configcorreos, #view-mapas, #view-tareas,
+#view-operaciones, #view-calidad, #view-notificaciones, #view-integraciones,
+#view-chat, #view-traslados, #view-generic {
+  color: var(--simi-text);
+}
+#view-espacio h1, #view-espacio h2, #view-espacio h3,
+#view-colaboradores h1, #view-colaboradores h2, #view-colaboradores h3,
+#view-sucursales h1, #view-sucursales h2, #view-sucursales h3,
+#view-asistencia h1, #view-asistencia h2, #view-asistencia h3,
+#view-licencias h1, #view-licencias h2, #view-licencias h3,
+#view-vacaciones h1, #view-vacaciones h2, #view-vacaciones h3,
+#view-papeletas h1, #view-papeletas h2, #view-papeletas h3,
+#view-correos h1, #view-correos h2, #view-correos h3,
+#view-envio_licencias h1, #view-envio_licencias h2, #view-envio_licencias h3,
+#view-amonestaciones h1, #view-amonestaciones h2, #view-amonestaciones h3,
+#view-reportes h1, #view-reportes h2, #view-reportes h3,
+#view-usuarios h1, #view-usuarios h2, #view-usuarios h3,
+#view-auditoria h1, #view-auditoria h2, #view-auditoria h3,
+#view-ayuda h1, #view-ayuda h2, #view-ayuda h3,
+#view-configcorreos h1, #view-configcorreos h2, #view-configcorreos h3,
+#view-mapas h1, #view-mapas h2, #view-mapas h3,
+#view-tareas h1, #view-tareas h2, #view-tareas h3,
+#view-operaciones h1, #view-operaciones h2, #view-operaciones h3,
+#view-calidad h1, #view-calidad h2, #view-calidad h3,
+#view-notificaciones h1, #view-notificaciones h2, #view-notificaciones h3,
+#view-integraciones h1, #view-integraciones h2, #view-integraciones h3,
+#view-chat h1, #view-chat h2, #view-chat h3,
+#view-traslados h1, #view-traslados h2, #view-traslados h3,
+#view-generic h1, #view-generic h2, #view-generic h3 {
+  letter-spacing: -.018em;
+}
+#view-espacio .ui-card, #view-colaboradores .ui-card, #view-sucursales .ui-card,
+#view-asistencia .ui-card, #view-licencias .ui-card, #view-vacaciones .ui-card,
+#view-papeletas .ui-card, #view-correos .ui-card, #view-envio_licencias .ui-card,
+#view-amonestaciones .ui-card, #view-reportes .ui-card, #view-usuarios .ui-card,
+#view-auditoria .ui-card, #view-ayuda .ui-card, #view-configcorreos .ui-card,
+#view-mapas .ui-card, #view-tareas .ui-card, #view-operaciones .ui-card,
+#view-calidad .ui-card, #view-notificaciones .ui-card, #view-integraciones .ui-card,
+#view-chat .ui-card, #view-traslados .ui-card, #view-generic .ui-card {
+  border: 1px solid var(--simi-border);
+  border-radius: 15px;
+  box-shadow: var(--simi-card-shadow);
+}
+#view-espacio .ui-card:hover, #view-colaboradores .ui-card:hover,
+#view-sucursales .ui-card:hover, #view-asistencia .ui-card:hover,
+#view-licencias .ui-card:hover, #view-vacaciones .ui-card:hover,
+#view-papeletas .ui-card:hover, #view-correos .ui-card:hover,
+#view-envio_licencias .ui-card:hover, #view-amonestaciones .ui-card:hover,
+#view-reportes .ui-card:hover, #view-usuarios .ui-card:hover,
+#view-auditoria .ui-card:hover, #view-ayuda .ui-card:hover,
+#view-configcorreos .ui-card:hover, #view-mapas .ui-card:hover,
+#view-tareas .ui-card:hover, #view-operaciones .ui-card:hover,
+#view-calidad .ui-card:hover, #view-notificaciones .ui-card:hover,
+#view-integraciones .ui-card:hover, #view-chat .ui-card:hover,
+#view-traslados .ui-card:hover, #view-generic .ui-card:hover {
+  border-color: #bfd6e7;
+  box-shadow: 0 12px 28px rgba(8,47,87,.085);
+}
+#view-espacio input:not([type=checkbox]):not([type=radio]):not([type=range]),
+#view-espacio select, #view-espacio textarea,
+#view-colaboradores input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-colaboradores select, #view-colaboradores textarea,
+#view-sucursales input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-sucursales select, #view-sucursales textarea,
+#view-asistencia input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-asistencia select, #view-asistencia textarea,
+#view-licencias input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-licencias select, #view-licencias textarea,
+#view-vacaciones input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-vacaciones select, #view-vacaciones textarea,
+#view-papeletas input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-papeletas select, #view-papeletas textarea,
+#view-correos input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-correos select, #view-correos textarea,
+#view-envio_licencias input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-envio_licencias select, #view-envio_licencias textarea,
+#view-amonestaciones input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-amonestaciones select, #view-amonestaciones textarea,
+#view-reportes input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-reportes select, #view-reportes textarea,
+#view-usuarios input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-usuarios select, #view-usuarios textarea,
+#view-auditoria input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-auditoria select, #view-auditoria textarea,
+#view-ayuda input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-ayuda select, #view-ayuda textarea,
+#view-configcorreos input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-configcorreos select, #view-configcorreos textarea,
+#view-mapas input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-mapas select, #view-mapas textarea,
+#view-tareas input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-tareas select, #view-tareas textarea,
+#view-operaciones input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-operaciones select, #view-operaciones textarea,
+#view-calidad input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-calidad select, #view-calidad textarea,
+#view-notificaciones input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-notificaciones select, #view-notificaciones textarea,
+#view-integraciones input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-integraciones select, #view-integraciones textarea,
+#view-chat input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-chat select, #view-chat textarea,
+#view-traslados input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-traslados select, #view-traslados textarea,
+#view-generic input:not([type=checkbox]):not([type=radio]):not([type=range]), #view-generic select, #view-generic textarea {
+  border-color: #cfdeea;
+  border-radius: 9px;
+}
+#view-espacio input:focus, #view-espacio select:focus, #view-espacio textarea:focus,
+#view-colaboradores input:focus, #view-colaboradores select:focus, #view-colaboradores textarea:focus,
+#view-sucursales input:focus, #view-sucursales select:focus, #view-sucursales textarea:focus,
+#view-asistencia input:focus, #view-asistencia select:focus, #view-asistencia textarea:focus,
+#view-licencias input:focus, #view-licencias select:focus, #view-licencias textarea:focus,
+#view-vacaciones input:focus, #view-vacaciones select:focus, #view-vacaciones textarea:focus,
+#view-papeletas input:focus, #view-papeletas select:focus, #view-papeletas textarea:focus,
+#view-correos input:focus, #view-correos select:focus, #view-correos textarea:focus,
+#view-envio_licencias input:focus, #view-envio_licencias select:focus, #view-envio_licencias textarea:focus,
+#view-amonestaciones input:focus, #view-amonestaciones select:focus, #view-amonestaciones textarea:focus,
+#view-reportes input:focus, #view-reportes select:focus, #view-reportes textarea:focus,
+#view-usuarios input:focus, #view-usuarios select:focus, #view-usuarios textarea:focus,
+#view-auditoria input:focus, #view-auditoria select:focus, #view-auditoria textarea:focus,
+#view-ayuda input:focus, #view-ayuda select:focus, #view-ayuda textarea:focus,
+#view-configcorreos input:focus, #view-configcorreos select:focus, #view-configcorreos textarea:focus,
+#view-mapas input:focus, #view-mapas select:focus, #view-mapas textarea:focus,
+#view-tareas input:focus, #view-tareas select:focus, #view-tareas textarea:focus,
+#view-operaciones input:focus, #view-operaciones select:focus, #view-operaciones textarea:focus,
+#view-calidad input:focus, #view-calidad select:focus, #view-calidad textarea:focus,
+#view-notificaciones input:focus, #view-notificaciones select:focus, #view-notificaciones textarea:focus,
+#view-integraciones input:focus, #view-integraciones select:focus, #view-integraciones textarea:focus,
+#view-chat input:focus, #view-chat select:focus, #view-chat textarea:focus,
+#view-traslados input:focus, #view-traslados select:focus, #view-traslados textarea:focus,
+#view-generic input:focus, #view-generic select:focus, #view-generic textarea:focus {
+  outline: none;
+  border-color: var(--simi-teal);
+  box-shadow: 0 0 0 3px var(--simi-focus);
+}
+#view-espacio table thead, #view-colaboradores table thead, #view-sucursales table thead,
+#view-asistencia table thead, #view-licencias table thead, #view-vacaciones table thead,
+#view-papeletas table thead, #view-correos table thead, #view-envio_licencias table thead,
+#view-amonestaciones table thead, #view-reportes table thead, #view-usuarios table thead,
+#view-auditoria table thead, #view-ayuda table thead, #view-configcorreos table thead,
+#view-mapas table thead, #view-tareas table thead, #view-operaciones table thead,
+#view-calidad table thead, #view-notificaciones table thead, #view-integraciones table thead,
+#view-chat table thead, #view-traslados table thead, #view-generic table thead {
+  background: #f2f7fb;
+  color: #385872;
+}
+#view-espacio table th, #view-espacio table td, #view-colaboradores table th, #view-colaboradores table td,
+#view-sucursales table th, #view-sucursales table td, #view-asistencia table th, #view-asistencia table td,
+#view-licencias table th, #view-licencias table td, #view-vacaciones table th, #view-vacaciones table td,
+#view-papeletas table th, #view-papeletas table td, #view-correos table th, #view-correos table td,
+#view-envio_licencias table th, #view-envio_licencias table td, #view-amonestaciones table th, #view-amonestaciones table td,
+#view-reportes table th, #view-reportes table td, #view-usuarios table th, #view-usuarios table td,
+#view-auditoria table th, #view-auditoria table td, #view-ayuda table th, #view-ayuda table td,
+#view-configcorreos table th, #view-configcorreos table td, #view-mapas table th, #view-mapas table td,
+#view-tareas table th, #view-tareas table td, #view-operaciones table th, #view-operaciones table td,
+#view-calidad table th, #view-calidad table td, #view-notificaciones table th, #view-notificaciones table td,
+#view-integraciones table th, #view-integraciones table td, #view-chat table th, #view-chat table td,
+#view-traslados table th, #view-traslados table td, #view-generic table th, #view-generic table td {
+  border-color: #e2ebf3;
+}
+#view-espacio table tbody tr:hover, #view-colaboradores table tbody tr:hover,
+#view-sucursales table tbody tr:hover, #view-asistencia table tbody tr:hover,
+#view-licencias table tbody tr:hover, #view-vacaciones table tbody tr:hover,
+#view-papeletas table tbody tr:hover, #view-correos table tbody tr:hover,
+#view-envio_licencias table tbody tr:hover, #view-amonestaciones table tbody tr:hover,
+#view-reportes table tbody tr:hover, #view-usuarios table tbody tr:hover,
+#view-auditoria table tbody tr:hover, #view-ayuda table tbody tr:hover,
+#view-configcorreos table tbody tr:hover, #view-mapas table tbody tr:hover,
+#view-tareas table tbody tr:hover, #view-operaciones table tbody tr:hover,
+#view-calidad table tbody tr:hover, #view-notificaciones table tbody tr:hover,
+#view-integraciones table tbody tr:hover, #view-chat table tbody tr:hover,
+#view-traslados table tbody tr:hover, #view-generic table tbody tr:hover {
+  background-color: #f6fafc;
+}
+#view-espacio button:not(.menu-btn), #view-colaboradores button:not(.menu-btn),
+#view-sucursales button:not(.menu-btn), #view-asistencia button:not(.menu-btn),
+#view-licencias button:not(.menu-btn), #view-vacaciones button:not(.menu-btn),
+#view-papeletas button:not(.menu-btn), #view-correos button:not(.menu-btn),
+#view-envio_licencias button:not(.menu-btn), #view-amonestaciones button:not(.menu-btn),
+#view-reportes button:not(.menu-btn), #view-usuarios button:not(.menu-btn),
+#view-auditoria button:not(.menu-btn), #view-ayuda button:not(.menu-btn),
+#view-configcorreos button:not(.menu-btn), #view-mapas button:not(.menu-btn),
+#view-tareas button:not(.menu-btn), #view-operaciones button:not(.menu-btn),
+#view-calidad button:not(.menu-btn), #view-notificaciones button:not(.menu-btn),
+#view-integraciones button:not(.menu-btn), #view-chat button:not(.menu-btn),
+#view-traslados button:not(.menu-btn), #view-generic button:not(.menu-btn) {
+  transition: box-shadow .16s ease, transform .16s ease, border-color .16s ease;
+}
+@media (max-width: 760px) {
+  #view-espacio, #view-colaboradores, #view-sucursales, #view-asistencia,
+  #view-licencias, #view-vacaciones, #view-papeletas, #view-correos,
+  #view-envio_licencias, #view-amonestaciones, #view-reportes, #view-usuarios,
+  #view-auditoria, #view-ayuda, #view-configcorreos, #view-mapas, #view-tareas,
+  #view-operaciones, #view-calidad, #view-notificaciones, #view-integraciones,
+  #view-chat, #view-traslados, #view-generic {
+    overflow-wrap: anywhere;
+  }
+  #view-espacio .ui-card, #view-colaboradores .ui-card, #view-sucursales .ui-card,
+  #view-asistencia .ui-card, #view-licencias .ui-card, #view-vacaciones .ui-card,
+  #view-papeletas .ui-card, #view-correos .ui-card, #view-envio_licencias .ui-card,
+  #view-amonestaciones .ui-card, #view-reportes .ui-card, #view-usuarios .ui-card,
+  #view-auditoria .ui-card, #view-ayuda .ui-card, #view-configcorreos .ui-card,
+  #view-mapas .ui-card, #view-tareas .ui-card, #view-operaciones .ui-card,
+  #view-calidad .ui-card, #view-notificaciones .ui-card, #view-integraciones .ui-card,
+  #view-chat .ui-card, #view-traslados .ui-card, #view-generic .ui-card {
+    border-radius: 12px;
+  }
+}
