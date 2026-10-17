@@ -977,3 +977,76 @@ button, input, select, textarea {
     padding-top: 2px;
   }
 }
+
+/* Accesos de gestión prioritarios: tareas, mapa y traslados */
+#view-dashboard .dashboard-quick-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+#view-dashboard .dashboard-quick-link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid #dce7f1;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff 0%, #f7fbfe 100%);
+  text-align: left;
+  transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+#view-dashboard .dashboard-quick-link:hover {
+  transform: translateY(-1px);
+  border-color: #9fcfdf;
+  box-shadow: 0 8px 20px rgba(8,47,87,.07);
+}
+#view-dashboard .dashboard-quick-link-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 11px;
+  background: #e7f6f8;
+  color: #087f9d;
+}
+#view-dashboard .dashboard-quick-link-icon svg {
+  width: 19px;
+  height: 19px;
+}
+#view-dashboard .dashboard-quick-link > span:nth-child(2) {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+#view-dashboard .dashboard-quick-link strong {
+  color: #153957;
+  font-size: 12px;
+  font-weight: 850;
+}
+#view-dashboard .dashboard-quick-link small {
+  color: #71869a;
+  font-size: 10px;
+  line-height: 1.4;
+}
+#view-dashboard .dashboard-quick-arrow {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: #7290a6;
+}
+@media (max-width: 800px) {
+  #view-dashboard .dashboard-quick-links {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #view-dashboard .dashboard-quick-link {
+    transition: none;
+  }
+  #view-dashboard .dashboard-quick-link:hover {
+    transform: none;
+  }
+}
