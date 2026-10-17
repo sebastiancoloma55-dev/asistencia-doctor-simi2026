@@ -2239,7 +2239,7 @@ body > .flex.h-screen.overflow-hidden > main > header:first-child {
 }
 body > .flex.h-screen.overflow-hidden > main > #quick-module-bar {
   position: sticky !important;
-  top: 0 !important;
+  top: 78px !important;
   z-index: 70 !important;
   flex-shrink: 0 !important;
 }
