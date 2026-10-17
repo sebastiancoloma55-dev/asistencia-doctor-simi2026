@@ -1251,17 +1251,23 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 
             <!-- MI ESPACIO DE TRABAJO -->
             <section id="view-espacio" class="hidden space-y-6 p-4 sm:p-8">
-                <div class="space-hero">
-                    <div class="space-hero-orb" aria-hidden="true"></div>
-                    <div class="space-hero-copy"><span class="space-hero-kicker"><i data-lucide="notebook-pen"></i> MI CENTRO DE SEGUIMIENTO</span><h3>Todo lo que no quieres olvidar.</h3><p>Notas adhesivas, fechas límite y una bitácora ordenada de las gestiones de RR. HH. Guardado en la nube con acceso protegido.</p><div class="space-hero-pills"><span><i data-lucide="cloud"></i> Guardado en Supabase</span><span><i data-lucide="shield-check"></i> Acceso protegido</span><span><i data-lucide="clock-arrow-down"></i> Historial cronológico</span></div></div>
-                    <div class="space-hero-graphic" aria-hidden="true"><div class="space-hero-ring ring-one"></div><div class="space-hero-ring ring-two"></div><div class="space-hero-sticky sticky-one">RECORDAR</div><div class="space-hero-sticky sticky-two">SEGUIR</div><div class="space-hero-center"><i data-lucide="layers"></i></div></div>
+                <div class="workspace-page-heading">
+                    <div class="workspace-heading-copy">
+                        <div class="workspace-breadcrumb"><span>INICIO Y PRODUCTIVIDAD</span><i data-lucide="chevron-right"></i><b>MI ESPACIO DE TRABAJO</b></div>
+                        <h2>Mi espacio de trabajo</h2>
+                        <p>Organiza tus recordatorios, tareas y seguimientos en un solo lugar.</p>
+                    </div>
+                    <div class="workspace-heading-actions">
+                        <button type="button" class="workspace-action-primary" onclick="document.getElementById('rrhh-nota-form').classList.toggle('is-open');document.getElementById('rrhh-nota-titulo').focus()"><i data-lucide="plus"></i> Nueva nota</button>
+                        <button type="button" class="workspace-action-secondary" onclick="var b=document.querySelector('[data-module-link*=\'tareas\'],[data-module=\'tareas\']');if(b)b.click();else{var n=Array.from(document.querySelectorAll('button,a')).find(function(x){return x.textContent.trim()==='Tareas diarias'});if(n)n.click();}"><i data-lucide="square-check-big"></i> Nueva tarea</button>
+                    </div>
                 </div>
                 <div id="space-metrics" class="space-metrics-grid"><div class="space-metric"><span class="space-metric-icon"><i data-lucide="sticky-note"></i></span><span class="space-metric-copy"><small>Notas activas</small><strong>0</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="pin"></i></span><span class="space-metric-copy"><small>Fijadas</small><strong>0</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="clock-alert"></i></span><span class="space-metric-copy"><small>Por revisar</small><strong>0</strong></span></div><div class="space-metric"><span class="space-metric-icon"><i data-lucide="clock-arrow-down"></i></span><span class="space-metric-copy"><small>Gestiones · 7 días</small><strong>0</strong></span></div></div>
                 <div class="space-tabbar" role="tablist" aria-label="Mi espacio de trabajo"><button type="button" data-space-tab="notas" class="space-tab is-active" aria-selected="true"><i data-lucide="sticky-note"></i> Notas adhesivas <span>01</span></button><button type="button" data-space-tab="bitacora" class="space-tab" aria-selected="false"><i data-lucide="clock-arrow-down"></i> Bitácora de gestión <span>02</span></button></div>
                 <div id="rrhh-space-panel-notas" class="space-panel">
                     <div class="space-panel-heading"><div><span class="space-section-kicker">CAPTURA RÁPIDA</span><h3>El tablero de tus ideas</h3><p>Fija recordatorios, ponles color y conviértelos en acciones.</p></div><span id="rrhh-notas-count" class="space-count-chip">Cargando notas…</span></div>
-                    <div class="space-notes-layout">
-                        <form class="space-compose-card" onsubmit="guardarNotaRRHH(event)">
+                        <div class="space-notes-layout">
+                        <form id="rrhh-nota-form" class="space-compose-card" onsubmit="guardarNotaRRHH(event)">
                             <div class="space-compose-top"><span class="space-compose-icon"><i data-lucide="pen-line"></i></span><span class="space-compose-label">NUEVA NOTA</span></div>
                             <label for="rrhh-nota-titulo">Título de la nota</label><input id="rrhh-nota-titulo" class="form-field" maxlength="160" required placeholder="Ej. Confirmar cobertura del sábado">
                             <label for="rrhh-nota-contenido">Detalle / recordatorio</label><textarea id="rrhh-nota-contenido" class="form-field" rows="4" maxlength="12000" placeholder="Anota el contexto, a quién contactar o qué falta resolver…"></textarea>
@@ -1271,10 +1277,18 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                             <label class="space-pin-check"><input id="rrhh-nota-fijada" type="checkbox"><span><i data-lucide="pin"></i></span> Fijar al comienzo del tablero</label>
                             <button type="submit" class="space-create-button"><i data-lucide="plus"></i> Guardar nota <i data-lucide="arrow-up-right"></i></button><p class="space-form-foot"><i data-lucide="cloud"></i> Se guarda en tu cuenta; no se almacena localmente como única copia.</p>
                         </form>
+                            <div class="space-notes-main">
                         <div class="space-note-board-wrap">
                             <div class="space-note-tools"><div class="space-note-search"><i data-lucide="search"></i><input id="rrhh-nota-buscar" type="search" placeholder="Buscar notas, categorías o palabras…"></div><div class="space-note-filters"><button type="button" data-note-filter="ACTIVAS" class="is-active">Activas</button><button type="button" data-note-filter="TODAS">Todas</button><button type="button" data-note-filter="COMPARTIDAS">Compartidas</button><button type="button" data-note-filter="RESUELTAS">Resueltas</button><button type="button" data-note-filter="ARCHIVADAS">Archivadas</button></div></div>
                             <div id="rrhh-notas-lista" class="space-note-grid"><div class="space-loading"><span class="space-loader-ring"></span><p>Organizando tu espacio de trabajo…</p></div></div>
                         </div>
+                            </div>
+                            <aside class="workspace-recent-card" aria-label="Actividad reciente">
+                                <div class="workspace-recent-heading"><span class="workspace-recent-clock"><i data-lucide="clock-3"></i></span><div><h3>Actividad reciente</h3><p>Últimos movimientos de tu espacio</p></div><button type="button" onclick="document.querySelector('[data-space-tab=\'bitacora\']').click()">Ver todas</button></div>
+                                <div id="rrhh-space-recent-activity" class="workspace-recent-list"><div class="workspace-recent-empty">Cargando actividad…</div></div>
+                            </aside>
+                        </div>
+
                     </div>
                 </div>
                 <div id="rrhh-space-panel-bitacora" class="space-panel hidden">
