@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
@@ -2070,15 +2071,15 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <div class="ui-card p-4"><div class="flex items-center gap-3"><span class="rounded-xl bg-blue-50 p-3 text-blue-700"><i data-lucide="file-spreadsheet" class="h-5 w-5"></i></span><div><p class="text-xs text-slate-500">Formatos</p><p class="font-bold text-slate-900">Excel · CSV · PDF</p></div></div></div>
                 <div class="ui-card p-4"><div class="flex items-center gap-3"><span class="rounded-xl bg-emerald-50 p-3 text-emerald-700"><i data-lucide="filter" class="h-5 w-5"></i></span><div><p class="text-xs text-slate-500">Preparación</p><p class="font-bold text-slate-900">Filtros combinados</p></div></div></div>
-                <div class="ui-card p-4"><div class="flex items-center gap-3"><span class="rounded-xl bg-violet-50 p-3 text-violet-700"><i data-lucide="sparkles" class="h-5 w-5"></i></span><div><p class="text-xs text-slate-500">Análisis</p><p class="font-bold text-slate-900">Gemini con autorización</p></div></div></div>
+                <div class="ui-card p-4"><div class="flex items-center gap-3"><span class="rounded-xl bg-violet-50 p-3 text-violet-700"><i data-lucide="sparkles" class="h-5 w-5"></i></span><div><p class="text-xs text-slate-500">Análisis</p><p class="font-bold text-slate-900">Ollama local con autorización</p></div></div></div>
                 <div class="ui-card p-4"><div class="flex items-center gap-3"><span class="rounded-xl bg-amber-50 p-3 text-amber-700"><i data-lucide="download" class="h-5 w-5"></i></span><div><p class="text-xs text-slate-500">Resultados</p><p class="font-bold text-slate-900">PDF y TXT</p></div></div></div>
               </div>
               <div class="grid grid-cols-1 gap-6 xl:grid-cols-5">
                 <div class="ui-card space-y-5 p-5 xl:col-span-2">
-                  <div><h3 class="section-title">1. Fuente y pregunta</h3><p class="mt-1 text-sm text-slate-500">Los archivos no se envían a Gemini hasta que marques la autorización.</p></div>
+                  <div><h3 class="section-title">1. Fuente y pregunta</h3><p class="mt-1 text-sm text-slate-500">Los archivos se procesan en el navegador y solo se envían al servidor Ollama del equipo cuando autorizas el análisis.</p></div>
                   <div><label for="aia-file" class="mb-2 block text-sm font-bold text-slate-700">Archivo de análisis</label><input id="aia-file" type="file" accept=".xlsx,.xls,.csv,.pdf" class="form-field w-full"><p class="mt-2 text-xs text-slate-500">Excel/CSV: filtros y vista previa local. PDF: máximo 5 MB.</p></div>
                   <div><label for="aia-prompt" class="mb-2 block text-sm font-bold text-slate-700">¿Qué necesitas descubrir?</label><textarea id="aia-prompt" rows="6" class="form-field w-full" placeholder="Ej.: identifica colaboradores con más de 3 atrasos, compara por sucursal y señala limitaciones de los datos."></textarea></div>
-                  <label class="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-950"><input id="aia-consent" type="checkbox" class="mt-1"><span><b>Autorizo el envío a Gemini.</b> El archivo y la pregunta se enviarán al proveedor externo para realizar el análisis. Evita incluir datos personales innecesarios.</span></label>
+                  <label class="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-950"><input id="aia-consent" type="checkbox" class="mt-1"><span><b>Autorizo el envío de datos a Ollama.</b> El archivo y la pregunta se enviarán al servidor Ollama configurado para el equipo. No incluyas datos personales innecesarios. Evita incluir datos personales innecesarios.</span></label>
                   <div class="flex flex-wrap gap-2"><button id="aia-run" type="button" class="corp-button"><i data-lucide="sparkles" class="mr-2 inline h-4 w-4"></i>Ejecutar análisis</button><button id="aia-clear" type="button" class="corp-button-dark">Limpiar</button></div>
                   <p id="aia-status" data-kind="info" role="status" aria-live="polite" class="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">Selecciona un archivo y formula una pregunta.</p>
                 </div>
