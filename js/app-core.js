@@ -907,13 +907,28 @@
             }
 
             toggleSidebar(false);
-            // Al cambiar de módulo, regresar el área de contenido y la navegación al inicio.
-            // Evita que el usuario aterrice en el scroll heredado de una vista anterior.
-            const appMain = document.querySelector('main.flex.min-w-0.flex-1.flex-col.overflow-y-auto');
-            if (appMain) appMain.scrollTop = 0;
-            const sidebarNav = document.querySelector('#sidebar nav[aria-label="Navegación principal de Recursos Humanos"]');
-            if (sidebarNav) sidebarNav.scrollTop = 0;
-            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            // Restablecer el desplazamiento de TODOS los contenedores, no solo de main.
+            // Algunas vistas desplazan el documento raíz y otras el panel principal.
+            const resetModuleScroll = () => {
+                const appMain = document.querySelector('main.flex.min-w-0.flex-1.flex-col.overflow-y-auto') || document.querySelector('main');
+                if (appMain) appMain.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+                let node = appMain;
+                while (node) {
+                    if (node.scrollTop) node.scrollTop = 0;
+                    node = node.parentElement;
+                }
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) {
+                    sidebar.scrollTop = 0;
+                    const nav = sidebar.querySelector('nav');
+                    if (nav) nav.scrollTop = 0;
+                }
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+                window.scrollTo(0, 0);
+            };
+            resetModuleScroll();
+            requestAnimationFrame(() => requestAnimationFrame(resetModuleScroll));
             lucide.createIcons();
 
             if (!cargar) {
