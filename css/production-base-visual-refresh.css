@@ -537,3 +537,29 @@ button, input, select, textarea {
   .dashboard-approved-doctor-button { top: 59%; right: 27%; padding: 9px 11px; font-size: 10px; }
   .dashboard-welcome-approved .dashboard-hero-role { top: auto !important; right: 0 !important; bottom: 4px; }
 }
+
+
+/* Ilustración dedicada del banner: mascota y farmacia en una sola escena */
+.dashboard-approved-visual { position: relative !important; min-height: 285px !important; overflow: hidden !important; }
+.dashboard-approved-illustration {
+  position: absolute !important; inset: auto -3% -3% auto !important;
+  width: 110% !important; height: 108% !important; max-width: none !important;
+  object-fit: contain !important; object-position: right bottom !important;
+  z-index: 3 !important; display: block !important;
+  filter: drop-shadow(0 12px 18px rgba(0,30,90,.12));
+}
+.dashboard-approved-visual .dashboard-hero-quote {
+  top: 8% !important; right: 22% !important; left: auto !important; z-index: 7 !important;
+  max-width: 235px !important; width: auto !important;
+}
+.dashboard-approved-visual .dashboard-hero-role { top: 5% !important; right: 0 !important; z-index: 8 !important; }
+@media (max-width: 1100px) {
+  .dashboard-approved-illustration { width: 118% !important; right: -10% !important; }
+  .dashboard-approved-visual .dashboard-hero-quote { right: 18% !important; }
+}
+@media (max-width: 760px) {
+  .dashboard-approved-visual { min-height: 270px !important; }
+  .dashboard-approved-illustration { width: 118% !important; height: 100% !important; right: -8% !important; bottom: 0 !important; }
+  .dashboard-approved-visual .dashboard-hero-quote { top: 2% !important; right: 2% !important; max-width: 55% !important; font-size: 10px !important; }
+  .dashboard-approved-visual .dashboard-hero-role { top: auto !important; bottom: 2% !important; right: 0 !important; }
+}
