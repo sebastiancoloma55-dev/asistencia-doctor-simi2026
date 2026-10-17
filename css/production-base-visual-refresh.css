@@ -874,3 +874,39 @@ button, input, select, textarea {
   color: #fff !important;
   line-height: 1.25;
 }
+
+/* Dashboard: títulos de sección para diferenciar resumen, volumen y análisis */
+#view-dashboard .dashboard-kpi-section-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 2px 0 -10px;
+  padding: 0 2px;
+}
+#view-dashboard .dashboard-kpi-section-label > span {
+  color: #45647d;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+#view-dashboard .dashboard-kpi-section-label > p {
+  margin: 0;
+  color: #71869a;
+  font-size: 11px;
+}
+#view-dashboard #connection-box {
+  border-radius: 12px;
+}
+#view-dashboard #dashboard-gerencial-graficos > article {
+  border-color: #dce7f1;
+  border-radius: 15px;
+  box-shadow: 0 7px 22px rgba(8, 47, 87, .045);
+}
+@media (max-width: 760px) {
+  #view-dashboard .dashboard-kpi-section-label {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
