@@ -22,20 +22,31 @@ function fmtDate(v){if(!v)return "Sin fecha límite";var d=new Date(v);if(isNaN(
 function fmtClock(v){if(!v)return "";var d=new Date(v);if(isNaN(d.getTime()))return "";return new Intl.DateTimeFormat("es-CL",{hour:"2-digit",minute:"2-digit",timeZone:"America/Santiago"}).format(d);}
 function localInput(v){var d=v?new Date(v):new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
 function icons(){if(window.lucide&&window.lucide.createIcons)window.lucide.createIcons();}
+function renderWorkspaceRecentActivity(){
+ var box=$("rrhh-space-recent-activity");if(!box)return;
+ var entries=[];
+ state.logs.forEach(function(l){entries.push({title:l.titulo||"Gestión registrada",detail:l.detalle||l.categoria||"Bitácora de gestión",date:l.ocurrio_en,icon:l.categoria==="Incidencia"?"alert-circle":l.categoria==="Reunión"?"users":"check-circle-2"});});
+ state.notes.forEach(function(n){entries.push({title:n.titulo||"Nota creada",detail:n.categoria||"Nota adhesiva",date:n.updated_at||n.created_at,icon:"notebook-pen"});});
+ entries=entries.filter(function(x){return x.date&&!isNaN(new Date(x.date).getTime());}).sort(function(a,b){return new Date(b.date)-new Date(a.date);}).slice(0,5);
+ if(!entries.length){box.innerHTML='<div class="workspace-recent-empty"><i data-lucide="clock-3"></i><b>Aún no hay actividad</b><span>Las notas y gestiones aparecerán aquí al registrarse.</span></div>';icons();return;}
+ box.innerHTML=entries.map(function(x){var d=new Date(x.date);var date=new Intl.DateTimeFormat("es-CL",{day:"2-digit",month:"short",timeZone:"America/Santiago"}).format(d);return '<article class="workspace-recent-item"><span class="workspace-recent-icon"><i data-lucide="'+x.icon+'"></i></span><div class="workspace-recent-copy"><b>'+esc(x.title)+'</b><span>'+esc(x.detail)+'</span><small>'+esc(date)+' · '+esc(fmtClock(x.date))+'</small></div><i class="workspace-recent-chevron" data-lucide="chevron-right"></i></article>';}).join("");
+ icons();
+}
 function metrics(){
  var active=state.notes.filter(function(n){return n.estado==="ACTIVA";}).length;
  var pinned=state.notes.filter(function(n){return n.fijada&&n.estado==="ACTIVA";}).length;
- var overdue=state.notes.filter(function(n){return n.estado==="ACTIVA"&&n.vence_en&&new Date(n.vence_en)<new Date();}).length;
+ var now=Date.now();
+ var upcoming=state.notes.filter(function(n){var due=n.vence_en?new Date(n.vence_en).getTime():0;return n.estado==="ACTIVA"&&due>=now&&due<=now+7*86400000;}).length;
  var week=Date.now()-7*86400000;
  var logsWeek=state.logs.filter(function(l){return new Date(l.ocurrio_en).getTime()>=week;}).length;
  var activeValue=state.notesError?"Error":active;
  var pinnedValue=state.notesError?"Error":pinned;
- var overdueValue=state.notesError?"Error":overdue;
+ var upcomingValue=state.notesError?"Error":upcoming;
  var logsValue=state.logsError?"Error":logsWeek;
  var box=$("space-metrics");
  if(box){
-  var vals=[["Notas activas",activeValue,"sticky-note","teal"],["Fijadas",pinnedValue,"pin","violet"],["Por revisar",overdueValue,"clock-alert","amber"],["Gestiones · 7 días",logsValue,"clock-arrow-down","blue"]];
-  box.innerHTML=vals.map(function(x){return '<div class="space-metric space-metric-'+x[3]+'"><span class="space-metric-icon"><i data-lucide="'+x[2]+'"></i></span><span class="space-metric-copy"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></span></div>';}).join("");
+  var vals=[["Notas activas",activeValue,"sticky-note","teal","Recordatorios vigentes"],["Tareas pendientes","—","square-check-big","violet","Gestionadas en Tareas diarias"],["Próximos vencimientos",upcomingValue,"calendar-clock","amber","Próximos 7 días"],["Gestiones recientes",logsValue,"clock-arrow-down","blue","Últimos 7 días"]];
+  box.innerHTML=vals.map(function(x){return '<div class="space-metric space-metric-'+x[3]+'"><span class="space-metric-icon"><i data-lucide="'+x[2]+'"></i></span><span class="space-metric-copy"><small>'+x[0]+'</small><strong>'+x[1]+'</strong><em class="workspace-metric-caption">'+x[4]+'</em></span></div>';}).join("");
  }
  var dash=$("dashboard-space-summary");
  if(dash){
@@ -45,6 +56,7 @@ function metrics(){
   if(state.logsError)errors.push('Bitácora: '+state.logsError);
   if(errors.length)dash.insertAdjacentHTML('beforeend','<div class="dash-space-error"><i data-lucide="circle-alert"></i><span><b>No se pudo consultar parte de la información</b><small>'+esc(errors.join(' · '))+'</small></span><button type="button" onclick="cambiarModulo(\'espacio\')">Revisar</button></div>');
  }
+ renderWorkspaceRecentActivity();
  icons();
 }
 function renderNotes(){
