@@ -3804,6 +3804,31 @@ section[id^="view-"][hidden]{
 }
 #view-tareas .task-page-heading{margin-top:0!important}
 
+
+/* FIX DEFINITIVO DE CONTENEDOR: el portal no debe desplazarse como documento.
+   El menú y el contenido comparten el alto de la ventana; solo main desplaza su contenido. */
+html, body { width:100%; max-width:100%; min-height:0; }
+body:has(#sidebar) { height:100dvh!important; min-height:0!important; overflow:hidden!important; }
+body:has(#sidebar) > div.flex.h-screen.overflow-hidden:has(> #sidebar) {
+  position:fixed!important; inset:0!important;
+  width:100vw!important; height:100dvh!important; min-height:0!important;
+  overflow:hidden!important; margin:0!important;
+}
+body:has(#sidebar) > div.flex.h-screen.overflow-hidden:has(> #sidebar) > #sidebar {
+  height:100dvh!important; min-height:0!important; flex:0 0 17.25rem;
+  overflow-x:hidden!important; overflow-y:auto!important;
+}
+body:has(#sidebar) > div.flex.h-screen.overflow-hidden:has(> #sidebar) > main {
+  height:100dvh!important; min-height:0!important; max-height:100dvh!important;
+  flex:1 1 0%!important; overflow-x:hidden!important; overflow-y:auto!important;
+  align-self:stretch!important; margin:0!important; padding-top:0!important;
+}
+body:has(#sidebar) > div.flex.h-screen.overflow-hidden:has(> #sidebar) > main > header,
+body:has(#sidebar) > div.flex.h-screen.overflow-hidden:has(> #sidebar) > main > #quick-module-bar {
+  flex-shrink:0!important;
+}
+#view-tareas { margin-block-start:0!important; align-self:stretch!important; }
+
 </style>
 
 </body>
