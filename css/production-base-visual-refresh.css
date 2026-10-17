@@ -2189,3 +2189,57 @@ button, input, select, textarea {
 @media(max-width:1250px){#view-tareas .task-reference-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}#view-tareas .task-main-columns{grid-template-columns:minmax(0,1.5fr) minmax(280px,.9fr)}#view-tareas .task-bottom-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))}#view-tareas .task-team-performance{grid-column:1/-1}}
 @media(max-width:900px){#view-tareas .task-page-heading{align-items:flex-start;flex-direction:column}#view-tareas .task-page-actions{width:100%;justify-content:flex-start;flex-wrap:wrap}#view-tareas .task-main-columns{grid-template-columns:minmax(0,1fr)}#view-tareas .task-side-column{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}#view-tareas .task-bottom-dashboard{grid-template-columns:minmax(0,1fr)}#view-tareas .task-team-performance{grid-column:auto}}
 @media(max-width:600px){#view-tareas.task-center{padding:12px!important}#view-tareas .task-reference-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#view-tareas .task-reference-kpi{min-height:74px;padding:9px;gap:8px}#view-tareas .task-ref-icon{flex-basis:34px;width:34px;height:34px}#view-tareas .task-ref-icon svg{width:18px;height:18px}#view-tareas .task-reference-kpi b{font-size:21px}#view-tareas .task-reference-kpi small{font-size:9px}#view-tareas .task-reference-kpi em{font-size:9px}#view-tareas .task-side-column{grid-template-columns:minmax(0,1fr)}#view-tareas .task-filters{grid-template-columns:minmax(0,1fr)}#view-tareas .task-page-actions button{min-height:38px;padding:0 10px}#view-tareas .task-current-date{margin-left:auto}#view-tareas .task-performance-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+
+/* FIX: lock app shell to viewport and keep module content below the top bars */
+/* Prevent document-level scrolling from pushing the app header and sidebar out of view.
+   The content pane is the only vertical scroll container. */
+html, body {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+body > .flex.h-screen.overflow-hidden {
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex !important;
+  width: 100% !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  align-items: stretch !important;
+}
+body > .flex.h-screen.overflow-hidden > #sidebar {
+  flex-shrink: 0 !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+}
+body > .flex.h-screen.overflow-hidden > main.flex.min-w-0.flex-1.flex-col.overflow-y-auto {
+  position: relative !important;
+  flex: 1 1 0% !important;
+  width: 0 !important;
+  height: 100dvh !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-height: 100dvh !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scroll-padding-top: 0 !important;
+}
+body > .flex.h-screen.overflow-hidden > main > header:first-child {
+  position: sticky !important;
+  top: 0 !important;
+  flex-shrink: 0 !important;
+  z-index: 80 !important;
+}
+body > .flex.h-screen.overflow-hidden > main > #quick-module-bar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 70 !important;
+  flex-shrink: 0 !important;
+}
