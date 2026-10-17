@@ -3875,5 +3875,40 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto { scroll-behavior:auto; }
 })();
 </script>
 
+
+<script>
+<!-- FIX FINAL: restablecer scroll después de completar navegación entre módulos -->
+(function () {
+  if (window.__finalModuleScrollFixInstalled) return;
+  window.__finalModuleScrollFixInstalled = true;
+  function resetApplicationScroll() {
+    var main = document.querySelector('main.flex.min-w-0.flex-1.flex-col.overflow-y-auto')
+      || (document.querySelector('#sidebar') && document.querySelector('#sidebar').parentElement.querySelector('main'))
+      || document.querySelector('main');
+    if (main) {
+      main.style.overflowAnchor = 'none';
+      main.scrollTop = 0;
+      if (typeof main.scrollTo === 'function') main.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }
+  var priorNavigate = window.cambiarModulo;
+  if (typeof priorNavigate === 'function') {
+    window.cambiarModulo = async function () {
+      var result = await priorNavigate.apply(this, arguments);
+      requestAnimationFrame(function () {
+        resetApplicationScroll();
+        requestAnimationFrame(resetApplicationScroll);
+      });
+      setTimeout(resetApplicationScroll, 180);
+      return result;
+    };
+  }
+  window.addEventListener('pageshow', function () {
+    requestAnimationFrame(resetApplicationScroll);
+  });
+})();
+</script>
+
 </body>
 </html>
