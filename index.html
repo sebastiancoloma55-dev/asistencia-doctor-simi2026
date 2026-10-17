@@ -2197,7 +2197,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 <div id="tarea-permiso-aviso" class="hidden rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">Puedes consultar tareas, pero no asignarlas. Solicita esa autorización al administrador.</div>
                 <form id="form-tarea" class="ui-card grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4" onsubmit="guardarTarea(event)">
                     <div class="lg:col-span-2"><label class="required-label text-xs font-semibold">Título</label><input id="tarea-titulo" required class="form-field"></div>
-                    <div><label class="required-label text-xs font-semibold">Responsable</label><select id="tarea-responsable" required class="form-field"></select></div>
+                    <div class="lg:col-span-2"><label class="required-label text-xs font-semibold" for="tarea-responsable">Responsables (puedes seleccionar varios)</label><select id="tarea-responsable" required multiple size="5" class="form-field min-h-32"></select><p class="mt-1 text-xs text-slate-500">Mantén Ctrl (Windows) o ⌘ (Mac) para elegir varias personas. La tarea se creará para cada responsable seleccionado.</p></div>
                     <div><label class="text-xs font-semibold">Revisor</label><select id="tarea-revisor" class="form-field"></select></div>
                     <div><label class="required-label text-xs font-semibold">Prioridad</label><select id="tarea-prioridad" required class="form-field"><option>MEDIA</option><option>ALTA</option><option>URGENTE</option><option>BAJA</option></select></div>
                     <div><label class="required-label text-xs font-semibold">Fecha límite</label><input id="tarea-vencimiento" type="datetime-local" required class="form-field"></div>
@@ -3570,6 +3570,21 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
  #view-dashboard .dashboard-welcome.simi-dashboard-hero .simi-hero-brand-tag{display:none!important}
 }
 
+/* Preview UX improvements: compact movable HR assistant and high-contrast operational surfaces */
+#simi-context-assistant{position:fixed!important;right:18px!important;bottom:14px!important;z-index:9998!important;width:min(360px,calc(100vw - 24px))!important;pointer-events:none}
+#simi-context-assistant #simi-context-toggle,#simi-context-assistant #simi-context-popover{pointer-events:auto}
+#simi-context-assistant #simi-context-toggle{display:flex!important;align-items:center;gap:8px!important;padding:10px 14px!important;min-height:42px!important;border-radius:999px!important;font-size:12px!important;box-shadow:0 8px 24px rgba(0,42,90,.22)!important;cursor:move!important;touch-action:none!important;user-select:none!important}
+#simi-context-assistant #simi-context-popover{width:100%!important;max-height:min(62vh,430px)!important;overflow:auto!important;border-radius:18px!important;box-shadow:0 18px 48px rgba(0,28,65,.24)!important;margin-bottom:8px!important}
+#simi-context-head{cursor:move!important;touch-action:none!important;user-select:none!important}
+#simi-context-assistant button{transition:transform .15s ease,box-shadow .15s ease}
+#simi-context-assistant button:hover{transform:translateY(-1px)}
+#view-tareas #tarea-responsable{min-height:126px!important;background:#f8fbff!important;border-color:#9dc5ee!important}
+#view-tareas #tarea-responsable option{padding:7px!important}
+#view-tareas #form-tarea{border-top:4px solid #0878cf!important;box-shadow:0 12px 30px rgba(20,74,130,.08)!important}
+#view-tareas .module-intro{background:linear-gradient(115deg,#eff8ff,#f0fdfa)!important;border-color:#b9e4f3!important}
+#view-tareas [id^="tk-"]{color:#07569a!important}
+#view-colaboradores .ui-card,#view-sucursales .ui-card,#view-asistencia .ui-card,#view-licencias .ui-card,#view-envio_licencias .ui-card,#view-vacaciones .ui-card{box-shadow:0 8px 24px rgba(22,65,120,.055)!important}
+@media(max-width:640px){#simi-context-assistant{right:10px!important;bottom:10px!important;width:min(330px,calc(100vw - 20px))!important}#simi-context-assistant #simi-context-toggle{padding:9px 12px!important;font-size:11px!important}#view-tareas #tarea-responsable{min-height:110px!important}}
 </style>
     <div id="simi-context-assistant">
       <section id="simi-context-popover" hidden aria-label="Asistente contextual de RR. HH." aria-live="polite">
@@ -3632,5 +3647,19 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     })();
     </script>
 <script src="/js/help-center.js"></script>
+    <script id="simi-context-drag-preview">
+    (function(){
+      const root=document.getElementById("simi-context-assistant");
+      const handle=document.getElementById("simi-context-head");
+      const toggle=document.getElementById("simi-context-toggle");
+      if(!root||!toggle)return;
+      let drag=null;
+      function begin(e){if(e.target.closest("button")&&e.target.id!=="simi-context-toggle")return;if(e.button!==undefined&&e.button!==0)return;const r=root.getBoundingClientRect();drag={x:e.clientX,y:e.clientY,left:r.left,top:r.top};root.style.right="auto";root.style.bottom="auto";root.style.left=r.left+"px";root.style.top=r.top+"px";if(e.currentTarget.setPointerCapture&&e.pointerId!==undefined)e.currentTarget.setPointerCapture(e.pointerId);e.preventDefault();}
+      function move(e){if(!drag)return;const maxLeft=Math.max(8,window.innerWidth-root.offsetWidth-8),maxTop=Math.max(8,window.innerHeight-root.offsetHeight-8);root.style.left=Math.min(maxLeft,Math.max(8,drag.left+e.clientX-drag.x))+"px";root.style.top=Math.min(maxTop,Math.max(8,drag.top+e.clientY-drag.y))+"px";}
+      function end(){drag=null;}
+      [toggle,handle].filter(Boolean).forEach(el=>{el.addEventListener("pointerdown",begin);el.addEventListener("pointermove",move);el.addEventListener("pointerup",end);el.addEventListener("pointercancel",end);});
+      window.addEventListener("resize",()=>{const r=root.getBoundingClientRect();root.style.left=Math.min(Math.max(8,r.left),Math.max(8,window.innerWidth-root.offsetWidth-8))+"px";root.style.top=Math.min(Math.max(8,r.top),Math.max(8,window.innerHeight-root.offsetHeight-8))+"px";});
+    })();
+    </script>
 </body>
 </html>
