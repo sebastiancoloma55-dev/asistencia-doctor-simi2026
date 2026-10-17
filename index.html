@@ -3630,6 +3630,112 @@ hr{border-color:#e8edf3}
  .dashboard-welcome-compact-admin{position:relative;top:auto;right:auto;align-self:flex-start;order:3}
 }
 @media(prefers-reduced-motion:reduce){.dashboard-welcome-compact-image{animation:none!important;transition:none!important}}
+
+/* FINAL VISUAL PASS · MI ESPACIO DE TRABAJO · scoped to this module */
+#view-espacio{
+ box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow-x:clip;
+ padding:24px 26px 30px!important;gap:22px!important;
+ background:linear-gradient(180deg,#f7fbff 0%,#f1f7fc 100%);color:#0b3158;
+}
+#view-espacio>*{box-sizing:border-box;min-width:0;max-width:100%}
+#view-espacio .workspace-page-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0 0 2px}
+#view-espacio .workspace-heading-copy{min-width:0}
+#view-espacio .workspace-breadcrumb{display:flex;align-items:center;gap:9px;margin-bottom:13px;color:#6683a0;font-size:10px;font-weight:800;letter-spacing:.09em}
+#view-espacio .workspace-breadcrumb svg{width:13px;height:13px;color:#91a8bd}
+#view-espacio .workspace-breadcrumb b{color:#10385f}
+#view-espacio .workspace-heading-copy h2{margin:0;color:#082f57;font-size:clamp(27px,2.4vw,35px);font-weight:850;letter-spacing:-.045em;line-height:1.12}
+#view-espacio .workspace-heading-copy p{margin:8px 0 0;color:#66809b;font-size:14px}
+#view-espacio .workspace-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+#view-espacio .workspace-heading-actions button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:0 17px;border:1px solid #d1e1ee;border-radius:11px;background:#fff;color:#456987;font-size:12px;font-weight:800;box-shadow:0 3px 9px rgba(8,47,87,.025);transition:transform .18s,box-shadow .18s}
+#view-espacio .workspace-heading-actions button:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(8,47,87,.08)}
+#view-espacio .workspace-heading-actions svg{width:16px;height:16px}
+#view-espacio .workspace-heading-actions .workspace-action-primary{background:linear-gradient(135deg,#0c9fa7,#087f99);border-color:#0b929e;color:#fff;box-shadow:0 6px 15px rgba(8,143,158,.16)}
+#view-espacio .space-metrics-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin:0}
+#view-espacio .space-metric{display:flex;align-items:center;gap:14px;min-width:0;min-height:102px;padding:17px 19px;border:1px solid #dce9f4;border-radius:15px;background:rgba(255,255,255,.94);box-shadow:0 5px 16px rgba(8,47,87,.035)}
+#view-espacio .space-metric-icon{display:flex;align-items:center;justify-content:center;flex:0 0 48px;width:48px;height:48px;border-radius:50%;background:#e4f2ff;color:#1689e9}
+#view-espacio .space-metric-violet .space-metric-icon{background:#f0e7ff;color:#8737e8}
+#view-espacio .space-metric-amber .space-metric-icon{background:#fff1d2;color:#e99a12}
+#view-espacio .space-metric-blue .space-metric-icon{background:#dff7f1;color:#079e91}
+#view-espacio .space-metric-icon svg{width:23px;height:23px}
+#view-espacio .space-metric-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+#view-espacio .space-metric-copy small{color:#6683a0;font-size:11px;font-weight:750}
+#view-espacio .space-metric-copy strong{color:#092f57;font-size:27px;font-weight:850;line-height:1.05}
+#view-espacio .workspace-metric-caption{color:#7e95aa;font-size:9px;font-style:normal;line-height:1.3}
+#view-espacio .space-tabbar{display:flex;gap:8px;padding:0 0 12px;border:0;border-bottom:1px solid #dce8f2;border-radius:0;background:transparent}
+#view-espacio .space-tab{display:inline-flex;align-items:center;gap:8px;padding:12px 15px;border:1px solid transparent;border-radius:11px;color:#66819a;font-size:12px;font-weight:800}
+#view-espacio .space-tab svg{width:17px;height:17px}
+#view-espacio .space-tab span{padding:3px 5px;border-radius:5px;background:#f0f5f9;color:#6e879d;font-size:9px}
+#view-espacio .space-tab.is-active{border-color:#cfe9e8;background:#eaf9f7;color:#078c91}
+#view-espacio .space-tab.is-active span{background:#d8f2ef;color:#078c91}
+#view-espacio .space-panel{min-width:0}
+#view-espacio #rrhh-space-panel-notas>.space-panel-heading{display:none}
+#view-espacio .space-notes-layout{display:grid;grid-template-columns:minmax(0,1fr) 315px;align-items:start;gap:16px;min-width:0}
+#view-espacio .space-compose-card{display:none;position:static;grid-column:1/-1;grid-row:1;margin:0;padding:20px;border:1px solid #dce9f3;border-radius:16px;background:#fff;box-shadow:0 8px 24px rgba(8,47,87,.055)}
+#view-espacio .space-compose-card.is-open{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:15px;row-gap:9px}
+#view-espacio .space-compose-card .space-compose-top,#view-espacio .space-compose-card>label:nth-of-type(1),#view-espacio .space-compose-card>#rrhh-nota-titulo,#view-espacio .space-compose-card>label:nth-of-type(2),#view-espacio .space-compose-card>#rrhh-nota-contenido,#view-espacio .space-compose-card>.space-color-select,#view-espacio .space-compose-card>.space-pin-check,#view-espacio .space-compose-card>.space-create-button,#view-espacio .space-compose-card>.space-form-foot{grid-column:1/-1}
+#view-espacio .space-notes-main{min-width:0}
+#view-espacio .space-note-board-wrap{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;min-width:0}
+#view-espacio .space-note-tools{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin:0 0 15px;padding:0}
+#view-espacio .space-note-search{display:flex;align-items:center;gap:9px;min-height:44px;padding:0 13px;border:1px solid #d8e6f1;border-radius:11px;background:#fff}
+#view-espacio .space-note-search svg{width:17px;height:17px;color:#7d97ad}
+#view-espacio .space-note-search input{min-width:0;width:100%;border:0;outline:0;background:transparent;color:#173c5d;font-size:12px}
+#view-espacio .space-note-filters{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+#view-espacio .space-note-filters button{padding:8px 12px;border:1px solid #d9e6f0;border-radius:999px;background:#fff;color:#637f97;font-size:10px;font-weight:750}
+#view-espacio .space-note-filters button.is-active{border-color:#c5e8e5;background:#e8f8f6;color:#078a8d}
+#view-espacio .space-note-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0}
+#view-espacio .space-note{min-width:0;border:1px solid #e8dfaa;border-radius:14px;box-shadow:0 5px 16px rgba(8,47,87,.045)}
+#view-espacio .workspace-recent-card{min-width:0;min-height:100%;padding:20px 18px;border:1px solid #dce9f4;border-radius:16px;background:#fff;box-shadow:0 5px 17px rgba(8,47,87,.035)}
+#view-espacio .workspace-recent-heading{display:flex;align-items:center;gap:10px;padding-bottom:15px;border-bottom:1px solid #e8eff5}
+#view-espacio .workspace-recent-clock{display:flex;align-items:center;justify-content:center;flex:0 0 31px;width:31px;height:31px;border-radius:50%;background:#eff6ff;color:#173f6b}
+#view-espacio .workspace-recent-clock svg{width:17px;height:17px}
+#view-espacio .workspace-recent-heading>div{flex:1;min-width:0}
+#view-espacio .workspace-recent-heading h3{margin:0;color:#10365e;font-size:15px;font-weight:850}
+#view-espacio .workspace-recent-heading p{margin:4px 0 0;color:#8498ab;font-size:10px}
+#view-espacio .workspace-recent-heading>button{padding:4px 0;border:0;background:transparent;color:#087eb4;font-size:10px;font-weight:750;white-space:nowrap}
+#view-espacio .workspace-recent-list{display:flex;flex-direction:column}
+#view-espacio .workspace-recent-item{display:flex;align-items:flex-start;gap:10px;padding:16px 0;border-bottom:1px solid #edf2f6;min-width:0}
+#view-espacio .workspace-recent-item:last-child{border-bottom:0}
+#view-espacio .workspace-recent-icon{display:flex;align-items:center;justify-content:center;flex:0 0 34px;width:34px;height:34px;border-radius:50%;background:#e6f3ff;color:#1687dc}
+#view-espacio .workspace-recent-item:nth-child(2) .workspace-recent-icon{background:#dcf8ef;color:#079c8b}
+#view-espacio .workspace-recent-item:nth-child(3) .workspace-recent-icon{background:#f0e7ff;color:#8739e9}
+#view-espacio .workspace-recent-icon svg{width:17px;height:17px}
+#view-espacio .workspace-recent-copy{display:flex;flex:1;flex-direction:column;gap:5px;min-width:0}
+#view-espacio .workspace-recent-copy b{overflow-wrap:anywhere;color:#12395f;font-size:11px;font-weight:850;line-height:1.35}
+#view-espacio .workspace-recent-copy span{overflow-wrap:anywhere;color:#55718a;font-size:10px;line-height:1.45}
+#view-espacio .workspace-recent-copy small{color:#879bb0;font-size:9px}
+#view-espacio .workspace-recent-chevron{flex:0 0 13px;width:13px;height:13px;margin-top:7px;color:#7893a9}
+#view-espacio .workspace-recent-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:30px 12px;text-align:center;color:#8297aa;font-size:11px}
+#view-espacio .workspace-recent-empty svg{width:24px;height:24px;color:#19a8a5}
+#view-espacio .workspace-recent-empty b{color:#274d6d}
+#view-espacio .space-panel-heading h3{color:#0b3158}
+@media(max-width:1120px){
+ #view-espacio{padding:18px!important}
+ #view-espacio .space-notes-layout{grid-template-columns:minmax(0,1fr) 285px;gap:12px}
+ #view-espacio .space-metric{padding:13px;gap:10px}
+ #view-espacio .space-metric-icon{flex-basis:40px;width:40px;height:40px}
+ #view-espacio .space-metric-copy strong{font-size:23px}
+}
+@media(max-width:820px){
+ #view-espacio .workspace-page-heading{align-items:flex-start;flex-direction:column}
+ #view-espacio .workspace-heading-actions{justify-content:flex-start}
+ #view-espacio .space-metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #view-espacio .space-notes-layout{grid-template-columns:minmax(0,1fr)}
+ #view-espacio .workspace-recent-card{grid-row:auto}
+ #view-espacio .space-note-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:520px){
+ #view-espacio{padding:13px!important;gap:16px!important}
+ #view-espacio .workspace-heading-copy h2{font-size:27px}
+ #view-espacio .workspace-heading-actions{width:100%}
+ #view-espacio .workspace-heading-actions button{flex:1;padding:0 10px}
+ #view-espacio .space-metrics-grid{gap:9px}
+ #view-espacio .space-metric{align-items:flex-start;flex-direction:column;min-height:0;padding:12px}
+ #view-espacio .space-metric-copy strong{font-size:22px}
+ #view-espacio .space-note-grid{grid-template-columns:minmax(0,1fr)}
+ #view-espacio .space-note-filters{gap:5px}
+ #view-espacio .space-note-filters button{padding:7px 9px}
+}
+
 </style>
 
 </body>
