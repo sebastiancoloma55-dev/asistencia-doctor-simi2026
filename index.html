@@ -868,6 +868,8 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
       <footer class="nova-v3-footer"><span>© FARMACIAS DE SIMILARES CHILE S.A.</span><span>PERSONAS · PROCESOS · PROPÓSITO</span><span class="nova-v3-footer-mark">DS<span>—</span>RH</span></footer>
     </div>
 
+    <button id="sidebar-expand-floating" type="button" aria-label="Mostrar menú lateral" title="Mostrar menú lateral" onclick="const s=document.getElementById('sidebar');s.classList.remove('sidebar-collapsed');this.classList.remove('is-visible');const b=document.getElementById('sidebar-collapse-toggle');if(b)b.setAttribute('aria-expanded','true')" class="sidebar-expand-floating"><i data-lucide="panel-left-open" class="h-5 w-5"></i></button>
+
     <!-- APP -->
     <div class="flex h-screen overflow-hidden">
         <aside
@@ -897,7 +899,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     class="hidden lg:inline-flex items-center justify-center rounded-lg border border-blue-800/60 p-2 text-slate-300 transition hover:bg-white/10 hover:text-white"
                     title="Contraer o expandir menú"
                     aria-label="Contraer o expandir menú"
-                    onclick="document.getElementById('sidebar').classList.toggle('sidebar-collapsed')"
+                    onclick="const s=document.getElementById('sidebar');const c=s.classList.toggle('sidebar-collapsed');const f=document.getElementById('sidebar-expand-floating');if(f)f.classList.toggle('is-visible',c);this.setAttribute('aria-expanded',String(!c))"
                 >
                     <i data-lucide="panel-left-close" class="h-4 w-4"></i>
                 </button>
@@ -1002,14 +1004,22 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
             <!-- DASHBOARD -->
             <section id="view-dashboard" class="space-y-6 p-4 sm:p-8">
                 <div class="dashboard-welcome">
-                    <div class="flex flex-wrap items-start justify-between gap-4">
-                        <div>
-                            <p class="text-xs font-extrabold uppercase tracking-[.18em] text-sky-100">Plataforma de gestión · Recursos Humanos</p>
-                            <h2 class="mt-2 text-2xl font-black tracking-tight sm:text-3xl">¡Bienvenido/a, <span id="dashboard-welcome-name">equipo de Asistencia</span>!</h2>
-                            <p id="dashboard-welcome-subtitle" class="mt-2 max-w-2xl text-sm text-blue-50">Tu centro de control para asistencia, ausentismo y operaciones.</p>
+                    <div class="dashboard-hero-copy">
+                        <span class="dashboard-hero-eyebrow"><span class="dashboard-hero-live-dot"></span> ASISTENCIA DOCTOR SIMI 2026 <span class="dashboard-hero-eyebrow-divider">/</span> RECURSOS HUMANOS</span>
+                        <div class="dashboard-hero-title-row">
+                            <span class="dashboard-hero-icon"><i data-lucide="layout-dashboard" class="h-6 w-6"></i></span>
+                            <h2>¡Bienvenido/a, <span id="dashboard-welcome-name">equipo de Asistencia</span>!</h2>
                         </div>
-                        <span id="dashboard-welcome-role" class="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-2 text-xs font-bold text-white"><i data-lucide="shield-check" class="h-4 w-4"></i> Usuario autorizado</span>
+                        <p id="dashboard-welcome-subtitle" class="dashboard-hero-subtitle">Tu centro de control para asistencia, ausentismo y operaciones.</p>
+                        <div class="dashboard-hero-tags"><span><i data-lucide="users-round"></i> Equipo</span><span><i data-lucide="clock-3"></i> Asistencia</span><span><i data-lucide="chart-no-axes-combined"></i> Gestión inteligente</span></div>
                     </div>
+                    <div class="dashboard-hero-visual" aria-hidden="true">
+                        <div class="dashboard-hero-orbit dashboard-hero-orbit-one"></div><div class="dashboard-hero-orbit dashboard-hero-orbit-two"></div>
+                        <div class="dashboard-hero-logo-frame"><img src="/doctor-simi-logo.jpg" alt="" /></div>
+                        <div class="dashboard-hero-glass-label"><i data-lucide="shield-check"></i><span>Plataforma de gestión<br><strong>Acceso centralizado</strong></span></div>
+                        <span class="dashboard-hero-ghost">SIMI</span>
+                    </div>
+                    <span id="dashboard-welcome-role" class="dashboard-hero-role"><i data-lucide="shield-check" class="h-4 w-4"></i> Usuario autorizado</span>
                 </div>
                 <div id="dashboard-space-summary" class="dash-space-card" aria-live="polite">
                     <div class="dash-space-intro"><div><span class="dash-space-kicker">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo('espacio')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div>
