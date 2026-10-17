@@ -3807,6 +3807,26 @@ section[id^="view-"][hidden]{
 
 
 /* TAREAS DIARIAS — distribución estable dentro del contenedor original de la aplicación. */
+/* Ajuste final: mantener la vista arriba al cambiar de módulo y evitar columnas comprimidas. */
+main.flex.min-w-0.flex-1.flex-col.overflow-y-auto { scroll-behavior:auto; }
+#view-tareas { scroll-margin-top:0!important; }
+#view-tareas .task-main-columns { grid-template-columns:minmax(0,1fr) minmax(290px,350px); }
+#view-tareas .task-table-scroll { max-width:100%; overflow-x:auto; }
+#view-tareas .task-table-scroll table { min-width:980px; }
+#view-tareas .task-filters { display:grid; grid-template-columns:minmax(160px,1fr) minmax(160px,1fr) minmax(200px,1.2fr) auto; gap:10px; }
+#view-tareas .task-search-wrap { min-width:0; }
+#view-tareas .task-search-wrap .form-field { width:100%; min-width:0; }
+#view-tareas .task-bottom-dashboard > * { min-width:0; }
+@media(max-width:1100px) {
+ #view-tareas .task-filters { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ #view-tareas .task-main-columns { grid-template-columns:minmax(0,1fr); }
+}
+@media(max-width:650px) {
+ #view-tareas .task-reference-kpis { grid-template-columns:minmax(0,1fr); }
+ #view-tareas .task-filters { grid-template-columns:minmax(0,1fr); }
+ #view-tareas .task-bottom-dashboard { grid-template-columns:minmax(0,1fr); }
+}
+
 #view-tareas { box-sizing:border-box; width:100%; max-width:100%; min-width:0; margin:0!important; }
 #view-tareas:not(.hidden):not([hidden]) { display:block!important; position:relative!important; align-self:stretch!important; height:auto!important; min-height:0!important; padding:18px 24px 28px!important; overflow:visible!important; }
 #view-tareas.hidden, #view-tareas[hidden] { display:none!important; }
@@ -3829,6 +3849,31 @@ section[id^="view-"][hidden]{
  #view-tareas .task-reference-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
 </style>
+
+
+<script id="task-module-scroll-reset">
+/* Al abrir otro módulo, reinicia el scroll del contenedor principal.
+   Evita que Tareas diarias aparezca pegado al fondo con un gran espacio vacío arriba. */
+(function(){
+  if (window.__taskModuleScrollResetInstalled) return;
+  window.__taskModuleScrollResetInstalled = true;
+  document.addEventListener('click', function(event){
+    const trigger = event.target && event.target.closest
+      ? event.target.closest('[onclick*="cambiarModulo("], [data-module-link], [data-module]')
+      : null;
+    if (!trigger) return;
+    const changesModule = (trigger.getAttribute('onclick') || '').includes('cambiarModulo(')
+      || trigger.hasAttribute('data-module-link')
+      || trigger.hasAttribute('data-module');
+    if (!changesModule) return;
+    requestAnimationFrame(function(){
+      const main = document.querySelector('main.flex.min-w-0.flex-1.flex-col.overflow-y-auto') || document.querySelector('main');
+      if (main) main.scrollTop = 0;
+      window.scrollTo(0, 0);
+    });
+  }, true);
+})();
+</script>
 
 </body>
 </html>
