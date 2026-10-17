@@ -232,3 +232,89 @@ button, input, select, textarea {
     left: 10px !important;
   }
 }
+
+
+/* Diseño aprobado del banner principal: accesos directos y escena de farmacia */
+.dashboard-welcome {
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, .92fr) !important;
+  min-height: 278px !important;
+  padding: clamp(26px, 3vw, 42px) !important;
+  background:
+    radial-gradient(circle at 56% 20%, rgba(0,190,255,.36), transparent 24%),
+    radial-gradient(ellipse at 83% 110%, rgba(25,168,165,.72), transparent 42%),
+    linear-gradient(112deg, #0755b8 0%, #006fc9 42%, #009bb3 100%) !important;
+}
+.dashboard-welcome:before {
+  width: 420px !important;
+  height: 420px !important;
+  right: 20% !important;
+  top: -245px !important;
+  box-shadow: 0 0 0 30px rgba(255,255,255,.04), 0 0 0 65px rgba(255,255,255,.035), 0 0 0 105px rgba(255,255,255,.025) !important;
+}
+.dashboard-hero-title-row { margin-top: 20px !important; gap: 16px !important; }
+.dashboard-hero-icon {
+  width: 58px !important; height: 58px !important; border-radius: 19px !important;
+  color: #0076a8 !important; background: #e8fbff !important;
+}
+.dashboard-hero-title-row h2 { font-size: clamp(29px, 3vw, 46px) !important; letter-spacing: -.045em !important; }
+.dashboard-hero-subtitle { max-width: 620px !important; margin-top: 15px !important; font-size: clamp(13px, 1.05vw, 16px) !important; line-height: 1.5 !important; }
+.dashboard-hero-highlight { color: #66f4f0; font-weight: 700; }
+.dashboard-hero-shortcuts { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 20px; }
+.dashboard-hero-shortcuts button,
+.dashboard-hero-ai {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  min-height: 44px; padding: 0 16px; border: 1px solid rgba(255,255,255,.16);
+  border-radius: 13px; color: #fff; background: rgba(0,95,200,.66);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.09);
+  font-size: 12px; font-weight: 850; white-space: nowrap;
+}
+.dashboard-hero-shortcuts button { cursor: pointer; transition: transform .18s ease, background .18s ease; }
+.dashboard-hero-shortcuts button:hover { transform: translateY(-2px); background: rgba(0,57,145,.78); }
+.dashboard-hero-shortcuts svg, .dashboard-hero-ai svg { width: 17px; height: 17px; color: #9df7ef; }
+.dashboard-hero-ai { background: rgba(0,46,117,.34); }
+.dashboard-hero-visual { min-height: 218px !important; overflow: visible; }
+.dashboard-hero-storefront {
+  position: absolute; right: -8px; bottom: -18px; z-index: 1;
+  width: min(72%, 260px); height: 132px; padding: 16px 12px 0;
+  overflow: hidden; border: 2px solid rgba(255,255,255,.62); border-bottom: 0;
+  border-radius: 9px 9px 0 0; color: #07569a; text-align: center;
+  background: linear-gradient(180deg,#ffffff 0 21%,#07569a 21% 37%,#f8fdff 37% 100%);
+  box-shadow: 0 12px 28px rgba(0,24,70,.24);
+  transform: perspective(300px) rotateY(-7deg);
+}
+.dashboard-hero-storefront:before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 64px;
+  background: repeating-linear-gradient(90deg,rgba(2,89,153,.08) 0 2px,transparent 2px 48px),linear-gradient(180deg,#c8f4ff,#f8fdff);
+  border-top: 4px solid #19a8c9;
+}
+.dashboard-hero-storefront span,.dashboard-hero-storefront strong,.dashboard-hero-storefront small { position: relative; z-index: 1; display: block; }
+.dashboard-hero-storefront span { font-size: 8px; font-weight: 900; letter-spacing: .22em; color: #0b5ca5; }
+.dashboard-hero-storefront strong { margin-top: 3px; font-size: 17px; line-height: 1; letter-spacing: -.04em; color: #064780; }
+.dashboard-hero-storefront small { margin-top: 5px; font-size: 7px; font-weight: 800; color: #007c9d; }
+.dashboard-hero-quote {
+  position: absolute; top: 0; right: 5px; z-index: 5; padding: 12px 17px;
+  border-radius: 15px; color: #07519a; background: rgba(255,255,255,.96);
+  box-shadow: 0 10px 26px rgba(0,35,85,.14); font-size: 12px; line-height: 1.35;
+  font-weight: 900; text-align: center;
+}
+.dashboard-hero-logo-frame {
+  position: absolute !important; left: 22%; top: 27%; z-index: 4 !important;
+  width: clamp(115px, 10vw, 150px) !important; border-radius: 28px !important;
+  border: 5px solid rgba(255,255,255,.9) !important; transform: rotate(-3deg) !important;
+}
+.dashboard-hero-orbit-one { width: 255px !important; right: 6%; top: 2%; }
+.dashboard-hero-orbit-two { width: 195px !important; right: 15%; top: 15%; }
+.dashboard-hero-glass-label { left: 0; right: auto !important; bottom: 0 !important; }
+.dashboard-hero-ghost { z-index: 0 !important; right: -8px !important; bottom: -38px !important; font-size: 105px !important; }
+@media (max-width: 1000px) {
+  .dashboard-welcome { grid-template-columns: minmax(0,1fr) minmax(240px,.7fr) !important; }
+  .dashboard-hero-storefront { width: 78%; }
+  .dashboard-hero-quote { font-size: 10px; padding: 9px 12px; }
+}
+@media (max-width: 760px) {
+  .dashboard-welcome { grid-template-columns: minmax(0,1fr) !important; min-height: unset !important; }
+  .dashboard-hero-title-row h2 { font-size: 27px !important; }
+  .dashboard-hero-visual { min-height: 220px !important; }
+  .dashboard-hero-logo-frame { left: 25%; top: 28%; }
+  .dashboard-hero-shortcuts button,.dashboard-hero-ai { min-height: 40px; padding: 0 12px; font-size: 11px; }
+}
