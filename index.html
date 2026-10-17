@@ -1029,15 +1029,19 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     <div id="dashboard-ops-cards" class="dashboard-ops-grid mt-4"><div class="ops-summary-loading"><span class="space-loader-ring"></span><span>Consultando estado operativo…</span></div></div>
                     <p id="dashboard-ops-updated" class="mt-3 text-right text-[10px] text-slate-400">Pendiente de actualización</p>
                 </div>
-                <div class="ui-card p-4 sm:p-5">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                        <div><h3 class="font-extrabold text-slate-900">Actualización de datos</h3><p class="mt-1 text-xs text-slate-500">Últimas cargas registradas en los módulos a los que tienes acceso, en hora de Chile.</p></div>
+                <details class="ui-card dashboard-data-details p-4 sm:p-5">
+                    <summary class="dashboard-details-summary">
+                        <span><strong>Estado de las cargas</strong><small>Última actualización de archivos por módulo</small></span>
+                        <span class="dashboard-details-action">Ver detalle <i data-lucide="chevron-down"></i></span>
+                    </summary>
+                    <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+                        <p class="text-xs text-slate-500">Últimas cargas registradas en los módulos a los que tienes acceso, en hora de Chile.</p>
                         <button type="button" class="corp-button-dark text-xs" onclick="cargarResumenActualizaciones()">Actualizar fechas</button>
                     </div>
                     <div id="dashboard-freshness-list" class="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2">
                         <p class="text-sm text-slate-500">Consultando última carga…</p>
                     </div>
-                </div>
+                </details>
                 <div class="dashboard-kpi-section-label"><span>RESUMEN GENERAL</span><p>Vista rápida de los principales volúmenes registrados.</p></div>
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     <div class="ui-card flex items-start justify-between p-5">
@@ -1099,7 +1103,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 
                 <div class="ui-card p-6">
                     <h3 class="mb-2 font-bold text-slate-900">
-                        Estado general
+                        Estado de conexión
                     </h3>
 
                     <div
