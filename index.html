@@ -3539,6 +3539,37 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
 #view-dashboard.simi-dashboard .simi-hero-pills span{background:rgba(255,255,255,.13)!important;border-color:rgba(255,255,255,.3)!important;color:#fff!important}
 @media(max-width:650px){#view-dashboard.simi-dashboard .dashboard-welcome.simi-dashboard-hero{grid-template-columns:1fr!important;min-height:180px!important;padding:18px!important}#view-dashboard.simi-dashboard .simi-hero-art{position:absolute!important;right:7px!important;bottom:0!important;width:98px!important;min-width:98px!important;height:92px!important;opacity:.92!important}#view-dashboard.simi-dashboard .simi-hero-art img{width:74px!important;height:74px!important}#view-dashboard.simi-dashboard .simi-hero-brand-tag{display:none!important}#view-dashboard.simi-dashboard .dashboard-welcome.simi-dashboard-hero:after{right:0!important;width:44%!important;height:42%!important}}
 
+
+/* Banner fotográfico fijo: la personalización de colores de la plataforma no modifica esta imagen */
+#view-dashboard .dashboard-welcome.simi-dashboard-hero{
+ position:relative!important;isolation:isolate!important;display:grid!important;
+ grid-template-columns:minmax(0,1.2fr) minmax(250px,.8fr)!important;align-items:center!important;
+ gap:18px!important;min-height:220px!important;padding:26px 30px!important;overflow:hidden!important;
+ border:0!important;border-radius:20px!important;color:#fff!important;
+ background-color:#0755cf!important;
+ background-image:linear-gradient(90deg,rgba(0,49,157,.96) 0%,rgba(0,76,190,.84) 38%,rgba(0,95,190,.28) 68%,rgba(0,55,120,.04) 100%),url('https://www.epiplavourtsis.gr/images/my_images/katastimata/farmakeio_avra/01.jpg')!important;
+ background-size:cover!important;background-position:center 68%!important;background-repeat:no-repeat!important;
+ box-shadow:0 14px 32px rgba(0,49,120,.22)!important;
+}
+#view-dashboard .dashboard-welcome.simi-dashboard-hero:before{content:""!important;position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background:radial-gradient(circle,rgba(255,255,255,.20) 1px,transparent 1.8px) 0 0/14px 14px!important;opacity:.45!important}
+#view-dashboard .dashboard-welcome.simi-dashboard-hero:after{content:none!important;display:none!important}
+#view-dashboard .dashboard-welcome.simi-dashboard-hero .simi-hero-copy{position:relative!important;z-index:3!important;max-width:760px!important}
+#view-dashboard .dashboard-welcome.simi-dashboard-hero .simi-hero-eyebrow{color:#eafaff!important}
+#view-dashboard .dashboard-welcome.simi-dashboard-hero h2,
+#view-dashboard .dashboard-welcome.simi-dashboard-hero h2 span{color:#fff!important;text-shadow:0 2px 12px rgba(0,30,90,.28)!important}
+#view-dashboard .dashboard-welcome.simi-dashboard-hero #dashboard-welcome-subtitle{color:#f1f8ff!important;text-shadow:0 1px 8px rgba(0,30,90,.35)!important}
+#view-dashboard .dashboard-welcome.simi-dashboard-hero .simi-hero-pills span{background:rgba(255,255,255,.15)!important;border:1px solid rgba(255,255,255,.36)!important;color:#fff!important}
+#view-dashboard .dashboard-welcome.simi-dashboard-hero .simi-hero-art{position:relative!important;z-index:4!important;justify-self:end!important;width:240px!important;min-width:240px!important;height:180px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+#view-dashboard .dashboard-welcome.simi-dashboard-hero .simi-hero-art img{width:145px!important;height:145px!important;object-fit:contain!important;border:6px solid #fff!important;border-radius:50%!important;background:#fff!important;box-shadow:0 10px 30px rgba(0,24,70,.28)!important}
+#view-dashboard .dashboard-welcome.simi-dashboard-hero .simi-hero-brand-tag{position:absolute!important;right:0!important;bottom:14px!important;z-index:5!important;background:#fff!important;color:#0648a8!important;border:1px solid #d9ebff!important;border-radius:10px!important;padding:9px 12px!important;font-size:10px!important;box-shadow:0 8px 22px rgba(0,30,90,.18)!important}
+#view-dashboard .dashboard-welcome.simi-dashboard-hero #dashboard-welcome-role{z-index:4!important;color:#fff!important}
+@media(max-width:650px){
+ #view-dashboard .dashboard-welcome.simi-dashboard-hero{grid-template-columns:1fr!important;min-height:190px!important;padding:18px!important;background-position:62% center!important}
+ #view-dashboard .dashboard-welcome.simi-dashboard-hero .simi-hero-art{position:absolute!important;right:4px!important;bottom:0!important;width:88px!important;min-width:88px!important;height:82px!important;opacity:.95!important}
+ #view-dashboard .dashboard-welcome.simi-dashboard-hero .simi-hero-art img{width:68px!important;height:68px!important;border-width:3px!important}
+ #view-dashboard .dashboard-welcome.simi-dashboard-hero .simi-hero-brand-tag{display:none!important}
+}
+
 </style>
     <div id="simi-context-assistant">
       <section id="simi-context-popover" hidden aria-label="Asistente contextual de RR. HH." aria-live="polite">
