@@ -48,9 +48,23 @@ const coreConfig = readFileSync(path.join(root, 'js/app-config.js'), 'utf8');
 for (const moduleName of ['operaciones', 'calidad', 'notificaciones', 'integraciones']) {
   if (!coreConfig.includes(`'${moduleName}'`)) fail(`El módulo ${moduleName} no está registrado en la configuración.`);
 }
-const gemini = readFileSync(path.join(root, 'api/gemini.js'), 'utf8');
+const ollama = readFileSync(path.join(root, 'lib/ollama-handler.js'), 'utf8');
+if (!html.includes('id="view-analista_ia"') || !html.includes('id="btn-analista_ia"')) fail('El Analista IA debe tener pantalla y acceso de navegación propios.');
+if (!html.includes('id="view-inteligencia_asistencia"') || !html.includes('id="btn-inteligencia_asistencia"')) fail('El Centro de inteligencia de asistencia debe tener pantalla y navegación propios.');
+if (!readFileSync(path.join(root, 'js/workflows.js'), 'utf8').includes("'inteligencia_asistencia'")) fail('El permiso del Centro de inteligencia de asistencia no está disponible para asignar a usuarios.');
+if (!readFileSync(path.join(root, 'js/workflows.js'), 'utf8').includes("'analista_ia'")) fail('El permiso analista_ia no está disponible para asignar a usuarios.');
+if (!html.includes('id="view-envio_licencias"') || !html.includes('id="btn-envio_licencias"')) fail('El envío de licencias médicas debe tener pantalla y navegación propios.');
+if (!html.includes('id="view-ayuda"') || !html.includes('id="btn-ayuda"')) fail('El Centro de Ayuda debe tener pantalla y navegación propios.');
+if (!coreConfig.includes("'envio_licencias'")) fail('El módulo de envío de licencias no está registrado en el catálogo.');
+if (!readFileSync(path.join(root, 'js/workflows.js'), 'utf8').includes("'envio_licencias'")) fail('El permiso de envío de licencias no está disponible para asignar usuarios.');
+for (const asset of ['js/medical-leave-registration.js', 'js/help-center.js', 'css/help-center.css']) {
+  if (!existsSync(path.join(root, asset))) fail('Falta el recurso restaurado: ' + asset);
+}
+if (!html.includes('/js/medical-leave-registration.js') || !html.includes('/js/help-center.js') || !html.includes('/css/help-center.css')) fail('Falta enlazar los recursos del envío de licencias o del Centro de Ayuda en index.html.');
+if (!existsSync(path.join(root, 'js/analista-ia.js'))) fail('Falta el controlador del módulo Analista IA.');
 const geo = readFileSync(path.join(root, 'api/geocodificar.js'), 'utf8');
-if (!gemini.includes("requireModuleAccess(req, 'reportes')")) fail('La API de IA no valida el permiso reportes.');
+if (!ollama.includes("requireModuleAccess({ headers }, ['analista_ia', 'reportes'])")) fail('El proveedor Ollama debe validar el permiso analista_ia o reportes.');
+if (!existsSync(path.join(root, 'netlify/functions/ollama.mjs')) || !readFileSync(path.join(root, '_redirects'), 'utf8').includes('/api/ollama /.netlify/functions/ollama 200')) fail('Falta la ruta de Ollama para Netlify.');
 if (!geo.includes("requireModuleAccess(req, 'mapas')")) fail('La API de geocodificación no valida el permiso mapas.');
 const userAuth = readFileSync(path.join(root, 'api/usuarios-auth.js'), 'utf8');
 if (!userAuth.includes('Acceso restringido al administrador principal')) fail('La API de administración no restringe el acceso al administrador principal.');
@@ -58,11 +72,11 @@ const cron = readFileSync(path.join(root, 'api/cron-alertas.js'), 'utf8');
 if (!cron.includes('authorization !== `Bearer ${cronSecret}`')) fail('El cron de alertas no valida CRON_SECRET.');
 const vercelConfig = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8'));
 if (!vercelConfig.crons?.some(job => job.path === '/api/cron-alertas')) fail('No está configurado el cron de alertas.');
-for (const endpoint of ['api/gemini.js', 'api/geocodificar.js']) {
+for (const endpoint of ['api/ollama.js', 'api/geocodificar.js']) {
   const source = readFileSync(path.join(root, endpoint), 'utf8');
   if (!source.includes('req.method')) fail(`Falta validar el método HTTP en ${endpoint}.`);
 }
-const requiredModules = ['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
+const requiredModules = ['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','analista_ia','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones'];
 for (const moduleName of requiredModules) {
   if (!buttons.has(moduleName)) fail(`El módulo ${moduleName} no tiene botón de navegación.`);
   if (!views.has(moduleName)) fail(`El módulo ${moduleName} no tiene vista registrada.`);

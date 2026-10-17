@@ -1,5 +1,5 @@
         // ============================================================
-        // MAPA, SUCURSALES, CORREOS, COBERTURAS Y GEMINI
+        // MAPA, SUCURSALES, CORREOS, COBERTURAS Y OLLAMA
         // ============================================================
         async function obtenerSucursalesConfig() { const {data,error}=await _supabase.from('sucursales').select('*').order('nombre'); if(error)throw error; return data||[]; }
         function direccionSucursal(x){return [x.direccion,x.comuna,'Chile'].filter(Boolean).join(', ');}
@@ -22,11 +22,95 @@
             select.innerHTML='<option value="">Selecciona una sucursal</option>'+(data||[]).map(x=>'<option value="'+escaparHTML(x.id)+'">'+escaparHTML(x.nombre)+'</option>').join('');
         }
         let solicitudCoberturaSeleccionada=null;
+        function instalarEstilosCoberturaYBanner(){
+            if(document.getElementById('simi-coverage-card-styles'))return;
+            const style=document.createElement('style');style.id='simi-coverage-card-styles';
+            style.textContent=`
+              #dot-responsables{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;left:-10000px!important}
+              .dot-responsables-ui{grid-column:1/-1;border:1px solid var(--user-line,#dce7f5);border-radius:18px;background:var(--user-panel,#fff);padding:16px;min-width:0}
+              #view-amonestaciones .border-amber-200{border-color:color-mix(in srgb,var(--user-accent,#087fa3) 28%,white)!important}
+              #view-amonestaciones .border-amber-200>div:first-child{background:linear-gradient(110deg,color-mix(in srgb,var(--user-accent,#087fa3) 12%,white),color-mix(in srgb,var(--user-accent,#087fa3) 5%,white))!important}
+              #view-amonestaciones .border-amber-200>div:first-child .bg-amber-100{background:var(--user-accent-soft,#e3f7fb)!important;color:var(--user-accent-strong,#06627e)!important}
+              #view-amonestaciones .border-amber-200>div:first-child .text-amber-800{color:var(--user-accent-strong,#06627e)!important}
+              .dot-responsables-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+              .dot-responsables-title{font-size:14px;font-weight:900;color:var(--user-text,#10234c)}
+              .dot-responsables-sub{font-size:11px;color:#718096;margin-top:4px}
+              .dot-responsables-count{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;background:var(--user-accent-soft,#e3f7fb);color:var(--user-accent-strong,#06627e);font-size:11px;font-weight:900}
+              .dot-responsables-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:14px 0}
+              .dot-responsables-search{flex:1;min-width:180px;border:1px solid var(--user-line,#dce7f5);border-radius:11px;padding:10px 12px;background:var(--user-panel,#fff);color:var(--user-text,#10234c);font-size:12px;outline-color:var(--user-accent,#087fa3)}
+              .dot-responsables-action{border:1px solid var(--user-line,#dce7f5);border-radius:10px;padding:9px 11px;background:var(--user-panel,#fff);color:var(--user-accent-strong,#06627e);font-size:11px;font-weight:800}
+              .dot-responsables-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+              .dot-responsable-card{display:flex;align-items:center;gap:10px;text-align:left;padding:11px;border:1px solid var(--user-line,#dce7f5);border-radius:13px;background:var(--user-panel,#fff);color:var(--user-text,#10234c);min-width:0;cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
+              .dot-responsable-card:hover{border-color:var(--user-accent,#087fa3);transform:translateY(-1px)}
+              .dot-responsable-card.is-selected{border-color:var(--user-accent,#087fa3);background:var(--user-accent-soft,#e3f7fb);box-shadow:0 0 0 1px var(--user-accent,#087fa3) inset}
+              .dot-responsable-avatar{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:12px;background:var(--user-accent,#087fa3);color:white;font-size:12px;font-weight:900}
+              .dot-responsable-copy{min-width:0;flex:1}.dot-responsable-name{font-size:11px;font-weight:900;line-height:1.35;overflow-wrap:anywhere}.dot-responsable-email{font-size:10px;color:#718096;margin-top:3px;overflow-wrap:anywhere}
+              .dot-responsable-check{display:grid;place-items:center;flex:0 0 20px;width:20px;height:20px;border:1px solid #b9c8d9;border-radius:6px;background:white;color:white;font-size:12px}
+              .dot-responsable-card.is-selected .dot-responsable-check{background:var(--user-accent,#087fa3);border-color:var(--user-accent,#087fa3)}
+              .dot-responsables-empty{padding:18px;text-align:center;border:1px dashed var(--user-line,#dce7f5);border-radius:12px;color:#718096;font-size:12px;grid-column:1/-1}
+              #view-dashboard .dashboard-welcome.simi-dashboard-hero{position:relative!important;isolation:isolate!important;grid-template-columns:minmax(0,1.1fr) minmax(240px,.9fr)!important;min-height:180px!important;background:radial-gradient(ellipse at 75% 10%,color-mix(in srgb,var(--user-accent,#087fa3) 70%,#35d8f6) 0%,transparent 38%),linear-gradient(110deg,color-mix(in srgb,var(--user-accent,#087fa3) 70%,#062e7c),var(--user-accent,#087fa3) 58%,color-mix(in srgb,var(--user-accent,#087fa3) 35%,#25c8ed))!important;border:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 30%,white)!important;box-shadow:0 12px 30px color-mix(in srgb,var(--user-accent,#087fa3) 18%,transparent)!important}
+              #view-dashboard .dashboard-welcome.simi-dashboard-hero:after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:repeating-radial-gradient(ellipse at 80% 40%,transparent 0 26px,rgba(255,255,255,.10) 27px 28px,transparent 29px 44px);opacity:.8}
+              #view-dashboard .simi-hero-art{height:150px!important;position:relative!important;isolation:isolate!important}
+              #view-dashboard .simi-hero-art:before{content:"";position:absolute;z-index:-1;inset:12px 1% 2px 19%;border:3px solid rgba(255,255,255,.72);border-radius:12px 12px 4px 4px;background:linear-gradient(180deg,transparent 0 22%,rgba(255,255,255,.96) 22% 100%),repeating-linear-gradient(90deg,transparent 0 32px,rgba(255,255,255,.95) 33px 36px,transparent 37px 52px),linear-gradient(180deg,color-mix(in srgb,var(--user-accent,#087fa3) 75%,#fff),color-mix(in srgb,var(--user-accent,#087fa3) 20%,#fff));box-shadow:0 12px 25px rgba(0,20,70,.18)}
+              #view-dashboard .simi-hero-art:after{content:"";position:absolute;z-index:-1;top:15px;left:19%;right:1%;height:30px;border-radius:10px 10px 2px 2px;background:linear-gradient(100deg,var(--user-accent-strong,#06627e),color-mix(in srgb,var(--user-accent,#087fa3) 60%,#20c5ec));box-shadow:0 5px 0 rgba(255,255,255,.45)}
+              #view-dashboard .simi-hero-art img{width:136px!important;height:136px!important;border-radius:26px!important;object-fit:contain!important;position:relative!important;z-index:2!important}
+              #view-dashboard .simi-hero-brand-tag{border:1px solid color-mix(in srgb,var(--user-accent,#087fa3) 20%,white)!important}
+              #view-dashboard .simi-hero-pills span{backdrop-filter:blur(8px)!important}
+              @media(max-width:760px){.dot-responsables-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#view-dashboard .dashboard-welcome.simi-dashboard-hero{grid-template-columns:1fr!important}.dot-responsables-ui{padding:12px}}
+              @media(max-width:480px){.dot-responsables-grid{grid-template-columns:1fr}}
+            `;
+            document.head.appendChild(style);
+        }
+        function renderizarTarjetasResponsablesCobertura(){
+            const select=document.getElementById('dot-responsables');if(!select)return;
+            instalarEstilosCoberturaYBanner();
+            select.removeAttribute('required');
+            let host=document.getElementById('dot-responsables-ui');
+            if(!host){host=document.createElement('div');host.id='dot-responsables-ui';host.className='dot-responsables-ui';select.insertAdjacentElement('afterend',host);}
+            const options=[...select.options].filter(o=>o.value);
+            const selected=options.filter(o=>o.selected).length;
+            const safe=(v)=>typeof escaparHTML==='function'?escaparHTML(v):String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+            host.innerHTML=`<div class="dot-responsables-head"><div><div class="dot-responsables-title">¿Quiénes gestionarán esta cobertura?</div><div class="dot-responsables-sub">Selecciona uno o varios responsables. Solo ellos recibirán la alerta y las tareas de seguimiento.</div></div><span class="dot-responsables-count"><i data-lucide="users" class="h-4 w-4"></i><span id="dot-responsables-count">${selected} seleccionados</span></span></div>
+              <div class="dot-responsables-tools"><input id="dot-responsables-search" class="dot-responsables-search" type="search" placeholder="Buscar por nombre o correo…" aria-label="Buscar responsables"><button type="button" class="dot-responsables-action" id="dot-responsables-all">Seleccionar todos</button><button type="button" class="dot-responsables-action" id="dot-responsables-clear">Limpiar</button></div>
+              <div class="dot-responsables-grid" id="dot-responsables-grid">${options.length?'':'<div class="dot-responsables-empty">No hay responsables disponibles para tu perfil.</div>'}</div>
+              <p class="mt-3 text-xs text-slate-500">La selección se valida antes de crear la alerta. Puedes elegir más de una persona.</p>`;
+            const grid=host.querySelector('#dot-responsables-grid'),search=host.querySelector('#dot-responsables-search');
+            const draw=()=>{
+                const query=(search.value||'').trim().toLowerCase();
+                const visible=options.filter(o=>o.textContent.toLowerCase().includes(query));
+                grid.innerHTML=visible.length?visible.map(o=>{
+                    const text=o.textContent.trim(),email=(text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)||[])[0]||'Responsable de cobertura';
+                    const name=email!=='Responsable de cobertura'?text.replace(email,'').replace(/[·|–-]+\s*$/,'').trim():text;
+                    const initials=name.split(/\s+/).filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase()||'RR';
+                    return `<button type="button" class="dot-responsable-card ${o.selected?'is-selected':''}" data-user-id="${safe(o.value)}" aria-pressed="${o.selected}"><span class="dot-responsable-avatar">${safe(initials)}</span><span class="dot-responsable-copy"><span class="dot-responsable-name">${safe(name)}</span><span class="dot-responsable-email">${safe(email)}</span></span><span class="dot-responsable-check">${o.selected?'✓':''}</span></button>`;
+                }).join(''):'<div class="dot-responsables-empty">No encontramos usuarios con esa búsqueda.</div>';
+                const counter=host.querySelector('#dot-responsables-count');if(counter)counter.textContent=options.filter(o=>o.selected).length+' seleccionados';
+                grid.querySelectorAll('[data-user-id]').forEach(card=>card.addEventListener('click',()=>{
+                    const option=options.find(o=>String(o.value)===card.dataset.userId);if(!option)return;
+                    option.selected=!option.selected;draw();
+                }));
+                if(window.lucide)window.lucide.createIcons();
+            };
+            search.addEventListener('input',draw);
+            host.querySelector('#dot-responsables-all').addEventListener('click',()=>{options.forEach(o=>o.selected=true);draw();});
+            host.querySelector('#dot-responsables-clear').addEventListener('click',()=>{options.forEach(o=>o.selected=false);draw();});
+            draw();
+            const form=document.getElementById('form-alerta-dotacion');
+            if(form&&!form.dataset.coverageResetBound){form.dataset.coverageResetBound='1';form.addEventListener('reset',()=>setTimeout(()=>renderizarTarjetasResponsablesCobertura(),0));}
+        }
         async function cargarResponsablesCobertura(){
             const select=document.getElementById('dot-responsables');if(!select)return;
+            select.removeAttribute('required');
             const {data,error}=await _supabase.rpc('listar_responsables_cobertura');
-            if(error){select.innerHTML='<option value="">No disponible para este perfil</option>';return;}
+            if(error){
+                select.innerHTML='<option value="">No disponible para este perfil</option>';
+                renderizarTarjetasResponsablesCobertura();
+                const host=document.getElementById('dot-responsables-ui');
+                if(host){const grid=host.querySelector('#dot-responsables-grid');if(grid)grid.innerHTML='<div class="dot-responsables-empty">No se pudo cargar el listado. Revisa los permisos de tu usuario o la conexión e inténtalo nuevamente.</div>';}
+                return;
+            }
             select.innerHTML=(data||[]).map(u=>'<option value="'+escaparHTML(u.id)+'">'+escaparHTML((u.nombre||u.email||('Usuario '+u.id))+(u.email?' · '+u.email:''))+'</option>').join('');
+            renderizarTarjetasResponsablesCobertura();
         }
         async function crearSolicitudDotacion(event){
             event.preventDefault();
@@ -1286,18 +1370,18 @@
                 Object.entries(cantidades).sort((a,b)=>b[1]-a[1]).slice(0,100).forEach(([k,v]) => resultado.push(`- ${k}: ${v}`));
             }
             resultado.push('');
-            resultado.push('Nota: Gemini no estuvo disponible por cuota temporal. Este resultado fue calculado directamente en el navegador con el Excel completo, sin enviar el archivo a un servicio externo.');
+            resultado.push('Nota: Ollama no estuvo disponible. Este resultado fue calculado directamente en el navegador con el Excel completo, sin enviar el archivo a un servicio externo.');
             return resultado.join('\n');
         }
-        function segundosReintentoGemini(mensaje) {
+        function segundosReintentoOllama(mensaje) {
             const match = texto(mensaje).match(/retry in\s+([0-9.]+)/i);
             return match ? Math.ceil(Number(match[1])) : 0;
         }
-        async function llamarGeminiConReintento(payload, out) {
+        async function llamarOllamaConReintento(payload, out) {
             for (let intento = 1; intento <= 2; intento++) {
                 const token = await tokenSesionActual();
                 if (!token) throw new Error('Tu sesión expiró. Inicia sesión nuevamente para usar el análisis de IA.');
-                const res = await fetch('/api/gemini', {
+                const res = await fetch('/api/ollama', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(payload)
@@ -1307,16 +1391,16 @@
                 try { json = JSON.parse(raw); }
                 catch { throw new Error(raw.slice(0, 700) || `Respuesta no válida del servidor (${res.status})`); }
                 if (res.ok) return json;
-                const espera = segundosReintentoGemini(json.error);
+                const espera = segundosReintentoOllama(json.error);
                 if (intento === 1 && espera > 0 && espera <= 70) {
-                    out.textContent = `La cuota temporal de Gemini está ocupada. Reintento automático en ${espera} segundos...`;
+                    out.textContent = `El servidor Ollama está ocupado. Reintento automático en ${espera} segundos...`;
                     await new Promise(resolve => setTimeout(resolve, (espera + 2) * 1000));
                     continue;
                 }
                 throw new Error(json.error || `Error ${res.status}`);
             }
         }
-        async function analizarConGeminiSeguro() {
+        async function analizarConOllamaSeguro() {
             const file = document.getElementById('ai-archivo').files?.[0];
             const prompt = texto(document.getElementById('ai-prompt').value);
             const autorizado = document.getElementById('ai-consentimiento').checked;
@@ -1343,21 +1427,31 @@
                     });
                 } else {
                     if (file.size > 5 * 1024 * 1024) throw new Error('El PDF supera 5 MB. Para esta versión, utiliza un PDF más pequeño.');
-                    const data = await archivoADataURL(file);
-                    payload.base64 = data.split(',')[1];
+                    if (!window.pdfjsLib) throw new Error('No se cargó el lector PDF. Recarga la página.');
+                    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    const pdf = await window.pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+                    const paginas = [];
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        paginas.push(content.items.map(item => item.str || '').join(' '));
+                    }
+                    payload.textData = paginas.join('\n\n').trim();
+                    if (!payload.textData) throw new Error('El PDF no contiene texto seleccionable. Los PDF escaneados requieren OCR.');
+                    if (payload.textData.length > 1900000) throw new Error('El texto del PDF supera el límite permitido.');
                 }
-                out.textContent = 'Analizando con Gemini...';
-                const json = await llamarGeminiConReintento(payload, out);
+                out.textContent = 'Analizando con Ollama...';
+                const json = await llamarOllamaConReintento(payload, out);
                 ultimaRespuestaIA = json.text || '';
                 out.textContent = ultimaRespuestaIA;
-                await registrarAuditoria('reportes', 'ANALISIS_GEMINI', `${file.name} · ${prompt.slice(0, 180)}`);
-                mostrarToast('Análisis completado con Gemini.', 'success');
+                await registrarAuditoria('reportes', 'ANALISIS_OLLAMA', `${file.name} · ${prompt.slice(0, 180)}`);
+                mostrarToast('Análisis completado con Ollama.', 'success');
             } catch (error) {
                 const cuota = /quota|rate.limit|exceeded|429/i.test(error.message);
                 if (cuota && filasExcel) {
                     ultimaRespuestaIA = analisisLocalExcel(filasExcel, prompt, file.name);
                     out.textContent = ultimaRespuestaIA;
-                    mostrarToast('Gemini alcanzó su cuota temporal. Se generó un análisis local de respaldo con el Excel completo.', 'warning', 16000);
+                    mostrarToast('Ollama no estuvo disponible. Se generó un análisis local de respaldo con el Excel completo.', 'warning', 16000);
                 } else {
                     out.textContent = 'Error: ' + error.message;
                     mostrarToast(error.message, 'error', 16000);
