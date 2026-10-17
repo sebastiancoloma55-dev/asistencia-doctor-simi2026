@@ -701,7 +701,19 @@
 
         function renderizarTareas(){
             const estado=document.getElementById('tarea-filtro-estado')?.value||'TODOS',responsableFiltro=document.getElementById('tarea-filtro-responsable')?.value||'TODOS',q=texto(document.getElementById('tarea-filtro-buscar')?.value).toLowerCase();
-            let f=tareasGlobal;if(estado!=='TODOS')f=f.filter(x=>x.estado_calculado===estado);if(responsableFiltro!=='TODOS')f=f.filter(x=>String(x.responsable_rol_id)===responsableFiltro);if(q)f=f.filter(x=>`${x.titulo} ${x.descripcion} ${x.responsable?.nombre} ${x.responsable?.email} ${x.sucursal?.nombre}`.toLowerCase().includes(q));
+            let f=tareasGlobal;
+            if(estado!=='TODOS')f=f.filter(x=>x.estado_calculado===estado);
+            if(responsableFiltro!=='TODOS')f=f.filter(x=>String(x.responsable_rol_id)===responsableFiltro);
+            if(q)f=f.filter(x=>`${x.titulo} ${x.descripcion} ${x.responsable?.nombre} ${x.responsable?.email} ${x.sucursal?.nombre}`.toLowerCase().includes(q));
+            const vista=window.taskCenterView||'diaria';
+            const fechaChile=x=>x?new Date(x).toLocaleDateString('sv-SE',{timeZone:'America/Santiago'}):'';
+            const hoyChile=fechaChile(new Date());
+            if(vista==='diaria')f=f.filter(x=>fechaChile(x.fecha_limite)===hoyChile||x.estado_calculado==='VENCIDA');
+            else if(vista==='mias')f=f.filter(x=>String(x.responsable_rol_id)===String(perfilActualSistema?.id||''));
+            else if(vista==='recurrentes')f=f.filter(x=>x.recurrencia&&x.recurrencia!=='NINGUNA');
+            else if(vista==='ocasionales')f=f.filter(x=>!x.recurrencia||x.recurrencia==='NINGUNA');
+            else if(vista==='calendario'){const mes=hoyChile.slice(0,7);f=f.filter(x=>fechaChile(x.fecha_limite).slice(0,7)===mes).sort((a,b)=>new Date(a.fecha_limite)-new Date(b.fecha_limite));}
+            else if(vista==='historial')f=f.sort((a,b)=>new Date(b.updated_at||b.created_at)-new Date(a.updated_at||a.created_at));
             const cuenta=e=>tareasGlobal.filter(x=>x.estado_calculado===e).length;
             document.getElementById('tk-pendiente').innerText=cuenta('PENDIENTE');document.getElementById('tk-proceso').innerText=cuenta('EN_PROCESO');document.getElementById('tk-validar').innerText=cuenta('COMPLETADA_POR_VALIDAR');document.getElementById('tk-aprobada').innerText=cuenta('APROBADA');document.getElementById('tk-devuelta').innerText=cuenta('DEVUELTA');document.getElementById('tk-vencida').innerText=cuenta('VENCIDA');
             const medibles=tareasGlobal.filter(x=>x.estado_calculado!=='CANCELADA');
@@ -731,3 +743,24 @@
         function renderizarAuditoria(){const buscar=document.getElementById('audit-buscar')?.value.toLowerCase().trim()||'',desde=document.getElementById('audit-desde')?.value||'',hasta=document.getElementById('audit-hasta')?.value||'';let f=datosAuditoriaGlobal.filter(a=>(!desde||a.created_at.slice(0,10)>=desde)&&(!hasta||a.created_at.slice(0,10)<=hasta));if(buscar)f=f.filter(a=>`${a.usuario_email} ${a.modulo} ${a.accion} ${a.detalle}`.toLowerCase().includes(buscar));document.getElementById('contador-auditoria').innerText=f.length;document.getElementById('tabla-auditoria-body').innerHTML=f.length?f.map(a=>`<tr><td class="p-3 font-mono">${escaparHTML(a.created_at?.replace('T',' ').slice(0,19))}</td><td class="p-3">${escaparHTML(a.usuario_email)}</td><td class="p-3">${escaparHTML(a.modulo)}</td><td class="p-3 font-bold">${escaparHTML(a.accion)}</td><td class="p-3">${escaparHTML(a.detalle)}</td></tr>`).join(''):'<tr><td colspan="5" class="p-8 text-center text-slate-400">Sin eventos.</td></tr>';}
 
 
+
+
+/* Navegación de vistas del centro de tareas; no altera registros ni permisos. */
+document.addEventListener('DOMContentLoaded',function(){
+  const botones=Array.from(document.querySelectorAll('[data-task-view]'));
+  if(!botones.length)return;
+  window.taskCenterView='diaria';
+  botones.forEach(function(btn){
+    btn.addEventListener('click',function(){
+      const vista=btn.dataset.taskView||'diaria';
+      window.taskCenterView=vista;
+      botones.forEach(function(b){const active=b===btn;b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active));});
+      if(vista==='analitica'){
+        document.querySelector('#view-tareas .task-analytics')?.scrollIntoView({behavior:'smooth',block:'start'});
+      }else{
+        document.querySelector('#view-tareas .task-list-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+      if(typeof renderizarTareas==='function')renderizarTareas();
+    });
+  });
+});
