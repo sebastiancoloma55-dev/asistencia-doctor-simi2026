@@ -801,6 +801,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 @media(max-width:640px){.colab-pagination{align-items:stretch;padding:12px}.colab-pagination-controls{justify-content:space-between;gap:5px}.colab-pagination-controls button{padding:8px}.colab-pagination-info span{max-width:100%}}
 
 </style>
+    <link rel="stylesheet" href="/css/production-base-visual-refresh.css">
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -890,6 +891,16 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     </div>
                 </div>
 
+                <button
+                    id="sidebar-collapse-toggle"
+                    type="button"
+                    class="hidden lg:inline-flex items-center justify-center rounded-lg border border-blue-800/60 p-2 text-slate-300 transition hover:bg-white/10 hover:text-white"
+                    title="Contraer o expandir menú"
+                    aria-label="Contraer o expandir menú"
+                    onclick="document.getElementById('sidebar').classList.toggle('sidebar-collapsed')"
+                >
+                    <i data-lucide="panel-left-close" class="h-4 w-4"></i>
+                </button>
                 <button
                     class="lg:hidden"
                     onclick="toggleSidebar(false)"
