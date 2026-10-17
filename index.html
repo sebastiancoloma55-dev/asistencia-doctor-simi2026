@@ -2088,22 +2088,43 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 
             <!-- TAREAS DIARIAS · CENTRO INTELIGENTE DE PRODUCTIVIDAD -->
             <section id="view-tareas" class="hidden space-y-6 p-4 sm:p-8 task-center">
-                <header class="task-hero">
-                    <div class="task-hero-top">
-                        <div class="task-hero-brand"><span class="task-hero-icon"><i data-lucide="workflow" class="h-6 w-6"></i></span><div><span class="task-eyebrow">CENTRO DE PRODUCTIVIDAD · RR. HH.</span><h3>Gestión inteligente de tareas</h3><p>Asigna el trabajo, acompaña la ejecución y valida resultados desde un solo lugar.</p></div></div>
-                        <button type="button" class="task-refresh" onclick="cargarTareas()"><i data-lucide="refresh-cw" class="h-4 w-4"></i> Actualizar datos</button>
-                    </div>
-                    <div class="task-flow">
-                        <div class="task-flow-step"><span>01</span><div><b>Planificar</b><small>Define responsable y plazo</small></div></div><i data-lucide="arrow-right" class="task-flow-arrow"></i>
-                        <div class="task-flow-step"><span>02</span><div><b>Ejecutar</b><small>Registra el resultado</small></div></div><i data-lucide="arrow-right" class="task-flow-arrow"></i>
-                        <div class="task-flow-step"><span>03</span><div><b>Validar</b><small>Confirma el cumplimiento</small></div></div>
-                        <div class="task-flow-note"><i data-lucide="bell-ring" class="h-4 w-4"></i> Avisos y recurrencias automáticas</div>
-                    </div>
-                </header>
-
-                <div class="task-section-heading"><div><span class="task-section-index">01 / NUEVA GESTIÓN</span><h4>Crear y asignar una tarea</h4><p>Empieza desde una sugerencia o configura todos los detalles.</p></div><span class="task-required-note"><span>*</span> Campo obligatorio</span></div>
-
-                <div class="task-template-panel">
+  <header class="task-page-heading">
+    <div class="task-page-title">
+      <div class="task-page-breadcrumb"><span>INICIO</span><i data-lucide="chevron-right"></i><b>TAREAS DIARIAS</b></div>
+      <h3>Tareas diarias</h3>
+      <p>Organiza, asigna y da seguimiento a las tareas del equipo de Asistencia de RR. HH.</p>
+    </div>
+    <div class="task-page-actions">
+      <button type="button" class="task-page-new" onclick="document.getElementById('task-create-panel').open=!document.getElementById('task-create-panel').open; if(document.getElementById('task-create-panel').open)document.getElementById('tarea-titulo').focus()"><i data-lucide="plus"></i> Nueva tarea <i data-lucide="chevron-down"></i></button>
+      <button type="button" class="task-page-template" onclick="document.getElementById('task-create-panel').open=true;document.getElementById('tarea-plantilla').focus()"><i data-lucide="copy-check"></i> Plantillas</button>
+      <button type="button" class="task-refresh" onclick="cargarTareas()"><i data-lucide="refresh-cw"></i> Actualizar</button>
+    </div>
+  </header>
+                  <div class="task-kpi-grid">
+                    <div class="task-kpi task-kpi-pending"><span class="task-kpi-icon"><i data-lucide="circle-dashed" class="h-5 w-5"></i></span><span class="task-kpi-label">Pendientes</span><b id="tk-pendiente">0</b><small>Por comenzar</small></div>
+                    <div class="task-kpi task-kpi-progress"><span class="task-kpi-icon"><i data-lucide="timer" class="h-5 w-5"></i></span><span class="task-kpi-label">En proceso</span><b id="tk-proceso">0</b><small>En ejecución</small></div>
+                    <div class="task-kpi task-kpi-review"><span class="task-kpi-icon"><i data-lucide="clipboard-check" class="h-5 w-5"></i></span><span class="task-kpi-label">Por validar</span><b id="tk-validar">0</b><small>Requieren revisión</small></div>
+                    <div class="task-kpi task-kpi-done"><span class="task-kpi-icon"><i data-lucide="check-circle-2" class="h-5 w-5"></i></span><span class="task-kpi-label">Aprobadas</span><b id="tk-aprobada">0</b><small>Cerradas correctamente</small></div>
+                    <div class="task-kpi task-kpi-return"><span class="task-kpi-icon"><i data-lucide="rotate-ccw" class="h-5 w-5"></i></span><span class="task-kpi-label">Devueltas</span><b id="tk-devuelta">0</b><small>Necesitan ajustes</small></div>
+                    <div class="task-kpi task-kpi-overdue"><span class="task-kpi-icon"><i data-lucide="alert-triangle" class="h-5 w-5"></i></span><span class="task-kpi-label">Vencidas</span><b id="tk-vencida">0</b><small>Revisar prioridad</small></div>
+                    <div class="task-kpi task-kpi-rate"><span class="task-kpi-icon"><i data-lucide="chart-no-axes-combined" class="h-5 w-5"></i></span><span class="task-kpi-label">Tasa de cierre</span><b id="tk-cumplimiento">0%</b><small>Trabajo completado</small></div>
+                    <div class="task-kpi task-kpi-time"><span class="task-kpi-icon"><i data-lucide="clock-3" class="h-5 w-5"></i></span><span class="task-kpi-label">Cierre a tiempo</span><b id="tk-tiempo">0%</b><small>Cumplimiento del plazo</small></div>
+                </div>
+  <nav class="task-workspace-tabs" aria-label="Vistas de tareas">
+    <button type="button" data-task-view="diaria" class="is-active"><i data-lucide="calendar-check"></i> Vista diaria</button>
+    <button type="button" data-task-view="mias"><i data-lucide="file-check"></i> Mis tareas</button>
+    <button type="button" data-task-view="equipo"><i data-lucide="users"></i> Tareas del equipo</button>
+    <button type="button" data-task-view="recurrentes"><i data-lucide="repeat"></i> Recurrentes</button>
+    <button type="button" data-task-view="ocasionales"><i data-lucide="file-text"></i> Ocasionales</button>
+    <button type="button" data-task-view="calendario"><i data-lucide="calendar-days"></i> Calendario</button>
+    <button type="button" data-task-view="analitica"><i data-lucide="chart-no-axes-combined"></i> Analítica</button>
+    <button type="button" data-task-view="historial"><i data-lucide="history"></i> Historial</button>
+  </nav>
+  <details id="task-create-panel" class="task-create-disclosure">
+    <summary><span class="task-create-summary-icon"><i data-lucide="plus"></i></span><span><b>Crear y asignar una tarea</b><small>Configura una tarea puntual o una rutina recurrente.</small></span><i data-lucide="chevron-down" class="task-create-chevron"></i></summary>
+    <div class="task-create-body">
+      <div class="task-section-heading"><div><span class="task-section-index">NUEVA GESTIÓN</span><h4>Configurar asignación</h4><p>Define responsables, plazo, prioridad y resultado esperado.</p></div><span class="task-required-note"><span>*</span> Campo obligatorio</span></div>
+                      <div class="task-template-panel">
                     <div class="task-template-icon"><i data-lucide="wand-sparkles" class="h-5 w-5"></i></div>
                     <div class="task-template-copy"><b>¿Quieres ahorrar tiempo?</b><span>Usa una plantilla habitual del equipo y ajusta los detalles.</span></div>
                     <div class="task-template-select"><label for="tarea-plantilla">Plantillas de trabajo</label><select id="tarea-plantilla" class="form-field" onchange="aplicarPlantillaTarea()"><option value="">Seleccionar una plantilla…</option><option value="incidencias">Revisar correos de incidencias</option><option value="asistencia">Regularizar marcas de asistencia</option><option value="licencias">Revisar licencias médicas pendientes</option><option value="turnos">Revisar turnos y cambios</option><option value="reporte">Enviar reporte diario a jefatura</option><option value="sucursales">Contactar sucursales con pendientes</option></select></div>
@@ -2123,21 +2144,10 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                         <div class="task-field task-field-description"><label for="tarea-descripcion" class="required-label">Descripción e instrucciones</label><textarea id="tarea-descripcion" required rows="3" class="form-field" placeholder="Explica el resultado esperado, los pasos relevantes y cualquier antecedente necesario…"></textarea><small>Describe el resultado esperado para que la tarea pueda validarse objetivamente.</small></div>
                     </div>
                     <div class="task-form-footer"><div class="task-secure-note"><i data-lucide="bell-ring" class="h-4 w-4"></i><span>El responsable recibirá una notificación interna al asignarse.</span></div><button type="submit" class="task-submit"><i data-lucide="plus" class="h-4 w-4"></i> Crear y asignar tarea</button></div>
-                </form>
-
-                <div class="task-section-heading task-section-heading-spaced"><div><span class="task-section-index">02 / CONTROL OPERACIONAL</span><h4>Panorama del equipo</h4><p>Consulta el estado del trabajo y detecta dónde se necesita atención.</p></div></div>
-                <div class="task-kpi-grid">
-                    <div class="task-kpi task-kpi-pending"><span class="task-kpi-icon"><i data-lucide="circle-dashed" class="h-5 w-5"></i></span><span class="task-kpi-label">Pendientes</span><b id="tk-pendiente">0</b><small>Por comenzar</small></div>
-                    <div class="task-kpi task-kpi-progress"><span class="task-kpi-icon"><i data-lucide="timer" class="h-5 w-5"></i></span><span class="task-kpi-label">En proceso</span><b id="tk-proceso">0</b><small>En ejecución</small></div>
-                    <div class="task-kpi task-kpi-review"><span class="task-kpi-icon"><i data-lucide="clipboard-check" class="h-5 w-5"></i></span><span class="task-kpi-label">Por validar</span><b id="tk-validar">0</b><small>Requieren revisión</small></div>
-                    <div class="task-kpi task-kpi-done"><span class="task-kpi-icon"><i data-lucide="check-circle-2" class="h-5 w-5"></i></span><span class="task-kpi-label">Aprobadas</span><b id="tk-aprobada">0</b><small>Cerradas correctamente</small></div>
-                    <div class="task-kpi task-kpi-return"><span class="task-kpi-icon"><i data-lucide="rotate-ccw" class="h-5 w-5"></i></span><span class="task-kpi-label">Devueltas</span><b id="tk-devuelta">0</b><small>Necesitan ajustes</small></div>
-                    <div class="task-kpi task-kpi-overdue"><span class="task-kpi-icon"><i data-lucide="alert-triangle" class="h-5 w-5"></i></span><span class="task-kpi-label">Vencidas</span><b id="tk-vencida">0</b><small>Revisar prioridad</small></div>
-                    <div class="task-kpi task-kpi-rate"><span class="task-kpi-icon"><i data-lucide="chart-no-axes-combined" class="h-5 w-5"></i></span><span class="task-kpi-label">Tasa de cierre</span><b id="tk-cumplimiento">0%</b><small>Trabajo completado</small></div>
-                    <div class="task-kpi task-kpi-time"><span class="task-kpi-icon"><i data-lucide="clock-3" class="h-5 w-5"></i></span><span class="task-kpi-label">Cierre a tiempo</span><b id="tk-tiempo">0%</b><small>Cumplimiento del plazo</small></div>
-                </div>
-
-                <div class="task-list-panel">
+       
+    </div>
+  </details>
+                  <div class="task-list-panel">
                     <div class="task-list-heading"><div><span class="task-section-index">03 / BANDEJA DE TRABAJO</span><h4>Seguimiento y acciones</h4><p>Filtra, encuentra una asignación y actualiza su resultado.</p></div><span class="task-live-label"><span></span> Datos de tareas</span></div>
                     <div class="task-filters">
                         <div class="task-filter-field"><label for="tarea-filtro-responsable">Responsable</label><select id="tarea-filtro-responsable" class="form-field" onchange="renderizarTareas()"><option value="TODOS">Todos los responsables</option></select></div>
@@ -2148,15 +2158,17 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     <div class="table-scroll task-table-scroll"><table class="w-full min-w-[1000px]"><thead><tr><th>Tarea</th><th>Responsable</th><th>Revisor</th><th>Prioridad</th><th>Vencimiento</th><th>Realización / estado</th><th>Acciones</th></tr></thead><tbody id="tabla-tareas"></tbody></table></div>
                 </div>
 
-                <div class="task-analytics">
+
+                  <div class="task-analytics">
                     <div class="task-analytics-heading"><div><span class="task-section-index">04 / ANALÍTICA DE GESTIÓN</span><h4>Indicadores y rendimiento</h4><p>Analiza el cumplimiento en un período concreto y exporta los resultados para tus reportes.</p></div><button type="button" onclick="exportarKpiTareasCSV()" class="task-export"><i data-lucide="download" class="h-4 w-4"></i> Exportar KPI CSV</button></div>
                     <div class="task-analytics-filters"><div><label for="tarea-kpi-desde">Desde</label><input id="tarea-kpi-desde" type="date" class="form-field" onchange="renderizarTareas()"></div><div><label for="tarea-kpi-hasta">Hasta</label><input id="tarea-kpi-hasta" type="date" class="form-field" onchange="renderizarTareas()"></div><div><label for="tarea-kpi-sucursal">Sucursal</label><select id="tarea-kpi-sucursal" class="form-field" onchange="renderizarTareas()"><option value="">Todas las sucursales</option></select></div></div>
                     <div id="tarea-kpi-resumen" class="task-analytics-summary"><div class="task-analytics-empty"><span>Tareas medibles</span><b>0</b></div></div>
                     <div class="task-user-performance"><div class="task-user-heading"><div><h5>Rendimiento por usuario</h5><p>Compara asignaciones, aprobaciones y atrasos por persona.</p></div><select id="tarea-kpi-filtro-usuario" class="form-field" onchange="renderizarTareas()"><option value="TODOS">Todos los usuarios</option></select></div><div id="tabla-kpi-usuarios" class="space-y-2"><p class="text-sm text-slate-400">Cargando métricas…</p></div></div>
                 </div>
-            </section>
 
-            <!-- GENÉRICO -->
+</section>
+
+<!-- GENÉRICO -->
             <section id="view-operaciones" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro">
                     <span class="module-kicker"><i data-lucide="activity" class="h-3 w-3"></i> Centro de mando RR. HH.</span>
