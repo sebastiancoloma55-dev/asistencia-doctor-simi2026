@@ -1003,30 +1003,19 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 
             <!-- DASHBOARD -->
             <section id="view-dashboard" class="space-y-6 p-4 sm:p-8">
-                <!-- Banner reconstruido para coincidir con el mockup aprobado -->
-                <div class="dashboard-welcome dashboard-welcome-approved" aria-labelledby="dashboard-hero-heading">
-                    <div class="dashboard-hero-copy">
-                        <div class="dashboard-hero-eyebrow">
-                            <span class="dashboard-hero-live-dot" aria-hidden="true"></span>
-                            <span>ASISTENCIA DOCTOR SIMI 2026</span>
+                <!-- Banner ejecutivo compacto aprobado para Dashboard -->
+                <section class="dashboard-welcome-compact" aria-labelledby="dashboard-welcome-compact-title">
+                    <div class="dashboard-welcome-compact-copy">
+                        <div class="dashboard-welcome-compact-kicker">PLATAFORMA DE GESTIÓN · RECURSOS HUMANOS</div>
+                        <div class="dashboard-welcome-compact-heading">
+                            <span class="dashboard-welcome-compact-icon" aria-hidden="true"><i data-lucide="layout-dashboard"></i></span>
+                            <h2 id="dashboard-welcome-compact-title">¡Bienvenido/a, Sebastián Coloma!</h2>
                         </div>
-                        <h2 id="dashboard-hero-heading" class="dashboard-approved-title">¡Bienvenido/a, <span>Sebastián!</span></h2>
-                        <p class="dashboard-approved-lead">Panel de control de Asistencia y Recursos Humanos.</p>
-                        <p class="dashboard-hero-subtitle">Todo el equipo, todas las sucursales, en un solo lugar.</p>
-                        <div class="dashboard-hero-shortcuts dashboard-approved-shortcuts" aria-label="Accesos directos">
-                            <button type="button" onclick="cambiarModulo('colaboradores')"><i data-lucide="users"></i><span>Personas</span></button>
-                            <button type="button" onclick="cambiarModulo('asistencia')"><i data-lucide="calendar-clock"></i><span>Asistencia</span></button>
-                            <button type="button" onclick="cambiarModulo('sucursales')"><i data-lucide="store"></i><span>Sucursales</span></button>
-                            <button type="button" onclick="cambiarModulo('reportes')"><i data-lucide="file-text"></i><span>Reportes</span></button>
-                            <button type="button" class="dashboard-hero-ai" onclick="cambiarModulo('reportes')" title="Abrir reportes para análisis"><i data-lucide="sparkles"></i><span>IA</span></button>
-                        </div>
+                        <p>Tienes acceso de administrador principal a todos los módulos y herramientas del sistema.</p>
                     </div>
-                    <div class="dashboard-hero-visual dashboard-approved-visual" aria-label="Ilustración de Doctor Simi y farmacia">
-                        <img class="dashboard-approved-illustration" src="/doctor-simi-pharmacy-hero.svg" alt="Doctor Simi saludando junto a una farmacia moderna" loading="eager">
-                        <div class="dashboard-hero-quote">“Un equipo saludable,<br>una empresa más fuerte”</div>
-                        <div class="dashboard-hero-role"><i data-lucide="chart-no-axes-column-increasing" aria-hidden="true"></i><span>ASISTENCIA<br><strong>2026</strong></span></div>
-                    </div>
-                </div>
+                    <div class="dashboard-welcome-compact-admin"><i data-lucide="shield-check" aria-hidden="true"></i><span>Administrador principal</span></div>
+                    <div class="dashboard-welcome-compact-watermark" aria-hidden="true">SIMI</div>
+                </section>
 
                 <div id="dashboard-space-summary" class="dash-space-card" aria-live="polite">
                     <div class="dash-space-intro"><div><span class="dash-space-kicker">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo('espacio')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div>
@@ -3565,6 +3554,23 @@ hr{border-color:#e8edf3}
 @media(prefers-reduced-motion:reduce){
  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+</style>
+
+
+<style id="dashboard-welcome-compact-styles">
+.dashboard-welcome-compact{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:140px;overflow:hidden;padding:22px 24px;border:1px solid rgba(255,255,255,.22);border-radius:20px;background:linear-gradient(112deg,#0b3e78 0%,#08638c 58%,#07849a 100%);color:#fff;box-shadow:0 10px 26px rgba(7,55,103,.10)}
+.dashboard-welcome-compact-copy{position:relative;z-index:2;min-width:0;max-width:calc(100% - 245px)}
+.dashboard-welcome-compact-kicker{font-size:12px;font-weight:900;letter-spacing:.16em;line-height:1.4;color:#dbeafe}
+.dashboard-welcome-compact-heading{display:flex;align-items:center;gap:12px;margin-top:8px}
+.dashboard-welcome-compact-icon{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;border:1px solid rgba(255,255,255,.45);border-radius:13px;background:#e7f7fc;color:#007b9b}
+.dashboard-welcome-compact-icon svg{width:21px;height:21px;stroke-width:2}
+.dashboard-welcome-compact-heading h2{margin:0;font-size:clamp(22px,2.15vw,30px);font-weight:900;letter-spacing:-.045em;line-height:1.15;color:#fff}
+.dashboard-welcome-compact-copy p{margin:9px 0 0;font-size:13px;line-height:1.5;color:#f0f7ff}
+.dashboard-welcome-compact-admin{position:relative;z-index:2;display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:0 0 auto;padding:9px 13px;border:1px solid rgba(255,255,255,.38);border-radius:999px;background:rgba(255,255,255,.09);color:#fff;font-size:11px;font-weight:800;white-space:nowrap}
+.dashboard-welcome-compact-admin svg{width:15px;height:15px}
+.dashboard-welcome-compact-watermark{position:absolute;z-index:0;right:20px;top:50%;transform:translateY(-51%);font-size:clamp(86px,9vw,138px);font-weight:950;letter-spacing:-.095em;line-height:.85;color:rgba(111,205,224,.15);pointer-events:none;user-select:none}
+@media(max-width:760px){.dashboard-welcome-compact{align-items:flex-start;flex-direction:column;gap:14px;min-height:0;padding:19px}.dashboard-welcome-compact-copy{max-width:100%}.dashboard-welcome-compact-kicker{font-size:10px;letter-spacing:.12em}.dashboard-welcome-compact-heading{gap:10px}.dashboard-welcome-compact-icon{flex-basis:40px;width:40px;height:40px}.dashboard-welcome-compact-heading h2{font-size:clamp(20px,5vw,27px)}.dashboard-welcome-compact-copy p{max-width:440px;font-size:12px}.dashboard-welcome-compact-admin{font-size:10px;padding:7px 10px}.dashboard-welcome-compact-watermark{right:10px;top:20px;transform:none;font-size:75px}}
+@media(prefers-reduced-motion:reduce){.dashboard-welcome-compact *{animation:none!important;transition:none!important}}
 </style>
 
 </body>
