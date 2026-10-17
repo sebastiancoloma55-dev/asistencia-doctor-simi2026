@@ -3570,6 +3570,17 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
  #view-dashboard .dashboard-welcome.simi-dashboard-hero .simi-hero-brand-tag{display:none!important}
 }
 
+/* Compact, aligned top navigation without changing the established color palette */
+header.sticky.top-0.z-10{min-height:64px!important;padding-top:8px!important;padding-bottom:8px!important;gap:12px!important;box-shadow:0 5px 18px rgba(17,53,95,.07)!important}
+header.sticky.top-0.z-10>div:first-child{min-width:0!important;gap:10px!important}
+header.sticky.top-0.z-10>div:last-child{min-width:0!important;gap:8px!important;align-items:center!important}
+#header-title{font-size:clamp(14px,1.35vw,19px)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:230px!important}
+.topbar-quick-action{min-height:42px!important;padding:8px 12px!important;border-radius:12px!important;font-size:11px!important;line-height:1.25!important;box-shadow:0 5px 14px rgba(0,79,170,.12)!important}
+.topbar-search{min-height:40px!important;max-width:170px!important;padding:7px 10px!important;border-radius:12px!important;gap:7px!important;font-size:11px!important}
+#btn-theme-settings{min-height:40px!important;padding:8px 11px!important;border-radius:12px!important;white-space:nowrap!important}
+#btn-cerrar-sesiones-global{min-height:40px!important;padding:8px 10px!important;border-radius:12px!important;white-space:nowrap!important}
+@media(max-width:900px){header.sticky.top-0.z-10{padding-left:12px!important;padding-right:12px!important}header.sticky.top-0.z-10>div:last-child{gap:6px!important}#user-email-display{display:none!important}.topbar-quick-action span{max-width:74px!important}}
+@media(max-width:640px){header.sticky.top-0.z-10{min-height:56px!important;padding:7px 9px!important}#header-title{max-width:125px!important;font-size:13px!important}header.sticky.top-0.z-10>div:last-child{gap:5px!important}#btn-theme-settings .theme-button-label{display:none!important}#btn-theme-settings{width:38px!important;justify-content:center!important;padding:0!important}.topbar-search{width:38px!important;min-width:38px!important;justify-content:center!important;padding:0!important}.topbar-search span,.topbar-search kbd{display:none!important}#btn-cerrar-sesiones-global{font-size:0!important;width:38px!important;padding:0!important;justify-content:center!important}#btn-cerrar-sesiones-global i{margin:0!important}header.sticky.top-0.z-10>div:last-child>button:last-child{font-size:10px!important;max-width:48px!important}}
 /* Preview UX improvements: compact movable HR assistant and high-contrast operational surfaces */
 #simi-context-assistant{position:fixed!important;right:18px!important;bottom:14px!important;z-index:9998!important;width:min(360px,calc(100vw - 24px))!important;pointer-events:none}
 #simi-context-assistant #simi-context-toggle,#simi-context-assistant #simi-context-popover{pointer-events:auto}
