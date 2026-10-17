@@ -3738,5 +3738,55 @@ hr{border-color:#e8edf3}
 
 </style>
 
+
+<style id="workspace-layout-size-correction">
+/* Corrección de proporciones y distribución de Mi espacio de trabajo */
+#view-espacio{width:100%;max-width:100%;min-width:0;overflow-x:hidden;padding:clamp(14px,1.8vw,26px)!important;gap:clamp(16px,1.7vw,22px)!important}
+#view-espacio .workspace-page-heading{width:100%;min-width:0;align-items:center}
+#view-espacio .workspace-heading-copy{flex:1 1 420px;min-width:0}
+#view-espacio .workspace-heading-copy h2{font-size:clamp(24px,2vw,32px);overflow-wrap:anywhere}
+#view-espacio .workspace-heading-actions{flex:0 1 auto;min-width:0}
+#view-espacio .space-metrics-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(8px,1vw,14px);width:100%}
+#view-espacio .space-metric{min-width:0;min-height:88px;padding:clamp(11px,1.2vw,17px)}
+#view-espacio .space-metric-copy strong{font-size:clamp(21px,2vw,27px)}
+#view-espacio .space-tabbar{width:100%;min-width:0;flex-wrap:wrap}
+#view-espacio .space-notes-layout{display:grid!important;grid-template-columns:minmax(0,1fr) 270px;align-items:start;gap:16px;width:100%;min-width:0}
+#view-espacio .space-notes-main{grid-column:1;grid-row:1;min-width:0;width:100%}
+#view-espacio .workspace-recent-card{grid-column:2;grid-row:1;min-width:0;width:100%}
+#view-espacio .space-compose-card.is-open{grid-column:1/-1;grid-row:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0;max-width:100%;padding:clamp(14px,1.6vw,20px)}
+#view-espacio .space-compose-card.is-open~.space-notes-main{grid-column:1;grid-row:2}
+#view-espacio .space-compose-card.is-open~.workspace-recent-card{grid-column:2;grid-row:2}
+#view-espacio .space-compose-card .space-form-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+#view-espacio .space-compose-card input,#view-espacio .space-compose-card select,#view-espacio .space-compose-card textarea{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+#view-espacio .space-note-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%}
+#view-espacio .space-note{width:100%;min-width:0;overflow-wrap:anywhere}
+#view-espacio .workspace-recent-card{padding:clamp(13px,1.4vw,20px)}
+#view-espacio .space-panel-heading{min-width:0}
+@media(max-width:1100px){
+ #view-espacio .space-metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #view-espacio .space-notes-layout{grid-template-columns:minmax(0,1fr) 250px;gap:12px}
+ #view-espacio .space-note-grid{grid-template-columns:minmax(0,1fr)}
+ #view-espacio .workspace-heading-actions button{min-height:40px;padding:0 12px}
+}
+@media(max-width:760px){
+ #view-espacio .workspace-page-heading{align-items:flex-start;flex-direction:column}
+ #view-espacio .workspace-heading-actions{width:100%;justify-content:flex-start}
+ #view-espacio .space-notes-layout{grid-template-columns:minmax(0,1fr)}
+ #view-espacio .space-compose-card.is-open{grid-column:1;grid-row:1}
+ #view-espacio .space-compose-card.is-open~.space-notes-main{grid-column:1;grid-row:2}
+ #view-espacio .space-compose-card.is-open~.workspace-recent-card{grid-column:1;grid-row:3}
+ #view-espacio .space-notes-main,#view-espacio .workspace-recent-card{grid-column:1;grid-row:auto}
+}
+@media(max-width:480px){
+ #view-espacio .space-metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #view-espacio .space-metric{gap:8px}
+ #view-espacio .space-metric-icon{flex-basis:34px;width:34px;height:34px}
+ #view-espacio .space-compose-card.is-open{grid-template-columns:minmax(0,1fr)}
+ #view-espacio .space-compose-card.is-open>*{grid-column:1!important}
+ #view-espacio .space-compose-card .space-form-row{grid-template-columns:minmax(0,1fr)}
+ #view-espacio .space-note-grid{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+
 </body>
 </html>
