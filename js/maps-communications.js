@@ -1427,8 +1427,18 @@
                     });
                 } else {
                     if (file.size > 5 * 1024 * 1024) throw new Error('El PDF supera 5 MB. Para esta versión, utiliza un PDF más pequeño.');
-                    const data = await archivoADataURL(file);
-                    payload.base64 = data.split(',')[1];
+                    if (!window.pdfjsLib) throw new Error('No se cargó el lector PDF. Recarga la página.');
+                    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    const pdf = await window.pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+                    const paginas = [];
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        paginas.push(content.items.map(item => item.str || '').join(' '));
+                    }
+                    payload.textData = paginas.join('\n\n').trim();
+                    if (!payload.textData) throw new Error('El PDF no contiene texto seleccionable. Los PDF escaneados requieren OCR.');
+                    if (payload.textData.length > 1900000) throw new Error('El texto del PDF supera el límite permitido.');
                 }
                 out.textContent = 'Analizando con Ollama...';
                 const json = await llamarOllamaConReintento(payload, out);
