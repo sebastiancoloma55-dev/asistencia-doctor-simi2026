@@ -1570,3 +1570,232 @@ button, input, select, textarea {
   padding: 12px 14px !important;
   color: #29485f !important;
 }
+
+
+/* === VISUAL REFRESH V2 · dashboard + módulos de trabajo === */
+:root{
+  --rrhh-ink:#102d4e;
+  --rrhh-muted:#637b94;
+  --rrhh-border:#d7e5f2;
+  --rrhh-surface:#ffffff;
+  --rrhh-soft:#f3f8fc;
+  --rrhh-teal:#0891a7;
+  --rrhh-blue:#07569a;
+}
+#view-dashboard,#view-colaboradores,#view-sucursales,#view-asistencia,
+#view-licencias,#view-vacaciones,#view-papeletas,#view-correos,
+#view-envio_licencias,#view-amonestaciones,#view-reportes,#view-usuarios,
+#view-auditoria,#view-ayuda,#view-configcorreos,#view-mapas,#view-tareas,
+#view-operaciones,#view-calidad,#view-notificaciones,#view-integraciones,
+#view-chat,#view-traslados,#view-generic{
+  color:var(--rrhh-ink);
+}
+#view-dashboard .ui-card,
+#view-colaboradores .ui-card,
+#view-sucursales .ui-card,
+#view-asistencia .ui-card,
+#view-licencias .ui-card,
+#view-vacaciones .ui-card,
+#view-papeletas .ui-card,
+#view-correos .ui-card,
+#view-envio_licencias .ui-card,
+#view-amonestaciones .ui-card,
+#view-reportes .ui-card,
+#view-usuarios .ui-card,
+#view-auditoria .ui-card,
+#view-mapas .ui-card,
+#view-tareas .ui-card,
+#view-operaciones .ui-card,
+#view-integraciones .ui-card,
+#view-traslados .ui-card{
+  border:1px solid var(--rrhh-border)!important;
+  border-radius:18px!important;
+  background:linear-gradient(145deg,#fff 0%,#fbfdff 100%)!important;
+  box-shadow:0 8px 24px rgba(18,57,92,.045)!important;
+}
+#view-dashboard .ui-card:hover,
+#view-colaboradores .ui-card:hover,
+#view-sucursales .ui-card:hover,
+#view-asistencia .ui-card:hover{
+  border-color:#b8d4e8!important;
+}
+#view-colaboradores>div:first-child,
+#view-sucursales>div:first-child,
+#view-asistencia>div:first-child,
+#view-licencias>div:first-child,
+#view-vacaciones>div:first-child,
+#view-reportes>div:first-child,
+#view-traslados>div:first-child{
+  box-shadow:0 8px 26px rgba(18,57,92,.055)!important;
+}
+#view-colaboradores table,#view-sucursales table,#view-asistencia table,
+#view-licencias table,#view-vacaciones table,#view-reportes table,
+#view-usuarios table,#view-auditoria table,#view-traslados table{
+  border-collapse:separate!important;
+  border-spacing:0!important;
+  border:1px solid var(--rrhh-border)!important;
+  border-radius:15px!important;
+  overflow:hidden!important;
+  background:#fff!important;
+}
+#view-colaboradores thead,#view-sucursales thead,#view-asistencia thead,
+#view-licencias thead,#view-vacaciones thead,#view-reportes thead,
+#view-usuarios thead,#view-auditoria thead,#view-traslados thead{
+  background:#eaf3f9!important;
+}
+#view-colaboradores thead th,#view-sucursales thead th,#view-asistencia thead th,
+#view-licencias thead th,#view-vacaciones thead th,#view-reportes thead th,
+#view-usuarios thead th,#view-auditoria thead th,#view-traslados thead th{
+  color:#42617e!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  letter-spacing:.065em!important;
+  text-transform:uppercase!important;
+  padding:13px 14px!important;
+  border-bottom:1px solid #d7e5f2!important;
+  white-space:nowrap;
+}
+#view-colaboradores tbody td,#view-sucursales tbody td,#view-asistencia tbody td,
+#view-licencias tbody td,#view-vacaciones tbody td,#view-reportes tbody td,
+#view-usuarios tbody td,#view-auditoria tbody td,#view-traslados tbody td{
+  padding:13px 14px!important;
+  border-bottom:1px solid #e7eef5!important;
+  color:#405a73;
+  vertical-align:middle;
+}
+#view-colaboradores tbody tr:hover,#view-sucursales tbody tr:hover,
+#view-asistencia tbody tr:hover,#view-licencias tbody tr:hover,
+#view-vacaciones tbody tr:hover,#view-reportes tbody tr:hover{
+  background:#f4faff!important;
+}
+#view-colaboradores input:not([type=checkbox]),#view-colaboradores select,
+#view-sucursales input:not([type=checkbox]),#view-sucursales select,
+#view-asistencia input:not([type=checkbox]),#view-asistencia select,
+#view-licencias input:not([type=checkbox]),#view-licencias select,
+#view-vacaciones input:not([type=checkbox]),#view-vacaciones select,
+#view-reportes input:not([type=checkbox]),#view-reportes select{
+  min-height:42px;
+  border-radius:11px!important;
+  border-color:#cddfee!important;
+  background:#fff!important;
+}
+#view-colaboradores input:focus,#view-colaboradores select:focus,
+#view-sucursales input:focus,#view-sucursales select:focus,
+#view-asistencia input:focus,#view-asistencia select:focus,
+#view-licencias input:focus,#view-licencias select:focus,
+#view-vacaciones input:focus,#view-vacaciones select:focus,
+#view-reportes input:focus,#view-reportes select:focus{
+  outline:0!important;
+  border-color:#0891a7!important;
+  box-shadow:0 0 0 3px rgba(8,145,167,.12)!important;
+}
+#view-dashboard #dashboard-ops-summary{
+  border-radius:20px!important;
+  border:1px solid #d4e5f2!important;
+  background:linear-gradient(135deg,#fff 0%,#f4fbfd 100%)!important;
+}
+#view-dashboard #dashboard-ops-cards{
+  gap:12px!important;
+}
+#view-dashboard #dashboard-ops-cards>*{
+  min-height:100px;
+  border-radius:15px!important;
+  border:1px solid #d9e7f1!important;
+  box-shadow:0 5px 16px rgba(20,57,92,.04)!important;
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+#view-dashboard #dashboard-ops-cards>*:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 22px rgba(20,57,92,.09)!important;
+}
+#view-dashboard #dashboard-freshness-list{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:9px!important;
+}
+#view-dashboard #dashboard-freshness-list>*{
+  border-radius:13px!important;
+  background:#f7fafc!important;
+  border:1px solid #dce8f2!important;
+  padding:13px!important;
+}
+#view-dashboard #dashboard-gerencial-graficos{
+  align-items:stretch;
+  gap:16px!important;
+}
+#view-dashboard #dashboard-gerencial-graficos>article{
+  min-width:0;
+  border:1px solid #d7e5f2!important;
+  border-radius:18px!important;
+  background:#fff!important;
+  box-shadow:0 8px 22px rgba(18,57,92,.055)!important;
+  overflow:hidden;
+}
+#view-dashboard #dashboard-gerencial-graficos>article>div:first-child{
+  min-height:82px;
+  padding:17px 18px!important;
+  background:linear-gradient(110deg,#f0f8fc,#f8faff)!important;
+  border-bottom:1px solid #e1ebf4!important;
+}
+#view-dashboard #dashboard-gerencial-graficos h4{
+  color:#153958!important;
+  font-size:13px!important;
+  letter-spacing:-.01em;
+}
+#view-dashboard #dashboard-gerencial-graficos [id^="dashboard-chart-"]{
+  min-height:155px;
+}
+#view-dashboard #dashboard-indicadores-periodo{
+  color:#617a93;
+  font-size:12px;
+}
+#view-dashboard [id^="ind-"]{
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.035em;
+}
+#view-dashboard .dashboard-welcome-compact{
+  box-shadow:0 14px 34px rgba(8,47,87,.16)!important;
+}
+#view-dashboard .dashboard-welcome-compact-heading h2{
+  letter-spacing:-.035em;
+}
+#view-dashboard .module-kicker{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:5px 10px;
+  background:#e9f7fa;
+  color:#08788e;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.09em;
+}
+#view-dashboard button,#view-colaboradores button,#view-sucursales button,
+#view-asistencia button,#view-licencias button,#view-vacaciones button,
+#view-reportes button{
+  transition:filter .15s ease,transform .15s ease,box-shadow .15s ease;
+}
+#view-dashboard button:hover,#view-colaboradores button:hover,
+#view-sucursales button:hover,#view-asistencia button:hover,
+#view-licencias button:hover,#view-vacaciones button:hover,
+#view-reportes button:hover{
+  filter:brightness(.98);
+}
+#view-dashboard .grid [class*="rounded-2xl"][class*="border"]{
+  box-shadow:0 5px 18px rgba(18,57,92,.035);
+}
+@media(max-width:900px){
+  #view-dashboard #dashboard-freshness-list{grid-template-columns:1fr!important}
+  #view-dashboard #dashboard-gerencial-graficos{grid-template-columns:1fr!important}
+  #view-colaboradores,#view-sucursales,#view-asistencia,#view-licencias,
+  #view-vacaciones,#view-reportes{padding:14px!important}
+  #view-colaboradores table,#view-sucursales table,#view-asistencia table,
+  #view-licencias table,#view-vacaciones table,#view-reportes table{
+    display:block;max-width:100%;overflow-x:auto;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #view-dashboard *,#view-colaboradores *,#view-sucursales *,#view-asistencia *{
+    transition:none!important;animation:none!important;
+  }
+}
