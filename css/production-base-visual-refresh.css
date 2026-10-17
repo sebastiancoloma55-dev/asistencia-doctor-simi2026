@@ -388,3 +388,152 @@ button, input, select, textarea {
   .dashboard-hero-glass-label { left: 0 !important; bottom: 0 !important; max-width: 160px; }
   .dashboard-hero-quote { max-width: 165px; font-size: 10px !important; }
 }
+
+
+/* Ajuste final del banner según la referencia aprobada: bienvenida, mascota, globo y farmacia */
+.dashboard-welcome.dashboard-welcome-approved {
+  grid-template-columns: minmax(0, 1.08fr) minmax(430px, 1fr) !important;
+  gap: clamp(18px, 2vw, 32px) !important;
+  min-height: 330px !important;
+  padding: clamp(24px, 2.5vw, 36px) !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(ellipse at 63% 20%, rgba(0, 184, 255, .46), transparent 29%),
+    radial-gradient(ellipse at 90% 95%, rgba(0, 194, 185, .55), transparent 38%),
+    linear-gradient(112deg, #063a9b 0%, #075bd2 42%, #0099c0 100%) !important;
+}
+.dashboard-welcome-approved .dashboard-hero-copy { align-self: center; }
+.dashboard-welcome-approved .dashboard-hero-eyebrow {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 17px;
+  color: #f0f8ff; font-size: 11px; letter-spacing: .15em; font-weight: 900;
+}
+.dashboard-approved-title {
+  max-width: 660px; margin: 0 !important; color: #fff !important;
+  font-size: clamp(30px, 3.1vw, 48px) !important; line-height: 1.04 !important;
+  letter-spacing: -.045em !important; font-weight: 950 !important;
+}
+.dashboard-approved-title span { color: #52e8f2; }
+.dashboard-approved-lead {
+  margin: 13px 0 0; color: #fff; font-size: clamp(14px, 1.25vw, 18px);
+  font-weight: 750; line-height: 1.4;
+}
+.dashboard-welcome-approved .dashboard-hero-subtitle {
+  margin-top: 5px !important; color: #e2f1ff !important;
+  font-size: clamp(12px, 1vw, 15px) !important; line-height: 1.5 !important;
+}
+.dashboard-approved-shortcuts { gap: 8px !important; margin-top: 22px !important; }
+.dashboard-approved-shortcuts button,
+.dashboard-approved-shortcuts .dashboard-hero-ai {
+  display: inline-flex !important; align-items: center !important; justify-content: center !important;
+  min-height: 46px !important; padding: 0 13px !important; gap: 9px !important;
+  border: 1px solid rgba(255,255,255,.28) !important; border-radius: 13px !important;
+  background: rgba(0,48,153,.32) !important; color: white !important;
+  font-size: 12px !important; font-weight: 850 !important; box-shadow: none !important;
+  white-space: nowrap;
+}
+.dashboard-approved-shortcuts button:hover,
+.dashboard-approved-shortcuts .dashboard-hero-ai:hover {
+  background: rgba(255,255,255,.15) !important; transform: translateY(-2px);
+}
+.dashboard-approved-shortcuts svg { width: 17px !important; height: 17px !important; color: #d9fbff !important; }
+.dashboard-approved-visual {
+  min-height: 280px !important; height: 100%; align-self: stretch;
+  display: block !important; overflow: hidden !important; isolation: isolate;
+}
+.dashboard-approved-visual .dashboard-hero-orbit-one {
+  width: 330px !important; height: 330px !important; right: 25% !important; top: -18% !important; left: auto !important;
+  border-color: rgba(255,255,255,.16) !important;
+}
+.dashboard-approved-visual .dashboard-hero-orbit-two {
+  width: 240px !important; height: 240px !important; right: 31% !important; top: 8% !important; left: auto !important;
+  border-color: rgba(255,255,255,.2) !important;
+}
+.dashboard-approved-mascot-backdrop {
+  position: absolute; z-index: 1; left: 16%; top: 17%; width: 210px; height: 210px;
+  border-radius: 50%; background: radial-gradient(circle, rgba(89,222,255,.28), rgba(255,255,255,.04) 65%, transparent 70%);
+}
+.dashboard-approved-mascot {
+  position: absolute; z-index: 4; left: 20%; top: 13%; width: 174px; height: 230px;
+  display: flex; justify-content: center; align-items: flex-start;
+}
+.dashboard-approved-coat {
+  position: absolute; z-index: 1; left: 0; right: 0; bottom: 0; height: 128px;
+  clip-path: polygon(23% 0, 77% 0, 100% 100%, 0 100%);
+  border-radius: 40px 40px 12px 12px;
+  background: linear-gradient(100deg, #dceefa 0%, #fff 28%, #fff 72%, #d8eaf8 100%);
+  box-shadow: 0 15px 25px rgba(0,25,70,.2);
+}
+.dashboard-approved-coat:before {
+  content: ""; position: absolute; left: 46%; top: 0; width: 8%; height: 100%;
+  background: linear-gradient(90deg,#d9e7f4,#fff,#c4d8e9);
+}
+.dashboard-approved-coat span {
+  position: absolute; z-index: 2; top: 45px; right: 14px; color: #07569a;
+  font-size: 9px; font-weight: 950; transform: rotate(-8deg);
+}
+.dashboard-approved-mascot img {
+  position: relative; z-index: 3; width: 130px; height: 130px; object-fit: contain;
+  border: 4px solid rgba(255,255,255,.95); border-radius: 48% 48% 42% 42%;
+  background: #fff; box-shadow: 0 10px 24px rgba(0,20,60,.22);
+  transform: rotate(-3deg);
+}
+.dashboard-welcome-approved .dashboard-hero-quote {
+  top: 7% !important; right: 17% !important; left: auto !important; z-index: 7 !important;
+  width: 205px; max-width: 48%; padding: 15px 17px !important;
+  border-radius: 16px !important; color: #0753bc !important; background: #fff !important;
+  font-size: 13px !important; line-height: 1.35 !important; font-weight: 900 !important;
+  box-shadow: 0 12px 28px rgba(0,35,85,.14) !important;
+}
+.dashboard-welcome-approved .dashboard-hero-quote:after {
+  content: ""; position: absolute; left: 24px; bottom: -10px;
+  width: 20px; height: 20px; background: #fff; transform: rotate(45deg); border-radius: 2px;
+}
+.dashboard-welcome-approved .dashboard-hero-storefront {
+  right: 0 !important; bottom: 0 !important; z-index: 3 !important;
+  width: 45% !important; max-width: 280px; height: 142px !important;
+  border: 2px solid rgba(255,255,255,.8) !important; border-bottom: 0 !important;
+  border-radius: 8px 8px 0 0 !important; transform: perspective(400px) rotateY(-7deg) !important;
+  background: linear-gradient(180deg,#fff 0 19%,#0758b7 19% 34%,#fff 34% 100%) !important;
+}
+.dashboard-welcome-approved .dashboard-hero-storefront:before {
+  height: 62px !important; background: repeating-linear-gradient(90deg,rgba(2,89,153,.09) 0 2px,transparent 2px 44px),linear-gradient(180deg,#bfefff,#f8fdff) !important;
+  border-top: 4px solid #12b7d1 !important;
+}
+.dashboard-welcome-approved .dashboard-hero-storefront span { font-size: 8px !important; }
+.dashboard-welcome-approved .dashboard-hero-storefront strong { font-size: 16px !important; }
+.dashboard-approved-doctor-button {
+  position: absolute; z-index: 8; right: 32%; top: 53%;
+  padding: 12px 18px; border: 1px solid rgba(255,255,255,.25); border-radius: 12px;
+  color: white; background: #063caa; box-shadow: 0 9px 20px rgba(0,30,100,.2);
+  font-size: 12px; font-weight: 900; letter-spacing: .03em;
+}
+.dashboard-approved-doctor-button span { margin-left: 9px; font-size: 17px; }
+.dashboard-welcome-approved .dashboard-hero-role {
+  top: 4% !important; right: 0 !important; z-index: 9 !important;
+  display: flex !important; align-items: center; gap: 8px; padding: 10px 12px !important;
+  border-radius: 13px !important; background: rgba(0,50,155,.7) !important;
+  border: 1px solid rgba(255,255,255,.22) !important; color: #fff !important;
+  font-size: 9px !important; line-height: 1.3; letter-spacing: .03em;
+}
+.dashboard-welcome-approved .dashboard-hero-role svg { width: 24px; height: 24px; color: #6ff2ee; }
+.dashboard-welcome-approved .dashboard-hero-role strong { font-size: 16px; }
+@media (max-width: 1120px) {
+  .dashboard-welcome.dashboard-welcome-approved { grid-template-columns: minmax(0,1fr) minmax(350px,.9fr) !important; }
+  .dashboard-approved-title { font-size: clamp(28px,3vw,38px) !important; }
+  .dashboard-approved-shortcuts button, .dashboard-approved-shortcuts .dashboard-hero-ai { padding: 0 9px !important; font-size: 11px !important; }
+  .dashboard-approved-mascot { left: 8%; transform: scale(.9); transform-origin: bottom center; }
+  .dashboard-welcome-approved .dashboard-hero-quote { right: 9% !important; }
+  .dashboard-approved-doctor-button { right: 28%; }
+}
+@media (max-width: 760px) {
+  .dashboard-welcome.dashboard-welcome-approved { grid-template-columns: minmax(0,1fr) !important; min-height: 0 !important; padding: 24px !important; }
+  .dashboard-approved-title { font-size: clamp(30px,8vw,42px) !important; }
+  .dashboard-approved-shortcuts { gap: 7px !important; }
+  .dashboard-approved-shortcuts button, .dashboard-approved-shortcuts .dashboard-hero-ai { min-height: 40px !important; }
+  .dashboard-approved-visual { min-height: 300px !important; }
+  .dashboard-approved-mascot { left: 8%; top: 24%; transform: scale(.88); transform-origin: bottom left; }
+  .dashboard-welcome-approved .dashboard-hero-quote { top: 3% !important; right: 0 !important; max-width: 58%; font-size: 11px !important; }
+  .dashboard-welcome-approved .dashboard-hero-storefront { width: 52% !important; height: 125px !important; }
+  .dashboard-approved-doctor-button { top: 59%; right: 27%; padding: 9px 11px; font-size: 10px; }
+  .dashboard-welcome-approved .dashboard-hero-role { top: auto !important; right: 0 !important; bottom: 4px; }
+}
