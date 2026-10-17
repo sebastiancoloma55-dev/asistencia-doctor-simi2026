@@ -1013,6 +1013,30 @@
 
 
         // ============================================================
+        // Corrección de desplazamiento global al navegar entre módulos.
+        // La aplicación puede restaurar el scroll del documento después de pintar una vista.
+        (function instalarReinicioScrollNavegacion() {
+            if (window.__rrhhScrollNavigationFix) return;
+            window.__rrhhScrollNavigationFix = true;
+            const resetGlobalScroll = () => {
+                const active = document.querySelector('#sidebar .menu-btn.active[id^="btn-"]');
+                if (!active) return;
+                const main = active.closest('#sidebar')?.parentElement?.querySelector('main.flex.min-w-0.flex-1.flex-col.overflow-y-auto');
+                if (main) main.scrollTop = 0;
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+                window.scrollTo(0, 0);
+            };
+            document.addEventListener('click', (event) => {
+                if (!event.target.closest('#sidebar .menu-btn[id^="btn-"], #quick-module-bar button, [onclick*="cambiarModulo("]')) return;
+                requestAnimationFrame(() => requestAnimationFrame(resetGlobalScroll));
+                [50, 180, 400].forEach(delay => setTimeout(resetGlobalScroll, delay));
+            }, true);
+            window.addEventListener('pageshow', () => {
+                requestAnimationFrame(() => requestAnimationFrame(resetGlobalScroll));
+            });
+        })();
+
         // BUSCADOR GLOBAL · Navegación por teclado y permisos
         // ============================================================
         const etiquetasBusquedaGlobal={
