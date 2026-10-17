@@ -907,6 +907,13 @@
             }
 
             toggleSidebar(false);
+            // Al cambiar de módulo, regresar el área de contenido y la navegación al inicio.
+            // Evita que el usuario aterrice en el scroll heredado de una vista anterior.
+            const appMain = document.querySelector('main.flex.min-w-0.flex-1.flex-col.overflow-y-auto');
+            if (appMain) appMain.scrollTop = 0;
+            const sidebarNav = document.querySelector('#sidebar nav[aria-label="Navegación principal de Recursos Humanos"]');
+            if (sidebarNav) sidebarNav.scrollTop = 0;
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
             lucide.createIcons();
 
             if (!cargar) {
