@@ -1014,7 +1014,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                         <p>Tienes acceso de administrador principal a todos los módulos y herramientas del sistema.</p>
                     </div>
                     <div class="dashboard-welcome-compact-admin"><i data-lucide="shield-check" aria-hidden="true"></i><span>Administrador principal</span></div>
-                    <div class="dashboard-welcome-compact-watermark" aria-hidden="true">SIMI</div>
+                    <div class="dashboard-welcome-compact-visual" aria-label="Imagen original de Doctor Simi y la farmacia"><img class="dashboard-welcome-compact-image" src="/doctor-simi-pharmacy-reference.webp" alt="Doctor Simi saludando frente a una farmacia Farmacias Similares" loading="eager" decoding="async"></div>
                 </section>
 
                 <div id="dashboard-space-summary" class="dash-space-card" aria-live="polite">
@@ -3559,7 +3559,7 @@ hr{border-color:#e8edf3}
 
 <style id="dashboard-welcome-compact-styles">
 .dashboard-welcome-compact{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:140px;overflow:hidden;padding:22px 24px;border:1px solid rgba(255,255,255,.22);border-radius:20px;background:linear-gradient(112deg,#0b3e78 0%,#08638c 58%,#07849a 100%);color:#fff;box-shadow:0 10px 26px rgba(7,55,103,.10)}
-.dashboard-welcome-compact-copy{position:relative;z-index:2;min-width:0;max-width:calc(100% - 245px)}
+.dashboard-welcome-compact-copy{position:relative;z-index:2;min-width:0;max-width:66%;padding-right:18px}
 .dashboard-welcome-compact-kicker{font-size:12px;font-weight:900;letter-spacing:.16em;line-height:1.4;color:#dbeafe}
 .dashboard-welcome-compact-heading{display:flex;align-items:center;gap:12px;margin-top:8px}
 .dashboard-welcome-compact-icon{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;border:1px solid rgba(255,255,255,.45);border-radius:13px;background:#e7f7fc;color:#007b9b}
@@ -3571,6 +3571,23 @@ hr{border-color:#e8edf3}
 .dashboard-welcome-compact-watermark{position:absolute;z-index:0;right:20px;top:50%;transform:translateY(-51%);font-size:clamp(86px,9vw,138px);font-weight:950;letter-spacing:-.095em;line-height:.85;color:rgba(111,205,224,.15);pointer-events:none;user-select:none}
 @media(max-width:760px){.dashboard-welcome-compact{align-items:flex-start;flex-direction:column;gap:14px;min-height:0;padding:19px}.dashboard-welcome-compact-copy{max-width:100%}.dashboard-welcome-compact-kicker{font-size:10px;letter-spacing:.12em}.dashboard-welcome-compact-heading{gap:10px}.dashboard-welcome-compact-icon{flex-basis:40px;width:40px;height:40px}.dashboard-welcome-compact-heading h2{font-size:clamp(20px,5vw,27px)}.dashboard-welcome-compact-copy p{max-width:440px;font-size:12px}.dashboard-welcome-compact-admin{font-size:10px;padding:7px 10px}.dashboard-welcome-compact-watermark{right:10px;top:20px;transform:none;font-size:75px}}
 @media(prefers-reduced-motion:reduce){.dashboard-welcome-compact *{animation:none!important;transition:none!important}}
+</style>
+
+
+<style id="dashboard-welcome-image-styles">
+.dashboard-welcome-compact{min-height:168px;padding-right:24px}
+.dashboard-welcome-compact-visual{position:absolute;z-index:1;top:0;right:0;bottom:0;width:44%;overflow:hidden;pointer-events:none}
+.dashboard-welcome-compact-image{display:block;width:100%;height:100%;object-fit:cover;object-position:center 45%;opacity:.98;mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.25) 9%,#000 24%)}
+.dashboard-welcome-compact-admin{position:absolute;z-index:4;top:14px;right:14px}
+.dashboard-welcome-compact-watermark{display:none}
+@media(max-width:760px){
+ .dashboard-welcome-compact{align-items:stretch;flex-direction:column;gap:13px;min-height:0;padding:18px}
+ .dashboard-welcome-compact-copy{max-width:100%;padding-right:0}
+ .dashboard-welcome-compact-visual{position:relative;top:auto;right:auto;bottom:auto;width:100%;height:auto;aspect-ratio:2.33;max-height:190px;border-radius:12px}
+ .dashboard-welcome-compact-image{mask-image:none;object-position:center}
+ .dashboard-welcome-compact-admin{position:relative;top:auto;right:auto;align-self:flex-start;order:3}
+}
+@media(prefers-reduced-motion:reduce){.dashboard-welcome-compact-image{animation:none!important;transition:none!important}}
 </style>
 
 </body>
