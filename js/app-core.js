@@ -992,6 +992,20 @@
             } catch (error) {
                 if (secuenciaActual === secuenciaCambioModulo) mostrarToast(error.message, 'error', 15000);
                 else console.debug('Carga de módulo anterior omitida tras cambiar de vista:', modulo);
+            } finally {
+                // La carga de tablas puede restaurar el scroll anterior del documento.
+                // Volver al inicio DESPUÉS de renderizar, manteniendo la barra superior visible.
+                const fijarInicioVista = () => {
+                    if (secuenciaActual !== secuenciaCambioModulo) return;
+                    const appMain = document.querySelector('main.flex.min-w-0.flex-1.flex-col.overflow-y-auto');
+                    if (appMain) appMain.scrollTop = 0;
+                    document.documentElement.scrollTop = 0;
+                    document.body.scrollTop = 0;
+                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                };
+                fijarInicioVista();
+                requestAnimationFrame(() => requestAnimationFrame(fijarInicioVista));
+                setTimeout(fijarInicioVista, 80);
             }
         }
 
