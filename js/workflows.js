@@ -637,7 +637,7 @@
             const opcionesKpi='<option value="TODOS">Todos los usuarios</option>'+responsables.map(opt).join('');
             document.getElementById('tarea-filtro-responsable').innerHTML=opcionesKpi;
             document.getElementById('tarea-kpi-filtro-usuario').innerHTML=opcionesKpi;
-            document.getElementById('tarea-responsable').innerHTML='<option value="">Selecciona responsable</option>'+responsables.map(opt).join('');
+            document.getElementById('tarea-responsable').innerHTML=responsables.map(opt).join('');
             document.getElementById('tarea-revisor').innerHTML='<option value="">Sin revisor</option>'+revisores.map(opt).join('');
             document.getElementById('tarea-sucursal').innerHTML='<option value="">Todas / No aplica</option>'+(sucursales||[]).map(x=>`<option value="${x.id}">${escaparHTML(x.nombre)}</option>`).join('');
             const kpiBranch=document.getElementById('tarea-kpi-sucursal');
@@ -666,7 +666,7 @@
             event.preventDefault();
             if(!puedeAsignarTareasActual())return mostrarToast('No tienes autorización para asignar tareas.','warning');
             const selector=document.getElementById('tarea-responsable');
-            const responsables=[...selector.selectedOptions].map(o=>Number(o.value)).filter(Number.isFinite);
+            const responsables=[...selector.selectedOptions].map(o=>o.value).filter(v=>v!=='').map(Number).filter(Number.isFinite);
             const vencimiento=document.getElementById('tarea-vencimiento').value;
             if(!responsables.length)return mostrarToast('Selecciona al menos un responsable. Puedes elegir varios con Ctrl o ⌘.','warning');
             if(!vencimiento || Number.isNaN(new Date(vencimiento).getTime()))return mostrarToast('Indica una fecha límite válida.','warning');
