@@ -3853,5 +3853,37 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto { scroll-behavior:auto; }
 
 
 
+
+</style>
+<style id="app-shell-layout-repair">
+/* Reparación de estructura global: la aplicación ocupa el viewport y cada módulo desplaza su propio contenido. */
+html, body { width:100%; height:100%; min-height:100%; margin:0!important; overflow:hidden!important; }
+.flex.h-screen.overflow-hidden {
+  width:100%!important; height:100vh!important; height:100dvh!important;
+  min-height:0!important; max-height:100dvh!important; overflow:hidden!important;
+  margin:0!important; position:relative!important; align-items:stretch!important;
+}
+#sidebar { height:100%!important; min-height:0!important; max-height:100%!important; flex-shrink:0!important; overflow:hidden!important; }
+#sidebar > nav { min-height:0!important; overflow-y:auto!important; overscroll-behavior:contain; }
+main.flex.min-w-0.flex-1.flex-col.overflow-y-auto {
+  display:flex!important; flex:1 1 0%!important; min-width:0!important; min-height:0!important;
+  height:100%!important; max-height:100%!important; overflow-x:hidden!important; overflow-y:auto!important;
+  position:relative!important; align-self:stretch!important; overscroll-behavior:contain;
+}
+main.flex.min-w-0.flex-1.flex-col.overflow-y-auto > header { flex:0 0 auto!important; }
+main.flex.min-w-0.flex-1.flex-col.overflow-y-auto > section[id^="view-"] {
+  flex:0 0 auto; width:100%; min-width:0; box-sizing:border-box;
+}
+main.flex.min-w-0.flex-1.flex-col.overflow-y-auto > section[id^="view-"].hidden,
+main.flex.min-w-0.flex-1.flex-col.overflow-y-auto > section[id^="view-"][hidden] { display:none!important; }
+main.flex.min-w-0.flex-1.flex-col.overflow-y-auto > section[id^="view-"]:not(.hidden):not([hidden]) {
+  display:block!important; visibility:visible!important; opacity:1!important; transform:none;
+}
+#view-tareas:not(.hidden):not([hidden]) { display:block!important; }
+@media(max-width:767px) {
+  main.flex.min-w-0.flex-1.flex-col.overflow-y-auto { width:100%; }
+  #sidebar { max-width:min(84vw,18rem); }
+}
+</style>
 </body>
 </html>
