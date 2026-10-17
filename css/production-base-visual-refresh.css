@@ -1,0 +1,131 @@
+/* Asistencia Doctor Simi · ajustes visuales seguros sobre la base de producción */
+:root {
+  --simi-navy: #082f57;
+  --simi-blue: #07569a;
+  --simi-teal: #19a8a5;
+  --simi-line: #dce7f1;
+  --simi-shadow: 0 12px 32px rgba(8, 47, 87, .075);
+}
+#sidebar {
+  box-shadow: 8px 0 28px rgba(5, 31, 59, .08);
+  border-right: 1px solid rgba(255,255,255,.06);
+}
+#sidebar .menu-btn {
+  min-height: 42px;
+  border: 1px solid transparent;
+}
+#sidebar .menu-btn:hover {
+  transform: translateX(2px);
+  border-color: rgba(255,255,255,.07);
+}
+#sidebar .menu-btn.active,
+#sidebar .menu-btn[aria-current="page"] {
+  box-shadow: inset 3px 0 0 #19a8a5, 0 8px 18px rgba(0, 20, 50, .12);
+}
+#sidebar .nova-nav-divider {
+  margin-top: 18px;
+  color: #8caabd;
+}
+#sidebar-collapse-toggle { flex-shrink: 0; }
+#sidebar.sidebar-collapsed {
+  width: 5rem !important;
+  min-width: 5rem !important;
+}
+#sidebar.sidebar-collapsed > div:first-child {
+  justify-content: center;
+  padding: 14px 8px;
+}
+#sidebar.sidebar-collapsed > div:first-child > div:first-child {
+  gap: 0;
+}
+#sidebar.sidebar-collapsed > div:first-child > div:first-child > div:last-child,
+#sidebar.sidebar-collapsed .nova-nav-divider,
+#sidebar.sidebar-collapsed .menu-btn > span,
+#sidebar.sidebar-collapsed .nav-new-mark {
+  display: none !important;
+}
+#sidebar.sidebar-collapsed .menu-btn {
+  justify-content: center;
+  padding: 11px 0;
+  margin: 4px 0;
+}
+#sidebar.sidebar-collapsed .menu-btn svg {
+  width: 19px;
+  height: 19px;
+  opacity: 1;
+}
+#sidebar.sidebar-collapsed nav {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+#sidebar.sidebar-collapsed #sidebar-collapse-toggle svg {
+  transform: rotate(180deg);
+}
+.dashboard-welcome {
+  isolation: isolate;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 24px !important;
+  padding: clamp(24px, 3vw, 36px) !important;
+  background:
+    radial-gradient(circle at 88% 16%, rgba(255,255,255,.15), transparent 22%),
+    radial-gradient(circle at 72% 115%, rgba(25,168,165,.34), transparent 35%),
+    linear-gradient(118deg, #082f57 0%, #07569a 58%, #087f98 100%) !important;
+  box-shadow: 0 18px 44px rgba(7,59,112,.18) !important;
+}
+.dashboard-welcome:before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 250px;
+  height: 250px;
+  right: 8%;
+  top: -145px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 50%;
+  box-shadow: 0 0 0 26px rgba(255,255,255,.035), 0 0 0 52px rgba(255,255,255,.025);
+  pointer-events: none;
+}
+.dashboard-welcome:after {
+  right: 28px !important;
+  bottom: -32px !important;
+  font-size: clamp(88px, 11vw, 144px) !important;
+  opacity: .9;
+}
+#view-dashboard .ui-card,
+#view-dashboard .dash-space-card {
+  border-radius: 18px;
+  border-color: var(--simi-line);
+  box-shadow: var(--simi-shadow);
+}
+#view-dashboard .ui-card {
+  transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+}
+#view-dashboard .ui-card:hover {
+  border-color: #c3d9e9;
+  box-shadow: 0 16px 36px rgba(8,47,87,.10);
+}
+#quick-module-bar {
+  background: rgba(255,255,255,.88) !important;
+  backdrop-filter: blur(14px);
+}
+#quick-module-bar .quick-module-chip {
+  border-radius: 999px !important;
+  padding: 8px 13px !important;
+}
+.ui-card {
+  border-color: #e0e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(8,47,87,.045);
+}
+button, input, select, textarea {
+  transition-timing-function: cubic-bezier(.2,.7,.2,1);
+}
+@media (max-width: 1023px) {
+  #sidebar.sidebar-collapsed { width: 16rem !important; min-width: 16rem !important; }
+  #sidebar.sidebar-collapsed > div:first-child > div:first-child > div:last-child,
+  #sidebar.sidebar-collapsed .nova-nav-divider,
+  #sidebar.sidebar-collapsed .menu-btn > span { display: initial; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #sidebar, #sidebar .menu-btn, #view-dashboard .ui-card { transition: none !important; }
+}
