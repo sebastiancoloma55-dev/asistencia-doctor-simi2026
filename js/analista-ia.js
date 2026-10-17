@@ -78,44 +78,63 @@
       status('Archivo cargado: '+file.name,'success');
     }catch(e){status(e.message,'error');$('aia-output').textContent='No se pudo leer el archivo: '+e.message;}
   }
+  const chatHistory=[];
+  function addChatMessage(role, text){
+    const chat=$('aia-chat'); if(!chat)return;
+    const empty=chat.querySelector('.aia-chat-empty'); if(empty)empty.remove();
+    const item=document.createElement('div');
+    item.className='aia-chat-message '+(role==='user'?'aia-chat-user':'aia-chat-assistant');
+    const label=document.createElement('span');label.className='aia-chat-label';label.textContent=role==='user'?'Tú':'Ollama';
+    const content=document.createElement('div');content.textContent=String(text||'');
+    item.append(label,content);chat.appendChild(item);chat.scrollTop=chat.scrollHeight;
+  }
   async function analyze(){
     const file=$('aia-file')?.files?.[0], prompt=String($('aia-prompt')?.value||'').trim();
-    if(!file)return status('Selecciona un archivo antes de analizar.','error');
-    if(!prompt)return status('Escribe qué necesitas investigar.','error');
-    if(!$('aia-consent')?.checked)return status('Debes autorizar expresamente el envío del archivo al proveedor de IA.','error');
+    if(!prompt)return status('Escribe una pregunta antes de enviar.','error');
+    if(!$('aia-consent')?.checked)return status('Autoriza el envío de tu pregunta a Ollama para continuar.','error');
     const btn=$('aia-run');btn.disabled=true;btn.classList.add('opacity-60');
+    addChatMessage('user',prompt+(file?'\n\nArchivo adjunto: '+file.name:''));
+    $('aia-prompt').value='';
+    const pending=document.createElement('div');pending.className='aia-chat-message aia-chat-assistant';pending.textContent='Ollama está pensando…';pending.id='aia-pending';$('aia-chat')?.appendChild(pending);
     try{
-      status('Preparando los datos…');
-      const payload={prompt,fileName:file.name,mimeType:file.type||'application/octet-stream'};
-      if(/\.(xlsx|xls|csv)$/i.test(file.name)){
-        if(!rows.length)await loadFile();
-        if(!rows.length)throw new Error('No se pudieron leer filas del archivo.');
-        const selected=filtered.length?filtered:rows;
-        const unique={};headers.forEach(h=>{unique[h]=new Set(selected.slice(0,5000).map(r=>String(r[h]??'').trim()).filter(Boolean)).size;});
-        let sampleSize=Math.min(700,selected.length), serialized='';
-        do {
-          const sample=selected.slice(0,sampleSize);
-          serialized=JSON.stringify({totalFilasOriginales:rows.length,totalFilasTrasFiltros:selected.length,columnas:headers,valoresUnicosEnMuestra:unique,muestra:sample,nota:sample.length<selected.length?'La muestra contiene '+sample.length+' de '+selected.length+' filas filtradas. No extrapoles conteos exactos de la muestra.':'Se incluyeron todas las filas filtradas.'});
-          if(serialized.length<=1800000||sampleSize<=1)break;
-          sampleSize=Math.max(1,Math.floor(sampleSize/2));
-        } while(sampleSize>0);
-        if(serialized.length>1950000)throw new Error('El archivo contiene campos demasiado extensos. Reduce el archivo o elimina columnas innecesarias.');
-        payload.textData=serialized;
-      }else{
-        payload.textData=pdfText||await extractPdfText(file);
+      status('Conectando con Ollama…');
+      const payload={prompt, conversation:chatHistory.slice(-12), fileName:file?.name||'', mimeType:file?.type||''};
+      if(file){
+        if(/\.(xlsx|xls|csv)$/i.test(file.name)){
+          if(!rows.length)await loadFile();
+          if(!rows.length)throw new Error('No se pudieron leer filas del archivo.');
+          const selected=filtered.length?filtered:rows;
+          const unique={};headers.forEach(h=>{unique[h]=new Set(selected.slice(0,5000).map(r=>String(r[h]??'').trim()).filter(Boolean)).size;});
+          let sampleSize=Math.min(700,selected.length),serialized='';
+          do{
+            const sample=selected.slice(0,sampleSize);
+            serialized=JSON.stringify({totalFilasOriginales:rows.length,totalFilasTrasFiltros:selected.length,columnas:headers,valoresUnicosEnMuestra:unique,muestra:sample,nota:sample.length<selected.length?'La muestra contiene '+sample.length+' de '+selected.length+' filas filtradas. No extrapoles conteos exactos de la muestra.':'Se incluyeron todas las filas filtradas.'});
+            if(serialized.length<=1800000||sampleSize<=1)break;
+            sampleSize=Math.max(1,Math.floor(sampleSize/2));
+          }while(sampleSize>0);
+          if(serialized.length>1950000)throw new Error('El archivo contiene campos demasiado extensos. Reduce el archivo o elimina columnas innecesarias.');
+          payload.textData=serialized;
+        }else if(/\.pdf$/i.test(file.name)){
+          if(file.size>5*1024*1024)throw new Error('El PDF supera 5 MB. Usa un archivo menor.');
+          payload.textData=pdfText||await extractPdfText(file);
+        }else throw new Error('Formato no compatible. Usa Excel, CSV o PDF.');
       }
-      status('Analizando con Ollama…');
       const {data}=await _supabase.auth.getSession();const token=data?.session?.access_token;
       if(!token)throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.');
-      if(/\.pdf$/i.test(file.name))payload.textData=pdfText||await extractPdfText(file);
       const response=await fetch('/api/ollama',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(payload)});
       const body=await response.json().catch(()=>({error:'Respuesta no válida del servidor.'}));
       if(!response.ok)throw new Error(body.error||'Error '+response.status);
-      lastResult=String(body.text||'').trim();if(!lastResult)throw new Error('La IA devolvió un resultado vacío.');
-      $('aia-output').textContent=lastResult;status('Análisis completado · '+new Date().toLocaleString('es-CL'),'success');
-      if(typeof window.registrarAuditoria==='function')try{await window.registrarAuditoria('analista_ia','ANALISIS_OLLAMA',file.name+' · '+prompt.slice(0,150));}catch(e){console.warn('No se pudo registrar auditoría del análisis',e);}
-    }catch(e){$('aia-output').textContent='No se pudo completar el análisis.\n\n'+e.message;status(e.message,'error');}
-    finally{btn.disabled=false;btn.classList.remove('opacity-60');}
+      lastResult=String(body.text||'').trim();if(!lastResult)throw new Error('Ollama devolvió una respuesta vacía.');
+      chatHistory.push({role:'user',content:prompt},{role:'assistant',content:lastResult});
+      $('aia-pending')?.remove();addChatMessage('assistant',lastResult);
+      $('aia-output').textContent=lastResult;status('Respuesta recibida de Ollama · '+new Date().toLocaleTimeString('es-CL'),'success');
+      if(typeof window.registrarAuditoria==='function')try{await window.registrarAuditoria('analista_ia',file?'ANALISIS_OLLAMA':'CHAT_OLLAMA',(file?file.name+' · ':'')+prompt.slice(0,150));}catch(e){console.warn('No se pudo registrar auditoría de IA',e);}
+    }catch(e){
+      $('aia-pending')?.remove();
+      const message=e.message||'Error inesperado al consultar Ollama.';
+      addChatMessage('assistant','No pude responder: '+message);
+      status(message,'error');
+    }finally{btn.disabled=false;btn.classList.remove('opacity-60');}
   }
   function downloadText(){
     if(!lastResult)return status('Primero completa un análisis para exportarlo.','error');
@@ -126,16 +145,16 @@
     if(!lastResult)return status('Primero completa un análisis para exportarlo.','error');
     if(!window.jspdf?.jsPDF)return status('No se cargó el generador PDF. Usa Exportar TXT.','error');
     const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});const lines=doc.splitTextToSize(lastResult,175);let y=18;
-    doc.setFontSize(16);doc.text('Analista de RR. HH. con IA',18,y);y+=9;doc.setFontSize(9);doc.text('Archivo: '+fileName,18,y);y+=6;doc.text('Generado: '+new Date().toLocaleString('es-CL'),18,y);y+=8;doc.setFontSize(10);
+    doc.setFontSize(16);doc.text('Conversación con Ollama',18,y);y+=9;doc.setFontSize(9);doc.text('Generado: '+new Date().toLocaleString('es-CL'),18,y);y+=8;doc.setFontSize(10);
     lines.forEach(line=>{if(y>278){doc.addPage();y=18;}doc.text(line,18,y);y+=5;});
     doc.save('analisis-rrhh-'+Date.now()+'.pdf');
   }
   document.addEventListener('DOMContentLoaded',()=>{
     $('aia-file')?.addEventListener('change',loadFile);
     ['aia-search','aia-column','aia-value','aia-from','aia-to'].forEach(id=>$(id)?.addEventListener(id==='aia-column'?'change':'input',applyFilters));
-    $('aia-run')?.addEventListener('click',analyze);
+    $('aia-run')?.addEventListener('click',analyze);\n    $('aia-prompt')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();analyze();}});
     $('aia-export-txt')?.addEventListener('click',downloadText);
     $('aia-export-pdf')?.addEventListener('click',downloadPdf);
-    $('aia-clear')?.addEventListener('click',()=>{ $('aia-file').value='';$('aia-prompt').value='';pdfText='';$('aia-consent').checked=false;rows=[];filtered=[];headers=[];lastResult='';$('aia-output').textContent='Selecciona un archivo y formula una pregunta.';$('aia-preview').innerHTML='<div class="p-6 text-center text-slate-500">Carga un archivo para revisar sus datos.</div>';$('aia-filter-count').textContent='Sin archivo cargado';status('Listo para un nuevo análisis.');});
+    $('aia-clear')?.addEventListener('click',()=>{ $('aia-file').value='';$('aia-prompt').value='';pdfText='';$('aia-consent').checked=false;rows=[];filtered=[];headers=[];lastResult='';chatHistory.length=0;$('aia-output').textContent='';$('aia-chat').innerHTML='<div class="aia-chat-empty">👋 Hola, soy tu asistente conectado a Ollama. Puedes preguntarme sobre RR. HH., redacción, Excel, ideas o cualquier tema de trabajo. No necesitas adjuntar archivos.</div>';$('aia-preview').innerHTML='<div class="p-6 text-center text-slate-500">Carga un archivo para revisar sus datos.</div>';$('aia-filter-count').textContent='Sin archivo cargado';status('Conversación limpiada.');});
   });
 })();
