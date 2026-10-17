@@ -1,5 +1,5 @@
         // ============================================================
-        // MAPA, SUCURSALES, CORREOS, COBERTURAS Y GEMINI
+        // MAPA, SUCURSALES, CORREOS, COBERTURAS Y OLLAMA
         // ============================================================
         async function obtenerSucursalesConfig() { const {data,error}=await _supabase.from('sucursales').select('*').order('nombre'); if(error)throw error; return data||[]; }
         function direccionSucursal(x){return [x.direccion,x.comuna,'Chile'].filter(Boolean).join(', ');}
@@ -1370,18 +1370,18 @@
                 Object.entries(cantidades).sort((a,b)=>b[1]-a[1]).slice(0,100).forEach(([k,v]) => resultado.push(`- ${k}: ${v}`));
             }
             resultado.push('');
-            resultado.push('Nota: Gemini no estuvo disponible por cuota temporal. Este resultado fue calculado directamente en el navegador con el Excel completo, sin enviar el archivo a un servicio externo.');
+            resultado.push('Nota: Ollama no estuvo disponible. Este resultado fue calculado directamente en el navegador con el Excel completo, sin enviar el archivo a un servicio externo.');
             return resultado.join('\n');
         }
-        function segundosReintentoGemini(mensaje) {
+        function segundosReintentoOllama(mensaje) {
             const match = texto(mensaje).match(/retry in\s+([0-9.]+)/i);
             return match ? Math.ceil(Number(match[1])) : 0;
         }
-        async function llamarGeminiConReintento(payload, out) {
+        async function llamarOllamaConReintento(payload, out) {
             for (let intento = 1; intento <= 2; intento++) {
                 const token = await tokenSesionActual();
                 if (!token) throw new Error('Tu sesión expiró. Inicia sesión nuevamente para usar el análisis de IA.');
-                const res = await fetch('/api/gemini', {
+                const res = await fetch('/api/ollama', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(payload)
@@ -1391,16 +1391,16 @@
                 try { json = JSON.parse(raw); }
                 catch { throw new Error(raw.slice(0, 700) || `Respuesta no válida del servidor (${res.status})`); }
                 if (res.ok) return json;
-                const espera = segundosReintentoGemini(json.error);
+                const espera = segundosReintentoOllama(json.error);
                 if (intento === 1 && espera > 0 && espera <= 70) {
-                    out.textContent = `La cuota temporal de Gemini está ocupada. Reintento automático en ${espera} segundos...`;
+                    out.textContent = `El servidor Ollama está ocupado. Reintento automático en ${espera} segundos...`;
                     await new Promise(resolve => setTimeout(resolve, (espera + 2) * 1000));
                     continue;
                 }
                 throw new Error(json.error || `Error ${res.status}`);
             }
         }
-        async function analizarConGeminiSeguro() {
+        async function analizarConOllamaSeguro() {
             const file = document.getElementById('ai-archivo').files?.[0];
             const prompt = texto(document.getElementById('ai-prompt').value);
             const autorizado = document.getElementById('ai-consentimiento').checked;
@@ -1430,18 +1430,18 @@
                     const data = await archivoADataURL(file);
                     payload.base64 = data.split(',')[1];
                 }
-                out.textContent = 'Analizando con Gemini...';
-                const json = await llamarGeminiConReintento(payload, out);
+                out.textContent = 'Analizando con Ollama...';
+                const json = await llamarOllamaConReintento(payload, out);
                 ultimaRespuestaIA = json.text || '';
                 out.textContent = ultimaRespuestaIA;
-                await registrarAuditoria('reportes', 'ANALISIS_GEMINI', `${file.name} · ${prompt.slice(0, 180)}`);
-                mostrarToast('Análisis completado con Gemini.', 'success');
+                await registrarAuditoria('reportes', 'ANALISIS_OLLAMA', `${file.name} · ${prompt.slice(0, 180)}`);
+                mostrarToast('Análisis completado con Ollama.', 'success');
             } catch (error) {
                 const cuota = /quota|rate.limit|exceeded|429/i.test(error.message);
                 if (cuota && filasExcel) {
                     ultimaRespuestaIA = analisisLocalExcel(filasExcel, prompt, file.name);
                     out.textContent = ultimaRespuestaIA;
-                    mostrarToast('Gemini alcanzó su cuota temporal. Se generó un análisis local de respaldo con el Excel completo.', 'warning', 16000);
+                    mostrarToast('Ollama no estuvo disponible. Se generó un análisis local de respaldo con el Excel completo.', 'warning', 16000);
                 } else {
                     out.textContent = 'Error: ' + error.message;
                     mostrarToast(error.message, 'error', 16000);
