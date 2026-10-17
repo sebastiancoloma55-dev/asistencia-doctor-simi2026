@@ -3701,5 +3701,22 @@ header.sticky.top-0.z-10>div:last-child{min-width:0!important;gap:8px!important;
   document.addEventListener("DOMContentLoaded",()=>{load();const view=$("view-dashboard");if(view&&window.MutationObserver)new MutationObserver(()=>{if(!view.classList.contains("hidden"))load();}).observe(view,{attributes:true,attributeFilter:["class"]});});
 })();
 </script>
+
+<style id="preview-visible-fix-20261017">
+/* Correcciones visibles para la vista previa: no sustituye el banner final solicitado */
+#simi-context-assistant{position:fixed!important;z-index:9999!important;width:auto!important;max-width:calc(100vw - 16px)!important;touch-action:pan-x pan-y!important}
+#simi-context-toggle{min-height:38px!important;min-width:0!important;padding:9px 12px!important;gap:7px!important;font-size:11px!important;cursor:grab!important;user-select:none!important;box-shadow:0 7px 18px rgba(7,59,112,.22)!important}
+#simi-context-toggle:active,#simi-context-head{cursor:grabbing!important;touch-action:none!important}
+#simi-context-toggle svg,#simi-context-toggle i{width:16px!important;height:16px!important}
+#simi-context-popover{width:min(320px,calc(100vw - 24px))!important;max-height:min(62vh,470px)!important;overflow:auto!important;margin-bottom:8px!important;border-radius:16px!important;box-shadow:0 12px 32px rgba(15,23,42,.16)!important}
+#simi-context-head{padding:12px 14px!important;cursor:grab!important;touch-action:none!important}
+#simi-context-content{padding:12px 14px!important}
+#simi-context-links{padding:0 14px 12px!important;margin-top:8px!important}
+#simi-context-popover>p{padding:10px 14px!important}
+#view-dashboard.simi-dashboard .dashboard-welcome.simi-dashboard-hero{background-image:radial-gradient(circle at 78% 20%,rgba(26,213,238,.34),transparent 32%),linear-gradient(110deg,#043da8 0%,#086de0 52%,#08a9d0 100%)!important}
+#view-dashboard.simi-dashboard .dashboard-welcome.simi-dashboard-hero:after{content:none!important;display:none!important}
+@media(max-width:640px){#simi-context-assistant{right:8px!important;bottom:12px!important}#simi-context-toggle{padding:9px 10px!important;font-size:10px!important}#simi-context-popover{width:min(300px,calc(100vw - 16px))!important;max-height:55vh!important}}
+</style>
+
 </body>
 </html>
