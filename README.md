@@ -1,6 +1,6 @@
 # Asistencia Doctor Simi · RR. HH.
 
-Plataforma web interna para apoyar la operación de Asistencia y Ausentismo, con interfaz web, autenticación de Supabase, base de datos central y funciones de servidor en Vercel.
+Plataforma web interna para apoyar la operación de Asistencia y Ausentismo, con interfaz web, autenticación de Supabase y base de datos central. Durante el trabajo y la validación se utiliza Netlify Preview; la migración a Vercel queda para después de terminar y autorizarla.
 
 ## Arquitectura actual
 
@@ -12,7 +12,8 @@ Plataforma web interna para apoyar la operación de Asistencia y Ausentismo, con
 - `js/maps-communications.js`: mapas, sucursales, correo, coberturas y análisis con IA.
 - `js/people-directory.js`: colaboradores y directorio de sucursales.
 - `api/usuarios-auth.js`: operaciones de administración de cuentas, reservadas a la cuenta administradora principal.
-- `api/gemini.js`: análisis asistido por IA. Requiere sesión válida y permiso de reportes.
+- `api/ollama.js` y `netlify/functions/ollama.mjs`: análisis asistido por Ollama en Vercel y Netlify, con sesión válida y permisos de Analista IA o reportes.
+- `lib/ollama-handler.js`: validación compartida de acceso y conexión al gateway seguro de Ollama.
 - `api/geocodificar.js`: búsqueda de coordenadas. Requiere sesión válida y permiso de mapas.
 - `api/cron-alertas.js`: proceso programado que genera notificaciones para tareas vencidas o próximas a vencer.
 - `lib/server-auth.js`: validación compartida de sesión, perfil activo y permisos para endpoints del servidor.
@@ -45,22 +46,24 @@ Los archivos JavaScript se cargan como scripts clásicos en el orden definido en
 
 El centro de operaciones consulta indicadores de las fuentes que el perfil tenga autorizadas. La bandeja de notificaciones utiliza la tabla `notificaciones`; su acceso depende del permiso de tareas y de las políticas RLS.
 
-## Variables de entorno de Vercel
+## Variables de entorno para Netlify Preview (y Vercel más adelante)
 
 Configurar en el proyecto de Vercel (no en el navegador):
 
 - `SUPABASE_URL`: URL del proyecto Supabase.
 - `SUPABASE_ANON_KEY`: clave pública/anon para validar sesiones en servidor.
 - `SUPABASE_SERVICE_ROLE_KEY`: clave privilegiada usada exclusivamente en funciones de servidor.
-- `GEMINI_API_KEY`: clave del proveedor de IA.
+- `OLLAMA_BASE_URL`: URL base de un gateway seguro que exponga la API compatible con OpenAI de Ollama (`/v1/chat/completions`).
+- `OLLAMA_API_KEY`: token que valida ese gateway seguro; Ollama local no valida esta clave por sí solo.
+- `OLLAMA_MODEL`: nombre exacto del modelo descargado en el servidor, por ejemplo `llama3.1:8b` (debe existir en ese servidor).
 - `CRON_SECRET`: secreto que autoriza las llamadas al endpoint de alertas.
 
-No publicar valores de estas variables en commits, capturas, archivos descargables ni código frontend. Si una clave privilegiada se expone accidentalmente, rotarla en el proveedor correspondiente.
+No publicar valores de estas variables en commits, capturas, archivos descargables ni código frontend. No exponer el puerto de Ollama directamente a Internet: el endpoint debe estar detrás de un gateway con autenticación y acceso de red restringido. Un Ollama instalado solo en un computador no queda disponible automáticamente para Netlify ni para todo el equipo.
 
 ## Integraciones: alcance confirmado
 
 - **Supabase:** la aplicación consulta la base central. La pantalla de monitoreo prueba una consulta real durante la sesión.
-- **IA:** existe una función de servidor para Gemini; requiere variable de entorno y permiso de reportes.
+- **IA:** el código de la plataforma usa Ollama mediante un gateway protegido, con sesión y permisos validados. La conexión real depende de configurar el servidor Ollama, el gateway y las variables de entorno en Netlify.
 - **Geocodificación:** existe una función de servidor para buscar coordenadas; requiere permiso de mapas y disponibilidad del proveedor.
 - **Talana:** este repositorio no contiene actualmente un conector automático dedicado de sincronización. Requiere acceso a API oficial, autorización y credenciales de servidor.
 - **IMED / Medipass:** no se ha identificado un conector automático dedicado en este repositorio. La sincronización no debe considerarse operativa sin una prueba real de extremo a extremo.
