@@ -3713,7 +3713,12 @@ header.sticky.top-0.z-10>div:last-child{min-width:0!important;gap:8px!important;
 #simi-context-content{padding:12px 14px!important}
 #simi-context-links{padding:0 14px 12px!important;margin-top:8px!important}
 #simi-context-popover>p{padding:10px 14px!important}
-#view-dashboard.simi-dashboard .dashboard-welcome.simi-dashboard-hero{background-image:radial-gradient(circle at 78% 20%,rgba(26,213,238,.34),transparent 32%),linear-gradient(110deg,#043da8 0%,#086de0 52%,#08a9d0 100%)!important}
+/* Banner fotográfico fijo en la vista previa; no depende de Personalizar. */
+#view-dashboard.simi-dashboard .dashboard-welcome.simi-dashboard-hero{
+ background-image:linear-gradient(105deg,rgba(0,42,120,.94) 0%,rgba(0,80,165,.78) 43%,rgba(0,116,160,.18) 100%),url("https://www.epiplavourtsis.gr/images/my_images/katastimata/farmakeio_avra/01.jpg")!important;
+ background-size:cover!important;background-position:center 68%!important;background-repeat:no-repeat!important;
+}
+#view-dashboard.simi-dashboard .dashboard-welcome.simi-dashboard-hero:before{background:none!important;opacity:0!important}
 #view-dashboard.simi-dashboard .dashboard-welcome.simi-dashboard-hero:after{content:none!important;display:none!important}
 @media(max-width:640px){#simi-context-assistant{right:8px!important;bottom:12px!important}#simi-context-toggle{padding:9px 10px!important;font-size:10px!important}#simi-context-popover{width:min(300px,calc(100vw - 16px))!important;max-height:55vh!important}}
 </style>
