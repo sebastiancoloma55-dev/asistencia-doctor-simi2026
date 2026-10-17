@@ -3660,7 +3660,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       const toggle=document.getElementById("simi-context-toggle");
       if(!root||!toggle)return;
       let drag=null;
-      function begin(e){if(e.target.closest("button")&&e.target.id!=="simi-context-toggle")return;if(e.button!==undefined&&e.button!==0)return;const r=root.getBoundingClientRect();drag={x:e.clientX,y:e.clientY,left:r.left,top:r.top};root.style.right="auto";root.style.bottom="auto";root.style.left=r.left+"px";root.style.top=r.top+"px";if(e.currentTarget.setPointerCapture&&e.pointerId!==undefined)e.currentTarget.setPointerCapture(e.pointerId);e.preventDefault();}
+      function begin(e){if(e.target.closest("button")&&e.target.id!=="simi-context-toggle")return;if(e.button!==undefined&&e.button!==0)return;const r=root.getBoundingClientRect();drag={x:e.clientX,y:e.clientY,left:r.left,top:r.top};root.style.right="auto";root.style.bottom="auto";root.style.left=r.left+"px";root.style.top=r.top+"px";if(e.currentTarget.setPointerCapture&&e.pointerId!==undefined)e.currentTarget.setPointerCapture(e.pointerId);}
       function move(e){if(!drag)return;const maxLeft=Math.max(8,window.innerWidth-root.offsetWidth-8),maxTop=Math.max(8,window.innerHeight-root.offsetHeight-8);root.style.left=Math.min(maxLeft,Math.max(8,drag.left+e.clientX-drag.x))+"px";root.style.top=Math.min(maxTop,Math.max(8,drag.top+e.clientY-drag.y))+"px";}
       function end(){drag=null;}
       [toggle,handle].filter(Boolean).forEach(el=>{el.addEventListener("pointerdown",begin);el.addEventListener("pointermove",move);el.addEventListener("pointerup",end);el.addEventListener("pointercancel",end);});
