@@ -1050,3 +1050,306 @@ button, input, select, textarea {
     transform: none;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   SISTEMA VISUAL UNIFICADO · TODOS LOS MÓDULOS RR. HH.
+   Mantiene paleta corporativa y comportamiento existente.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --simi-ink: #12324b;
+  --simi-muted: #657d92;
+  --simi-line: #dce7f1;
+  --simi-surface: #ffffff;
+  --simi-soft: #f5f9fc;
+  --simi-teal: #078da8;
+  --simi-blue: #0b4f91;
+  --simi-shadow-soft: 0 8px 26px rgba(14, 55, 89, .055);
+  --simi-shadow-hover: 0 14px 34px rgba(14, 55, 89, .095);
+}
+[id^="view-"] {
+  color: var(--simi-ink);
+}
+[id^="view-"] > .ui-card,
+[id^="view-"] .ui-card,
+[id^="view-"] .module-intro {
+  border-color: var(--simi-line);
+  box-shadow: var(--simi-shadow-soft);
+}
+[id^="view-"] > .ui-card,
+[id^="view-"] .ui-card {
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+[id^="view-"] .module-intro {
+  border-radius: 20px;
+}
+[id^="view-"] .module-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #087d99;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+[id^="view-"] .module-section-caption {
+  margin: 4px 0 0;
+  padding: 10px 2px 3px;
+}
+[id^="view-"] .module-section-caption > span {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #d4edf2;
+  border-radius: 13px;
+  background: linear-gradient(145deg,#e9f9fb,#f6fbff);
+  box-shadow: 0 4px 10px rgba(8,141,168,.06);
+}
+[id^="view-"] .module-section-caption b {
+  font-size: 14px;
+  letter-spacing: -.015em;
+}
+[id^="view-"] .module-section-caption small {
+  line-height: 1.55;
+}
+[id^="view-"] .form-field,
+[id^="view-"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]),
+[id^="view-"] select,
+[id^="view-"] textarea {
+  border-color: #d5e2ee;
+  border-radius: 11px;
+  background-color: #fff;
+  color: #17364f;
+  box-shadow: inset 0 1px 2px rgba(15, 48, 76, .025);
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+[id^="view-"] .form-field:focus,
+[id^="view-"] input:focus,
+[id^="view-"] select:focus,
+[id^="view-"] textarea:focus {
+  border-color: #39a8c1;
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(8,145,178,.12);
+}
+[id^="view-"] button:not(.menu-btn):not(.dashboard-quick-link):not(.nav-item) {
+  transition: box-shadow .16s ease, transform .16s ease, filter .16s ease;
+}
+[id^="view-"] button:not(:disabled):not(.menu-btn):not(.dashboard-quick-link):hover {
+  filter: saturate(1.06);
+}
+[id^="view-"] .corp-button,
+[id^="view-"] .corp-button-dark,
+[id^="view-"] .ui-button {
+  min-height: 38px;
+  border-radius: 10px;
+  font-weight: 750;
+}
+[id^="view-"] .table-scroll {
+  overflow: auto;
+  border: 1px solid #e1eaf2;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(14,55,89,.035);
+}
+[id^="view-"] table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+[id^="view-"] table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding-top: 13px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid #dce7f1;
+  background: #f3f8fc;
+  color: #526c82;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .055em;
+  white-space: nowrap;
+}
+[id^="view-"] table tbody td {
+  border-bottom: 1px solid #edf2f7;
+  color: #3c5367;
+  vertical-align: middle;
+}
+[id^="view-"] table tbody tr:last-child td {
+  border-bottom: 0;
+}
+[id^="view-"] table tbody tr:hover td {
+  background: #f6fbfe;
+}
+[id^="view-"] .badge-vigente,
+[id^="view-"] .badge-proxima,
+[id^="view-"] .badge-caducada,
+[id^="view-"] .badge-alerta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.2;
+}
+[id^="view-"] .colab-kpi,
+[id^="view-"] .task-kpi,
+[id^="view-"] .space-metric,
+[id^="view-"] .dash-space-stat {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--simi-line);
+  border-radius: 16px;
+  background: linear-gradient(145deg,#fff 0%,#f7fbfe 100%);
+  box-shadow: 0 6px 20px rgba(14,55,89,.045);
+}
+[id^="view-"] .colab-kpi:after,
+[id^="view-"] .task-kpi:after {
+  position: absolute;
+  right: -18px;
+  bottom: -25px;
+  width: 72px;
+  height: 72px;
+  border: 1px solid rgba(8,145,178,.09);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+[id^="view-"] .colab-kpi > span,
+[id^="view-"] .task-kpi-icon {
+  border: 1px solid #d4edf2;
+  border-radius: 12px;
+  background: linear-gradient(145deg,#e4f7fa,#f3fbff);
+  color: #0789a6;
+}
+[id^="view-"] .colab-kpi strong,
+[id^="view-"] .task-kpi > b {
+  color: #103b5c;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.035em;
+}
+[id^="view-"] [class*="grid"] > article,
+[id^="view-"] .report-card,
+[id^="view-"] .mail-card,
+[id^="view-"] .config-sucursal-card {
+  border-color: var(--simi-line);
+  border-radius: 15px;
+}
+[id^="view-"] details {
+  border-color: var(--simi-line);
+  border-radius: 13px;
+}
+[id^="view-"] details > summary {
+  cursor: pointer;
+}
+[id^="view-"] .helper-note {
+  border-radius: 13px;
+  line-height: 1.6;
+}
+[id^="view-"] .empty-state,
+[id^="view-"] [class*="empty-state"] {
+  border: 1px dashed #cadbe8;
+  border-radius: 14px;
+  background: linear-gradient(145deg,#fbfdff,#f4f9fc);
+}
+
+/* Gráficos: jerarquía, escala legible y leyendas consistentes */
+#view-dashboard #dashboard-gerencial-graficos > article,
+#view-dashboard #dashboard-chart-incidencias,
+#view-dashboard #dashboard-chart-atrasos,
+#view-dashboard #dashboard-chart-carga {
+  overflow: hidden;
+  border: 1px solid #dce7f1;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(14,55,89,.055);
+}
+#view-dashboard #dashboard-gerencial-graficos > article > div:first-child {
+  border-bottom: 1px solid #dce7f1;
+}
+#view-dashboard #dashboard-gerencial-graficos article h3,
+#view-dashboard #dashboard-gerencial-graficos article h4 {
+  letter-spacing: -.02em;
+}
+#view-dashboard #dashboard-gerencial-graficos article [role="progressbar"],
+#view-dashboard [class*="progress"] > div,
+#view-dashboard [class*="bar"] > div {
+  border-radius: 999px;
+}
+#view-dashboard #dashboard-gerencial-graficos article [class*="bg-slate-200"],
+#view-dashboard [class*="bg-slate-200"] {
+  background-color: #e4ebf2;
+}
+#view-dashboard #dashboard-gerencial-graficos article [class*="rounded-full"][class*="h-"] {
+  box-shadow: inset 0 1px 2px rgba(12,42,66,.08);
+}
+#view-dashboard .dashboard-kpi-section-label {
+  padding-top: 4px;
+  padding-bottom: 2px;
+}
+#view-dashboard .dashboard-kpi-section-label > span {
+  color: #416681;
+}
+#view-dashboard .dashboard-quick-link:focus-visible,
+#view-dashboard .dashboard-details-summary:focus-visible {
+  outline: 3px solid rgba(8,145,178,.28);
+  outline-offset: 3px;
+}
+
+/* Calendarios, mapas, chat y paneles operativos */
+#view-mapas .leaflet-container,
+#view-traslados .leaflet-container,
+#view-sucursales .leaflet-container {
+  border: 1px solid #d6e4ef;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(14,55,89,.08);
+}
+#view-chat [class*="message"],
+#view-chat [class*="conversation"] {
+  overflow-wrap: anywhere;
+}
+#view-operaciones [class*="status"],
+#view-integraciones [class*="status"],
+#view-calidad [class*="status"] {
+  max-width: 100%;
+}
+#view-reportes .rep-tipo + span,
+#view-reportes label:has(.rep-tipo) {
+  border-color: #dce7f1;
+  border-radius: 13px;
+  background: linear-gradient(145deg,#fff,#f8fbfe);
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+#view-reportes label:has(.rep-tipo):hover {
+  border-color: #9ccfdf;
+  box-shadow: 0 5px 16px rgba(8,141,168,.07);
+}
+#view-reportes label:has(.rep-tipo:checked) {
+  border-color: #7bc5d6;
+  background: #f0fbfd;
+  box-shadow: inset 0 0 0 1px rgba(8,141,168,.08);
+}
+@media (max-width: 760px) {
+  [id^="view-"] {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  [id^="view-"] .module-intro {
+    border-radius: 15px;
+  }
+  [id^="view-"] .table-scroll {
+    border-radius: 12px;
+  }
+  [id^="view-"] .colab-kpi-grid,
+  [id^="view-"] .task-kpi-grid {
+    gap: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [id^="view-"] *,
+  [id^="view-"] *:before,
+  [id^="view-"] *:after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
