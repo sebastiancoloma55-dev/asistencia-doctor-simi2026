@@ -844,6 +844,21 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 #simi-context-links button:hover{background:#eafaf9!important;border-color:#19a8a5!important}
 #simi-context-assistant.is-dragging #simi-context-toggle{box-shadow:0 12px 30px rgba(7,59,112,.35)!important;opacity:.92}
 @media(max-width:640px){#simi-context-assistant{right:14px;bottom:16px;width:48px;height:48px}#simi-context-toggle{width:48px!important;height:48px!important;min-width:48px!important}#simi-context-toggle svg{width:21px!important;height:21px!important}#simi-context-popover{bottom:58px!important}}
+/* Barra superior ejecutiva: sin duplicar navegación ni acciones gigantes */
+main>header{position:sticky!important;top:0;z-index:80!important;display:flex;align-items:center;gap:14px;min-height:68px;padding:10px 22px!important;background:rgba(255,255,255,.97)!important;border-bottom:1px solid #dce8f4!important;box-shadow:0 5px 18px rgba(8,47,85,.055)!important;backdrop-filter:blur(14px)}
+main>header #header-title{flex:1;min-width:120px;margin:0!important;color:#0a315c!important;font-size:17px!important;font-weight:900!important;letter-spacing:-.025em}
+main>header .topbar-quick-action{display:none!important}
+#quick-module-bar{display:none!important}
+main>header #topbar-notification-button{width:40px;height:40px;border:1px solid #cfe4f2!important;border-radius:12px;background:#eff9fc!important;color:#087f92!important;box-shadow:none!important}
+main>header .topbar-search{min-height:40px;border:1px solid #d6e4f2!important;border-radius:11px;background:#f8fbff!important;color:#345a7b!important;box-shadow:none!important}
+main>header #btn-theme-settings{min-height:40px;border:1px solid #d6e4f2!important;border-radius:11px;background:#fff!important;color:#12385f!important;padding:9px 12px!important}
+main>header #btn-cerrar-sesiones-global{min-height:40px;border-radius:11px!important}
+main>header button[onclick*="cerrarSesion()"]{padding:9px 10px!important;border-radius:9px;color:#087f92!important;font-weight:850!important}
+#simi-context-content .simi-assistant-refresh{display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:9px 12px;border:1px solid #bfe4e6;border-radius:10px;background:#effbfa;color:#087f92;font-size:11px;font-weight:850;cursor:pointer}
+#simi-context-content .simi-assistant-refresh:disabled{opacity:.6;cursor:wait}
+#simi-context-content .simi-assistant-status{margin-top:7px;font-size:10px;color:#617c91;line-height:1.45}
+@media(max-width:1000px){main>header{gap:8px;padding:10px 14px!important}main>header #header-title{font-size:15px!important}main>header .topbar-user-email{display:none!important}}
+@media(max-width:640px){main>header{min-height:58px;padding:8px 10px!important;gap:6px}main>header #header-title{min-width:70px;font-size:14px!important}main>header #btn-theme-settings{padding:8px!important}main>header #btn-cerrar-sesiones-global{display:none!important}main>header button[onclick*="cerrarSesion()"]{font-size:10px!important;padding:8px 5px!important}}
 </style>
 </head>
 
@@ -3533,7 +3548,32 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         const dashboardPanel=document.getElementById('dashboard-panel-inteligente');
         if(dashboardPanel)dashboardPanel.classList.toggle('hidden',key!=='dashboard');
         title.textContent=item.title;
-        content.innerHTML='<p class="text-sm leading-6 text-slate-600">'+item.text+'</p><p class="mt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Sugerencias para esta pantalla</p>';
+        content.innerHTML='<p class="text-sm leading-6 text-slate-600">'+item.text+'</p>';
+        const refreshActions={
+          dashboard:['inicializarDashboard','Actualizar indicadores'],
+          colaboradores:['cargarTablaColaboradores','Actualizar directorio'],
+          sucursales:['cargarTablaSucursales','Actualizar directorio y mapa'],
+          asistencia:['actualizarIndicadoresAsistencia','Actualizar asistencia'],
+          envio_licencias:['cargarLicenciasManuales','Actualizar registros'],
+          vacaciones:['cargarHistorialVacaciones','Actualizar historial'],
+          correos:['cargarHistorialBorradoresNube','Actualizar historial de borradores'],
+          configcorreos:['prepararConfiguracionCorreos','Actualizar configuración'],
+          mapas:['prepararMapa14','Actualizar mapa y sucursales'],
+          traslados:['cargarSolicitudesDotacion','Actualizar solicitudes'],
+          reportes:['prepararFiltrosReportesRRHH','Actualizar reportes'],
+          operaciones:['cargarCentroOperaciones','Actualizar centro de operaciones'],
+          calidad:['cargarPanelCalidad','Actualizar calidad de datos'],
+          notificaciones:['cargarCentroNotificaciones','Actualizar notificaciones'],
+          integraciones:['cargarPanelIntegraciones','Actualizar integraciones']
+        };
+        const refreshSpec=refreshActions[key];
+        if(refreshSpec&&typeof window[refreshSpec[0]]==='function'){
+          const action=document.createElement('button');action.type='button';action.className='simi-assistant-refresh';action.innerHTML='<span aria-hidden="true">↻</span><span></span>';action.querySelector('span:last-child').textContent=refreshSpec[1];
+          const status=document.createElement('p');status.className='simi-assistant-status';status.setAttribute('aria-live','polite');
+          action.addEventListener('click',async()=>{action.disabled=true;status.textContent='Actualizando con la fuente disponible…';try{await window[refreshSpec[0]]();status.textContent='La función de actualización terminó. Revisa los datos visibles y cualquier aviso del módulo.';}catch(err){status.textContent='No se pudo actualizar: '+String(err?.message||err).slice(0,220);}finally{action.disabled=false;}});
+          content.append(action,status);
+        }
+        const suggestionLabel=document.createElement('p');suggestionLabel.className='mt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400';suggestionLabel.textContent='Sugerencias para esta pantalla';content.appendChild(suggestionLabel);
         links.replaceChildren();
         item.links.forEach(([label,module])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>{if(typeof window.cambiarModulo==='function')window.cambiarModulo(module);pop.hidden=true;toggle.setAttribute('aria-expanded','false');});links.appendChild(b);});
         if(window.lucide)window.lucide.createIcons();
@@ -3699,6 +3739,6 @@ hr{border-color:#e8edf3}
 @media(prefers-reduced-motion:reduce){.dashboard-welcome-compact-image{animation:none!important;transition:none!important}}
 </style>
 
-<script src="/js/reference-module-enhancer.js?v=20261018k" defer></script>
+<script src="/js/reference-module-enhancer.js?v=20261018l" defer></script>
 </body>
 </html>
