@@ -71,7 +71,63 @@
       row.append(name,track,n); chart.appendChild(row);
     });
   }
+  function enhanceUsers(){
+    const section=document.getElementById('view-usuarios');
+    if(!section || section.querySelector('.ref-user-wizard')) return;
+    const formCard=section.querySelector('.ui-card.grid.grid-cols-1');
+    if(!formCard) return;
+    const wizard=document.createElement('div'); wizard.className='ref-user-wizard';
+    wizard.innerHTML='<div class="ref-user-step is-done"><span>✓</span><div><b>Persona</b><small>Selecciona o crea el usuario</small></div></div><div class="ref-user-step is-active"><span>2</span><div><b>Rol y funciones</b><small>Define sus permisos</small></div></div><div class="ref-user-step"><span>3</span><div><b>Sucursales autorizadas</b><small>Indica el alcance</small></div></div><div class="ref-user-step"><span>4</span><div><b>Revisar y guardar</b><small>Confirma la configuración</small></div></div>';
+    formCard.parentElement.insertBefore(wizard,formCard);
+    const addHeading=(selector,text)=>{
+      const el=formCard.querySelector(selector);
+      if(el && !el.previousElementSibling?.classList.contains('ref-user-section-title')){
+        const h=document.createElement('div');h.className='ref-user-section-title';h.textContent=text;el.parentElement.insertBefore(h,el);
+      }
+    };
+    addHeading('#usr-email','1. Selecciona la persona');
+    addHeading('#usr-permisos','2. Elige los permisos incluidos en este perfil');
+    addHeading('#usr-supervisores','3. Define el alcance por sucursal y supervisor');
+    addHeading('#usr-puede-asignar','4. Revisa las capacidades adicionales');
+    const select=section.querySelector('#usr-rol');
+    if(select && !section.querySelector('.ref-role-cards')){
+      const cards=document.createElement('div');cards.className='ref-role-cards';
+      [...select.options].forEach((option,index)=>{
+        if(!option.value) return;
+        const b=document.createElement('button');b.type='button';b.className='ref-role-card';b.dataset.value=option.value;
+        const icon=['♛','▦','⌂','◉'][index%4];
+        const title=document.createElement('b');title.textContent=option.textContent;
+        const desc=document.createElement('small');desc.textContent=['Acceso y administración según las políticas del sistema.','Gestión operativa de recursos humanos.','Carga y actualización de información autorizada.','Consulta de información sin operaciones sensibles.'][index%4];
+        const mark=document.createElement('span');mark.className='ref-role-mark';mark.textContent=icon;
+        b.append(mark,title,desc);
+        b.addEventListener('click',()=>{select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));cards.querySelectorAll('.ref-role-card').forEach(x=>x.classList.toggle('selected',x===b));});
+        cards.appendChild(b);
+      });
+      select.insertAdjacentElement('afterend',cards);
+      const sync=()=>cards.querySelectorAll('.ref-role-card').forEach(x=>x.classList.toggle('selected',x.dataset.value===select.value));
+      select.addEventListener('change',sync);sync();
+    }
+  }
+  function enhancePapeletas(){
+    const section=document.getElementById('view-papeletas');
+    const form=section?.querySelector('#form-papeleta');
+    if(!form || section.querySelector('.ref-papeleta-layout')) return;
+    const layout=document.createElement('div');layout.className='ref-papeleta-layout';
+    const preview=document.createElement('aside');preview.className='ref-papeleta-preview';
+    preview.innerHTML='<div class="ref-paper"><div class="ref-paper-brand"><span class="ref-paper-logo">DS</span><span><b>FARMACIAS DOCTOR SIMI</b><small>RECURSOS HUMANOS</small></span></div><div class="ref-paper-line"></div><h4>PAPELETA DE PERMISO</h4><div class="ref-paper-row"><span>Colaborador</span><b data-pap-preview="nombre">Pendiente de seleccionar</b></div><div class="ref-paper-row"><span>RUT</span><b data-pap-preview="rut">—</b></div><div class="ref-paper-row"><span>Sucursal</span><b data-pap-preview="sucursal">—</b></div><div class="ref-paper-row"><span>Tipo de permiso</span><b data-pap-preview="tipo">—</b></div><div class="ref-paper-row"><span>Período</span><b data-pap-preview="periodo">—</b></div><div class="ref-paper-lines"><i></i><i></i><i></i></div><div class="ref-paper-signatures"><span>Firma colaborador</span><span>Recursos Humanos</span></div></div><div class="ref-pap-preview-note"><b>Vista previa del documento</b><span>Los campos se actualizan con los datos ingresados. El PDF oficial se genera desde el formulario.</span></div>';
+    form.parentElement.insertBefore(layout,form);layout.append(form,preview);
+    const read=id=>{const el=section.querySelector('#'+id);return el?(el.selectedOptions?.[0]?.textContent||el.value||'').trim():'—';};
+    const update=()=>{
+      const name=read('pap-nombre');const rut=read('pap-rut');const branch=read('pap-sucursal');const type=read('pap-tipo');
+      const start=read('pap-inicio');const end=read('pap-fin');
+      const values={nombre:name||read('pap-buscar')||'Pendiente de seleccionar',rut:rut||'—',sucursal:branch||'—',tipo:type||'—',periodo:(start&&start!=='—'?start:'—')+' a '+(end&&end!=='—'?end:'—')};
+      Object.entries(values).forEach(([key,value])=>{const node=preview.querySelector('[data-pap-preview="'+key+'"]');if(node)node.textContent=value;});
+    };
+    form.addEventListener('input',update);form.addEventListener('change',update);update();
+  }
   function refresh(){
+    enhanceUsers();
+    enhancePapeletas();
     Object.entries(targets).forEach(([id,cfg])=>{
       const section=document.getElementById('view-'+id);
       if(section && !section.classList.contains('hidden')) makeOverview(section,cfg);
