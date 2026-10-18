@@ -234,7 +234,7 @@
         setTimeout(()=>map.invalidateSize(),120);
       }catch(e){
         // Si otra vista ya cargó el directorio con éxito, reutilizar esos datos reales como fallback.
-        const cached=Array.isArray(window.sucursalesConfiguracionGlobal)?window.sucursalesConfiguracionGlobal:[];
+        const cached=typeof sucursalesConfiguracionGlobal!=='undefined'&&Array.isArray(sucursalesConfiguracionGlobal)?sucursalesConfiguracionGlobal:[];
         if(cached.length){
           const normalizeActive=value=>String(value??'').trim().toLocaleLowerCase('es-CL');
           const active=cached.filter(x=>x.activa===true||x.activa===1||['true','1','activo','activa','si','yes'].includes(normalizeActive(x.activa))).length;
