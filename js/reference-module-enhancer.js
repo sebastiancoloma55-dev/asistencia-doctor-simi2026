@@ -163,7 +163,14 @@
       const parent=overview.parentElement;
       parent.insertBefore(layout,overview);layout.append(left,side);left.append(overview,tableCard);
     }
-    if(layout.dataset.loaded==='true'){if(!section.classList.contains('hidden'))setTimeout(()=>layout._refMap?.invalidateSize(),120);return;}
+    if(layout.dataset.loaded==='true'){
+      const cachedNow=Array.isArray(window.sucursalesConfiguracionGlobal)?window.sucursalesConfiguracionGlobal:[];
+      if(layout.dataset.refMapFailed==='true'&&cachedNow.length){
+        layout.dataset.loaded='';
+        layout.dataset.refMapFailed='';
+        if(layout._refMap){try{layout._refMap.remove();}catch(_){}layout._refMap=null;}
+      }else{if(!section.classList.contains('hidden'))setTimeout(()=>layout._refMap?.invalidateSize(),120);return;}
+    }
     layout.dataset.loaded='true';
     const mapNode=section.querySelector('#ref-sucursal-map');
     const note=section.querySelector('#ref-sucursal-map-note');
@@ -231,6 +238,7 @@
         });
         if(points.length)map.fitBounds(L.latLngBounds(points.map(p=>[p.lat,p.lon])),{padding:[18,18],maxZoom:10});
         else map.setView([-33.45,-70.66],5);
+        layout.dataset.refMapFailed='';
         if(note)note.textContent=points.length+' sucursales con coordenadas válidas de '+rows.length+' registros consultados.';
         setTimeout(()=>map.invalidateSize(),120);
       }catch(e){
@@ -255,7 +263,8 @@
           if(regionsNode){const groups={};cached.forEach(x=>{const key=clean(x.region||x.comuna||'Sin región');groups[key]=(groups[key]||0)+1;});const sorted=Object.entries(groups).sort((a,b)=>b[1]-a[1]).slice(0,6);regionsNode.innerHTML='';const max=Math.max(1,...sorted.map(x=>x[1]));sorted.forEach(([label,n])=>{const row=document.createElement('div');row.className='ref-bar-row';const name=document.createElement('span');name.textContent=label;const track=document.createElement('div');track.className='ref-bar-track';const fill=document.createElement('div');fill.className='ref-bar-fill';fill.style.width=(n/max*100)+'%';track.appendChild(fill);const count=document.createElement('span');count.className='ref-bar-count';count.textContent=n.toLocaleString('es-CL');row.append(name,track,count);regionsNode.appendChild(row);});}
           return;
         }
-        if(note)note.textContent='No hay un directorio autorizado disponible en esta sesión. Abre Sucursales y vuelve a este panel para reutilizar los datos cargados.';
+        layout.dataset.refMapFailed='true';
+        if(note)note.textContent='Esperando a que se cargue el directorio autorizado de sucursales…';
         if(mapNode)mapNode.innerHTML='<span>Abre primero Sucursales para cargar el directorio autorizado.</span>';
         if(regionsNode)regionsNode.innerHTML='<div class="ref-empty-chart">La distribución estará disponible cuando se cargue el directorio autorizado.</div>';
       }
