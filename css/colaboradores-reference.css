@@ -70,7 +70,7 @@
 #view-colaboradores .ui-card.table-scroll{border-radius:13px!important}
 #view-colaboradores .ui-card.table-scroll table thead th{padding:11px 13px!important}
 #view-colaboradores .ui-card.table-scroll table tbody td{padding:9px 13px!important}
-#view-colaboradores .ui-card.table-scroll #tabla-colaboradores-body td:nth-child(2) button{display:none!important}
+#view-colaboradores .ui-card.table-scroll #tabla-colaboradores-body td:nth-child(2) button{display:inline-flex!important;align-items:center!important;gap:5px!important;background:#eef6ff!important;color:#1768bd!important;border-radius:7px!important;padding:4px 7px!important;font-size:9px!important}
 #view-colaboradores .ui-card.table-scroll #tabla-colaboradores-body tr{cursor:pointer!important}
 #view-colaboradores .ui-card.table-scroll #tabla-colaboradores-body tr:hover td{background:#f1f7ff!important}
 #view-colaboradores .colab-status-active,#view-colaboradores .colab-status-inactive{display:inline-flex!important;align-items:center!important;border-radius:999px!important;padding:4px 8px!important;font-size:9px!important;font-weight:800!important}
