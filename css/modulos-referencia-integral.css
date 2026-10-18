@@ -388,3 +388,35 @@ main section[id^="view-"] .ui-card{min-width:0}
 .ref-coverage-page .ref-coverage-history{margin-top:0}
 @media(max-width:1050px){.ref-coverage-page .ref-coverage-workspace{grid-template-columns:1fr}.ref-coverage-page #form-alerta-dotacion{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.ref-coverage-page .ref-coverage-kpis{grid-template-columns:1fr}.ref-coverage-page #form-alerta-dotacion{grid-template-columns:1fr}.ref-coverage-page #form-alerta-dotacion>div{grid-column:1/-1}}
+
+
+/* Ajustes de estructura: indicadores a ancho completo, historiales plegables y formularios sin columnas estrechas */
+main section[id^="view-"]:not(.hidden)>.ref-overview{width:100%;grid-template-columns:minmax(0,1fr);margin:0 0 2px}
+main section[id^="view-"]:not(.hidden)>.ref-overview>.ref-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:100%;min-width:0}
+main section[id^="view-"]:not(.hidden)>.ref-overview>.ref-chart{width:100%;min-width:0}
+.ref-medical-mail-page>.ref-overview{order:1}
+.ref-medical-mail-page>.grid{min-width:0}
+.ref-medical-mail-page .ref-secondary-charts{grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+.ref-medical-mail-page .ref-kpi{min-width:0;overflow:hidden}
+.ref-history-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 13px;margin:8px 0;border:1px solid #dce8f4;border-radius:11px;background:#f7fbff;color:#173b60;font-size:11px;font-weight:800}
+.ref-history-toggle{flex:0 0 auto;border:1px solid #cfe0f2;border-radius:8px;background:#fff;padding:7px 11px;color:#075fbd;font-size:11px;font-weight:800;cursor:pointer;transition:background .15s ease,color .15s ease}
+.ref-history-toggle:hover{background:#eaf5ff}
+.ref-history-table[hidden]{display:none!important}
+.ref-history-table{max-width:100%;overflow-x:auto}
+.ref-history-table table{min-width:640px}
+.ref-permission-slips-page .ref-papeleta-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(270px,.75fr);gap:14px;align-items:start}
+.ref-permission-slips-page .ref-papeleta-layout>form{min-width:0}
+.ref-permission-slips-page .ref-papeleta-preview{position:sticky;top:12px;min-width:0}
+.ref-vacations-page>.ref-overview,.ref-leaves-page>.ref-overview,.ref-attendance-page>.ref-overview{order:1}
+.ref-vacations-page>.ref-secondary-charts,.ref-leaves-page>.ref-secondary-charts,.ref-attendance-page>.ref-secondary-charts{order:3}
+.ref-collaborators-page .ref-employee-history-modal{max-width:min(1060px,96vw);max-height:94vh;overflow:auto}
+@media(max-width:1050px){
+ main section[id^="view-"]:not(.hidden)>.ref-overview>.ref-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .ref-permission-slips-page .ref-papeleta-layout{grid-template-columns:1fr}
+ .ref-permission-slips-page .ref-papeleta-preview{position:static}
+}
+@media(max-width:560px){
+ main section[id^="view-"]:not(.hidden)>.ref-overview>.ref-kpis{grid-template-columns:1fr}
+ .ref-medical-mail-page .ref-secondary-charts{grid-template-columns:1fr}
+ .ref-history-toggle-row{align-items:flex-start;flex-direction:column}
+}
