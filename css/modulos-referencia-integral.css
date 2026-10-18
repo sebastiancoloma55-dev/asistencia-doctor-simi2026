@@ -356,3 +356,35 @@ main section[id^="view-"] .ui-card{min-width:0}
 .ref-audit-page #tabla-auditoria-body tr{height:42px}
 @media(max-width:1050px){.ref-secondary-charts{grid-template-columns:1fr}.ref-collaborators-page #colab-kpi-grid,.ref-branches-page .ref-sucursal-main .ref-kpis,.ref-attendance-page .ref-kpis,.ref-leaves-page .ref-kpis,.ref-vacations-page .ref-kpis,.ref-medical-mail-page .ref-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ref-integrations-shell #integ-lista{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.ref-secondary-charts{grid-template-columns:1fr}.ref-reportes-board{grid-template-columns:repeat(2,minmax(0,1fr))}.ref-users-page .ref-user-wizard{grid-template-columns:repeat(2,minmax(0,1fr))}.ref-routes-page #mapa14-estadisticas{grid-template-columns:1fr}.ref-transfers-page #traslado-form{grid-template-columns:1fr}.ref-help-page #ayuda-lista{grid-template-columns:1fr}}
+
+
+/* Coberturas QF/AF — formulario principal, seguimiento y estado lateral */
+.ref-coverage-page .ref-coverage-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:0}
+.ref-coverage-page .ref-coverage-kpis>div{min-width:0;padding:15px 17px;border:1px solid #dce8f4;border-radius:14px;background:linear-gradient(145deg,#fff,#f7fbff);box-shadow:0 5px 16px rgba(8,47,85,.045);color:#617a91;font-size:10px;font-weight:750}
+.ref-coverage-page .ref-coverage-kpis b{display:block;margin-top:6px;color:#12385f;font-size:25px;font-weight:900;letter-spacing:-.04em}
+.ref-coverage-page .ref-coverage-workspace{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:14px;align-items:start}
+.ref-coverage-page .ref-coverage-form-column,.ref-coverage-page .ref-coverage-alerts-column{display:grid;gap:12px;min-width:0}
+.ref-coverage-page .ref-coverage-form-column>.ui-card,.ref-coverage-page .ref-coverage-alerts-column>.ui-card{min-width:0;overflow:hidden}
+.ref-coverage-page #form-alerta-dotacion{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px}
+.ref-coverage-page #form-alerta-dotacion>div,.ref-coverage-page #form-alerta-dotacion>label{min-width:0}
+.ref-coverage-page #form-alerta-dotacion .xl\:col-span-2,.ref-coverage-page #form-alerta-dotacion .sm\:col-span-2,.ref-coverage-page #form-alerta-dotacion .xl\:col-span-4{grid-column:1/-1}
+.ref-coverage-page #form-alerta-dotacion label{display:block;margin-bottom:4px;font-size:10px;font-weight:800;color:#526f88}
+.ref-coverage-page #form-alerta-dotacion .form-field{width:100%;min-width:0}
+.ref-coverage-page #tabla-alertas-dotacion{font-size:10px}
+.ref-coverage-page #tabla-alertas-dotacion tr{height:44px}
+.ref-coverage-page .ref-coverage-state-panel{padding:15px}
+.ref-coverage-page .ref-coverage-state-track{display:flex;height:11px;overflow:hidden;margin-top:16px;border-radius:99px;background:#edf3f8}
+.ref-coverage-page .ref-coverage-state-track span{display:block;width:0;transition:width .25s ease}
+.ref-coverage-page .ref-coverage-state-track [data-coverage-state="pending"]{background:#f3ad36}
+.ref-coverage-page .ref-coverage-state-track [data-coverage-state="progress"]{background:#19a8a5}
+.ref-coverage-page .ref-coverage-state-track [data-coverage-state="done"]{background:#168b69}
+.ref-coverage-page .ref-coverage-state-legend{display:grid;gap:9px;margin-top:13px}
+.ref-coverage-page .ref-coverage-state-legend span{display:flex;align-items:center;gap:7px;color:#637c92;font-size:10px}
+.ref-coverage-page .ref-coverage-state-legend i{width:8px;height:8px;border-radius:50%}
+.ref-coverage-page .ref-coverage-state-legend i.pending{background:#f3ad36}
+.ref-coverage-page .ref-coverage-state-legend i.progress{background:#19a8a5}
+.ref-coverage-page .ref-coverage-state-legend i.done{background:#168b69}
+.ref-coverage-page .ref-coverage-state-legend b{margin-left:auto;color:#12385f;font-variant-numeric:tabular-nums}
+.ref-coverage-page .ref-coverage-history{margin-top:0}
+@media(max-width:1050px){.ref-coverage-page .ref-coverage-workspace{grid-template-columns:1fr}.ref-coverage-page #form-alerta-dotacion{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.ref-coverage-page .ref-coverage-kpis{grid-template-columns:1fr}.ref-coverage-page #form-alerta-dotacion{grid-template-columns:1fr}.ref-coverage-page #form-alerta-dotacion>div{grid-column:1/-1}}
