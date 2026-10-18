@@ -41,7 +41,8 @@ function metrics(){
  var pinnedValue=state.notesError?"Error":pinned;var pendingTasks=document.getElementById("tk-pendiente");var taskValue=pendingTasks?pendingTasks.textContent.trim():"—";
  var overdueValue=state.notesError?"Error":overdue;
  var logsValue=state.logsError?"Error":logsWeek;
- renderRecentActivity();\n var box=$("space-metrics");
+ renderRecentActivity();
+ var box=$("space-metrics");
  if(box){
   var vals=[["Notas activas",activeValue,"sticky-note","teal"],["Tareas pendientes",taskValue,"clipboard-check","violet"],["Próximos vencimientos",overdueValue,"calendar-days","amber"],["Gestiones recientes",logsValue,"clock-arrow-down","blue"]];
   box.innerHTML=vals.map(function(x){return '<div class="space-metric space-metric-'+x[3]+'"><span class="space-metric-icon"><i data-lucide="'+x[2]+'"></i></span><span class="space-metric-copy"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></span></div>';}).join("");
