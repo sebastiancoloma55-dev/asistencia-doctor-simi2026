@@ -195,7 +195,115 @@
     };
     draw();
   }
+
+  // Rediseños estructurales para los módulos de la referencia 9.
+  function enhanceReportes(){
+    const section=document.getElementById('view-reportes');
+    if(!section || section.dataset.refReportes==='true') return;
+    const intro=section.querySelector('.module-intro');
+    const filterCard=section.querySelector('#rep-desde')?.closest('.ui-card');
+    if(!intro || !filterCard) return;
+    section.dataset.refReportes='true';
+    section.classList.add('ref-reportes-page');
+    const board=document.createElement('div'); board.className='ref-reportes-board';
+    board.innerHTML='<article class="ref-report-kpi"><span class="ref-report-icon">▤</span><small>Informes seleccionados</small><strong data-report-value="selected">—</strong><span>Según las casillas activas</span></article><article class="ref-report-kpi"><span class="ref-report-icon amber">⇩</span><small>Formato de salida</small><strong data-report-value="format">Excel</strong><span>Editable antes de descargar</span></article><article class="ref-report-kpi"><span class="ref-report-icon teal">▣</span><small>Alcance de sucursales</small><strong data-report-value="branch">Todas</strong><span>Según el filtro actual</span></article><article class="ref-report-kpi"><span class="ref-report-icon violet">◷</span><small>Período consultado</small><strong data-report-value="period">Sin definir</strong><span>Rango seleccionado</span></article>';
+    intro.insertAdjacentElement('afterend',board);
+    const update=()=>{
+      const selected=section.querySelectorAll('.rep-tipo:checked').length;
+      const format=section.querySelector('#rep-formato');
+      const branch=section.querySelector('#rep-sucursal');
+      const from=section.querySelector('#rep-desde')?.value;
+      const to=section.querySelector('#rep-hasta')?.value;
+      board.querySelector('[data-report-value="selected"]').textContent=selected.toLocaleString('es-CL');
+      board.querySelector('[data-report-value="format"]').textContent=format?.selectedOptions?.[0]?.textContent?.replace(/\\s+/g,' ').trim()||'Excel';
+      board.querySelector('[data-report-value="branch"]').textContent=branch?.value?(branch.selectedOptions?.[0]?.textContent||'Seleccionada').trim():'Todas';
+      const fmt=v=>v?new Date(v+'T12:00:00').toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—';
+      board.querySelector('[data-report-value="period"]').textContent=(from||to)?fmt(from)+' – '+fmt(to):'Sin definir';
+    };
+    section.addEventListener('change',e=>{if(e.target.matches('.rep-tipo,#rep-formato,#rep-sucursal,#rep-desde,#rep-hasta'))update();});
+    update();
+  }
+  function enhanceMapas(){
+    const section=document.getElementById('view-mapas');
+    if(!section || section.dataset.refMapas==='true') return;
+    const canvas=section.querySelector('.map-canvas-shell');
+    const card=canvas?.closest('.ui-card');
+    if(!canvas||!card) return;
+    section.dataset.refMapas='true';
+    section.classList.add('ref-mapas-page');
+    const summary=canvas.querySelector(':scope > .mb-3');
+    const heading=canvas.querySelector('.map-canvas-heading');
+    const frame=canvas.querySelector('#mapa14-frame');
+    const stats=canvas.querySelector('#mapa14-estadisticas');
+    const steps=canvas.querySelector('#mapa14-pasos');
+    const footer=canvas.querySelector('.map-canvas-footer');
+    const routeSide=document.createElement('aside'); routeSide.className='ref-map-route-side';
+    routeSide.innerHTML='<div class="ref-map-result-title"><span>↗</span><div><b>Resultado de la ruta</b><small>Estimación según el recorrido consultado</small></div></div><div class="ref-map-route-placeholder">Selecciona una sucursal de origen y otra de destino; luego pulsa <b>Ver ruta</b>.</div>';
+    if(stats) routeSide.appendChild(stats);
+    if(steps) routeSide.appendChild(steps);
+    const frameWrap=document.createElement('div'); frameWrap.className='ref-map-frame-wrap';
+    if(heading) frameWrap.appendChild(heading);
+    if(frame) frameWrap.appendChild(frame);
+    if(footer) frameWrap.appendChild(footer);
+    const grid=document.createElement('div'); grid.className='ref-map-results-grid';
+    grid.append(frameWrap,routeSide);
+    if(summary) canvas.insertBefore(grid,summary); else canvas.appendChild(grid);
+    const sync=()=>{
+      const text=section.querySelector('#mapa14-resumen')?.textContent||'';
+      const placeholder=routeSide.querySelector('.ref-map-route-placeholder');
+      if(placeholder && text.trim() && !/selecciona origen|selecciona.*destino/i.test(text)) placeholder.textContent=text.trim();
+      routeSide.classList.toggle('has-route',!!stats&&!stats.classList.contains('hidden'));
+    };
+    const observer=new MutationObserver(sync);
+    observer.observe(section,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class']});
+    sync();
+  }
+  function enhanceOperationsLayout(){
+    const section=document.getElementById('view-operaciones');
+    if(!section||section.dataset.refOps==='true') return;
+    section.dataset.refOps='true'; section.classList.add('ref-operations-page');
+    const kpis=section.querySelector('#ops-kpis');
+    if(kpis) kpis.classList.add('ref-ops-kpis');
+    const panels=section.querySelectorAll(':scope > .grid');
+    panels.forEach((panel,i)=>panel.classList.add(i===0?'ref-ops-priority-grid':'ref-ops-secondary-grid'));
+  }
+  function enhanceQualityLayout(){
+    const section=document.getElementById('view-calidad');
+    if(!section||section.dataset.refQuality==='true') return;
+    section.dataset.refQuality='true'; section.classList.add('ref-quality-page');
+    const kpis=section.querySelector('#calidad-kpis');
+    if(kpis) kpis.classList.add('ref-quality-kpis');
+    const grids=section.querySelectorAll(':scope > .grid');
+    grids.forEach(el=>el.classList.add('ref-quality-panels'));
+  }
+  function enhanceNotificationsLayout(){
+    const section=document.getElementById('view-notificaciones');
+    if(!section||section.dataset.refNotifications==='true') return;
+    section.dataset.refNotifications='true'; section.classList.add('ref-notifications-page');
+    const kpis=section.querySelector('#notif-kpis');
+    if(kpis) kpis.classList.add('ref-notif-kpis');
+    const list=section.querySelector('#notif-lista');
+    if(list) list.classList.add('ref-notif-list');
+  }
+  function enhanceIntegrationsLayout(){
+    const section=document.getElementById('view-integraciones');
+    if(!section||section.dataset.refIntegrations==='true') return;
+    section.dataset.refIntegrations='true'; section.classList.add('ref-integrations-page');
+    const kpis=section.querySelector('#integ-kpis');
+    if(kpis) kpis.classList.add('ref-integ-kpis');
+    const list=section.querySelector('#integ-lista');
+    if(list) list.classList.add('ref-integ-list');
+    const bot=section.querySelector('#talana-bot-panel');
+    if(bot) bot.classList.add('ref-talana-bot');
+  }
+
   function refresh(){
+    enhanceReportes();
+    enhanceMapas();
+    enhanceOperationsLayout();
+    enhanceQualityLayout();
+    enhanceNotificationsLayout();
+    enhanceIntegrationsLayout();
     enhanceSucursales();
     enhanceUsers();
     enhancePapeletas();
