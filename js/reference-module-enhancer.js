@@ -163,8 +163,8 @@
       const parent=overview.parentElement;
       parent.insertBefore(layout,overview);layout.append(left,side);left.append(overview,tableCard);
     }
-    if(layout.dataset.loaded==='true'){if(!section.classList.contains('hidden'))setTimeout(()=>layout._refMap?.invalidateSize(),120);return;}
-    layout.dataset.loaded='true';
+    if(layout.dataset.loaded==='true'||layout.dataset.loaded==='loading'){if(layout.dataset.loaded==='true'&&!section.classList.contains('hidden'))setTimeout(()=>layout._refMap?.invalidateSize(),120);return;}
+    layout.dataset.loaded='loading';
     const mapNode=section.querySelector('#ref-sucursal-map');
     const note=section.querySelector('#ref-sucursal-map-note');
     const regionsNode=section.querySelector('#ref-sucursal-regions');
@@ -229,7 +229,8 @@
         else map.setView([-33.45,-70.66],5);
         if(note)note.textContent=points.length+' sucursales con coordenadas válidas de '+rows.length+' registros consultados.';
         setTimeout(()=>map.invalidateSize(),120);
-      }catch(e){if(note)note.textContent='No se pudo cargar el mapa o la distribución: '+(e?.message||'error de consulta');if(regionsNode)regionsNode.innerHTML='<div class="ref-empty-chart">No fue posible consultar la distribución.</div>';}
+        layout.dataset.loaded='true';
+      }catch(e){layout.dataset.loaded='error';if(note)note.textContent='No se pudo cargar el mapa o la distribución: '+(e?.message||'error de consulta');if(regionsNode)regionsNode.innerHTML='<div class="ref-empty-chart">No fue posible consultar la distribución.</div>';}
     };
     draw();
   }
