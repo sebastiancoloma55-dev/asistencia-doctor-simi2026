@@ -1,4 +1,5 @@
 /* NOVA LOGIN V4 — rediseño inmersivo Doctor Simi. Solo afecta el acceso. */
+#login-overlay.nova-v3-overlay.hidden{display:none!important}
 #login-overlay.nova-v3-overlay{
   --login-cyan:#31e3ff;--login-blue:#087cff;--login-violet:#635bff;
   position:fixed!important;inset:0!important;z-index:100!important;display:flex!important;flex-direction:column!important;
