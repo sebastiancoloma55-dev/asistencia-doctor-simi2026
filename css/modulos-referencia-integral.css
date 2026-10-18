@@ -1,0 +1,208 @@
+/* Asistencia Doctor Simi 2026 — sistema visual unificado para módulos.
+   Capa estética: conserva los flujos, IDs, consultas y operaciones existentes. */
+:root{
+  --simi-ink:#12314a;
+  --simi-navy:#062f55;
+  --simi-navy-deep:#052746;
+  --simi-teal:#19a8a5;
+  --simi-teal-dark:#138b89;
+  --simi-canvas:#f3f7fb;
+  --simi-surface:#ffffff;
+  --simi-line:#dce7ef;
+  --simi-muted:#647b8e;
+  --simi-blue:#2878c8;
+  --simi-green:#168b69;
+  --simi-amber:#b97712;
+  --simi-red:#d94b58;
+  --simi-shadow:0 8px 24px rgba(8,47,85,.055);
+}
+section[id^="view-"]{
+  color:var(--simi-ink);
+}
+section[id^="view-"] .module-kicker,
+section[id^="view-"] .module-overline,
+section[id^="view-"] .space-section-kicker{
+  color:var(--simi-teal-dark);
+  font-size:.69rem;
+  font-weight:800;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+section[id^="view-"] .section-title{
+  color:var(--simi-navy);
+  font-weight:800;
+  letter-spacing:-.025em;
+}
+section[id^="view-"] .module-intro{
+  color:var(--simi-muted);
+  line-height:1.55;
+}
+section[id^="view-"] .ui-card,
+section[id^="view-"] .space-panel,
+section[id^="view-"] .td-panel,
+section[id^="view-"] .usr-role-summary-card,
+section[id^="view-"] .usr-matrix-tools{
+  border:1px solid var(--simi-line);
+  border-radius:16px;
+  background:var(--simi-surface);
+  box-shadow:var(--simi-shadow);
+}
+section[id^="view-"] .ui-card:focus-within,
+section[id^="view-"] .space-panel:focus-within{
+  border-color:rgba(25,168,165,.48);
+}
+section[id^="view-"] button:not(.unstyled),
+section[id^="view-"] [role="button"]{
+  transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+section[id^="view-"] button:not(.unstyled):not(:disabled):hover{
+  filter:saturate(1.04);
+}
+section[id^="view-"] button:not(.unstyled):focus-visible,
+section[id^="view-"] input:focus-visible,
+section[id^="view-"] select:focus-visible,
+section[id^="view-"] textarea:focus-visible{
+  outline:3px solid rgba(25,168,165,.23);
+  outline-offset:2px;
+}
+section[id^="view-"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+section[id^="view-"] select,
+section[id^="view-"] textarea{
+  border-color:#d5e1eb;
+  border-radius:10px;
+  color:var(--simi-ink);
+  background:#fff;
+  min-height:38px;
+}
+section[id^="view-"] input::placeholder,
+section[id^="view-"] textarea::placeholder{
+  color:#8da0af;
+}
+section[id^="view-"] .table-scroll{
+  border-radius:13px;
+  border:1px solid var(--simi-line);
+  background:#fff;
+  scrollbar-color:#b8ccd9 transparent;
+}
+section[id^="view-"] table{
+  border-collapse:separate;
+  border-spacing:0;
+  width:100%;
+}
+section[id^="view-"] table thead th{
+  background:#f2f7fb;
+  color:#486277;
+  font-size:.7rem;
+  font-weight:800;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+  border-bottom:1px solid var(--simi-line);
+  white-space:nowrap;
+}
+section[id^="view-"] table tbody tr{
+  transition:background-color .12s ease;
+}
+section[id^="view-"] table tbody tr:hover{
+  background:#f4fbfc;
+}
+section[id^="view-"] table td{
+  border-bottom:1px solid #edf2f6;
+  color:#304c62;
+  vertical-align:middle;
+}
+section[id^="view-"] table tbody tr:last-child td{
+  border-bottom:0;
+}
+section[id^="view-"] .colab-kpi-grid,
+section[id^="view-"] .task-kpi-grid,
+section[id^="view-"] .td-performance-stats{
+  gap:12px;
+}
+section[id^="view-"] .colab-kpi,
+section[id^="view-"] .dash-space-card,
+section[id^="view-"] .td-performance-stats > *,
+section[id^="view-"] .task-kpi-grid > *{
+  border:1px solid var(--simi-line);
+  border-radius:14px;
+  background:linear-gradient(145deg,#fff 0%,#f7fbfe 100%);
+  box-shadow:0 5px 16px rgba(8,47,85,.04);
+}
+section[id^="view-"] .module-title-card{
+  border:1px solid #d9e8f1;
+  border-radius:18px;
+  background:linear-gradient(120deg,#fff 0%,#f0f8fc 72%,#e8f8f7 100%);
+  box-shadow:0 8px 24px rgba(8,47,85,.06);
+}
+section[id^="view-"] .module-logo-mark{
+  border-radius:12px;
+  background:linear-gradient(145deg,var(--simi-navy),#0b5d82);
+  box-shadow:0 5px 12px rgba(6,47,85,.16);
+}
+section[id^="view-"] .space-panel-heading,
+section[id^="view-"] .td-panel-heading{
+  color:var(--simi-navy);
+  font-weight:800;
+}
+section[id^="view-"] .td-panel-heading-icon{
+  border-radius:10px;
+  background:#e7f7f6;
+  color:var(--simi-teal-dark);
+}
+section[id^="view-"] .usr-matrix-filters,
+section[id^="view-"] .usr-table-caption{
+  border-color:var(--simi-line);
+  background:#f7fafc;
+}
+section[id^="view-"] .autocomplete-panel{
+  border:1px solid var(--simi-line);
+  border-radius:12px;
+  box-shadow:0 16px 32px rgba(6,47,85,.13);
+}
+section[id^="view-"] .module-section-caption{
+  color:#557186;
+  font-size:.76rem;
+  font-weight:750;
+  letter-spacing:.04em;
+}
+section[id^="view-"] .space-activity-card{
+  border:1px solid var(--simi-line);
+  border-radius:12px;
+  background:#fbfdff;
+}
+section[id^="view-"] .td-table-wrap{
+  border:1px solid var(--simi-line);
+  border-radius:13px;
+  overflow:auto;
+}
+section[id^="view-"] .td-task-table thead th{
+  background:#edf5fa;
+}
+section[id^="view-"] .td-task-table tbody tr:hover{
+  background:#f0fbfa;
+}
+/* Consistencia visual para pestañas, filtros y estados en todos los módulos. */
+section[id^="view-"] [role="tablist"]{
+  gap:6px;
+}
+section[id^="view-"] [role="tab"]{
+  border-radius:10px;
+}
+section[id^="view-"] .badge,
+section[id^="view-"] [data-status]{
+  font-weight:700;
+}
+section[id^="view-"] .border-emerald-200,
+section[id^="view-"] .border-green-200{border-color:#b8e7d7!important}
+section[id^="view-"] .border-amber-200,
+section[id^="view-"] .border-yellow-200{border-color:#f0d9a6!important}
+section[id^="view-"] .border-rose-200,
+section[id^="view-"] .border-red-200{border-color:#f1c5cb!important}
+@media(max-width:760px){
+  section[id^="view-"] .ui-card,
+  section[id^="view-"] .space-panel,
+  section[id^="view-"] .td-panel{border-radius:13px}
+  section[id^="view-"] table thead th{font-size:.64rem}
+}
+@media(prefers-reduced-motion:reduce){
+  section[id^="view-"] *{transition:none!important;scroll-behavior:auto!important}
+}
