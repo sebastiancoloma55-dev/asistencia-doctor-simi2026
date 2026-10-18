@@ -699,9 +699,32 @@
             const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='KPI_Tareas_RRHH_'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
         }
 
-        function renderizarTareas(){
+        let vistaTareasActiva='RUTINA';
+function cambiarVistaTareas(vista){
+ vistaTareasActiva=vista||'RUTINA';
+ document.querySelectorAll('.task-workspace-tab').forEach(b=>b.classList.toggle('active',b.dataset.taskView===vistaTareasActiva));
+ const form=document.getElementById('form-tarea');
+ if(form&&vistaTareasActiva!=='CREAR')form.classList.add('hidden');
+ const analytics=document.querySelector('#view-tareas .task-analytics');
+ const kpis=document.querySelector('#view-tareas .task-kpi-grid');
+ const teamHeading=document.querySelector('#view-tareas .task-list-heading');
+ if(analytics)analytics.classList.toggle('task-view-hidden',vistaTareasActiva!=='INDICADORES');
+ if(kpis)kpis.classList.toggle('task-view-hidden',vistaTareasActiva==='INDICADORES');
+ if(teamHeading)teamHeading.querySelector('h4').textContent=({'RUTINA':'Tareas de rutina diaria','OCASIONAL':'Tareas ocasionales','EQUIPO':'Equipo y seguimiento','INDICADORES':'Tareas del período'})[vistaTareasActiva]||'Tareas del día';
+ renderizarTareas();
+}
+function abrirFormularioTarea(frecuencia){
+ const form=document.getElementById('form-tarea');if(!form)return;
+ form.classList.remove('hidden');
+ const select=document.getElementById('tarea-recurrencia');
+ if(select&&frecuencia)select.value=frecuencia;
+ const title=document.getElementById('tarea-titulo');if(title)title.focus({preventScroll:true});
+ form.scrollIntoView({behavior:'smooth',block:'start'});
+ mostrarToast(frecuencia&&frecuencia!=='NINGUNA'?'Configura la rutina y selecciona su frecuencia.':'Completa los datos de la tarea ocasional.','info');
+}
+function renderizarTareas(){
             const estado=document.getElementById('tarea-filtro-estado')?.value||'TODOS',responsableFiltro=document.getElementById('tarea-filtro-responsable')?.value||'TODOS',q=texto(document.getElementById('tarea-filtro-buscar')?.value).toLowerCase();
-            let f=tareasGlobal;if(estado!=='TODOS')f=f.filter(x=>x.estado_calculado===estado);if(responsableFiltro!=='TODOS')f=f.filter(x=>String(x.responsable_rol_id)===responsableFiltro);if(q)f=f.filter(x=>`${x.titulo} ${x.descripcion} ${x.responsable?.nombre} ${x.responsable?.email} ${x.sucursal?.nombre}`.toLowerCase().includes(q));
+            const esRutina=x=>String(x.recurrencia||'NINGUNA').toUpperCase()!=='NINGUNA';document.getElementById('task-tab-routine-count')&&(document.getElementById('task-tab-routine-count').textContent=tareasGlobal.filter(esRutina).length);document.getElementById('task-tab-occasional-count')&&(document.getElementById('task-tab-occasional-count').textContent=tareasGlobal.filter(x=>!esRutina(x)).length);let f=tareasGlobal;if(vistaTareasActiva==='RUTINA')f=f.filter(esRutina);else if(vistaTareasActiva==='OCASIONAL')f=f.filter(x=>!esRutina(x));if(estado!=='TODOS')f=f.filter(x=>x.estado_calculado===estado);if(responsableFiltro!=='TODOS')f=f.filter(x=>String(x.responsable_rol_id)===responsableFiltro);if(q)f=f.filter(x=>`${x.titulo} ${x.descripcion} ${x.responsable?.nombre} ${x.responsable?.email} ${x.sucursal?.nombre}`.toLowerCase().includes(q));
             const cuenta=e=>tareasGlobal.filter(x=>x.estado_calculado===e).length;
             document.getElementById('tk-pendiente').innerText=cuenta('PENDIENTE');document.getElementById('tk-proceso').innerText=cuenta('EN_PROCESO');document.getElementById('tk-validar').innerText=cuenta('COMPLETADA_POR_VALIDAR');document.getElementById('tk-aprobada').innerText=cuenta('APROBADA');document.getElementById('tk-devuelta').innerText=cuenta('DEVUELTA');document.getElementById('tk-vencida').innerText=cuenta('VENCIDA');
             const medibles=tareasGlobal.filter(x=>x.estado_calculado!=='CANCELADA');
