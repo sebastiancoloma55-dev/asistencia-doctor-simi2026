@@ -80,7 +80,9 @@ main>header #btn-theme-settings{display:none!important}
 .corp-button,.corp-button-dark{background:linear-gradient(110deg,#087fa3,#07549b)!important;color:#fff!important}
 button[class*="bg-simiRed"],button[class*="bg-simiNavy"]{filter:saturate(.9)}
 /* Login renovado: conserva los IDs y funciones originales de autenticación. */
-#login-overlay.nova-v3-overlay{
+#login-overlay.nova-v3-overlay.hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
+
+#login-overlay.nova-v3-overlay:not(.hidden){
   position:fixed!important;inset:0!important;z-index:10000!important;overflow:auto!important;
   display:flex!important;flex-direction:column!important;justify-content:center!important;
   padding:clamp(16px,3vw,42px)!important;
