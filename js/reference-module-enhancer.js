@@ -536,7 +536,7 @@
       const relevant=records.some(record=>{
         if(record.type==='attributes') return record.target?.id?.startsWith('view-')||record.target?.closest?.('section[id^="view-"]');
         if(record.type!=='childList')return false;
-        if(record.target?.closest?.('[class*="ref-"]'))return false;
+        if(record.target?.closest?.('.ref-overview,.ref-kpis,.ref-chart,.ref-bars,.ref-user-wizard,.ref-role-cards,.ref-papeleta-layout,.ref-papeleta-preview,.ref-sucursal-layout,.ref-sucursal-main,.ref-sucursal-side,.ref-reportes-board,.ref-history-toggle-row,.ref-coverage-layout,.ref-operations-layout,.ref-quality-layout,.ref-notifications-layout,.ref-integrations-layout'))return false;
         const changed=[...record.addedNodes,...record.removedNodes].filter(node=>node.nodeType===1);
         if(changed.length&&changed.every(isEnhancerNode))return false;
         return !!(record.target?.id?.startsWith('view-')||record.target?.closest?.('section[id^="view-"]'));
