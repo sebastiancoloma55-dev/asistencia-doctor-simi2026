@@ -1305,7 +1305,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
             <section id="view-colaboradores" class="hidden space-y-6 p-4 sm:p-8 colab-reference-redesign">
                 <div class="ui-card flex flex-wrap items-center justify-between gap-3 p-4">
                     <div class="min-w-0 flex-1">
-                        <span class="module-kicker">PERSONAS Y ESTRUCTURA</span><h3 class="font-bold text-slate-900">Directorio de colaboradores</h3><p class="mt-1 text-xs text-slate-500">Nómina maestra, sucursal, supervisión y estado de cada persona.</p>
+                        <span class="module-kicker">INICIO / COLABORADORES</span><h3 class="font-bold text-slate-900">Colaboradores</h3><p class="mt-1 text-xs text-slate-500">Directorio maestro · Gestión integral de personas</p>
                         <p data-update-stamp="colaboradores" class="mt-2 inline-flex max-w-full items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
                             <i data-lucide="clock-3" class="mr-1.5 h-3.5 w-3.5 shrink-0"></i>
                             <span>Consultando última carga…</span>
@@ -1313,11 +1313,14 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" onclick="exportarDirectorioColaboradores()" class="colab-export-button">
+                            <i data-lucide="download" class="h-4 w-4"></i> Exportar Excel
+                        </button>
                         <label
-                            class="ui-button flex cursor-pointer items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white"
+                            class="ui-button colab-import-button flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold"
                         >
                             <i data-lucide="upload" class="h-4 w-4"></i>
-                            Cargar Excel
+                            Importar Excel
 
                             <input
                                 type="file"
@@ -1336,7 +1339,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 </div>
 
                 <div id="colab-kpi-grid" class="colab-kpi-grid" aria-live="polite"><div class="colab-kpi"><span><i data-lucide="users"></i></span><div><small>Colaboradores en nómina</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="user-check"></i></span><div><small>Activos</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="user-round-x"></i></span><div><small>Inactivos</small><strong>—</strong></div></div><div class="colab-kpi"><span><i data-lucide="building"></i></span><div><small>Sucursales cubiertas</small><strong>—</strong></div></div></div>
-                <div class="module-section-caption"><span><i data-lucide="contact-round"></i></span><div><b>Directorio maestro</b><small>Busca por RUT, cargo o sucursal; abre la ficha para consultar el historial.</small></div></div>
+                <div class="module-section-caption"><span><i data-lucide="contact-round"></i></span><div><b>Directorio maestro</b><small>Busca por nombre, RUT, cargo o sucursal. Selecciona una persona para abrir su historial laboral completo.</small></div></div>
                 <div class="ui-card grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-[1.35fr_1fr_.8fr_auto]">
                     <div><label for="col-filtro-busqueda" class="mb-1 block text-xs font-bold text-slate-600">Buscar colaborador</label><input id="col-filtro-busqueda" type="search" class="form-field" placeholder="Nombre, apellido, RUT o cargo" oninput="filtrarTablaColaboradores()"></div>
                     <div><label for="col-filtro-sucursal" class="mb-1 block text-xs font-bold text-slate-600">Sucursal</label><select id="col-filtro-sucursal" class="form-field" onchange="filtrarTablaColaboradores()"><option value="">Todas las sucursales</option></select></div>
