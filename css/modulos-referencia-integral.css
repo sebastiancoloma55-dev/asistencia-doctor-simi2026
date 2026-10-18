@@ -420,3 +420,32 @@ main section[id^="view-"]:not(.hidden)>.ref-overview>.ref-chart{width:100%;min-w
  .ref-medical-mail-page .ref-secondary-charts{grid-template-columns:1fr}
  .ref-history-toggle-row{align-items:flex-start;flex-direction:column}
 }
+
+
+/* Ficha laboral real (modal creado dinámicamente por people-directory.js) */
+#modal-ficha-colaborador{z-index:120;background:rgba(4,27,52,.48);backdrop-filter:blur(4px)}
+#modal-ficha-colaborador>.relative{width:min(1060px,96vw);max-height:94vh;border:1px solid #d7e7f6;border-radius:18px;background:#f4f8ff;box-shadow:0 24px 80px rgba(5,39,70,.28)}
+#modal-ficha-colaborador>div>header{padding:17px 22px;background:#fff;border-bottom:1px solid #dbe8f5}
+#modal-ficha-colaborador #ficha-colaborador-title{font-size:18px;line-height:1.25;color:#12385f}
+#modal-ficha-colaborador #ficha-colaborador-subtitle{font-size:10px;color:#647f99}
+#modal-ficha-colaborador #ficha-colaborador-close{width:32px;height:32px;padding:0;display:grid;place-items:center;border-radius:9px;color:#43627e}
+#modal-ficha-colaborador #ficha-colaborador-body{padding:12px;background:#f3f7ff}
+#modal-ficha-colaborador .ficha-history-tabs{display:flex;gap:5px;overflow-x:auto;margin:12px 0 0;padding:0 0 7px;border-bottom:1px solid #dbe8f5;scrollbar-width:thin}
+#modal-ficha-colaborador .ficha-history-tab{flex:0 0 auto;border-radius:9px;padding:9px 11px;color:#607b94;font-size:10px;font-weight:800;white-space:nowrap}
+#modal-ficha-colaborador .ficha-history-tab.active{background:#e5f2ff;color:#0876ee;box-shadow:inset 0 -2px #0876ee}
+#modal-ficha-colaborador .ficha-section-grid{margin-top:12px}
+#modal-ficha-colaborador .ficha-section[hidden],#modal-ficha-colaborador .ficha-attendance-row[hidden]{display:none!important}
+#modal-ficha-colaborador .ficha-section{min-width:0;overflow:hidden;border:1px solid #d7e7f6;border-radius:14px;background:#fff;box-shadow:0 5px 16px rgba(8,47,85,.035)}
+#modal-ficha-colaborador .ficha-section>header{display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid #e3edf7;background:#fff}
+#modal-ficha-colaborador .ficha-section>header h4{font-size:12px;font-weight:900;color:#12385f}
+#modal-ficha-colaborador .ficha-section>header p{font-size:9px;color:#7089a1}
+#modal-ficha-colaborador .ficha-section-body{padding:10px}
+#modal-ficha-colaborador .ficha-empty{min-height:95px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1px dashed #cfe0f3;border-radius:11px;background:#f8fbff;text-align:center;padding:15px}
+#modal-ficha-colaborador .ficha-empty b{font-size:10px;color:#12385f}
+#modal-ficha-colaborador .ficha-empty p{font-size:9px;color:#7188a1}
+#modal-ficha-colaborador .ficha-record{padding:12px;border:1px solid #e0eaf5;border-radius:11px;background:#fff}
+#modal-ficha-colaborador .ficha-record+.ficha-record{margin-top:8px}
+#modal-ficha-colaborador .ficha-record-kicker{font-size:8px;letter-spacing:.07em;font-weight:900;color:#66819b}
+#modal-ficha-colaborador .ficha-record-head b{display:block;margin-top:3px;font-size:11px;color:#12385f}
+#modal-ficha-colaborador .ficha-record-status{font-size:9px}
+@media(max-width:640px){#modal-ficha-colaborador>.relative{width:100%;max-height:96vh}#modal-ficha-colaborador #ficha-colaborador-body{padding:8px}#modal-ficha-colaborador .ficha-history-tab{padding:8px 9px}}
