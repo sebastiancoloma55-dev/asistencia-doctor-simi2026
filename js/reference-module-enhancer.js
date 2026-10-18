@@ -232,7 +232,31 @@
         else map.setView([-33.45,-70.66],5);
         if(note)note.textContent=points.length+' sucursales con coordenadas válidas de '+rows.length+' registros consultados.';
         setTimeout(()=>map.invalidateSize(),120);
-      }catch(e){if(note)note.textContent='No se pudo cargar el mapa o la distribución: '+(e?.message||'error de consulta');if(regionsNode)regionsNode.innerHTML='<div class="ref-empty-chart">No fue posible consultar la distribución.</div>';}
+      }catch(e){
+        // Si otra vista ya cargó el directorio con éxito, reutilizar esos datos reales como fallback.
+        const cached=Array.isArray(window.sucursalesConfiguracionGlobal)?window.sucursalesConfiguracionGlobal:[];
+        if(cached.length){
+          const normalizeActive=value=>String(value??'').trim().toLocaleLowerCase('es-CL');
+          const active=cached.filter(x=>x.activa===true||x.activa===1||['true','1','activo','activa','si','yes'].includes(normalizeActive(x.activa))).length;
+          const inactive=cached.filter(x=>x.activa===false||x.activa===0||['false','0','inactivo','inactiva','no'].includes(normalizeActive(x.activa))).length;
+          const cards=section.querySelector('.ref-overview')?.querySelectorAll('.ref-kpi');
+          [cached.length,active,inactive,Math.max(0,cached.length-active-inactive)].forEach((value,i)=>{const node=cards?.[i]?.querySelector('.ref-kpi-value');if(node)node.textContent=value.toLocaleString('es-CL');});
+          const points=cached.map(x=>{let lat=Number(x.latitud),lon=Number(x.longitud);if(!Number.isFinite(lat)||!Number.isFinite(lon)||(lat===0&&lon===0)){const m=String(x.geolocalizacion||'').replace(/[()]/g,'').match(/(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)/);if(m){lat=Number(m[1]);lon=Number(m[2]);}}return{x,lat,lon};}).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&Math.abs(p.lat)<=90&&Math.abs(p.lon)<=180&&(p.lat!==0||p.lon!==0));
+          if(typeof L!=='undefined'&&mapNode){
+            mapNode.innerHTML='';
+            const map=L.map(mapNode,{scrollWheelZoom:false,zoomControl:true}).setView([-33.45,-70.66],5);layout._refMap=map;
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map);
+            points.forEach(({x,lat,lon})=>{const marker=L.circleMarker([lat,lon],{radius:5,color:'#0876ee',weight:2,fillColor:'#19a8a5',fillOpacity:.85}).addTo(map);const safe=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');marker.bindPopup('<b>'+safe(x.nombre||'Sucursal')+'</b><br>'+safe([x.direccion,x.comuna].filter(Boolean).join(', ')));});
+            if(points.length)map.fitBounds(L.latLngBounds(points.map(p=>[p.lat,p.lon])),{padding:[18,18],maxZoom:10});
+            setTimeout(()=>map.invalidateSize(),120);
+          }
+          if(note)note.textContent='Mostrando datos del directorio ya cargado ('+cached.length+' sucursales); consulta directa limitada por permisos. '+points.length+' con coordenadas.';
+          if(regionsNode){const groups={};cached.forEach(x=>{const key=clean(x.region||x.comuna||'Sin región');groups[key]=(groups[key]||0)+1;});const sorted=Object.entries(groups).sort((a,b)=>b[1]-a[1]).slice(0,6);regionsNode.innerHTML='';const max=Math.max(1,...sorted.map(x=>x[1]));sorted.forEach(([label,n])=>{const row=document.createElement('div');row.className='ref-bar-row';const name=document.createElement('span');name.textContent=label;const track=document.createElement('div');track.className='ref-bar-track';const fill=document.createElement('div');fill.className='ref-bar-fill';fill.style.width=(n/max*100)+'%';track.appendChild(fill);const count=document.createElement('span');count.className='ref-bar-count';count.textContent=n.toLocaleString('es-CL');row.append(name,track,count);regionsNode.appendChild(row);});}
+          return;
+        }
+        if(note)note.textContent='No se pudo consultar sucursales con la sesión actual. Inicia sesión con un perfil autorizado y vuelve a intentar.';
+        if(regionsNode)regionsNode.innerHTML='<div class="ref-empty-chart">La distribución requiere acceso autorizado al directorio de sucursales.</div>';
+      }
     };
     draw();
   }
