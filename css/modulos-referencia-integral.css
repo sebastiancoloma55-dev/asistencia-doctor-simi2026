@@ -278,3 +278,81 @@ section[id^="view-"] .border-red-200{border-color:#f1c5cb!important}
 .ref-notifications-page #notif-filtro{max-width:220px}
 @media(max-width:950px){.ref-reportes-board{grid-template-columns:repeat(2,minmax(0,1fr))}.ref-map-results-grid{grid-template-columns:1fr}.ref-map-frame-wrap .map-frame{height:360px}.ref-integrations-page #integ-lista{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.ref-reportes-board{grid-template-columns:1fr}.ref-mapas-page .map-route-tools{align-items:stretch;flex-direction:column}.ref-integrations-page #integ-lista{grid-template-columns:1fr}.ref-report-kpi{min-height:105px}}
+
+
+/* Réplica estructural ampliada de las capturas de referencia 1–9. */
+main section[id^="view-"].ref-dashboard-page,main section[id^="view-"].ref-space-page,main section[id^="view-"].ref-tasks-page,main section[id^="view-"].ref-collaborators-page,main section[id^="view-"].ref-branches-page,main section[id^="view-"].ref-attendance-page,main section[id^="view-"].ref-leaves-page,main section[id^="view-"].ref-vacations-page,main section[id^="view-"].ref-permission-slips-page,main section[id^="view-"].ref-email-drafts-page,main section[id^="view-"].ref-medical-mail-page,main section[id^="view-"].ref-warnings-page,main section[id^="view-"].ref-reports-page,main section[id^="view-"].ref-users-page,main section[id^="view-"].ref-audit-page,main section[id^="view-"].ref-help-page,main section[id^="view-"].ref-branch-mail-page,main section[id^="view-"].ref-routes-page,main section[id^="view-"].ref-ops-page,main section[id^="view-"].ref-data-quality-page,main section[id^="view-"].ref-notifications-shell,main section[id^="view-"].ref-integrations-shell,main section[id^="view-"].ref-chat-page,main section[id^="view-"].ref-transfers-page{display:flex;flex-direction:column;gap:14px}
+main section[id^="view-"] .module-intro{padding:18px 20px;border:1px solid #dce8f4;border-radius:16px;background:linear-gradient(120deg,#fff 0%,#f5f9ff 72%,#e9f8f7 100%);box-shadow:0 7px 22px rgba(8,47,85,.045)}
+main section[id^="view-"] .module-intro h3{margin-top:5px;font-size:clamp(19px,1.7vw,25px);line-height:1.22}
+main section[id^="view-"] .module-intro p{max-width:880px;color:#6c8297;font-size:11px;line-height:1.55}
+main section[id^="view-"] .ui-card{min-width:0}
+.ref-secondary-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 14px;min-width:0}
+.ref-secondary-charts .ref-chart{min-width:0;min-height:154px;padding:15px}
+.ref-secondary-charts .ref-chart-title{font-size:12px}
+.ref-secondary-charts .ref-chart-subtitle{font-size:10px;line-height:1.45}
+.ref-secondary-charts .ref-bars{gap:10px}
+.ref-secondary-charts .ref-bar-row{grid-template-columns:minmax(75px,.8fr) minmax(40px,1fr) 32px;gap:9px}
+.ref-secondary-charts .ref-bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ref-secondary-charts .ref-bar-track{height:8px}
+.ref-overview{grid-template-columns:minmax(0,1.55fr) minmax(230px,.8fr);gap:12px;margin-bottom:0}
+.ref-kpis{gap:10px}
+.ref-kpi{padding:14px 13px;min-height:100px}
+.ref-kpi-top{font-size:10px}
+.ref-kpi-value{font-size:clamp(20px,1.8vw,28px)}
+.ref-chart{padding:14px}
+.ref-chart-title{font-size:12px}
+.ref-chart-subtitle{font-size:10px}
+.ref-collaborators-page #colab-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.ref-collaborators-page #colab-kpi-grid>*{min-width:0;border:1px solid #dce8f4;border-radius:14px;background:linear-gradient(145deg,#fff,#f5faff);box-shadow:0 5px 16px rgba(8,47,85,.04)}
+.ref-collaborators-page #tabla-colaboradores-body tr{height:44px}
+.ref-employee-history-modal .colab-profile-modal,.ref-employee-history-modal .bg-white{border:1px solid #d7e7f6;border-radius:18px;box-shadow:0 22px 65px rgba(5,39,70,.22)}
+.ref-employee-history-modal [role="tablist"],.ref-employee-history-modal .colab-history-tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid #dce8f4;padding-bottom:7px}
+.ref-employee-history-modal [role="tab"],.ref-employee-history-modal .colab-history-tab{flex:0 0 auto;border-radius:9px;padding:9px 11px;color:#607b94;font-size:10px;font-weight:800}
+.ref-employee-history-modal [role="tab"][aria-selected="true"],.ref-employee-history-modal .colab-history-tab.active{background:#eaf5ff;color:#0876ee;box-shadow:inset 0 -2px #0876ee}
+.ref-employee-history-modal #hist-colaborador-body{font-size:11px}
+.ref-branches-page .ref-sucursal-layout{align-items:start}
+.ref-branches-page .ref-sucursal-main>.ref-overview{grid-template-columns:1fr}
+.ref-branches-page .ref-sucursal-main .ref-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.ref-branches-page .ref-sucursal-main .ref-overview .ref-chart{display:none}
+.ref-branches-page .ref-sucursal-main>.ui-card{overflow:hidden}
+.ref-branches-page #tabla-sucursales-body tr{height:46px}
+.ref-branches-page .ref-sucursal-map{height:clamp(230px,32vh,330px);background:#e8f4fa}
+.ref-attendance-page .ref-overview,.ref-leaves-page .ref-overview,.ref-vacations-page .ref-overview,.ref-medical-mail-page .ref-overview{grid-template-columns:1fr}
+.ref-attendance-page .ref-overview>.ref-chart,.ref-leaves-page .ref-overview>.ref-chart,.ref-vacations-page .ref-overview>.ref-chart,.ref-medical-mail-page .ref-overview>.ref-chart{display:none}
+.ref-attendance-page .ref-kpis,.ref-leaves-page .ref-kpis,.ref-vacations-page .ref-kpis,.ref-medical-mail-page .ref-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.ref-attendance-page .ref-anomaly-metric{border-radius:13px}
+.ref-attendance-page #tabla-asistencia-body tr,.ref-leaves-page #tabla-licencias-body tr,.ref-vacations-page #tabla-vacaciones-body tr{height:42px}
+.ref-vacations-page .ref-vacation-metric{min-height:92px}
+.ref-permission-slips-page .ref-papeleta-layout{margin-top:0}
+.ref-permission-slips-page #form-papeleta{padding:18px;gap:14px}
+.ref-permission-slips-page #form-papeleta>div{min-width:0}
+.ref-permission-slips-page #form-papeleta label{display:block;margin-bottom:5px;color:#526f88;font-size:10px;font-weight:800}
+.ref-permission-slips-page #form-papeleta .form-field{width:100%;min-width:0}
+.ref-reports-page .ref-reportes-board{margin:0}
+.ref-reports-page #rep-tipos,.ref-reports-page .rep-tipos-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.ref-users-page .ref-user-wizard{margin-bottom:0}
+.ref-users-page .ref-role-card{min-height:78px}
+.ref-routes-page .ref-map-results-grid{margin-top:0}
+.ref-routes-page #mapa14-estadisticas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ref-routes-page #mapa14-distancia,.ref-routes-page #mapa14-tiempo,.ref-routes-page #mapa14-puntos{padding:11px;border:1px solid #e0eaf2;border-radius:10px;background:#f8fbfd}
+.ref-routes-page #mapa14-pasos{font-size:11px;line-height:1.65}
+.ref-ops-page #ops-kpis>*,.ref-data-quality-page #calidad-kpis>*,.ref-notifications-shell #notif-kpis>*,.ref-integrations-shell #integ-kpis>*{min-height:100px}
+.ref-ops-page #ops-alertas>*,.ref-notifications-shell #notif-lista>*{padding-top:12px;padding-bottom:12px}
+.ref-data-quality-page #calidad-importaciones table{min-width:560px}
+.ref-integrations-shell #integ-lista{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.ref-integrations-shell #integ-lista>*{min-width:0;overflow-wrap:anywhere}
+.ref-integrations-shell #talana-bot-health>*{border:1px solid #dce8f4;border-radius:11px;background:#f8fbff;padding:12px}
+.ref-transfers-page #traslado-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ref-transfers-page #traslado-form>div,.ref-transfers-page #traslado-form>label{min-width:0}
+.ref-transfers-page #traslado-tabla-body tr{height:43px}
+.ref-email-drafts-page .mail-step{display:flex;align-items:flex-start;gap:9px;border:1px solid #dce8f4;border-radius:11px;background:#fff;padding:12px}
+.ref-branch-mail-page #tabla-config-correos{align-items:start}
+.ref-chat-page .ui-card{border-radius:16px}
+.ref-chat-page #chat-conversaciones-list{display:flex;flex-direction:column;gap:4px}
+.ref-chat-page #chat-conversaciones-list>*{border-radius:10px}
+.ref-chat-page #chat-mensajes{background:linear-gradient(180deg,#f5f9fc,#eef6fb)}
+.ref-chat-page #chat-form-mensaje{border-top:1px solid #dce8f4;background:#fff}
+.ref-help-page #ayuda-lista{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ref-audit-page #tabla-auditoria-body tr{height:42px}
+@media(max-width:1050px){.ref-secondary-charts{grid-template-columns:1fr}.ref-collaborators-page #colab-kpi-grid,.ref-branches-page .ref-sucursal-main .ref-kpis,.ref-attendance-page .ref-kpis,.ref-leaves-page .ref-kpis,.ref-vacations-page .ref-kpis,.ref-medical-mail-page .ref-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ref-integrations-shell #integ-lista{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.ref-secondary-charts{grid-template-columns:1fr}.ref-reportes-board{grid-template-columns:repeat(2,minmax(0,1fr))}.ref-users-page .ref-user-wizard{grid-template-columns:repeat(2,minmax(0,1fr))}.ref-routes-page #mapa14-estadisticas{grid-template-columns:1fr}.ref-transfers-page #traslado-form{grid-template-columns:1fr}.ref-help-page #ayuda-lista{grid-template-columns:1fr}}
