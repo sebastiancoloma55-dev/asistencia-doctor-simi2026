@@ -409,6 +409,9 @@
     section.dataset.refCoverageLayout='true';
     section.classList.add('ref-coverage-page');
     kpis.classList.add('ref-coverage-kpis');
+    const totalCard=document.createElement('div');totalCard.className='ref-coverage-total-card';
+    totalCard.innerHTML='<span class="ref-coverage-total-dot"></span><span>Solicitudes totales</span><b data-coverage-total>—</b><small>Según los estados registrados</small>';
+    kpis.insertBefore(totalCard,kpis.firstElementChild);
     title.insertAdjacentElement('afterend',kpis);
     const workspace=document.createElement('div');workspace.className='ref-coverage-workspace';
     const formColumn=document.createElement('div');formColumn.className='ref-coverage-form-column';
@@ -431,6 +434,7 @@
         Number(section.querySelector('#cob-realizadas')?.textContent)||0
       ];
       const total=Math.max(1,vals.reduce((a,b)=>a+b,0));
+      const totalNode=totalCard.querySelector('[data-coverage-total]');if(totalNode)totalNode.textContent=vals.reduce((a,b)=>a+b,0).toLocaleString('es-CL');
       ['pending','progress','done'].forEach((key,i)=>{
         const el=statePanel.querySelector('[data-coverage-count="'+key+'"]');
         const bar=statePanel.querySelector('[data-coverage-state="'+key+'"]');
