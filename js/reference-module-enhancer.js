@@ -142,7 +142,7 @@
       const parent=overview.parentElement;
       parent.insertBefore(layout,overview);layout.append(left,side);left.append(overview,tableCard);
     }
-    if(layout.dataset.loaded==='true') return;
+    if(layout.dataset.loaded==='true'){if(!section.classList.contains('hidden'))setTimeout(()=>layout._refMap?.invalidateSize(),120);return;}
     layout.dataset.loaded='true';
     const mapNode=section.querySelector('#ref-sucursal-map');
     const note=section.querySelector('#ref-sucursal-map-note');
@@ -180,7 +180,7 @@
         }).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&Math.abs(p.lat)<=90&&Math.abs(p.lon)<=180&&(p.lat!==0||p.lon!==0));
         if(typeof L==='undefined'||!mapNode){if(note)note.textContent='No fue posible inicializar el mapa en este navegador.';return;}
         mapNode.innerHTML='';
-        const map=L.map(mapNode,{scrollWheelZoom:false,zoomControl:true}).setView([-33.45,-70.66],5);
+        const map=L.map(mapNode,{scrollWheelZoom:false,zoomControl:true}).setView([-33.45,-70.66],5);layout._refMap=map;
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map);
         points.forEach(({x,lat,lon})=>{
           const marker=L.circleMarker([lat,lon],{radius:5,color:'#0876ee',weight:2,fillColor:'#19a8a5',fillOpacity:.85}).addTo(map);
