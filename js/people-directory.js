@@ -562,8 +562,8 @@
                 x.rut, ((x.nombres || '') + ' ' + (x.apellidos || '')).trim(),
                 x.cargo, x.sucursal, supervisorPorSucursal.get(normalizar(x.sucursal)) || 'No asignado',
                 colaboradorEstaInactivo(x.estado) ? 'Inactivo' : 'Activo'
-            ])].map(row => row.map(escapar).join(';')).join('\\r\\n');
-            const blob = new Blob(['\\uFEFF', lineas], {type:'text/csv;charset=utf-8;'});
+            ])].map(row => row.map(escapar).join(';')).join('\r\n');
+            const blob = new Blob(['\uFEFF', lineas], {type:'text/csv;charset=utf-8;'});
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
