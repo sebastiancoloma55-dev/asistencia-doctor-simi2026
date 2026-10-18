@@ -24,10 +24,24 @@ function localInput(v){var d=v?new Date(v):new Date();return new Date(d.getTime(
 function icons(){if(window.lucide&&window.lucide.createIcons)window.lucide.createIcons();}
 function renderRecentActivity(){
  var box=$("space-recent-activity");if(!box)return;
- var items=state.logs.slice().sort(function(a,b){return new Date(b.ocurrio_en)-new Date(a.ocurrio_en);}).slice(0,3);
- if(!items.length){box.innerHTML='<div class="space-activity-empty">'+(state.logsError?'No se pudo cargar la actividad reciente.':'Todavía no hay gestiones registradas en tu bitácora.')+'</div>';return;}
- var activityIcons=["file-text","check-circle-2","users"];
- box.innerHTML=items.map(function(l,i){var when=l.ocurrio_en?new Intl.DateTimeFormat("es-CL",{dateStyle:"medium",timeStyle:"short",timeZone:"America/Santiago"}).format(new Date(l.ocurrio_en)):"";return '<article class="space-activity-item"><span class="space-activity-icon"><i data-lucide="'+activityIcons[i]+'"></i></span><div><b>'+esc(l.titulo||l.categoria||"Gestión registrada")+'</b><p>'+esc(l.detalle||l.modulo||"Actividad de RR. HH.")+'</p><small>'+esc(when)+'</small></div></article>';}).join("");
+ // La actividad reciente debe reflejar también las notas existentes, aunque la bitácora esté vacía.
+ var events=[];
+ state.logs.forEach(function(l){events.push({kind:"log",date:l.ocurrio_en,title:l.titulo||l.categoria||"Gestión registrada",detail:l.detalle||l.modulo||"Actividad de RR. HH.",icon:"check-circle-2"});});
+ state.notes.forEach(function(n){
+  var date=n.updated_at||n.created_at;
+  events.push({kind:"note",date:date,title:n.titulo||"Nota creada",detail:(n.contenido||"Nota adhesiva")+(n.categoria?" · "+n.categoria:""),icon:"file-text"});
+ });
+ events.sort(function(a,b){return new Date(b.date||0).getTime()-new Date(a.date||0).getTime();});
+ var items=events.slice(0,3);
+ if(!items.length){
+  box.innerHTML='<div class="space-activity-empty">'+(state.notesError&&state.logsError?'No se pudo cargar la actividad. Revisa la conexión e inténtalo nuevamente.':state.logsError?'No hay gestiones registradas en la bitácora.':'Aún no hay notas ni gestiones recientes.')+'</div>';
+  return;
+ }
+ box.innerHTML=items.map(function(item){
+  var when=item.date?new Intl.DateTimeFormat("es-CL",{dateStyle:"medium",timeStyle:"short",timeZone:"America/Santiago"}).format(new Date(item.date)):"";
+  return '<article class="space-activity-item"><span class="space-activity-icon"><i data-lucide="'+item.icon+'"></i></span><div><b>'+esc(item.title)+'</b><p>'+esc(item.detail)+'</p><small>'+(item.kind==="note"?"Nota · ":"")+esc(when)+'</small></div></article>';
+ }).join("");
+ icons();
 }
 function toggleNuevaNotaEspacio(){var form=document.querySelector("#view-espacio .space-compose-card");if(!form)return;form.classList.toggle("hidden");if(!form.classList.contains("hidden")){form.scrollIntoView({behavior:"smooth",block:"start"});var title=$("rrhh-nota-titulo");if(title)title.focus();}}
 window.toggleNuevaNotaEspacio=toggleNuevaNotaEspacio;
