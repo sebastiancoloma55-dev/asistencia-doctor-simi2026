@@ -380,6 +380,7 @@
     const formColumn=document.createElement('div');formColumn.className='ref-coverage-form-column';
     const alertsColumn=document.createElement('div');alertsColumn.className='ref-coverage-alerts-column';
     title.insertAdjacentElement('afterend',workspace);
+    title.insertAdjacentElement('afterend',kpis);
     workspace.append(formColumn,alertsColumn);
     formColumn.append(alertForm);
     alertsColumn.append(alerts);
