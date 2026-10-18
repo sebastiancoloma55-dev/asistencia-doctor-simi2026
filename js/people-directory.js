@@ -350,9 +350,9 @@
             const sinGuion=sinPuntos.replace(/-/g,'');
             const match=sinPuntos.match(/^(\\d{7,8})([0-9kK])$/);
             const conGuion=sinPuntos.includes('-')?sinPuntos:(match?match[1]+'-'+match[2]:'');
-            const variantes=[...new Set([base,sinPuntos,sinGuion,conGuion,conGuion.toUpperCase(),conGuion.toLowerCase()].filter(Boolean))];
-            const columnas=['rut','rut_colaborador','colaborador_rut','rut_empleado'];
-            let errorFinal=null;
+            const variantes=[...new Set([base,sinGuion,conGuion].filter(Boolean))];
+            const columnas=['rut','rut_colaborador','colaborador_rut'];
+            let errorFinal=null, columnaDisponible=false;
             const acumulados=new Map();
             const consultarColumna=async columna=>{
                 const resultados=await Promise.all(variantes.map(valor=>
@@ -360,6 +360,7 @@
                 ));
                 resultados.forEach(resultado=>{
                     if(resultado.error){errorFinal=resultado.error;return;}
+                    columnaDisponible=true;
                     (resultado.data||[]).forEach(row=>{
                         const key=row.id??[row.rut||row.rut_colaborador||row.colaborador_rut||row.rut_empleado,row.fecha_inicio||row.fecha||'',row.fecha_fin||'',row.tipo_ausencia||row.tipo_permiso||row.tipo||'',row.created_at||''].join('|');
                         acumulados.set(String(key),row);
@@ -367,16 +368,17 @@
                 });
             };
             await consultarColumna(columnas[0]);
-            // Algunas cargas históricas guardan el RUT bajo un nombre distinto.
+            // Solo probar nombres alternativos cuando el esquema no admite la columna rut o no hay coincidencias.
             if(!acumulados.size){
                 for(const columna of columnas.slice(1)){
+                    columnaDisponible=false;
                     await consultarColumna(columna);
-                    if(acumulados.size)break;
+                    if(acumulados.size||columnaDisponible)break;
                 }
             }
             const data=[...acumulados.values()];
             if(campoFecha)data.sort((a,b)=>String(b[campoFecha]||b.created_at||'').localeCompare(String(a[campoFecha]||a.created_at||'')));
-            return {data,error:data.length?null:errorFinal};
+            return {data,error:data.length||columnaDisponible?null:errorFinal};
         }
 
         async function verFichaColaborador(rut) {
