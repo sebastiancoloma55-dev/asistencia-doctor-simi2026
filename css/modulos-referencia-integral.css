@@ -449,3 +449,68 @@ main section[id^="view-"]:not(.hidden)>.ref-overview>.ref-chart{width:100%;min-w
 #modal-ficha-colaborador .ficha-record-head b{display:block;margin-top:3px;font-size:11px;color:#12385f}
 #modal-ficha-colaborador .ficha-record-status{font-size:9px}
 @media(max-width:640px){#modal-ficha-colaborador>.relative{width:100%;max-height:96vh}#modal-ficha-colaborador #ficha-colaborador-body{padding:8px}#modal-ficha-colaborador .ficha-history-tab{padding:8px 9px}}
+
+
+/* Traslados: formulario, mapa y solicitudes en una sola vista coherente */
+.ref-transfers-page .ref-transfer-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:0}
+.ref-transfers-page .ref-transfer-kpi{position:relative;display:grid;grid-template-columns:38px minmax(0,1fr);column-gap:10px;align-items:center;min-width:0;padding:14px;border:1px solid #dce8f4;border-radius:14px;background:linear-gradient(145deg,#fff,#f4f9ff);box-shadow:0 5px 16px rgba(8,47,85,.045)}
+.ref-transfers-page .ref-transfer-kpi-icon{grid-row:span 3;display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#e8f3ff;color:#0876ee;font-size:18px;font-weight:900}
+.ref-transfers-page .ref-transfer-kpi:nth-child(2) .ref-transfer-kpi-icon{background:#fff4db;color:#d28a13}
+.ref-transfers-page .ref-transfer-kpi:nth-child(3) .ref-transfer-kpi-icon{background:#e3faf6;color:#0b9b8f}
+.ref-transfers-page .ref-transfer-kpi:nth-child(4) .ref-transfer-kpi-icon{background:#f0eaff;color:#8256d0}
+.ref-transfers-page .ref-transfer-kpi small{font-size:10px;font-weight:800;color:#627c95}
+.ref-transfers-page .ref-transfer-kpi strong{font-size:24px;line-height:1.2;font-weight:900;color:#12385f;font-variant-numeric:tabular-nums}
+.ref-transfers-page .ref-transfer-kpi-note{font-size:9px;color:#7d91a6}
+.ref-transfers-page .ref-transfer-workspace{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(270px,.75fr);gap:13px;align-items:stretch}
+.ref-transfers-page .ref-transfer-workspace>.ui-card,.ref-transfers-page .ref-transfer-route{min-width:0;min-height:100%;border:1px solid #dce8f4;border-radius:15px;background:#fff;box-shadow:0 5px 18px rgba(8,47,85,.04)}
+.ref-transfers-page .ref-transfer-workspace #traslado-form{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ref-transfers-page .ref-transfer-workspace #traslado-form>div,.ref-transfers-page .ref-transfer-workspace #traslado-form>label{min-width:0}
+.ref-transfers-page .ref-transfer-workspace #traslado-form .xl\:col-span-2,.ref-transfers-page .ref-transfer-workspace #traslado-form .xl\:col-span-4{grid-column:1/-1}
+.ref-transfers-page .ref-transfer-route{padding:15px;display:flex;flex-direction:column;gap:12px}
+.ref-transfers-page .ref-transfer-route-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ref-transfers-page .ref-transfer-route-head b{display:block;font-size:12px;color:#12385f}
+.ref-transfers-page .ref-transfer-route-head small{display:block;margin-top:3px;font-size:9px;color:#6f879e}
+.ref-transfers-page .ref-transfer-route-head>span{padding:5px 8px;border-radius:8px;background:#e6f4ff;color:#0876ee;font-size:9px;font-weight:900}
+.ref-transfers-page .ref-transfer-map{height:245px;min-height:210px;overflow:hidden;border:1px solid #dce8f4;border-radius:12px;background:#eef5fb}
+.ref-transfers-page .ref-transfer-map-empty{display:grid;place-items:center;height:100%;padding:18px;text-align:center;color:#6f879e;font-size:11px}
+.ref-transfers-page .ref-transfer-distance{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px;border-radius:10px;background:#f4f9ff}
+.ref-transfers-page .ref-transfer-distance span{font-size:10px;color:#647d95}
+.ref-transfers-page .ref-transfer-distance b{font-size:19px;color:#12385f}
+.ref-transfers-page .ref-transfer-route-note{font-size:9px;line-height:1.5;color:#70869c}
+.ref-transfers-page .ref-transfer-google-link{display:block;padding:10px 12px;border-radius:9px;background:#0876ee;color:#fff;text-align:center;font-size:10px;font-weight:800}
+.ref-transfers-page .ref-transfer-google-link[hidden]{display:none}
+.ref-transfers-page #traslado-tabla-body tr{height:48px}
+.ref-employee-audit-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0;padding:11px 13px;border:1px solid #dce8f4;border-radius:12px;background:#fff}
+.ref-employee-audit-toggle>div:first-child{display:grid;gap:3px}
+.ref-employee-audit-toggle b{font-size:11px;color:#12385f}
+.ref-employee-audit-toggle small{font-size:9px;color:#7188a1}
+.ref-employee-history-panel[hidden]{display:none!important}
+.ref-coverage-page .ref-coverage-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.ref-coverage-page .ref-coverage-total-card{display:grid;grid-template-columns:9px 1fr;column-gap:8px;align-items:center}
+.ref-coverage-page .ref-coverage-total-dot{grid-row:span 3;width:8px;height:8px;border-radius:50%;background:#0876ee}
+.ref-coverage-page .ref-coverage-total-card>span:nth-child(2){font-size:10px;font-weight:800}
+.ref-coverage-page .ref-coverage-total-card b{margin-top:4px;font-size:25px;font-weight:900;color:#12385f}
+.ref-coverage-page .ref-coverage-total-card small{font-size:9px;font-weight:500;color:#70869c}
+.ref-email-drafts-page .mail-step{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid #dce8f4;border-radius:12px;background:linear-gradient(145deg,#fff,#f7fbff)}
+.ref-email-drafts-page .mail-step-num{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:50%;background:#0876ee;color:#fff;font-size:11px;font-weight:900}
+.ref-email-drafts-page #correo-sucursales-casillas,.ref-email-drafts-page #correo-supervisores-casillas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:210px;overflow:auto;padding:9px;border:1px solid #dce8f4;border-radius:11px;background:#f8fbff}
+.ref-branch-mail-page #tabla-config-correos{align-items:start}
+.ref-branch-mail-page #tabla-config-correos>*{min-width:0;border:1px solid #dce8f4;border-radius:14px;background:#fff;box-shadow:0 5px 18px rgba(8,47,85,.04)}
+.ref-chat-page>.ui-card{border:1px solid #d7e7f6;border-radius:16px;box-shadow:0 8px 26px rgba(8,47,85,.055)}
+.ref-chat-page #chat-conversaciones-list{max-height:390px;overflow-y:auto}
+.ref-chat-page #chat-mensajes{background:linear-gradient(180deg,#f6faff,#edf5ff)}
+.ref-chat-page #chat-conversacion-titulo{background:#fff}
+.ref-chat-page #chat-form-mensaje{position:sticky;bottom:0}
+@media(max-width:1050px){
+ .ref-transfers-page .ref-transfer-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .ref-transfers-page .ref-transfer-workspace{grid-template-columns:1fr}
+ .ref-transfers-page .ref-transfer-map{height:260px}
+ .ref-coverage-page .ref-coverage-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+ .ref-transfers-page .ref-transfer-kpis{grid-template-columns:1fr}
+ .ref-transfers-page .ref-transfer-workspace #traslado-form{grid-template-columns:1fr}
+ .ref-transfers-page .ref-transfer-workspace #traslado-form>div{grid-column:1/-1}
+ .ref-coverage-page .ref-coverage-kpis{grid-template-columns:1fr}
+ .ref-email-drafts-page #correo-sucursales-casillas,.ref-email-drafts-page #correo-supervisores-casillas{grid-template-columns:1fr}
+}
