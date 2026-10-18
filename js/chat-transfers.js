@@ -167,7 +167,7 @@
   }
 
   async function refrescarMensajesChatActivo() {
-    if(chatPollingBusy||!activeConversation||document.visibilityState!=="visible")return;
+    if(chatPollingBusy||!activeConversation||document.visibilityState!=="visible"||document.getElementById("view-chat")?.classList.contains("hidden"))return;
     chatPollingBusy=true;
     try{
       const conversationId=activeConversation;
