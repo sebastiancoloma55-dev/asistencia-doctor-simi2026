@@ -100,3 +100,14 @@ main section[id^="view-"] button:focus-visible{outline:3px solid #19a8a54d;outli
 .ref-pap-preview-note b{font-size:10px;color:#173d64}.ref-pap-preview-note span{font-size:9px;line-height:1.5;color:#6b8398}
 @media(max-width:900px){.ref-papeleta-layout{grid-template-columns:1fr}.ref-papeleta-preview{position:static}.ref-user-wizard{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.ref-role-cards{grid-template-columns:1fr}.ref-user-wizard{gap:4px;padding:7px}.ref-user-step{padding:6px}.ref-user-step small{display:none}.ref-user-step b{font-size:10px}}
+
+.ref-sucursal-layout{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(245px,.78fr);gap:12px;align-items:start}
+.ref-sucursal-main{display:grid;gap:12px;min-width:0}
+.ref-sucursal-side{display:grid;gap:12px;min-width:0}
+.ref-sucursal-map{height:235px;margin-top:11px;overflow:hidden;border:1px solid #dce8f4;border-radius:10px;background:linear-gradient(150deg,#eaf5fc,#d8eff0)}
+.ref-sucursal-map>span{display:grid;place-items:center;height:100%;padding:16px;text-align:center;color:#69849b;font-size:11px}
+.ref-map-note{margin-top:8px;color:#7b91a5;font-size:9px;line-height:1.45}
+#view-sucursales .ref-overview{grid-template-columns:1fr}
+#view-sucursales .ref-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:1000px){.ref-sucursal-layout{grid-template-columns:1fr}.ref-sucursal-side{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.ref-sucursal-side{grid-template-columns:1fr}}
