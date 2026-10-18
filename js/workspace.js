@@ -22,6 +22,15 @@ function fmtDate(v){if(!v)return "Sin fecha límite";var d=new Date(v);if(isNaN(
 function fmtClock(v){if(!v)return "";var d=new Date(v);if(isNaN(d.getTime()))return "";return new Intl.DateTimeFormat("es-CL",{hour:"2-digit",minute:"2-digit",timeZone:"America/Santiago"}).format(d);}
 function localInput(v){var d=v?new Date(v):new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
 function icons(){if(window.lucide&&window.lucide.createIcons)window.lucide.createIcons();}
+function renderRecentActivity(){
+ var box=$("space-recent-activity");if(!box)return;
+ var items=state.logs.slice().sort(function(a,b){return new Date(b.ocurrio_en)-new Date(a.ocurrio_en);}).slice(0,3);
+ if(!items.length){box.innerHTML='<div class="space-activity-empty">'+(state.logsError?'No se pudo cargar la actividad reciente.':'Todavía no hay gestiones registradas en tu bitácora.')+'</div>';return;}
+ var activityIcons=["file-text","check-circle-2","users"];
+ box.innerHTML=items.map(function(l,i){var when=l.ocurrio_en?new Intl.DateTimeFormat("es-CL",{dateStyle:"medium",timeStyle:"short",timeZone:"America/Santiago"}).format(new Date(l.ocurrio_en)):"";return '<article class="space-activity-item"><span class="space-activity-icon"><i data-lucide="'+activityIcons[i]+'"></i></span><div><b>'+esc(l.titulo||l.categoria||"Gestión registrada")+'</b><p>'+esc(l.detalle||l.modulo||"Actividad de RR. HH.")+'</p><small>'+esc(when)+'</small></div></article>';}).join("");
+}
+function toggleNuevaNotaEspacio(){var form=document.querySelector("#view-espacio .space-compose-card");if(!form)return;form.classList.toggle("hidden");if(!form.classList.contains("hidden")){form.scrollIntoView({behavior:"smooth",block:"start"});var title=$("rrhh-nota-titulo");if(title)title.focus();}}
+window.toggleNuevaNotaEspacio=toggleNuevaNotaEspacio;
 function metrics(){
  var active=state.notes.filter(function(n){return n.estado==="ACTIVA";}).length;
  var pinned=state.notes.filter(function(n){return n.fijada&&n.estado==="ACTIVA";}).length;
@@ -32,7 +41,7 @@ function metrics(){
  var pinnedValue=state.notesError?"Error":pinned;
  var overdueValue=state.notesError?"Error":overdue;
  var logsValue=state.logsError?"Error":logsWeek;
- var box=$("space-metrics");
+ renderRecentActivity();\n var box=$("space-metrics");
  if(box){
   var vals=[["Notas activas",activeValue,"sticky-note","teal"],["Fijadas",pinnedValue,"pin","violet"],["Por revisar",overdueValue,"clock-alert","amber"],["Gestiones · 7 días",logsValue,"clock-arrow-down","blue"]];
   box.innerHTML=vals.map(function(x){return '<div class="space-metric space-metric-'+x[3]+'"><span class="space-metric-icon"><i data-lucide="'+x[2]+'"></i></span><span class="space-metric-copy"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></span></div>';}).join("");
