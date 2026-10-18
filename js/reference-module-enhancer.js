@@ -297,7 +297,102 @@
     if(bot) bot.classList.add('ref-talana-bot');
   }
 
+
+  function enhanceTableAnalytics(){
+    const ids=['asistencia','licencias','vacaciones','envio_licencias','amonestaciones','traslados','auditoria','reportes'];
+    ids.forEach(id=>{
+      const section=document.getElementById('view-'+id);
+      const table=section?.querySelector('table');
+      if(!section||!table) return;
+      const rows=getRows(section);
+      if(!rows.length) return;
+      const headers=[...(table.querySelectorAll('thead th'))].map(x=>clean(x.innerText).toLocaleLowerCase('es-CL'));
+      const statusIndex=headers.findIndex(x=>/estado|status|situaci[oó]n|resultado/.test(x));
+      const branchIndex=headers.findIndex(x=>/sucursal|local|unidad|dependencia/.test(x));
+      const typeIndex=headers.findIndex(x=>/tipo|anomal[ií]a|motivo|categor[ií]a/.test(x));
+      const signature=rows.length+'|'+rows.slice(0,100).map(r=>clean(r.innerText)).join('¦');
+      let panel=section.querySelector('.ref-secondary-charts');
+      if(!panel){
+        panel=document.createElement('div');panel.className='ref-secondary-charts';
+        panel.innerHTML='<section class="ref-chart"><div class="ref-chart-title">Distribución por estado</div><div class="ref-chart-subtitle">Según los registros visibles y los filtros aplicados</div><div class="ref-bars" data-chart="states"></div></section><section class="ref-chart"><div class="ref-chart-title">Sucursales / categorías con más registros</div><div class="ref-chart-subtitle">Se calcula a partir de las columnas disponibles</div><div class="ref-bars" data-chart="branches"></div></section>';
+        const overview=section.querySelector('.ref-overview');
+        const anchor=overview||table.closest('.ui-card')||table;
+        anchor?.insertAdjacentElement('afterend',panel);
+      }
+      if(panel.dataset.signature===signature) return;
+      panel.dataset.signature=signature;
+      const aggregate=(idx,fallback)=>{
+        const counts={};
+        rows.forEach(r=>{
+          const cells=[...r.querySelectorAll('td')];
+          let key=idx>=0?clean(cells[idx]?.innerText):'';
+          if(!key) key=fallback(r);
+          if(!key) key='Sin clasificar';
+          counts[key]=(counts[key]||0)+1;
+        });
+        return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+      };
+      const status=aggregate(statusIndex,r=>{
+        const t=statusOf(r);
+        if(/atraso|incompleta|sin marca|observaci[oó]n|error|rechazad|alerta/.test(t))return 'Con alerta';
+        if(/pendiente|en revisi[oó]n|en curso|por aprobar|por enviar/.test(t))return 'Pendiente / en curso';
+        if(/activa|activo|vigente|aprobada|aprobado|realizada|finalizada|enviada|correcta|sin anomal[ií]a/.test(t))return 'Vigente / resuelto';
+        return 'Otros estados';
+      });
+      const branch=aggregate(branchIndex,r=>{
+        const cells=[...r.querySelectorAll('td')];
+        const text=clean(r.innerText);
+        return typeIndex>=0?clean(cells[typeIndex]?.innerText):(cells.length>1?clean(cells[1]?.innerText.split('\n')[0]):text.split(' ').slice(0,2).join(' '));
+      });
+      const draw=(node,data)=>{
+        if(!node)return;
+        node.innerHTML='';
+        if(!data.length){node.innerHTML='<div class="ref-empty-chart">No hay registros para mostrar con los filtros actuales.</div>';return;}
+        const max=Math.max(1,...data.map(x=>x[1]));
+        data.forEach(([label,count],i)=>{
+          const row=document.createElement('div');row.className='ref-bar-row';
+          const name=document.createElement('span');name.className='ref-bar-label';name.textContent=label;
+          const track=document.createElement('div');track.className='ref-bar-track';
+          const fill=document.createElement('div');fill.className='ref-bar-fill';fill.style.width=(count/max*100)+'%';
+          const colors=['#19a8a5','#0876ee','#16a879','#f0ad37','#8b68d8'];fill.style.background=colors[i%colors.length];
+          track.appendChild(fill);const n=document.createElement('span');n.className='ref-bar-count';n.textContent=count.toLocaleString('es-CL');
+          row.append(name,track,n);node.appendChild(row);
+        });
+      };
+      draw(panel.querySelector('[data-chart="states"]'),status);
+      draw(panel.querySelector('[data-chart="branches"]'),branch);
+    });
+  }
+  function enhanceModuleShells(){
+    const shells={
+      'view-dashboard':'ref-dashboard-page','view-espacio':'ref-space-page','view-tareas':'ref-tasks-page',
+      'view-colaboradores':'ref-collaborators-page','view-sucursales':'ref-branches-page',
+      'view-asistencia':'ref-attendance-page','view-licencias':'ref-leaves-page','view-vacaciones':'ref-vacations-page',
+      'view-papeletas':'ref-permission-slips-page','view-correos':'ref-email-drafts-page','view-envio_licencias':'ref-medical-mail-page',
+      'view-amonestaciones':'ref-warnings-page','view-reportes':'ref-reports-page','view-usuarios':'ref-users-page',
+      'view-auditoria':'ref-audit-page','view-ayuda':'ref-help-page','view-configcorreos':'ref-branch-mail-page',
+      'view-mapas':'ref-routes-page','view-operaciones':'ref-ops-page','view-calidad':'ref-data-quality-page',
+      'view-notificaciones':'ref-notifications-shell','view-integraciones':'ref-integrations-shell','view-chat':'ref-chat-page','view-traslados':'ref-transfers-page'
+    };
+    Object.entries(shells).forEach(([id,cls])=>document.getElementById(id)?.classList.add(cls));
+    const employee=document.getElementById('view-colaboradores');
+    if(employee){
+      const modal=document.getElementById('modal-colaborador');
+      modal?.classList.add('ref-employee-history-modal');
+      const hist=employee.querySelector('#hist-colaborador-body')?.closest('.ui-card');
+      hist?.classList.add('ref-employee-history-panel');
+    }
+    const attendance=document.getElementById('view-asistencia');
+    if(attendance){
+      attendance.querySelectorAll('#stat-sin-marcas,#stat-incompletas,#stat-atrasos,#stat-tempranas,#stat-sin-turno-marcas').forEach(el=>el.closest('.ui-card,article,[role="button"]')?.classList.add('ref-anomaly-metric'));
+    }
+    const vacations=document.getElementById('view-vacaciones');
+    if(vacations) vacations.querySelectorAll('#vac-stat-vigentes,#vac-stat-proximas,#vac-stat-caducadas,#vac-stat-alertas').forEach(el=>el.closest('.ui-card,article,[role="button"]')?.classList.add('ref-vacation-metric'));
+  }
+
   function refresh(){
+    enhanceModuleShells();
+    enhanceTableAnalytics();
     enhanceReportes();
     enhanceMapas();
     enhanceOperationsLayout();
