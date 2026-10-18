@@ -536,6 +536,44 @@
             }, 120);
         }
 
+        function exportarDirectorioColaboradores() {
+            const registros = Array.isArray(cacheColaboradoresCompletoRRHH) ? cacheColaboradoresCompletoRRHH : [];
+            const sucursales = Array.isArray(cacheSucursalesCompletoRRHH) ? cacheSucursalesCompletoRRHH : [];
+            if (!registros.length) {
+                if (typeof mostrarToast === 'function') mostrarToast('Primero espera a que cargue el directorio de colaboradores.', 'error');
+                return;
+            }
+            const normalizar = valor => String(valor ?? '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().trim();
+            const q = normalizar(document.getElementById('col-filtro-busqueda')?.value);
+            const sucursalFiltro = String(document.getElementById('col-filtro-sucursal')?.value || '').trim();
+            const estadoFiltro = String(document.getElementById('col-filtro-estado')?.value || '').trim().toLowerCase();
+            const supervisorPorSucursal = new Map(sucursales.map(x => [normalizar(x.nombre), x.supervisor || 'No asignado']));
+            const filas = registros.filter(x => {
+                const nombre = String((x.nombres || '') + ' ' + (x.apellidos || ''));
+                const busqueda = normalizar([nombre, x.rut, x.cargo, x.sucursal].join(' '));
+                const inactivo = colaboradorEstaInactivo(x.estado);
+                return (!q || busqueda.includes(q)) &&
+                    (!sucursalFiltro || String(x.sucursal || '').trim() === sucursalFiltro) &&
+                    (!estadoFiltro || (estadoFiltro === 'activos' ? !inactivo : inactivo));
+            });
+            const columnas = ['RUT','Nombre','Cargo','Sucursal','Supervisor','Estado'];
+            const escapar = valor => '"' + String(valor ?? '').replace(/"/g, '""') + '"';
+            const lineas = [columnas, ...filas.map(x => [
+                x.rut, ((x.nombres || '') + ' ' + (x.apellidos || '')).trim(),
+                x.cargo, x.sucursal, supervisorPorSucursal.get(normalizar(x.sucursal)) || 'No asignado',
+                colaboradorEstaInactivo(x.estado) ? 'Inactivo' : 'Activo'
+            ])].map(row => row.map(escapar).join(';')).join('\\r\\n');
+            const blob = new Blob(['\\uFEFF', lineas], {type:'text/csv;charset=utf-8;'});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'directorio_colaboradores_' + new Date().toISOString().slice(0,10) + '.csv';
+            document.body.appendChild(link); link.click(); link.remove();
+            URL.revokeObjectURL(url);
+            if (typeof mostrarToast === 'function') mostrarToast('Exportación lista: ' + filas.length.toLocaleString('es-CL') + ' colaboradores.', 'success');
+        }
+
+        window.exportarDirectorioColaboradores = exportarDirectorioColaboradores;
         window.renderizarTablaColaboradores = renderizarTablaColaboradores;
         window.cambiarPaginaColaboradoresRRHH = cambiarPaginaColaboradoresRRHH;
 
