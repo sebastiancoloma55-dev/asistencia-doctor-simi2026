@@ -884,6 +884,7 @@
                 else botonTareasIndependiente.removeAttribute('aria-current');
             }
 
+            {
             // Tareas diarias es una vista independiente: ocultarla al navegar a cualquier otro módulo.
             const vistaTareasIndependiente = document.getElementById('view-tareas');
             if (vistaTareasIndependiente) {
@@ -896,6 +897,8 @@
                 botonTareasIndependiente.className = `menu-btn ui-button flex w-full items-center gap-3 rounded-lg px-3 py-2.5 ${modulo === 'tareas' ? 'active font-semibold text-white' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'}${ocultoPorPermisoTareas ? ' hidden' : ''}`;
                 if (modulo === 'tareas') botonTareasIndependiente.setAttribute('aria-current', 'page');
                 else botonTareasIndependiente.removeAttribute('aria-current');
+            }
+
             }
 
             document
