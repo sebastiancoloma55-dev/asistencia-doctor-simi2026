@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const targets = {
-    sucursales: {labels:['Sucursales visibles','Activas','En revisión','Sin estado'],accent:['#0876ee','#12a875','#f59e0b','#9aaabd']},
+    sucursales: {labels:['Total de sucursales','Activas','Inactivas','Sin estado'],accent:['#0876ee','#12a875','#e44e63','#9aaabd']},
     asistencia: {labels:['Registros visibles','Sin anomalía','Con atrasos','Otras alertas'],accent:['#0876ee','#12a875','#f59e0b','#e44e63']},
     licencias: {labels:['Registros visibles','Activas/vigentes','Pendientes','Cerradas/otras'],accent:['#0876ee','#12a875','#f59e0b','#9aaabd']},
     vacaciones: {labels:['Registros visibles','Aprobadas','Pendientes','Rechazadas/otras'],accent:['#0876ee','#12a875','#f59e0b','#e44e63']},
@@ -153,9 +153,25 @@
     const draw=async()=>{
       if(typeof _supabase==='undefined'){if(note)note.textContent='El cliente de datos no está disponible en esta vista.';return;}
       try{
-        const {data,error}=await _supabase.from('sucursales').select('id,nombre,direccion,comuna,region,latitud,longitud,geolocalizacion,activa').limit(1000);
+        const {data,error,count}=await _supabase.from('sucursales').select('id,nombre,direccion,comuna,region,latitud,longitud,geolocalizacion,activa',{count:'exact'}).range(0,4999);
         if(error) throw error;
         const rows=data||[];
+        const totalCount=Number.isFinite(count)?count:rows.length;
+        const inactiveRows=rows.filter(x=>x.activa===false||String(x.activa).toLocaleLowerCase('es-CL')==='false');
+        const activeCount=Math.max(0,Math.min(totalCount,rows.length-inactiveRows.length));
+        const inactiveCount=Math.max(0,totalCount-activeCount);
+        const branchOverview=section.querySelector('.ref-overview');
+        const branchCards=branchOverview?.querySelectorAll('.ref-kpi');
+        if(branchCards?.length>=4){
+          const vals=[totalCount,activeCount,inactiveCount,0];
+          vals.forEach((value,i)=>{const node=branchCards[i]?.querySelector('.ref-kpi-value');if(node)node.textContent=value.toLocaleString('es-CL');});
+          const labels=['Total de sucursales','Activas','Inactivas','Sin estado'];
+          labels.forEach((label,i)=>{const node=branchCards[i]?.querySelector('.ref-kpi-top span:last-child');if(node)node.textContent=label;});
+          const note=branchCards[0]?.querySelector('.ref-kpi-note');if(note)note.textContent='Total informado por Supabase';
+          const activeNote=branchCards[1]?.querySelector('.ref-kpi-note');if(activeNote)activeNote.textContent='Sin estado inactivo explícito';
+          const inactiveNote=branchCards[2]?.querySelector('.ref-kpi-note');if(inactiveNote)inactiveNote.textContent='Según campo activa de Supabase';
+          const unknownNote=branchCards[3]?.querySelector('.ref-kpi-note');if(unknownNote)unknownNote.textContent='Sin estado explícito';
+        }
         const grouped={};
         rows.forEach(x=>{const region=clean(x.region||x.comuna||'Sin región');grouped[region]=(grouped[region]||0)+1;});
         const sorted=Object.entries(grouped).sort((a,b)=>b[1]-a[1]).slice(0,6);
@@ -442,8 +458,41 @@
     if(vacations) vacations.querySelectorAll('#vac-stat-vigentes,#vac-stat-proximas,#vac-stat-caducadas,#vac-stat-alertas').forEach(el=>el.closest('.ui-card,article,[role="button"]')?.classList.add('ref-vacation-metric'));
   }
 
+  function enhanceHistoryToggles(){
+    const config={
+      'view-licencias':'Historial de licencias médicas',
+      'view-vacaciones':'Historial de vacaciones',
+      'view-envio_licencias':'Registros manuales',
+      'view-papeletas':'Papeletas generadas'
+    };
+    Object.entries(config).forEach(([id,label])=>{
+      const section=document.getElementById(id);
+      if(!section||section.dataset.refHistoryToggle==='true')return;
+      const tables=[...section.querySelectorAll('table')];
+      if(!tables.length)return;
+      const table=tables[tables.length-1];
+      const wrap=table.closest('.overflow-x-auto')||table.parentElement;
+      if(!wrap||wrap===section)return;
+      section.dataset.refHistoryToggle='true';
+      const controls=document.createElement('div');
+      controls.className='ref-history-toggle-row';
+      const title=document.createElement('span');title.textContent=label;
+      const button=document.createElement('button');button.type='button';button.className='ref-history-toggle';button.textContent='Mostrar historial';
+      wrap.hidden=true;wrap.classList.add('ref-history-table');
+      button.addEventListener('click',()=>{
+        const open=wrap.hidden;
+        wrap.hidden=!open;
+        button.textContent=open?'Ocultar historial':'Mostrar historial';
+        button.setAttribute('aria-expanded',String(open));
+      });
+      controls.append(title,button);
+      wrap.insertAdjacentElement('beforebegin',controls);
+    });
+  }
+
   function refresh(){
     enhanceModuleShells();
+    enhanceHistoryToggles();
     enhanceCoverageLayout();
     enhanceReportes();
     enhanceMapas();
