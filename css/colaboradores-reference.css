@@ -1,0 +1,51 @@
+/* Renovación visual del módulo Colaboradores. Estilos aislados a #view-colaboradores. */
+#view-colaboradores.colab-reference-redesign{padding:18px 24px 26px!important;background:linear-gradient(135deg,#f4f8ff 0%,#edf5ff 100%)!important;color:#102e5c!important;min-width:0}
+#view-colaboradores .ui-card{background:#ffffffed!important;border:1px solid #dce8f8!important;border-radius:14px!important;box-shadow:0 5px 18px #153d6b07!important}
+#view-colaboradores .ui-card:first-child{align-items:center!important;padding:15px 17px!important}
+#view-colaboradores .module-kicker{display:block!important;font-size:10px!important;font-weight:850!important;letter-spacing:.09em!important;color:#6180ae!important;margin-bottom:5px!important}
+#view-colaboradores h3{color:#0e2e60!important;letter-spacing:-.025em!important;font-size:clamp(22px,2vw,30px)!important;line-height:1.15!important;font-weight:850!important}
+#view-colaboradores .ui-card:first-child p{font-size:12px!important;color:#6983aa!important}
+#view-colaboradores [data-update-stamp="colaboradores"]{border-color:#c8f1e2!important;background:#eafbf4!important;color:#148361!important;font-size:9px!important;border-radius:999px!important;padding:5px 10px!important}
+#view-colaboradores .ui-button,#view-colaboradores .corp-button-dark,#view-colaboradores button[onclick="toggleModalColaborador(true)"]{min-height:36px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;border-radius:9px!important;padding:8px 13px!important;font-size:11px!important;font-weight:800!important;white-space:nowrap!important;box-shadow:none!important}
+#view-colaboradores .ui-button{background:#fff!important;border:1px solid #d9e7fa!important;color:#1c4b84!important}
+#view-colaboradores button[onclick="toggleModalColaborador(true)"]{background:linear-gradient(110deg,#2388ff,#0867dc)!important;color:#fff!important;border:1px solid #167cf0!important;box-shadow:0 5px 12px #1677e522!important}
+#view-colaboradores #colab-kpi-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;margin:0!important}
+#view-colaboradores .colab-kpi{min-width:0!important;display:flex!important;align-items:center!important;gap:12px!important;padding:15px!important;border-radius:14px!important;border:1px solid #dce8f8!important;background:#ffffffed!important;box-shadow:0 5px 18px #153d6b05!important}
+#view-colaboradores .colab-kpi>span{display:grid!important;place-items:center!important;flex:0 0 42px!important;width:42px!important;height:42px!important;border-radius:12px!important;background:#e5f1ff!important;color:#0878f9!important}
+#view-colaboradores .colab-kpi:nth-child(2)>span{background:#ddf8ee!important;color:#08a779!important}
+#view-colaboradores .colab-kpi:nth-child(3)>span{background:#ffe9ed!important;color:#ff4962!important}
+#view-colaboradores .colab-kpi:nth-child(4)>span{background:#e9edff!important;color:#685bfa!important}
+#view-colaboradores .colab-kpi>span svg{width:21px!important;height:21px!important}
+#view-colaboradores .colab-kpi small{display:block!important;color:#607da8!important;font-size:10px!important;font-weight:750!important;line-height:1.3!important}
+#view-colaboradores .colab-kpi strong{display:block!important;color:#102f60!important;font-size:24px!important;line-height:1.15!important;letter-spacing:-.04em!important;margin-top:3px!important}
+#view-colaboradores .module-section-caption{display:flex!important;align-items:center!important;gap:10px!important;margin:4px 0 -5px!important;color:#143768!important}
+#view-colaboradores .module-section-caption>span{display:grid!important;place-items:center!important;width:35px!important;height:35px!important;border-radius:10px!important;background:#e4f1ff!important;color:#0878f9!important}
+#view-colaboradores .module-section-caption b{font-size:13px!important;font-weight:850!important}
+#view-colaboradores .module-section-caption small{display:block!important;color:#7088ad!important;font-size:10px!important;margin-top:2px!important}
+#view-colaboradores .ui-card.grid{padding:13px!important;gap:10px!important}
+#view-colaboradores label{color:#5d78a0!important;font-size:10px!important;font-weight:750!important}
+#view-colaboradores .form-field{min-height:35px!important;border:1px solid #dce7f6!important;border-radius:9px!important;background:#fff!important;color:#173969!important;font-size:11px!important;padding:8px 10px!important;box-shadow:none!important}
+#view-colaboradores .form-field:focus{outline:2px solid #bfdbfe!important;border-color:#76b5ff!important}
+#view-colaboradores .corp-button-dark{background:#edf5ff!important;border:1px solid #dce8f8!important;color:#1765b5!important}
+#view-colaboradores .table-scroll{overflow:auto!important;border-radius:14px!important}
+#view-colaboradores table{border-collapse:separate!important;border-spacing:0!important}
+#view-colaboradores table thead{background:#f5f9ff!important}
+#view-colaboradores table thead th{padding:12px 14px!important;color:#6680a7!important;font-size:9px!important;font-weight:850!important;letter-spacing:.06em!important;border-bottom:1px solid #e1ebf8!important;white-space:nowrap!important}
+#view-colaboradores table tbody td{padding:11px 14px!important;color:#2a4a73!important;font-size:10px!important;border-bottom:1px solid #eaf0f8!important;vertical-align:middle!important}
+#view-colaboradores table tbody tr:last-child td{border-bottom:0!important}
+#view-colaboradores table tbody tr:hover{background:#f6faff!important}
+#view-colaboradores #tabla-colaboradores-body td:nth-child(1){color:#54739d!important;font-variant-numeric:tabular-nums!important}
+#view-colaboradores #tabla-colaboradores-body td:nth-child(2){color:#163866!important;font-weight:750!important}
+#view-colaboradores #tabla-colaboradores-body tr{cursor:pointer}
+#view-colaboradores #colab-paginacion{display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;padding:12px 15px!important;border-top:1px solid #edf2f9!important;color:#6c84a7!important;font-size:10px!important}
+#view-colaboradores .colab-pagination button{border:1px solid #dce8f8!important;background:#fff!important;border-radius:8px!important;padding:6px 10px!important;color:#2365b1!important;font-weight:750!important}
+#view-colaboradores .ui-card.overflow-hidden{margin-top:2px!important}
+#view-colaboradores .ui-card.overflow-hidden>div:first-child{background:#f7faff!important;border-bottom:1px solid #e2ecf8!important;padding:15px 17px!important}
+#view-colaboradores .ui-card.overflow-hidden h4{font-size:14px!important;font-weight:850!important;color:#123362!important}
+#view-colaboradores .ui-card.overflow-hidden p{font-size:10px!important;color:#6c84a7!important}
+#view-colaboradores #hist-colaborador-rut{width:min(210px,100%)!important}
+#view-colaboradores #hist-colaborador-estado{padding:12px 17px 5px!important;color:#6b83a7!important;font-size:10px!important}
+#view-colaboradores .ui-card.overflow-hidden table thead th{padding:10px 13px!important}
+#view-colaboradores .ui-card.overflow-hidden table tbody td{padding:11px 13px!important;font-size:10px!important;line-height:1.5!important}
+@media(max-width:1100px){#view-colaboradores #colab-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#view-colaboradores .ui-card.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:640px){#view-colaboradores.colab-reference-redesign{padding:12px!important}#view-colaboradores #colab-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}#view-colaboradores .colab-kpi{padding:10px!important;gap:8px!important}#view-colaboradores .colab-kpi>span{flex-basis:34px!important;width:34px!important;height:34px!important}#view-colaboradores .colab-kpi strong{font-size:20px!important}#view-colaboradores .ui-card.grid{grid-template-columns:1fr!important}#view-colaboradores .ui-card:first-child{align-items:flex-start!important}#view-colaboradores .ui-card:first-child>div:last-child{width:100%!important}#view-colaboradores .ui-card.overflow-hidden>div:first-child{align-items:flex-start!important;flex-direction:column!important}#view-colaboradores #hist-colaborador-rut{width:100%!important}#view-colaboradores .ui-card.overflow-hidden>div:first-child>div:last-child{width:100%!important;display:grid!important;grid-template-columns:1fr auto!important}}
