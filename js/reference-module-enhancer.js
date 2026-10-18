@@ -497,16 +497,11 @@
     enhanceSucursales();
     enhanceUsers();
     enhancePapeletas();
-    Object.entries(targets).forEach(([id,cfg])=>{
-      const section=document.getElementById('view-'+id);
-      if(section && !section.classList.contains('hidden')) makeOverview(section,cfg);
-      else if(section) {
-        const rows=getRows(section);
-        if(rows.length && section.querySelector('.ref-overview')) makeOverview(section,targets[id]);
-      }
-    });
-    const active=document.querySelector('main section[id^="view-"]:not(.hidden)');
-    if(active) enhanceTableAnalytics(active);
+    // Solo Sucursales necesita KPIs estructurales nuevos. Los demás módulos ya tienen
+    // indicadores conectados a sus propias consultas; duplicarlos con conteos de filas visibles
+    // generaba cifras engañosas y rompía el ancho de las columnas.
+    const branches=document.getElementById('view-sucursales');
+    if(branches) makeOverview(branches,targets.sucursales);
   }
   function init(){
     refresh();
