@@ -461,7 +461,17 @@
       const modal=document.getElementById('modal-colaborador');
       modal?.classList.add('ref-employee-history-modal');
       const hist=employee.querySelector('#hist-colaborador-body')?.closest('.ui-card');
-      hist?.classList.add('ref-employee-history-panel');
+      if(hist){
+        hist.classList.add('ref-employee-history-panel');
+        if(hist.dataset.refAuditToggle!=='true'){
+          hist.dataset.refAuditToggle='true';hist.hidden=true;
+          const toggle=document.createElement('div');toggle.className='ref-employee-audit-toggle';
+          const label=document.createElement('div');label.innerHTML='<b>Auditoría de cambios</b><small>Consulta el historial de modificaciones de datos maestros por RUT.</small>';
+          const button=document.createElement('button');button.type='button';button.className='ref-history-toggle';button.textContent='Mostrar auditoría';button.setAttribute('aria-expanded','false');
+          button.addEventListener('click',()=>{hist.hidden=!hist.hidden;button.textContent=hist.hidden?'Mostrar auditoría':'Ocultar auditoría';button.setAttribute('aria-expanded',String(!hist.hidden));});
+          toggle.append(label,button);hist.insertAdjacentElement('beforebegin',toggle);
+        }
+      }
     }
     const attendance=document.getElementById('view-asistencia');
     if(attendance){
