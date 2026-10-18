@@ -392,7 +392,6 @@
 
   function refresh(){
     enhanceModuleShells();
-    enhanceTableAnalytics();
     enhanceReportes();
     enhanceMapas();
     enhanceOperationsLayout();
@@ -410,6 +409,7 @@
         if(rows.length && section.querySelector('.ref-overview')) makeOverview(section,targets[id]);
       }
     });
+    enhanceTableAnalytics();
   }
   function init(){
     refresh();
