@@ -1,0 +1,59 @@
+/* Rediseño dirigido por referencias visuales · alcance aislado a cada módulo */
+:root{--ref-navy:#082f57;--ref-blue:#0876ee;--ref-teal:#19a8a5;--ref-canvas:#f1f7fd;--ref-line:#dce8f4;--ref-muted:#637c96;--ref-shadow:0 5px 18px rgba(20,65,110,.055)}
+main section[id^="view-"]{background:linear-gradient(135deg,#f4f8fe 0%,#edf5fd 100%);color:#173a5e}
+main section[id^="view-"] .ui-card{border:1px solid var(--ref-line);border-radius:14px;background:#ffffffed;box-shadow:var(--ref-shadow)}
+main section[id^="view-"] .module-intro,main section[id^="view-"] .module-title-card{border:1px solid var(--ref-line);border-radius:16px;background:linear-gradient(115deg,#fff 0%,#f4f9ff 70%,#eaf8f8 100%);padding:18px;box-shadow:var(--ref-shadow)}
+main section[id^="view-"] h3,main section[id^="view-"] .section-title{color:#0a315c;font-weight:850;letter-spacing:-.025em}
+main section[id^="view-"] .module-kicker,main section[id^="view-"] .module-overline{color:#168c9c;font-size:10px;font-weight:850;letter-spacing:.09em}
+main section[id^="view-"] .form-field,main section[id^="view-"] input:not([type=checkbox]):not([type=radio]):not([type=file]),main section[id^="view-"] select,main section[id^="view-"] textarea{border:1px solid #d6e3ef;border-radius:9px;background:#fff;color:#153a60;min-height:36px}
+main section[id^="view-"] input:focus,main section[id^="view-"] select:focus,main section[id^="view-"] textarea:focus{outline:3px solid #19a8a52b;border-color:#19a8a5}
+main section[id^="view-"] .table-scroll,main section[id^="view-"] .td-table-wrap{border:1px solid var(--ref-line);border-radius:13px;background:#fff;overflow:auto}
+main section[id^="view-"] table{width:100%;border-collapse:separate;border-spacing:0}
+main section[id^="view-"] table thead th{background:#edf5fc;color:#486782;font-size:10px;font-weight:850;letter-spacing:.045em;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid var(--ref-line)}
+main section[id^="view-"] table tbody td{border-bottom:1px solid #edf2f7;color:#294966;vertical-align:middle}
+main section[id^="view-"] table tbody tr:hover{background:#f2fbfc}
+main section[id^="view-"] table tbody tr:last-child td{border-bottom:0}
+main section[id^="view-"] button{transition:box-shadow .15s ease,border-color .15s ease,background-color .15s ease}
+main section[id^="view-"] button:focus-visible{outline:3px solid #19a8a54d;outline-offset:2px}
+/* Resumenes calculados exclusivamente a partir de filas reales actualmente visibles */
+.ref-overview{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:12px;margin:0 0 14px}
+.ref-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.ref-kpi{position:relative;min-width:0;overflow:hidden;border:1px solid #dce8f4;border-radius:13px;padding:13px;background:linear-gradient(145deg,#fff,#f6faff);box-shadow:0 5px 15px rgba(13,57,101,.045)}
+.ref-kpi:after{content:"";position:absolute;right:-12px;bottom:-18px;width:64px;height:64px;border-radius:50%;background:var(--ref-accent,#dbeafe);opacity:.45}
+.ref-kpi-top{display:flex;align-items:center;gap:7px;color:#597590;font-size:10px;font-weight:750;line-height:1.3}
+.ref-kpi-dot{width:9px;height:9px;flex:0 0 9px;border-radius:3px;background:var(--ref-accent-strong,#0876ee)}
+.ref-kpi-value{position:relative;z-index:1;margin-top:7px;color:#0b315b;font-size:clamp(19px,1.7vw,26px);font-weight:900;letter-spacing:-.04em;line-height:1.1}
+.ref-kpi-note{margin-top:5px;color:#7a90a5;font-size:9px}
+.ref-chart{min-width:0;border:1px solid #dce8f4;border-radius:13px;padding:13px;background:#fff;box-shadow:0 5px 15px rgba(13,57,101,.04)}
+.ref-chart-title{color:#12385f;font-size:11px;font-weight:850}
+.ref-chart-subtitle{margin-top:2px;color:#8295a8;font-size:9px}
+.ref-bars{display:grid;gap:8px;margin-top:13px}
+.ref-bar-row{display:grid;grid-template-columns:minmax(72px, .7fr) minmax(40px,1fr) 26px;align-items:center;gap:8px;font-size:10px;color:#59738c}
+.ref-bar-track{height:7px;border-radius:99px;background:#edf3f9;overflow:hidden}
+.ref-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#19a8a5,#0876ee);min-width:0}
+.ref-bar-count{text-align:right;font-weight:800;color:#254b70;font-variant-numeric:tabular-nums}
+.ref-empty-chart{margin-top:12px;padding:12px;border-radius:9px;background:#f5f9fc;color:#71879c;font-size:10px}
+#view-sucursales .ref-overview{grid-template-columns:1fr}
+#view-sucursales .ref-kpi{padding:15px}
+#view-sucursales .ref-kpi:nth-child(2){--ref-accent:#dbeafe;--ref-accent-strong:#2580e9}
+#view-sucursales .ref-kpi:nth-child(3){--ref-accent:#d1fae5;--ref-accent-strong:#12a875}
+#view-sucursales .ref-kpi:nth-child(4){--ref-accent:#fce7f3;--ref-accent-strong:#e34d76}
+#view-asistencia .ref-kpi:nth-child(2),#view-licencias .ref-kpi:nth-child(2){--ref-accent:#fee2e2;--ref-accent-strong:#e44e63}
+#view-vacaciones .ref-kpi:nth-child(2),#view-envio_licencias .ref-kpi:nth-child(2){--ref-accent:#d1fae5;--ref-accent-strong:#10a878}
+#view-amonestaciones .ref-kpi:nth-child(2),#view-traslados .ref-kpi:nth-child(2){--ref-accent:#fef3c7;--ref-accent-strong:#f59e0b}
+#view-colaboradores.colab-reference-redesign{background:linear-gradient(135deg,#f4f8ff,#edf5ff)}
+#view-colaboradores .colab-profile-modal,#modal-colaborador .bg-white{border-color:#dce8f8}
+#modal-colaborador .rounded-2xl{border-radius:17px}
+#view-usuarios .users-hero{border-radius:16px}
+#view-usuarios .usr-role-summary-card,#view-usuarios .usr-matrix-tools{border-color:var(--ref-line);border-radius:13px;box-shadow:var(--ref-shadow)}
+#view-papeletas #form-papeleta{border-radius:15px}
+#view-papeletas #form-papeleta .form-field{min-height:40px}
+#view-envio_licencias .grid.grid-cols-1.gap-5.xl\:grid-cols-5{align-items:start}
+#view-chat .ui-card{overflow:hidden}
+#view-chat aside{background:linear-gradient(180deg,#f4f9fd,#eef6fb)}
+#view-chat [class*="message"],#view-chat [class*="chat-bubble"]{overflow-wrap:anywhere}
+#view-traslados .ui-card,#view-correos .ui-card,#view-configcorreos .ui-card{border-radius:15px}
+#view-traslados form{align-items:end}
+@media(max-width:1100px){.ref-overview{grid-template-columns:1fr}.ref-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){main section[id^="view-"]{padding:12px!important}.ref-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ref-kpi{padding:10px}.ref-bar-row{grid-template-columns:72px minmax(30px,1fr) 24px}}
+@media(prefers-reduced-motion:reduce){main section[id^="view-"] *{transition:none!important}}
