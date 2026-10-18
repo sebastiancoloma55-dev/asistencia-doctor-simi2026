@@ -576,6 +576,7 @@
             // Evita repetir consultas más restrictivas y permite conservar el alcance que autorizó Supabase.
             window.sucursalesConfiguracionGlobal = data;
             try { cacheSucursalesCompletoRRHH = data; } catch (_) {}
+            window.dispatchEvent(new CustomEvent('simi:sucursales-loaded',{detail:{count:data.length}}));
 
             tbody.innerHTML = data
                 .map(registro => {
