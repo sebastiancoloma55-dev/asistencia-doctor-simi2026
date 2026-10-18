@@ -841,6 +841,23 @@
             if(window.lucide)lucide.createIcons();
         }
         window.cargarPanelInteligenteOperativo=cargarPanelInteligenteOperativo;
+        async function cargarModuloConCacheRRHH(clave, tarea, ttl = 20000) {
+            const cache = window.__simiCargaModuloCache || (window.__simiCargaModuloCache = Object.create(null));
+            const actual = cache[clave];
+            if (actual?.promise) return actual.promise;
+            if (actual?.loadedAt && Date.now() - actual.loadedAt < ttl) return actual.value;
+            const promise = Promise.resolve().then(tarea);
+            cache[clave] = { promise, loadedAt: 0, value: undefined };
+            try {
+                const value = await promise;
+                cache[clave] = { promise: null, loadedAt: Date.now(), value };
+                return value;
+            } catch (error) {
+                delete cache[clave];
+                throw error;
+            }
+        }
+
         async function cambiarModulo(modulo, cargar = true) {
             const secuenciaActual = ++secuenciaCambioModulo;
             // No repetir una consulta a Supabase por cada clic de navegación.
@@ -945,7 +962,7 @@
             }
 
             try {
-                if (modulo === 'espacio' && window.cargarEspacioTrabajo) await window.cargarEspacioTrabajo();
+                if (modulo === 'espacio' && window.cargarEspacioTrabajo) await cargarModuloConCacheRRHH('espacio', () => window.cargarEspacioTrabajo());
                 if (modulo === 'dashboard') {
                     if (window.cargarPanelInteligenteOperativo) await window.cargarPanelInteligenteOperativo();
                     if (window.cargarResumenEspacioDashboard) {
@@ -954,15 +971,18 @@
                     }
                     if (window.cargarResumenOperativoRRHH) window.cargarResumenOperativoRRHH();
                 }
-                if (modulo === 'chat' && window.cargarChatInterno) await window.cargarChatInterno();
-                if (modulo === 'traslados' && window.iniciarModuloTraslados) await window.iniciarModuloTraslados();
-                if (modulo === 'reportes') await prepararFiltrosReportesRRHH();
+                if (modulo === 'chat' && window.cargarChatInterno) await cargarModuloConCacheRRHH('chat', () => window.cargarChatInterno(), 10000);
+                if (modulo === 'traslados' && window.iniciarModuloTraslados) await cargarModuloConCacheRRHH('traslados', () => window.iniciarModuloTraslados(), 15000);
+                if (modulo === 'reportes') await cargarModuloConCacheRRHH('reportes', () => prepararFiltrosReportesRRHH());
                 if (modulo === 'colaboradores') {
-                    await cargarTablaColaboradores();
+                    await cargarModuloConCacheRRHH('colaboradores', () => cargarTablaColaboradores());
                 }
 
                 if (modulo === 'sucursales') {
-                    await cargarTablaSucursales();
+                    await cargarModuloConCacheRRHH('sucursales', async () => {
+                        await cargarTablaSucursales();
+                        if (window.prepararMapaYConfiguracionSucursales) await prepararMapaYConfiguracionSucursales();
+                    });
                 }
 
                 if (modulo === 'asistencia') {
@@ -985,19 +1005,19 @@
                     if (!vacacionesCargadas) await cargarVacacionesDesdeNube();
                     else renderizarVacaciones();
                 }
-                if (modulo === 'papeletas') { await prepararModuloPapeletas(); await cargarPapeletas(); }
-                if (modulo === 'sucursales') await prepararMapaYConfiguracionSucursales();
-                if (modulo === 'correos') await prepararModuloCorreos();
-                if (modulo === 'amonestaciones') await prepararModuloCoberturas();
-                if (modulo === 'configcorreos') await prepararConfiguracionCorreos();
-                if (modulo === 'mapas') await prepararMapa14();
-                if (modulo === 'tareas') await prepararModuloTareas();
-                if (modulo === 'operaciones') await cargarCentroOperaciones();
-                if (modulo === 'calidad') await cargarPanelCalidad();
-                if (modulo === 'notificaciones') await cargarCentroNotificaciones();
-                if (modulo === 'integraciones') await cargarPanelIntegraciones();
-                if (modulo === 'usuarios') await cargarUsuariosRoles();
-                if (modulo === 'auditoria') await cargarAuditoria();
+                if (modulo === 'papeletas') await cargarModuloConCacheRRHH('papeletas', async () => { await prepararModuloPapeletas(); await cargarPapeletas(); });
+                
+                if (modulo === 'correos') await cargarModuloConCacheRRHH('correos', () => prepararModuloCorreos());
+                if (modulo === 'amonestaciones') await cargarModuloConCacheRRHH('coberturas', () => prepararModuloCoberturas());
+                if (modulo === 'configcorreos') await cargarModuloConCacheRRHH('configcorreos', () => prepararConfiguracionCorreos());
+                if (modulo === 'mapas') await cargarModuloConCacheRRHH('mapas', () => prepararMapa14());
+                if (modulo === 'tareas') await cargarModuloConCacheRRHH('tareas', () => prepararModuloTareas());
+                if (modulo === 'operaciones') await cargarModuloConCacheRRHH('operaciones', () => cargarCentroOperaciones());
+                if (modulo === 'calidad') await cargarModuloConCacheRRHH('calidad', () => cargarPanelCalidad());
+                if (modulo === 'notificaciones') await cargarModuloConCacheRRHH('notificaciones', () => cargarCentroNotificaciones());
+                if (modulo === 'integraciones') await cargarModuloConCacheRRHH('integraciones', () => cargarPanelIntegraciones());
+                if (modulo === 'usuarios') await cargarModuloConCacheRRHH('usuarios', () => cargarUsuariosRoles());
+                if (modulo === 'auditoria') await cargarModuloConCacheRRHH('auditoria', () => cargarAuditoria());
             } catch (error) {
                 if (secuenciaActual === secuenciaCambioModulo) mostrarToast(error.message, 'error', 15000);
                 else console.debug('Carga de módulo anterior omitida tras cambiar de vista:', modulo);
