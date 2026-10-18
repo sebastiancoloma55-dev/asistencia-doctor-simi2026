@@ -164,7 +164,7 @@
       parent.insertBefore(layout,overview);layout.append(left,side);left.append(overview,tableCard);
     }
     if(layout.dataset.loaded==='true'){
-      const cachedNow=Array.isArray(window.sucursalesConfiguracionGlobal)?window.sucursalesConfiguracionGlobal:[];
+      const cachedNow=Array.isArray(window.sucursalesConfiguracionGlobal)?window.sucursalesConfiguracionGlobal.filter(x=>x&&('latitud'in x||'geolocalizacion'in x||'region'in x)):[];
       if(layout.dataset.refMapFailed==='true'&&cachedNow.length){
         layout.dataset.loaded='';
         layout.dataset.refMapFailed='';
@@ -243,7 +243,7 @@
         setTimeout(()=>map.invalidateSize(),120);
       }catch(e){
         // Si otra vista ya cargó el directorio con éxito, reutilizar esos datos reales como fallback.
-        const cached=Array.isArray(window.sucursalesConfiguracionGlobal)&&window.sucursalesConfiguracionGlobal.length?window.sucursalesConfiguracionGlobal:(typeof cacheSucursalesCompletoRRHH!=='undefined'&&Array.isArray(cacheSucursalesCompletoRRHH)?cacheSucursalesCompletoRRHH:[]);
+        const cached=Array.isArray(window.sucursalesConfiguracionGlobal)?window.sucursalesConfiguracionGlobal.filter(x=>x&&('latitud'in x||'geolocalizacion'in x||'region'in x)):[];
         if(cached.length){
           const normalizeActive=value=>String(value??'').trim().toLocaleLowerCase('es-CL');
           const active=cached.filter(x=>x.activa===true||x.activa===1||['true','1','activo','activa','si','yes'].includes(normalizeActive(x.activa))).length;
