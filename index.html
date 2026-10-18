@@ -2073,16 +2073,32 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
             <section id="view-tareas" class="hidden space-y-6 p-4 sm:p-8 task-center">
                 <header class="task-hero">
                     <div class="task-hero-top">
-                        <div class="task-hero-brand"><span class="task-hero-icon"><i data-lucide="workflow" class="h-6 w-6"></i></span><div><span class="task-eyebrow">CENTRO DE PRODUCTIVIDAD · RR. HH.</span><h3>Gestión inteligente de tareas</h3><p>Asigna el trabajo, acompaña la ejecución y valida resultados desde un solo lugar.</p></div></div>
+                        <div class="task-hero-brand"><span class="task-hero-icon"><i data-lucide="workflow" class="h-6 w-6"></i></span><div><span class="task-eyebrow">PLANIFICACIÓN Y SEGUIMIENTO · RR. HH.</span><h3>Tareas diarias</h3><p>Organiza las rutinas del equipo y las tareas puntuales desde un solo lugar.</p></div></div>
                         <button type="button" class="task-refresh" onclick="cargarTareas()"><i data-lucide="refresh-cw" class="h-4 w-4"></i> Actualizar datos</button>
                     </div>
                     <div class="task-flow">
                         <div class="task-flow-step"><span>01</span><div><b>Planificar</b><small>Define responsable y plazo</small></div></div><i data-lucide="arrow-right" class="task-flow-arrow"></i>
                         <div class="task-flow-step"><span>02</span><div><b>Ejecutar</b><small>Registra el resultado</small></div></div><i data-lucide="arrow-right" class="task-flow-arrow"></i>
                         <div class="task-flow-step"><span>03</span><div><b>Validar</b><small>Confirma el cumplimiento</small></div></div>
-                        <div class="task-flow-note"><i data-lucide="bell-ring" class="h-4 w-4"></i> Avisos y recurrencias automáticas</div>
+                        <div class="task-flow-note"><i data-lucide="bell-ring" class="h-4 w-4"></i> Rutinas y tareas ocasionales</div>
                     </div>
                 </header>
+
+                <div class="task-create-choices">
+                    <button type="button" class="task-choice task-choice-routine" onclick="abrirFormularioTarea('DIARIA')">
+                        <span class="task-choice-icon"><i data-lucide="refresh-cw"></i></span><span class="task-choice-copy"><b>Crear rutina recurrente</b><small>Configura una vez las tareas que se repiten a diario o semanalmente.</small><em>Configurar rutina <i data-lucide="arrow-right"></i></em></span><span class="task-choice-art"><i data-lucide="calendar-days"></i></span>
+                    </button>
+                    <button type="button" class="task-choice task-choice-occasional" onclick="abrirFormularioTarea('NINGUNA')">
+                        <span class="task-choice-icon"><i data-lucide="zap"></i></span><span class="task-choice-copy"><b>Crear tarea ocasional</b><small>Solicitudes puntuales, coberturas y gestiones extraordinarias.</small><em>Crear tarea puntual <i data-lucide="arrow-right"></i></em></span><span class="task-choice-art"><i data-lucide="file-plus-2"></i></span>
+                    </button>
+                </div>
+                <div class="task-workspace-tabs" role="tablist" aria-label="Vistas de tareas">
+                    <button type="button" class="task-workspace-tab active" data-task-view="RUTINA" onclick="cambiarVistaTareas('RUTINA')"><i data-lucide="calendar-check"></i> Rutina diaria <span id="task-tab-routine-count">0</span></button>
+                    <button type="button" class="task-workspace-tab" data-task-view="OCASIONAL" onclick="cambiarVistaTareas('OCASIONAL')"><i data-lucide="zap"></i> Tareas ocasionales <span id="task-tab-occasional-count">0</span></button>
+                    <button type="button" class="task-workspace-tab" data-task-view="EQUIPO" onclick="cambiarVistaTareas('EQUIPO')"><i data-lucide="users"></i> Equipo y seguimiento</button>
+                    <button type="button" class="task-workspace-tab" data-task-view="INDICADORES" onclick="cambiarVistaTareas('INDICADORES')"><i data-lucide="chart-no-axes-combined"></i> Indicadores e historial</button>
+                    <button type="button" class="task-new-primary" onclick="abrirFormularioTarea('NINGUNA')"><i data-lucide="plus"></i> Nueva tarea</button>
+                </div>
 
                 <div class="task-section-heading"><div><span class="task-section-index">01 / NUEVA GESTIÓN</span><h4>Crear y asignar una tarea</h4><p>Empieza desde una sugerencia o configura todos los detalles.</p></div><span class="task-required-note"><span>*</span> Campo obligatorio</span></div>
 
@@ -2093,7 +2109,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 </div>
                 <div id="tarea-permiso-aviso" class="hidden task-permission-notice"><i data-lucide="shield-alert" class="h-5 w-5"></i><span>Puedes consultar tareas, pero no asignarlas. Solicita esa autorización al administrador.</span></div>
 
-                <form id="form-tarea" class="task-form" onsubmit="guardarTarea(event)">
+                <form id="form-tarea" class="task-form hidden" onsubmit="guardarTarea(event)">
                     <div class="task-form-heading"><span class="task-form-heading-icon"><i data-lucide="clipboard-list" class="h-5 w-5"></i></span><div><h4>Detalles de la asignación</h4><p>Define qué debe hacerse, quién lo hará y cuándo debe quedar resuelto.</p></div></div>
                     <div class="task-form-grid">
                         <div class="task-field task-field-title"><label for="tarea-titulo" class="required-label">Título de la tarea</label><input id="tarea-titulo" required class="form-field" placeholder="Ej. Revisar incidencias de asistencia"></div>
