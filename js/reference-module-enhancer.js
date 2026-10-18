@@ -397,6 +397,89 @@
     });
   }
 
+  function enhanceTransfersLayout(){
+    const section=document.getElementById('view-traslados');
+    if(!section)return;
+    section.classList.add('ref-transfers-page');
+    if(section.dataset.refTransferLayout!=='true'){
+      const intro=section.querySelector(':scope > .module-intro');
+      const form=section.querySelector('#traslado-form');
+      const formCard=form?.closest('.ui-card');
+      if(!intro||!formCard)return;
+      section.dataset.refTransferLayout='true';
+      const kpis=document.createElement('div');kpis.className='ref-transfer-kpis';
+      kpis.innerHTML=[
+        ['Solicitudes totales','total'],['Pendientes','pending'],['En curso','progress'],['Finalizadas','done']
+      ].map(([label,key],i)=>'<article class="ref-transfer-kpi" data-transfer-kpi="'+key+'"><span class="ref-transfer-kpi-icon">'+['▤','◷','↗','✓'][i]+'</span><small>'+label+'</small><strong>—</strong><span class="ref-transfer-kpi-note">Según solicitudes guardadas</span></article>').join('');
+      intro.insertAdjacentElement('afterend',kpis);
+      const workspace=document.createElement('div');workspace.className='ref-transfer-workspace';
+      const route=document.createElement('aside');route.className='ref-transfer-route ui-card';
+      route.innerHTML='<div class="ref-transfer-route-head"><div><b>Ruta entre sucursales</b><small>Coordenadas registradas en el directorio</small></div><span>GPS</span></div><div id="ref-transfer-map" class="ref-transfer-map"><div class="ref-transfer-map-empty">Selecciona origen y destino para consultar la ruta.</div></div><div class="ref-transfer-distance"><span>Distancia geográfica aproximada</span><b id="ref-transfer-distance-value">—</b></div><p id="ref-transfer-route-note" class="ref-transfer-route-note">La distancia en línea recta no representa el recorrido por carretera.</p><a id="ref-transfer-google-route" class="ref-transfer-google-link" target="_blank" rel="noopener noreferrer" hidden>↗ Abrir ruta en Google Maps</a>';
+      formCard.insertAdjacentElement('beforebegin',workspace);
+      workspace.append(formCard,route);
+      const update=rows=>{
+        const list=Array.isArray(rows)?rows:[];
+        const counts={
+          total:list.length,
+          pending:list.filter(r=>/SOLICITADO|PENDIENTE/.test(String(r.estado||'').toUpperCase())).length,
+          progress:list.filter(r=>/APROBADO|EN_CURSO|EN CURSO|EN REVISI/.test(String(r.estado||'').toUpperCase())).length,
+          done:list.filter(r=>/COMPLETADO|FINALIZADO|APLICADO/.test(String(r.estado||'').toUpperCase())).length
+        };
+        Object.entries(counts).forEach(([key,value])=>{const node=kpis.querySelector('[data-transfer-kpi="'+key+'"] strong');if(node)node.textContent=value.toLocaleString('es-CL');});
+      };
+      window.actualizarVistaTrasladosReferencia=update;
+      update(window.__simiTransferRows||[]);
+      const parseBranch=selectId=>{
+        const id=section.querySelector('#'+selectId)?.value;
+        return (window.__simiTransferBranches||[]).find(x=>String(x.id)===String(id));
+      };
+      let map=null,layer=null;
+      const drawRoute=()=>{
+        const a=parseBranch('traslado-origen'),b=parseBranch('traslado-destino');
+        const node=section.querySelector('#ref-transfer-map'),distance=section.querySelector('#ref-transfer-distance-value'),note=section.querySelector('#ref-transfer-route-note'),link=section.querySelector('#ref-transfer-google-route');
+        if(!node)return;
+        const coord=x=>{
+          if(!x)return null;
+          const lat=Number(x.latitud),lon=Number(x.longitud);
+          return Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0)?[lat,lon]:null;
+        };
+        const ca=coord(a),cb=coord(b);
+        if(!ca||!cb){
+          if(map){map.remove();map=null;layer=null;}
+          node.innerHTML='<div class="ref-transfer-map-empty">'+(!a||!b?'Selecciona origen y destino para consultar la ruta.':'Faltan coordenadas válidas para una o ambas sucursales.')+'</div>';
+          if(distance)distance.textContent='—';if(link)link.hidden=true;
+          if(note)note.textContent='No se calculará una distancia si faltan coordenadas reales.';
+          return;
+        }
+        const rad=v=>v*Math.PI/180;
+        const dLat=rad(cb[0]-ca[0]),dLon=rad(cb[1]-ca[1]);
+        const h=Math.sin(dLat/2)**2+Math.cos(rad(ca[0]))*Math.cos(rad(cb[0]))*Math.sin(dLon/2)**2;
+        const km=6371*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));
+        if(distance)distance.textContent=km.toLocaleString('es-CL',{maximumFractionDigits:1})+' km';
+        if(note)note.textContent='Distancia geográfica en línea recta; el tiempo y recorrido por calles se consultan en Google Maps.';
+        if(link){link.hidden=false;link.href='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(ca.join(','))+'&destination='+encodeURIComponent(cb.join(','))+'&travelmode=driving';}
+        if(typeof L==='undefined'){node.innerHTML='<div class="ref-transfer-map-empty">Mapa no disponible. Usa el enlace de Google Maps.</div>';return;}
+        if(!map){
+          node.innerHTML='';
+          map=L.map(node,{scrollWheelZoom:false,zoomControl:true});
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map);
+          layer=L.layerGroup().addTo(map);
+        }
+        layer.clearLayers();
+        L.marker(ca).addTo(layer).bindPopup('<b>Origen:</b> '+clean(a.nombre));
+        L.marker(cb).addTo(layer).bindPopup('<b>Destino:</b> '+clean(b.nombre));
+        L.polyline([ca,cb],{color:'#0876ee',weight:4,dashArray:'7 6'}).addTo(layer);
+        map.fitBounds(L.latLngBounds([ca,cb]),{padding:[20,20],maxZoom:12});
+        requestAnimationFrame(()=>map?.invalidateSize());
+      };
+      section.querySelector('#traslado-origen')?.addEventListener('change',drawRoute);
+      section.querySelector('#traslado-destino')?.addEventListener('change',drawRoute);
+      section._refTransferDrawRoute=drawRoute;
+    }
+    if(Array.isArray(window.__simiTransferRows))window.actualizarVistaTrasladosReferencia?.(window.__simiTransferRows);
+    if(!section.classList.contains('hidden'))section._refTransferDrawRoute?.();
+  }
+
   function enhanceCoverageLayout(){
     const section=document.getElementById('view-amonestaciones');
     if(!section||section.dataset.refCoverageLayout==='true')return;
@@ -521,6 +604,7 @@
     enhanceModuleShells();
     enhanceHistoryToggles();
     enhanceCoverageLayout();
+    enhanceTransfersLayout();
     enhanceReportes();
     enhanceMapas();
     enhanceOperationsLayout();
