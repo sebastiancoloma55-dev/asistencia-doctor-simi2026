@@ -605,3 +605,5 @@ main section[id^="view-"] table tbody tr:hover td{background:rgba(0,143,236,.25)
 #login-overlay.nova-v3-overlay:not(.hidden){z-index:120!important}
 @media(max-width:760px){#simi-animated-backdrop:after{background-size:80px 80px,120px 120px,300px auto;background-position:0 0,40px 60px,80% 85%}}
 @media(prefers-reduced-motion:reduce){#simi-animated-backdrop:before,#simi-animated-backdrop:after,#simi-animated-backdrop .simi-backdrop-orb,#simi-animated-backdrop .simi-backdrop-beam{animation:none!important}}
+
+/* Preview rebuild trigger after global background/login integration. */
