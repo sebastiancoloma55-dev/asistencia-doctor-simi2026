@@ -2494,9 +2494,9 @@ main>header button[onclick*="cerrarSesion()"]{padding:9px 10px!important;border-
 <script src="/js/freshness-dashboard.js?v=ultima-carga-por-modulo-151026"></script>
 <script src="/js/attendance-leave.js"></script>
 <script src="/js/workflows.js?v=permisos-envio-licencias-141026"></script>
-<script src="/js/maps-communications.js"></script>
+<script src="/js/maps-communications.js?v=20261018b"></script>
 <script src="/js/medical-leave-registration.js?v=licencias-zip-eml-permisos-141026"></script>
-<script src="/js/people-directory.js"></script>
+<script src="/js/people-directory.js?v=20261018b"></script>
 <script src="/js/chat-transfers.js"></script>
 <script src="/js/employee-history.js"></script>
 <script src="/js/talana-bot.js"></script>
@@ -3552,7 +3552,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         const refreshActions={
           dashboard:['inicializarDashboard','Actualizar indicadores'],
           colaboradores:['cargarTablaColaboradores','Actualizar directorio'],
-          sucursales:['cargarTablaSucursales','Actualizar directorio y mapa'],
+          sucursales:['cargarTablaSucursales','Actualizar directorio'],
           asistencia:['actualizarIndicadoresAsistencia','Actualizar asistencia'],
           envio_licencias:['cargarLicenciasManuales','Actualizar registros'],
           vacaciones:['cargarHistorialVacaciones','Actualizar historial'],
@@ -3739,7 +3739,7 @@ hr{border-color:#e8edf3}
 @media(prefers-reduced-motion:reduce){.dashboard-welcome-compact-image{animation:none!important;transition:none!important}}
 </style>
 
-<script src="/js/reference-module-enhancer.js?v=20261018l" defer></script>
+<script src="/js/reference-module-enhancer.js?v=20261018m" defer></script>
 
 <style id="simi-final-layout-overrides-20261018">
 /* Aplicar después de las hojas heredadas para evitar que estilos antiguos anulen el rediseño */
@@ -3767,7 +3767,9 @@ main>header .topbar-quick-action{display:none!important}
 main>header #topbar-notification-button{width:39px!important;height:39px!important;border:1px solid #cfe4f2!important;border-radius:11px!important;background:#eff9fc!important;color:#087f92!important;box-shadow:none!important}
 main>header .topbar-search{min-height:39px!important;border:1px solid #d6e4f2!important;border-radius:10px!important;background:#f8fbff!important;color:#345a7b!important;box-shadow:none!important}
 main>header #btn-theme-settings{min-height:39px!important;border:1px solid #d6e4f2!important;border-radius:10px!important;background:#fff!important;color:#12385f!important;padding:8px 11px!important}
-main>header #btn-cerrar-sesiones-global{min-height:39px!important;border-radius:10px!important}
+main>header #btn-cerrar-sesiones-global{width:39px!important;min-width:39px!important;min-height:39px!important;padding:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;border-radius:10px!important;font-size:0!important}
+main>header #btn-cerrar-sesiones-global span{display:none!important}
+main>header #btn-cerrar-sesiones-global i{margin:0!important}
 main>header button[onclick*="cerrarSesion()"]{padding:8px!important;border-radius:9px!important;color:#087f92!important;font-weight:850!important}
 #simi-context-assistant{position:fixed!important;z-index:1000!important;width:52px!important;height:52px!important;margin:0!important;touch-action:none!important}
 #simi-context-toggle{width:52px!important;height:52px!important;min-width:52px!important;padding:0!important;display:grid!important;place-items:center!important;gap:0!important;border:1px solid rgba(255,255,255,.85)!important;border-radius:50%!important;background:linear-gradient(145deg,#19a8a5,#087f92 72%)!important;color:#fff!important;box-shadow:0 8px 24px rgba(7,59,112,.28),inset 0 1px rgba(255,255,255,.3)!important;cursor:grab!important;touch-action:none!important;user-select:none!important}
