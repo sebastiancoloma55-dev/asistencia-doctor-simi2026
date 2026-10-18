@@ -345,25 +345,38 @@
         }
 
         async function leerRegistrosColaborador(tabla, rut, campoFecha) {
-            const normalizar = valor => String(valor ?? '').trim();
-            const base = normalizar(rut);
-            const sinPuntos = base.replace(/\./g, '');
-            const sinGuion = sinPuntos.replace(/-/g, '');
-            const conGuion = sinPuntos.includes('-') ? sinPuntos : (sinPuntos.match(/^(\d{7,8})([0-9kK])$/) || []).slice(1).join('-');
-            const variantes = [...new Set([base, sinPuntos, sinGuion, conGuion, conGuion.toUpperCase(), conGuion.toLowerCase()].filter(Boolean))];
-            let errorFinal = null;
-            const acumulados = new Map();
-            for (const variante of variantes) {
-                const result = await _supabase.from(tabla).select('*').eq('rut', variante).limit(1000);
-                if (result.error) { errorFinal = result.error; continue; }
-                for (const row of (result.data || [])) {
-                    const key = row.id ?? [row.rut, row.fecha_inicio || row.fecha || '', row.fecha_fin || '', row.tipo_ausencia || row.tipo_permiso || row.tipo || '', row.created_at || ''].join('|');
-                    acumulados.set(String(key), row);
+            const base=String(rut??'').trim();
+            const sinPuntos=base.replace(/\\./g,'');
+            const sinGuion=sinPuntos.replace(/-/g,'');
+            const match=sinPuntos.match(/^(\\d{7,8})([0-9kK])$/);
+            const conGuion=sinPuntos.includes('-')?sinPuntos:(match?match[1]+'-'+match[2]:'');
+            const variantes=[...new Set([base,sinPuntos,sinGuion,conGuion,conGuion.toUpperCase(),conGuion.toLowerCase()].filter(Boolean))];
+            const columnas=['rut','rut_colaborador','colaborador_rut','rut_empleado'];
+            let errorFinal=null;
+            const acumulados=new Map();
+            const consultarColumna=async columna=>{
+                const resultados=await Promise.all(variantes.map(valor=>
+                    _supabase.from(tabla).select('*').eq(columna,valor).limit(1000)
+                ));
+                resultados.forEach(resultado=>{
+                    if(resultado.error){errorFinal=resultado.error;return;}
+                    (resultado.data||[]).forEach(row=>{
+                        const key=row.id??[row.rut||row.rut_colaborador||row.colaborador_rut||row.rut_empleado,row.fecha_inicio||row.fecha||'',row.fecha_fin||'',row.tipo_ausencia||row.tipo_permiso||row.tipo||'',row.created_at||''].join('|');
+                        acumulados.set(String(key),row);
+                    });
+                });
+            };
+            await consultarColumna(columnas[0]);
+            // Algunas cargas históricas guardan el RUT bajo un nombre distinto.
+            if(!acumulados.size){
+                for(const columna of columnas.slice(1)){
+                    await consultarColumna(columna);
+                    if(acumulados.size)break;
                 }
             }
-            const data = [...acumulados.values()];
-            if (campoFecha) data.sort((a,b) => String(b[campoFecha] || b.created_at || '').localeCompare(String(a[campoFecha] || a.created_at || '')));
-            return { data, error: data.length ? null : errorFinal };
+            const data=[...acumulados.values()];
+            if(campoFecha)data.sort((a,b)=>String(b[campoFecha]||b.created_at||'').localeCompare(String(a[campoFecha]||a.created_at||'')));
+            return {data,error:data.length?null:errorFinal};
         }
 
         async function verFichaColaborador(rut) {
@@ -480,6 +493,59 @@
                     metric('Marcas',attendanceResult.error?0:attendance.length,'cyan','⏱️')+
                     metric('Atrasos',attendanceResult.error?0:attendance.filter(atraso).length,'amber','⌛')+
                     '</div><div class="mt-5 grid grid-cols-1 gap-4 2xl:grid-cols-2">'+licenseHtml+permissionHtml+vacationHtml+attendanceHtml+'</div><p class="mt-4 rounded-xl border border-slate-200 bg-white p-3 text-[11px] text-slate-500">Las licencias médicas, permisos/ausencias, vacaciones y marcaciones se muestran por separado. Cuando una fecha falta en la fuente, se indica expresamente y se muestra la fecha de registro del sistema solo como referencia. La ficha no muestra diagnósticos médicos.</p>';
+
+                // Navegación por pestañas de la ficha, sin duplicar ni inventar registros.
+                const metricGrid=body.firstElementChild;
+                const recordSections=[...body.querySelectorAll('.ficha-section')];
+                const sectionByTitle=new Map(recordSections.map(section=>[section.querySelector('h4')?.textContent?.trim(),section]));
+                const licenseSection=sectionByTitle.get('Licencias médicas');
+                const permissionSection=sectionByTitle.get('Permisos y ausencias');
+                const vacationSection=sectionByTitle.get('Vacaciones');
+                const attendanceSection=sectionByTitle.get('Asistencia y atrasos');
+                const recordGrid=document.createElement('div');
+                recordGrid.className='ficha-section-grid mt-4 grid grid-cols-1 gap-4 2xl:grid-cols-2';
+                const firstSection=recordSections[0];
+                if(firstSection)firstSection.insertAdjacentElement('beforebegin',recordGrid);
+                recordSections.forEach(section=>recordGrid.appendChild(section));
+                const docsSection=document.createElement('section');
+                docsSection.className='ficha-section ficha-documents-placeholder';
+                docsSection.innerHTML='<header><span class="ficha-section-icon">📄</span><div><span class="ficha-record-kicker">DOCUMENTOS</span><h4>Documentos</h4><p>Archivos asociados a la ficha</p></div></header><div class="ficha-section-body"><div class="ficha-empty"><span>📄</span><b>Sin documentos disponibles en esta vista</b><p>No se consultó una fuente documental para este RUT; no se muestran archivos ficticios.</p></div></div>';
+                recordGrid.appendChild(docsSection);
+                const tabs=document.createElement('nav');
+                tabs.className='ficha-history-tabs';
+                tabs.setAttribute('role','tablist');
+                const tabItems=[
+                  ['resumen','Resumen'],['licencias','Licencias médicas'],['permisos','Permisos y ausencias'],
+                  ['vacaciones','Vacaciones'],['asistencia','Asistencia'],['atrasos','Atrasos'],['documentos','Documentos']
+                ];
+                tabItems.forEach(([key,label],index)=>{
+                  const button=document.createElement('button');button.type='button';button.className='ficha-history-tab'+(index===0?' active':'');
+                  button.textContent=label;button.setAttribute('role','tab');button.setAttribute('aria-selected',String(index===0));button.dataset.fichaTab=key;
+                  tabs.appendChild(button);
+                });
+                if(metricGrid)metricGrid.insertAdjacentElement('afterend',tabs);
+                const allAttendanceRows=[...(attendanceSection?.querySelectorAll('.ficha-attendance-row')||[])];
+                let noLateMessage=null;
+                const setTab=key=>{
+                  tabs.querySelectorAll('[data-ficha-tab]').forEach(button=>{
+                    const active=button.dataset.fichaTab===key;
+                    button.classList.toggle('active',active);button.setAttribute('aria-selected',String(active));
+                  });
+                  const showAll=key==='resumen';
+                  const map={licencias:licenseSection,permisos:permissionSection,vacaciones:vacationSection,asistencia:attendanceSection,atrasos:attendanceSection,documentos:docsSection};
+                  recordSections.forEach(section=>{section.hidden=showAll?false:section===map[key];});
+                  docsSection.hidden=key!=='documentos';
+                  allAttendanceRows.forEach(row=>{row.hidden=key==='atrasos'&&!row.classList.contains('is-late');});
+                  if(key==='atrasos'&&attendanceSection){
+                    const hasLate=allAttendanceRows.some(row=>row.classList.contains('is-late'));
+                    if(!hasLate){
+                      if(!noLateMessage){noLateMessage=document.createElement('div');noLateMessage.className='ficha-empty ficha-no-late';noLateMessage.innerHTML='<span>⌛</span><b>Sin atrasos registrados</b><p>No se encontraron marcas con atraso para este RUT.</p>';attendanceSection.querySelector('.ficha-section-body')?.appendChild(noLateMessage);}
+                      noLateMessage.hidden=false;
+                    }else if(noLateMessage)noLateMessage.hidden=true;
+                  }else if(noLateMessage)noLateMessage.hidden=true;
+                };
+                tabs.addEventListener('click',event=>{const button=event.target.closest('[data-ficha-tab]');if(button)setTab(button.dataset.fichaTab);});
+                setTab('resumen');
             } catch (error) {
                 body.innerHTML = '<p class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">No se pudo cargar la ficha: ' + escaparHTML(error.message || error) + '</p>';
             }
