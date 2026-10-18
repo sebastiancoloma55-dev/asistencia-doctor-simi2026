@@ -175,10 +175,13 @@
         if(error) throw error;
         const rows=data||[];
         const totalCount=Number.isFinite(count)?count:rows.length;
-        const inactiveRows=rows.filter(x=>x.activa===false||x.activa===0||['false','0','inactivo','inactiva','no'].includes(String(x.activa??'').toLocaleLowerCase('es-CL')));
-        const activeCount=Math.max(0,Math.min(totalCount,rows.length-inactiveRows.length));
+        const normalizeActive=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLocaleLowerCase('es-CL');
+        const inactiveRows=rows.filter(x=>x.activa===false||x.activa===0||['false','0','inactivo','inactiva','no'].includes(normalizeActive(x.activa)));
+        const activeRows=rows.filter(x=>x.activa===true||x.activa===1||['true','1','activo','activa','si','yes'].includes(normalizeActive(x.activa)));
+        const activeCount=activeRows.length;
         const inactiveCount=inactiveRows.length;
-        const unknownCount=Math.max(0,totalCount-rows.length);
+        // Los registros sin estado explícito (y los que exceden el límite consultado) no se asignan a activos.
+        const unknownCount=Math.max(0,totalCount-activeCount-inactiveCount);
         const branchOverview=section.querySelector('.ref-overview');
         const branchCards=branchOverview?.querySelectorAll('.ref-kpi');
         if(branchCards?.length>=4){
@@ -187,7 +190,7 @@
           const labels=['Total de sucursales','Activas','Inactivas','Sin estado'];
           labels.forEach((label,i)=>{const node=branchCards[i]?.querySelector('.ref-kpi-top span:last-child');if(node)node.textContent=label;});
           const note=branchCards[0]?.querySelector('.ref-kpi-note');if(note)note.textContent='Total informado por Supabase';
-          const activeNote=branchCards[1]?.querySelector('.ref-kpi-note');if(activeNote)activeNote.textContent='Sin estado inactivo explícito';
+          const activeNote=branchCards[1]?.querySelector('.ref-kpi-note');if(activeNote)activeNote.textContent='Solo estado activo explícito';
           const inactiveNote=branchCards[2]?.querySelector('.ref-kpi-note');if(inactiveNote)inactiveNote.textContent='Según campo activa de Supabase';
           const unknownNote=branchCards[3]?.querySelector('.ref-kpi-note');if(unknownNote)unknownNote.textContent='Sin estado explícito';
         }
