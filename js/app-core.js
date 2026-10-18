@@ -870,6 +870,20 @@
                 }
             });
 
+            // Aislar explícitamente Tareas diarias: es una vista independiente y no debe quedar visible al abrir Mi espacio de trabajo u otro módulo.
+            const vistaTareasIndependiente = document.getElementById('view-tareas');
+            if (vistaTareasIndependiente) {
+                vistaTareasIndependiente.classList.toggle('hidden', modulo !== 'tareas');
+                vistaTareasIndependiente.classList.remove('rrhh-view-enter');
+            }
+            const botonTareasIndependiente = document.getElementById('btn-tareas');
+            if (botonTareasIndependiente) {
+                const ocultoPorPermisoTareas = botonTareasIndependiente.classList.contains('hidden');
+                botonTareasIndependiente.className = `menu-btn ui-button flex w-full items-center gap-3 rounded-lg px-3 py-2.5 ${modulo === 'tareas' ? 'active font-semibold text-white' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'}${ocultoPorPermisoTareas ? ' hidden' : ''}`;
+                if (modulo === 'tareas') botonTareasIndependiente.setAttribute('aria-current', 'page');
+                else botonTareasIndependiente.removeAttribute('aria-current');
+            }
+
             document
                 .getElementById('view-generic')
                 .classList
