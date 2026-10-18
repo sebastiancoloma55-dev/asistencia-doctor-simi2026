@@ -2014,3 +2014,15 @@ button, input, select, textarea {
 #view-espacio .space-compose-card.hidden{display:none!important}
 @media(max-width:1100px){#view-espacio{padding:20px!important}#view-espacio .space-notes-layout{grid-template-columns:minmax(0,1fr)!important}#view-espacio .space-activity-card{grid-column:1;grid-row:auto}#view-espacio .space-note-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#view-espacio .space-heading-actions{gap:8px}}
 @media(max-width:760px){#view-espacio .space-page-heading{align-items:flex-start;flex-direction:column}#view-espacio .space-heading-actions{width:100%;flex-wrap:wrap}#view-espacio .space-heading-actions button{flex:1}#view-espacio .space-metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#view-espacio .space-metric{min-height:96px;padding:12px;gap:10px}#view-espacio .space-metric-icon{flex-basis:42px;width:42px;height:42px}#view-espacio .space-metric-icon svg{width:22px;height:22px}#view-espacio .space-metric-copy strong{font-size:23px}#view-espacio .space-note-grid{grid-template-columns:minmax(0,1fr)}#view-espacio .space-tabbar{gap:8px;overflow-x:auto}#view-espacio .space-tab{font-size:11px;padding:13px 7px}
+
+}
+/* Ajuste final de composición: panel izquierdo y actividad lateral */
+#view-espacio{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(270px,.36fr);align-content:start}
+#view-espacio .space-page-heading,#view-espacio #space-metrics{grid-column:1/-1}
+#view-espacio .space-tabbar{grid-column:1;grid-row:3}
+#view-espacio #rrhh-space-panel-notas{display:contents!important}
+#view-espacio .space-notes-layout{display:contents!important}
+#view-espacio .space-note-board-wrap{grid-column:1;grid-row:4;border-radius:0 0 13px 13px}
+#view-espacio .space-activity-card{grid-column:2;grid-row:3/span 2}
+#view-espacio #rrhh-space-panel-bitacora{grid-column:1/-1}
+@media(max-width:1100px){#view-espacio{grid-template-columns:minmax(0,1fr)}#view-espacio .space-tabbar,#view-espacio .space-note-board-wrap,#view-espacio .space-activity-card{grid-column:1;grid-row:auto}#view-espacio .space-activity-card{margin-top:0}}
