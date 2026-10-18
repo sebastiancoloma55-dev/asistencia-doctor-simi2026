@@ -32,7 +32,7 @@
   function makeOverview(section, cfg) {
     const rows=getRows(section);
     if(!rows.length) return;
-    let overview=section.querySelector(':scope > .ref-overview');
+    let overview=section.querySelector('.ref-overview');
     if(!overview){
       overview=document.createElement('div');
       overview.className='ref-overview';
@@ -126,7 +126,73 @@
     };
     form.addEventListener('input',update);form.addEventListener('change',update);update();
   }
+  function enhanceSucursales(){
+    const section=document.getElementById('view-sucursales');
+    if(!section) return;
+    let layout=section.querySelector('.ref-sucursal-layout');
+    if(!layout){
+      const overview=section.querySelector('.ref-overview');
+      const table=section.querySelector('table');
+      const tableCard=table?.closest('.ui-card');
+      if(!overview||!tableCard||overview===tableCard) return;
+      layout=document.createElement('div');layout.className='ref-sucursal-layout';
+      const left=document.createElement('div');left.className='ref-sucursal-main';
+      const side=document.createElement('aside');side.className='ref-sucursal-side';
+      side.innerHTML='<section class="ref-chart"><div class="ref-chart-title">Ubicación de sucursales</div><div class="ref-chart-subtitle">Puntos basados en coordenadas registradas</div><div id="ref-sucursal-map" class="ref-sucursal-map"><span>Preparando mapa…</span></div><div id="ref-sucursal-map-note" class="ref-map-note">Los marcadores requieren coordenadas guardadas en el directorio.</div></section><section class="ref-chart"><div class="ref-chart-title">Distribución territorial</div><div class="ref-chart-subtitle">Conteo por región según los datos disponibles</div><div id="ref-sucursal-regions" class="ref-bars"><div class="ref-empty-chart">Consultando sucursales…</div></div></section>';
+      const parent=overview.parentElement;
+      parent.insertBefore(layout,overview);layout.append(left,side);left.append(overview,tableCard);
+    }
+    if(layout.dataset.loaded==='true') return;
+    layout.dataset.loaded='true';
+    const mapNode=section.querySelector('#ref-sucursal-map');
+    const note=section.querySelector('#ref-sucursal-map-note');
+    const regionsNode=section.querySelector('#ref-sucursal-regions');
+    const draw=async()=>{
+      if(typeof _supabase==='undefined'){if(note)note.textContent='El cliente de datos no está disponible en esta vista.';return;}
+      try{
+        const {data,error}=await _supabase.from('sucursales').select('id,nombre,direccion,comuna,region,latitud,longitud,geolocalizacion,activa').limit(1000);
+        if(error) throw error;
+        const rows=data||[];
+        const grouped={};
+        rows.forEach(x=>{const region=clean(x.region||x.comuna||'Sin región');grouped[region]=(grouped[region]||0)+1;});
+        const sorted=Object.entries(grouped).sort((a,b)=>b[1]-a[1]).slice(0,6);
+        if(regionsNode){
+          regionsNode.innerHTML='';
+          const max=Math.max(1,...sorted.map(x=>x[1]));
+          sorted.forEach(([label,count])=>{
+            const row=document.createElement('div');row.className='ref-bar-row';
+            const name=document.createElement('span');name.textContent=label;
+            const track=document.createElement('div');track.className='ref-bar-track';
+            const fill=document.createElement('div');fill.className='ref-bar-fill';fill.style.width=(count/max*100)+'%';track.appendChild(fill);
+            const n=document.createElement('span');n.className='ref-bar-count';n.textContent=count.toLocaleString('es-CL');
+            row.append(name,track,n);regionsNode.appendChild(row);
+          });
+          if(!sorted.length)regionsNode.innerHTML='<div class="ref-empty-chart">No hay regiones disponibles en los registros.</div>';
+        }
+        const points=rows.map(x=>{
+          let lat=Number(x.latitud),lon=Number(x.longitud);
+          if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180||(lat===0&&lon===0)){
+            const raw=String(x.geolocalizacion||'').replace(/[()]/g,'');
+            const m=raw.match(/(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)/);
+            if(m){lat=Number(m[1]);lon=Number(m[2]);}
+          }
+          return {x,lat,lon};
+        }).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&Math.abs(p.lat)<=90&&Math.abs(p.lon)<=180&&(p.lat!==0||p.lon!==0));
+        if(typeof L==='undefined'||!mapNode){if(note)note.textContent='No fue posible inicializar el mapa en este navegador.';return;}
+        mapNode.innerHTML='';
+        const map=L.map(mapNode,{scrollWheelZoom:false,zoomControl:true}).setView([-33.45,-70.66],5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map);
+        points.forEach(({x,lat,lon})=>L.circleMarker([lat,lon],{radius:5,color:'#0876ee',weight:2,fillColor:'#19a8a5',fillOpacity:.85}).addTo(map).bindPopup('<b>'+String(x.nombre||'Sucursal').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</b><br>'+String([x.direccion,x.comuna].filter(Boolean).join(', ')).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])));
+        if(points.length)map.fitBounds(L.latLngBounds(points.map(p=>[p.lat,p.lon])),{padding:[18,18],maxZoom:10});
+        else map.setView([-33.45,-70.66],5);
+        if(note)note.textContent=points.length+' sucursales con coordenadas válidas de '+rows.length+' registros consultados.';
+        setTimeout(()=>map.invalidateSize(),120);
+      }catch(e){if(note)note.textContent='No se pudo cargar el mapa o la distribución: '+(e?.message||'error de consulta');if(regionsNode)regionsNode.innerHTML='<div class="ref-empty-chart">No fue posible consultar la distribución.</div>';}
+    };
+    draw();
+  }
   function refresh(){
+    enhanceSucursales();
     enhanceUsers();
     enhancePapeletas();
     Object.entries(targets).forEach(([id,cfg])=>{
