@@ -486,3 +486,84 @@ body>.flex.h-screen.overflow-hidden>main>[id^="view-"]{
 @media(prefers-reduced-motion:reduce){
   body::before,body::after,#login-overlay .nova-v3-intro:before{animation:none!important}
 }
+
+
+/* REVISION 2026-10-18: fondo azul visible en toda la plataforma y login con la referencia corporativa */
+html,body{min-height:100%;background:#031a3a!important}
+body{background:transparent!important;isolation:isolate!important;overflow-x:hidden}
+body::before{
+  content:""!important;position:fixed!important;inset:0!important;z-index:-2!important;pointer-events:none!important;
+  background:
+    radial-gradient(ellipse at 14% 18%,rgba(0,137,255,.36),transparent 38%),
+    radial-gradient(ellipse at 86% 22%,rgba(0,206,255,.22),transparent 33%),
+    radial-gradient(ellipse at 78% 82%,rgba(88,57,255,.23),transparent 38%),
+    linear-gradient(135deg,#03152f 0%,#052c5d 46%,#031a3b 100%)!important;
+}
+body::after{
+  content:""!important;position:fixed!important;inset:-8%!important;z-index:-1!important;pointer-events:none!important;
+  opacity:.30!important;
+  background-image:
+    radial-gradient(circle at 12% 20%,rgba(45,213,255,.95) 0 2px,transparent 3px),
+    radial-gradient(circle at 70% 15%,rgba(56,151,255,.9) 0 3px,transparent 4px),
+    radial-gradient(circle at 43% 72%,rgba(129,105,255,.85) 0 3px,transparent 4px),
+    radial-gradient(circle at 82% 84%,rgba(0,215,255,.9) 0 2px,transparent 3px),
+    url('/doctor-simi-logo.jpg')!important;
+  background-size:170px 170px,230px 230px,300px 300px,210px 210px,min(54vw,650px) auto!important;
+  background-position:0 0,70px 100px,160px 50px,20px 170px,78% 86%!important;
+  background-repeat:repeat,repeat,repeat,repeat,no-repeat!important;
+  filter:saturate(1.35) contrast(1.08)!important;
+  animation:simi-background-drift 36s ease-in-out infinite alternate!important;
+}
+main{position:relative!important;z-index:1!important;background:transparent!important;color:#eef8ff!important}
+main>header{background:rgba(3,24,55,.84)!important;color:#f1f8ff!important;border-bottom:1px solid rgba(51,203,255,.28)!important;box-shadow:0 8px 28px rgba(0,0,0,.22)!important;backdrop-filter:blur(18px) saturate(145%)!important}
+main>header #header-title,main>header button,main>header span,main>header a{color:#eaf7ff!important}
+main>header input{background:rgba(1,19,48,.8)!important;color:#fff!important;border-color:rgba(64,181,255,.4)!important}
+#sidebar{background:linear-gradient(180deg,rgba(3,26,68,.98),rgba(4,49,104,.96) 52%,rgba(2,20,53,.99))!important;border-right:1px solid rgba(39,204,255,.52)!important;box-shadow:8px 0 38px rgba(0,0,0,.32)!important;color:#f4fbff!important}
+#sidebar>div:first-child{background:linear-gradient(135deg,rgba(0,173,255,.22),rgba(73,72,255,.10))!important;border-bottom:1px solid rgba(62,207,255,.25)!important}
+#sidebar .menu-btn{color:#d8edff!important}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{background:linear-gradient(100deg,rgba(0,186,255,.42),rgba(80,54,255,.50))!important;border-color:rgba(73,220,255,.9)!important;box-shadow:inset 3px 0 #26e2ff,0 0 24px rgba(0,148,255,.22)!important;color:#fff!important}
+#sidebar .nova-nav-divider,#sidebar nav h3,#sidebar nav .text-xs{color:#52dfff!important}
+main section[id^="view-"]{color:#eaf6ff!important;background:transparent!important}
+main section[id^="view-"] h1,main section[id^="view-"] h2,main section[id^="view-"] h3,main section[id^="view-"] h4,
+main section[id^="view-"] .section-title,main section[id^="view-"] label{color:#f1f8ff!important}
+main section[id^="view-"] p,main section[id^="view-"] small,main section[id^="view-"] .module-intro{color:#b8d8f5!important}
+main section[id^="view-"] .ui-card,main section[id^="view-"] .space-panel,main section[id^="view-"] .td-panel,
+main section[id^="view-"] .usr-role-summary-card,main section[id^="view-"] .usr-matrix-tools,
+main section[id^="view-"] .module-intro,main section[id^="view-"] .module-title-card,
+main section[id^="view-"] .ficha-section,main section[id^="view-"] .config-sucursal-card,
+main section[id^="view-"] .mail-card,main section[id^="view-"] .task-assignee-box{
+  color:#edf7ff!important;background:linear-gradient(145deg,rgba(4,39,83,.88),rgba(3,24,58,.88))!important;
+  border:1px solid rgba(42,177,255,.42)!important;border-radius:16px!important;
+  box-shadow:0 12px 34px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.06)!important;
+  backdrop-filter:blur(12px)!important;
+}
+main section[id^="view-"] .module-kicker,main section[id^="view-"] .module-overline,main section[id^="view-"] .space-section-kicker{color:#39dcff!important}
+main section[id^="view-"] input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]),
+main section[id^="view-"] select,main section[id^="view-"] textarea{
+  background:rgba(1,19,47,.88)!important;color:#f3f9ff!important;border:1px solid rgba(70,181,255,.45)!important;
+}
+main section[id^="view-"] input::placeholder,main section[id^="view-"] textarea::placeholder{color:#8fb6d9!important}
+main section[id^="view-"] .table-scroll,main section[id^="view-"] .td-table-wrap{background:rgba(2,23,55,.92)!important;border:1px solid rgba(37,160,255,.45)!important}
+main section[id^="view-"] table{color:#eaf6ff!important;background:transparent!important}
+main section[id^="view-"] table thead th{background:rgba(4,64,124,.95)!important;color:#9ceaff!important;border-color:rgba(53,167,255,.28)!important}
+main section[id^="view-"] table tbody td{background:rgba(2,27,63,.58)!important;color:#dceeff!important;border-color:rgba(50,145,220,.23)!important}
+main section[id^="view-"] table tbody tr:hover td{background:rgba(0,133,221,.23)!important}
+main section[id^="view-"] .module-intro{background:linear-gradient(110deg,rgba(5,52,103,.94),rgba(4,30,72,.90))!important}
+main section[id^="view-"] button:not(.unstyled){border-color:rgba(70,194,255,.42)}
+main section[id^="view-"] .corp-button,main section[id^="view-"] .corp-button-dark,
+main section[id^="view-"] button[class*="bg-simiNavy"],main section[id^="view-"] button[class*="bg-simiBlue"]{
+  color:#fff!important;background:linear-gradient(110deg,#087eff,#0752d8 62%,#00aeea)!important;border-color:rgba(98,225,255,.55)!important;
+  box-shadow:0 8px 22px rgba(0,111,255,.23)!important;
+}
+/* Login: composición en dos paneles, azul nocturno y cristal; conserva formulario e IDs originales */
+#login-overlay.nova-v3-overlay:not(.hidden){
+  background:
+    radial-gradient(ellipse at 15% 25%,rgba(0,137,255,.42),transparent 35%),
+    radial-gradient(ellipse at 88% 78%,rgba(0,216,255,.22),transparent 32%),
+    linear-gradient(120deg,#03152f 0%,#063d7c 48%,#021735 100%)!important;
+}
+#login-overlay .nova-v3-intro{background:linear-gradient(145deg,rgba(3,47,103,.86),rgba(2,22,56,.84))!important;border-color:rgba(63,207,255,.55)!important}
+#login-overlay .nova-v3-auth{background:linear-gradient(145deg,rgba(2,31,75,.96),rgba(1,17,45,.97))!important;border-color:#26cfff!important;box-shadow:0 0 40px rgba(0,139,255,.20),0 28px 90px rgba(0,0,0,.45)!important}
+#login-overlay .nova-v3-brand-image,#login-overlay .nova-v3-core{border-color:#35d9ff!important;box-shadow:0 0 28px rgba(0,174,255,.34)!important}
+#login-overlay .nova-v3-submit{background:linear-gradient(100deg,#007cff,#064dff 65%,#00b9ff)!important}
+@media(prefers-reduced-motion:reduce){body::before,body::after{animation:none!important}}
