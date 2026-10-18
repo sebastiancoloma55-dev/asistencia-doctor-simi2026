@@ -1,0 +1,229 @@
+/* NOVA LOGIN V4 — rediseño inmersivo Doctor Simi. Solo afecta el acceso. */
+#login-overlay.nova-v3-overlay{
+  --login-cyan:#31e3ff;--login-blue:#087cff;--login-violet:#635bff;
+  position:fixed!important;inset:0!important;z-index:100!important;display:flex!important;flex-direction:column!important;
+  width:100vw!important;height:100dvh!important;min-height:100dvh!important;overflow:auto!important;
+  padding:clamp(14px,2.2vw,30px)!important;isolation:isolate!important;
+  background:radial-gradient(ellipse at 12% 18%,rgba(0,158,255,.34),transparent 35%),
+    radial-gradient(ellipse at 85% 85%,rgba(84,54,255,.25),transparent 34%),
+    linear-gradient(125deg,#020c20 0%,#042c60 46%,#020d26 100%)!important;
+  color:#f3f9ff!important;
+}
+#login-overlay.nova-v3-overlay:before{
+  content:"";position:fixed;inset:-12%;z-index:-2;pointer-events:none;opacity:.26;
+  background-image:radial-gradient(circle,rgba(56,219,255,.95) 0 1.5px,transparent 2.5px),radial-gradient(circle,rgba(112,116,255,.85) 0 2px,transparent 3px);
+  background-size:74px 74px,131px 131px;background-position:0 0,35px 55px;
+  animation:novaV4Particles 28s linear infinite;
+}
+#login-overlay.nova-v3-overlay:after{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.13;
+  background-image:linear-gradient(rgba(108,204,255,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(108,204,255,.22) 1px,transparent 1px);
+  background-size:48px 48px;mask-image:radial-gradient(ellipse at center,#000 5%,transparent 85%);
+}
+@keyframes novaV4Particles{to{background-position:220px -150px,-160px 240px}}
+@keyframes novaV4Glow{0%,100%{opacity:.38;transform:scale(.96)}50%{opacity:.72;transform:scale(1.06)}}
+@keyframes novaV4Entrance{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes novaV4Shimmer{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+#login-overlay .nova-v3-atmosphere{position:fixed!important;inset:0!important;pointer-events:none!important;overflow:hidden!important;z-index:-1!important}
+#login-overlay .nova-v3-orb{position:absolute!important;width:clamp(250px,36vw,540px)!important;height:clamp(250px,36vw,540px)!important;border-radius:50%!important;filter:blur(90px)!important;opacity:.5!important;animation:novaV4Glow 9s ease-in-out infinite!important}
+#login-overlay .nova-v3-orb-a{left:-12%;top:12%;background:#007dff!important}
+#login-overlay .nova-v3-orb-b{right:-10%;bottom:-12%;background:#4d3cff!important;animation-delay:-4s!important}
+#login-overlay .nova-v3-grid{opacity:.14!important}
+#login-overlay .nova-v3-cross{color:#53eaff!important;text-shadow:0 0 18px #00bfff!important;animation:novaV4Glow 4s ease-in-out infinite!important}
+#login-overlay .nova-v3-coordinate{color:rgba(105,220,255,.4)!important}
+#login-overlay .nova-v3-topbar{
+  width:min(1440px,100%)!important;margin:0 auto clamp(14px,2.5vh,28px)!important;padding:0 2px!important;
+  min-height:58px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+}
+#login-overlay .nova-v3-brand{gap:14px!important;color:#fff!important;text-decoration:none!important}
+#login-overlay .nova-v3-brand-image{
+  width:58px!important;height:58px!important;flex:0 0 58px!important;padding:3px!important;border-radius:18px!important;
+  border:1px solid rgba(76,220,255,.75)!important;background:rgba(2,24,57,.72)!important;
+  box-shadow:0 0 0 5px rgba(0,160,255,.08),0 0 32px rgba(0,153,255,.36)!important;
+  animation:novaV4Glow 5s ease-in-out infinite!important;overflow:hidden!important;
+}
+#login-overlay .nova-v3-brand-image img{width:100%!important;height:100%!important;object-fit:contain!important;border-radius:14px!important}
+#login-overlay .nova-v3-brand-copy strong{font-size:clamp(15px,1.5vw,21px)!important;line-height:1.03!important;letter-spacing:-.035em!important;color:#fff!important}
+#login-overlay .nova-v3-brand-copy small{display:block!important;margin-top:5px!important;font-size:12px!important;color:#b7dcf7!important}
+#login-overlay .nova-v3-top-status{
+  display:flex!important;align-items:center!important;gap:10px!important;padding:10px 15px!important;border-radius:999px!important;
+  border:1px solid rgba(65,205,255,.28)!important;background:rgba(3,26,62,.58)!important;
+  color:#bceeff!important;font-size:10px!important;font-weight:850!important;letter-spacing:.12em!important;
+  backdrop-filter:blur(14px)!important;box-shadow:inset 0 1px rgba(255,255,255,.06)!important;
+}
+#login-overlay .nova-v3-top-status>span{width:7px!important;height:7px!important;border-radius:50%!important;background:#42ffc4!important;box-shadow:0 0 14px #42ffc4!important}
+#login-overlay .nova-v3-main{
+  width:min(1440px,100%)!important;flex:1 0 auto!important;min-height:0!important;margin:0 auto!important;
+  display:grid!important;grid-template-columns:minmax(0,1.05fr) minmax(410px,.78fr)!important;gap:clamp(16px,2.4vw,34px)!important;
+  align-items:stretch!important;
+}
+#login-overlay .nova-v3-intro{
+  position:relative!important;isolation:isolate!important;overflow:hidden!important;min-width:0!important;min-height:590px!important;
+  padding:clamp(28px,4vw,58px)!important;border-radius:28px!important;border:1px solid rgba(69,215,255,.48)!important;
+  background:
+    linear-gradient(90deg,rgba(2,22,55,.97) 0%,rgba(3,43,93,.91) 42%,rgba(3,41,85,.52) 100%),
+    linear-gradient(0deg,rgba(1,15,40,.74),transparent 60%),
+    url('/doctor-simi-pharmacy-reference.webp') center center/cover no-repeat,
+    linear-gradient(145deg,#064b91,#031633)!important;
+  box-shadow:0 24px 80px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.1)!important;
+  animation:novaV4Entrance .7s cubic-bezier(.2,.75,.2,1) both!important;
+}
+#login-overlay .nova-v3-intro:before{
+  content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 88% 80%,rgba(0,205,255,.3),transparent 35%),linear-gradient(120deg,transparent 35%,rgba(35,178,255,.09),transparent 72%);
+  background-size:100% 100%,220% 100%;animation:novaV4Shimmer 12s ease-in-out infinite alternate;
+}
+#login-overlay .nova-v3-intro:after{
+  content:"";position:absolute;right:-100px;bottom:-150px;width:420px;height:420px;border-radius:50%;
+  border:1px solid rgba(56,218,255,.32);box-shadow:0 0 0 22px rgba(34,176,255,.035),0 0 0 48px rgba(34,176,255,.025);
+  pointer-events:none;animation:novaV4Glow 7s ease-in-out infinite;
+}
+#login-overlay .nova-v3-kicker{position:relative!important;z-index:2!important;color:#9ceaff!important;font-size:10px!important;letter-spacing:.18em!important;font-weight:900!important}
+#login-overlay .nova-v3-kicker-line{background:linear-gradient(90deg,#00d8ff,#2c7dff)!important;box-shadow:0 0 14px rgba(0,211,255,.8)!important}
+#login-overlay .nova-v3-intro h1{
+  position:relative!important;z-index:2!important;margin:clamp(24px,4vh,44px) 0 24px!important;max-width:650px!important;
+  color:#fff!important;font-size:clamp(40px,5vw,76px)!important;line-height:.98!important;letter-spacing:-.065em!important;
+  font-weight:950!important;text-wrap:balance!important;text-shadow:0 8px 32px rgba(0,0,0,.24)!important;
+}
+#login-overlay .nova-v3-intro h1 em{
+  font-style:normal!important;color:transparent!important;
+  background:linear-gradient(100deg,#36e6ff 5%,#61aaff 45%,#8d8aff 80%,#36e6ff 100%)!important;
+  background-size:220% auto!important;background-clip:text!important;-webkit-background-clip:text!important;
+  animation:novaV4Shimmer 7s linear infinite!important;
+}
+#login-overlay .nova-v3-feature-list{position:relative!important;z-index:3!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;max-width:500px!important}
+#login-overlay .nova-v3-feature{
+  min-height:67px!important;display:flex!important;align-items:center!important;gap:13px!important;padding:10px 13px!important;
+  border-radius:15px!important;border:1px solid rgba(104,208,255,.3)!important;
+  background:linear-gradient(105deg,rgba(7,47,99,.72),rgba(4,24,58,.62))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.06)!important;backdrop-filter:blur(12px)!important;
+  transition:transform .25s ease,border-color .25s ease,background .25s ease,box-shadow .25s ease!important;
+  animation:novaV4Entrance .65s both!important;
+}
+#login-overlay .nova-v3-feature:nth-child(2){animation-delay:.08s!important}
+#login-overlay .nova-v3-feature:nth-child(3){animation-delay:.16s!important}
+#login-overlay .nova-v3-feature:nth-child(4){animation-delay:.24s!important}
+#login-overlay .nova-v3-feature:nth-child(5){animation-delay:.32s!important}
+#login-overlay .nova-v3-feature:hover{transform:translateX(6px)!important;border-color:rgba(66,224,255,.75)!important;background:linear-gradient(105deg,rgba(0,117,216,.62),rgba(48,53,160,.45))!important;box-shadow:0 8px 30px rgba(0,126,255,.17),inset 0 1px rgba(255,255,255,.12)!important}
+#login-overlay .nova-v3-feature-icon{width:47px!important;height:47px!important;flex:0 0 47px!important;border-radius:13px!important;display:grid!important;place-items:center!important;color:white!important;box-shadow:0 7px 20px rgba(0,0,0,.2)!important}
+#login-overlay .nova-v3-feature-icon svg{width:23px!important;height:23px!important;stroke-width:2.2!important}
+#login-overlay .feature-blue{background:linear-gradient(145deg,#008dff,#164cff)!important}
+#login-overlay .feature-pink{background:linear-gradient(145deg,#ff3a9d,#e92f73)!important}
+#login-overlay .feature-cyan{background:linear-gradient(145deg,#00c9d7,#008dba)!important}
+#login-overlay .feature-violet{background:linear-gradient(145deg,#8b4dff,#5030ed)!important}
+#login-overlay .feature-green{background:linear-gradient(145deg,#00cda5,#008f91)!important}
+#login-overlay .nova-v3-feature b{display:block!important;color:#fff!important;font-size:13px!important;font-weight:900!important}
+#login-overlay .nova-v3-feature small{display:block!important;margin-top:4px!important;color:#c4e0fa!important;font-size:11px!important}
+#login-overlay .nova-v3-bottom-note{
+  position:relative!important;z-index:3!important;display:flex!important;align-items:center!important;gap:11px!important;
+  max-width:500px!important;margin-top:20px!important;padding:12px 14px!important;border-top:1px solid rgba(80,190,255,.27)!important;
+  background:linear-gradient(90deg,rgba(2,24,57,.74),rgba(2,24,57,.25))!important;color:#f4fbff!important;
+}
+#login-overlay .nova-v3-bottom-icon{width:34px!important;height:34px!important;display:grid!important;place-items:center!important;border:1px solid rgba(51,211,255,.32)!important;border-radius:10px!important;background:rgba(0,140,255,.18)!important;color:#50e6ff!important}
+#login-overlay .nova-v3-bottom-note b{display:block!important;font-size:11px!important;color:#fff!important}
+#login-overlay .nova-v3-bottom-note small{display:block!important;margin-top:4px!important;color:#afd3f0!important;font-size:10px!important}
+#login-overlay .nova-v3-bottom-arrow{margin-left:auto!important;color:#6de9ff!important}
+#login-overlay .nova-v3-auth{
+  position:relative!important;isolation:isolate!important;align-self:stretch!important;min-width:0!important;overflow:hidden!important;
+  display:flex!important;flex-direction:column!important;justify-content:center!important;padding:clamp(28px,4vw,58px)!important;
+  border-radius:28px!important;border:1px solid rgba(50,210,255,.7)!important;
+  background:linear-gradient(155deg,rgba(4,31,75,.97),rgba(2,16,43,.97) 72%,rgba(4,28,70,.98))!important;
+  box-shadow:0 24px 80px rgba(0,0,0,.4),0 0 45px rgba(0,131,255,.12),inset 0 1px rgba(255,255,255,.1)!important;
+  backdrop-filter:blur(24px) saturate(140%)!important;animation:novaV4Entrance .8s .08s both!important;
+}
+#login-overlay .nova-v3-auth:before{content:"";position:absolute;z-index:-1;top:-170px;right:-140px;width:360px;height:360px;border-radius:50%;background:rgba(0,155,255,.19);filter:blur(70px);animation:novaV4Glow 8s ease-in-out infinite}
+#login-overlay .nova-v3-auth-top{display:flex!important;align-items:center!important;justify-content:space-between!important;margin-bottom:clamp(28px,5vh,54px)!important}
+#login-overlay .nova-v3-auth-symbol{width:52px!important;height:52px!important;display:grid!important;place-items:center!important;border-radius:17px!important;color:#fff!important;background:linear-gradient(145deg,#13d6ff,#006bff)!important;box-shadow:0 0 0 7px rgba(0,153,255,.09),0 10px 32px rgba(0,139,255,.33)!important}
+#login-overlay .nova-v3-auth-symbol svg{width:25px!important;height:25px!important}
+#login-overlay .nova-v3-auth-step{color:#8edfff!important;font-size:9px!important;letter-spacing:.19em!important;font-weight:850!important}
+#login-overlay .nova-v3-auth-heading>span{color:#50e7ff!important;font-size:10px!important;letter-spacing:.16em!important;font-weight:950!important}
+#login-overlay .nova-v3-auth-heading h2{margin:17px 0 10px!important;color:#fff!important;font-size:clamp(34px,3.2vw,48px)!important;line-height:.98!important;letter-spacing:-.06em!important;font-weight:950!important}
+#login-overlay .nova-v3-auth-heading p{margin:0 0 28px!important;color:#b8d6f1!important;font-size:12px!important;line-height:1.7!important}
+#login-overlay .nova-v3-field{margin-bottom:17px!important}
+#login-overlay .nova-v3-field label{display:block!important;margin-bottom:9px!important;color:#d9edff!important;font-size:10px!important;letter-spacing:.09em!important;font-weight:900!important}
+#login-overlay .nova-v3-input-wrap{position:relative!important;display:flex!important;align-items:center!important;min-width:0!important}
+#login-overlay .nova-v3-input-wrap>svg{position:absolute!important;left:15px!important;width:18px!important;height:18px!important;color:#7daacb!important;pointer-events:none!important}
+#login-overlay .nova-v3-input-wrap input{
+  display:block!important;width:100%!important;min-width:0!important;height:58px!important;padding:0 48px 0 44px!important;
+  border:1px solid rgba(51,166,235,.63)!important;border-radius:14px!important;outline:none!important;
+  background:rgba(1,17,43,.8)!important;color:#f5fbff!important;font-size:13px!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.035)!important;transition:border-color .2s,box-shadow .2s,background .2s!important;
+}
+#login-overlay .nova-v3-input-wrap input::placeholder{color:#8eafcf!important}
+#login-overlay .nova-v3-input-wrap input:focus{border-color:#37e4ff!important;background:rgba(2,30,67,.98)!important;box-shadow:0 0 0 4px rgba(0,178,255,.13),0 0 26px rgba(0,159,255,.12)!important}
+#login-overlay .nova-v3-eye{position:absolute!important;right:7px!important;width:38px!important;height:38px!important;display:grid!important;place-items:center!important;border:0!important;border-radius:10px!important;background:transparent!important;color:#86c6eb!important;cursor:pointer!important}
+#login-overlay .nova-v3-eye:hover{background:rgba(44,174,255,.13)!important;color:#fff!important}
+#login-overlay .nova-v3-form-meta{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:10px!important;margin:3px 0 23px!important;color:#b8d4ed!important;font-size:10px!important}
+#login-overlay .nova-v3-remember{display:flex!important;align-items:center!important;gap:8px!important;color:#bdd7ee!important;cursor:pointer!important}
+#login-overlay .nova-v3-remember input{accent-color:#15cfff!important}
+#login-overlay .nova-v3-forgot{padding:0!important;border:0!important;background:transparent!important;color:#38e0ff!important;font-size:10px!important;font-weight:850!important;cursor:pointer!important}
+#login-overlay .nova-v3-forgot:hover{text-decoration:underline!important}
+#login-overlay .nova-v3-submit{
+  width:100%!important;min-height:60px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:14px!important;
+  padding:8px 9px 8px 19px!important;border:1px solid rgba(89,227,255,.82)!important;border-radius:15px!important;
+  background:linear-gradient(105deg,#087bda,#078ba5 54%,#0872c8)!important;background-size:200% 100%!important;
+  color:#fff!important;font-size:12px!important;font-weight:950!important;cursor:pointer!important;
+  box-shadow:0 12px 32px rgba(0,138,255,.22),inset 0 1px rgba(255,255,255,.15)!important;
+  transition:transform .2s,box-shadow .2s,background-position .45s!important;
+}
+#login-overlay .nova-v3-submit:hover{transform:translateY(-2px)!important;background-position:100% 50%!important;box-shadow:0 17px 38px rgba(0,146,255,.33),inset 0 1px rgba(255,255,255,.2)!important}
+#login-overlay .nova-v3-submit:active{transform:translateY(0) scale(.995)!important}
+#login-overlay .nova-v3-submit-icon{width:42px!important;height:42px!important;display:grid!important;place-items:center!important;border-radius:11px!important;background:rgba(255,255,255,.17)!important;border:1px solid rgba(255,255,255,.16)!important}
+#login-overlay .nova-v3-submit-icon svg{width:20px!important;height:20px!important;transition:transform .2s!important}
+#login-overlay .nova-v3-submit:hover .nova-v3-submit-icon svg{transform:translate(2px,-2px)!important}
+#login-overlay .nova-v3-error{margin:0 0 12px!important;padding:11px 12px!important;border-radius:11px!important;border:1px solid rgba(255,111,140,.5)!important;background:rgba(132,17,51,.24)!important;color:#ffd9e2!important;font-size:11px!important}
+#login-overlay .nova-v3-auth-foot{display:flex!important;align-items:center!important;gap:10px!important;margin-top:24px!important;padding-top:18px!important;border-top:1px solid rgba(94,173,232,.24)!important;color:#c4def4!important}
+#login-overlay .nova-v3-lock{width:34px!important;height:34px!important;flex:0 0 34px!important;display:grid!important;place-items:center!important;border:1px solid rgba(64,192,255,.32)!important;border-radius:10px!important;background:rgba(0,133,255,.12)!important;color:#57dfff!important}
+#login-overlay .nova-v3-auth-foot b{display:block!important;font-size:10px!important;color:#eff9ff!important}
+#login-overlay .nova-v3-auth-foot small{display:block!important;margin-top:4px!important;color:#8fb4d5!important;font-size:9px!important}
+#login-overlay .nova-v3-live{margin-left:auto!important;display:flex!important;align-items:center!important;gap:7px!important;color:#6af3c5!important;font-size:9px!important;letter-spacing:.1em!important}
+#login-overlay .nova-v3-live i{width:6px!important;height:6px!important;border-radius:50%!important;background:#53f2bd!important;box-shadow:0 0 10px #53f2bd!important}
+#login-overlay .nova-v3-footer{width:min(1440px,100%)!important;margin:14px auto 0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;color:rgba(165,210,240,.54)!important;font-size:9px!important;letter-spacing:.12em!important}
+#login-overlay .nova-v3-footer-mark{color:#8be8ff!important;font-weight:950!important}
+#login-overlay .nova-v3-footer-mark span{color:#248eff!important;padding:0 4px!important}
+@media(max-width:1050px){
+ #login-overlay.nova-v3-overlay{padding:14px!important}
+ #login-overlay .nova-v3-topbar{margin-bottom:14px!important}
+ #login-overlay .nova-v3-main{grid-template-columns:minmax(0,1fr)!important;gap:14px!important;max-width:700px!important}
+ #login-overlay .nova-v3-intro{min-height:0!important;padding:26px!important;background-position:center,center,center 48%,center!important}
+ #login-overlay .nova-v3-intro h1{font-size:clamp(36px,7vw,55px)!important;margin:20px 0!important}
+ #login-overlay .nova-v3-feature-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;max-width:none!important}
+ #login-overlay .nova-v3-feature{min-height:62px!important}
+ #login-overlay .nova-v3-bottom-note{margin-top:16px!important}
+ #login-overlay .nova-v3-auth{padding:28px!important}
+ #login-overlay .nova-v3-auth-top{margin-bottom:25px!important}
+ #login-overlay .nova-v3-footer{max-width:700px!important}
+}
+@media(max-width:560px){
+ #login-overlay.nova-v3-overlay{padding:9px!important}
+ #login-overlay .nova-v3-topbar{align-items:flex-start!important;margin:3px auto 12px!important}
+ #login-overlay .nova-v3-brand-image{width:44px!important;height:44px!important;flex-basis:44px!important;border-radius:14px!important}
+ #login-overlay .nova-v3-brand-copy strong{font-size:14px!important}
+ #login-overlay .nova-v3-brand-copy small{font-size:10px!important}
+ #login-overlay .nova-v3-top-status{max-width:145px!important;padding:8px 9px!important;font-size:8px!important;letter-spacing:.07em!important}
+ #login-overlay .nova-v3-main{gap:10px!important}
+ #login-overlay .nova-v3-intro{padding:21px!important;border-radius:21px!important;background-position:center,center,58% center,center!important}
+ #login-overlay .nova-v3-intro h1{font-size:clamp(32px,9vw,43px)!important;line-height:1!important;margin:18px 0!important}
+ #login-overlay .nova-v3-kicker{font-size:8px!important;letter-spacing:.12em!important}
+ #login-overlay .nova-v3-feature-list{grid-template-columns:minmax(0,1fr)!important;gap:7px!important}
+ #login-overlay .nova-v3-feature{min-height:56px!important;padding:8px 10px!important;border-radius:12px!important}
+ #login-overlay .nova-v3-feature-icon{width:39px!important;height:39px!important;flex-basis:39px!important;border-radius:11px!important}
+ #login-overlay .nova-v3-feature b{font-size:12px!important}
+ #login-overlay .nova-v3-feature small{font-size:10px!important}
+ #login-overlay .nova-v3-bottom-note{padding:9px!important}
+ #login-overlay .nova-v3-auth{padding:23px 19px!important;border-radius:21px!important}
+ #login-overlay .nova-v3-auth-top{margin-bottom:23px!important}
+ #login-overlay .nova-v3-auth-heading h2{font-size:35px!important}
+ #login-overlay .nova-v3-auth-heading p{margin-bottom:21px!important}
+ #login-overlay .nova-v3-input-wrap input{height:54px!important}
+ #login-overlay .nova-v3-submit{min-height:56px!important}
+ #login-overlay .nova-v3-footer{flex-wrap:wrap;justify-content:center!important;font-size:8px!important}
+ #login-overlay .nova-v3-footer>span:nth-child(2){display:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #login-overlay.nova-v3-overlay:before,#login-overlay .nova-v3-orb,#login-overlay .nova-v3-cross,#login-overlay .nova-v3-intro:after,
+ #login-overlay .nova-v3-brand-image,#login-overlay .nova-v3-feature,#login-overlay .nova-v3-auth,#login-overlay .nova-v3-intro,
+ #login-overlay .nova-v3-intro h1 em{animation:none!important}
+ #login-overlay .nova-v3-feature,#login-overlay .nova-v3-submit{transition:none!important}
+}
