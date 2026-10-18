@@ -249,7 +249,9 @@
           const active=cached.filter(x=>x.activa===true||x.activa===1||['true','1','activo','activa','si','yes'].includes(normalizeActive(x.activa))).length;
           const inactive=cached.filter(x=>x.activa===false||x.activa===0||['false','0','inactivo','inactiva','no'].includes(normalizeActive(x.activa))).length;
           const cards=section.querySelector('.ref-overview')?.querySelectorAll('.ref-kpi');
-          [cached.length,active,inactive,Math.max(0,cached.length-active-inactive)].forEach((value,i)=>{const node=cards?.[i]?.querySelector('.ref-kpi-value');if(node)node.textContent=value.toLocaleString('es-CL');});
+          const values=[cached.length,active,inactive,Math.max(0,cached.length-active-inactive)];
+          const labels=['Total de sucursales','Activas','Inactivas','Sin estado'];
+          values.forEach((value,i)=>{const node=cards?.[i]?.querySelector('.ref-kpi-value');if(node)node.textContent=value.toLocaleString('es-CL');const label=cards?.[i]?.querySelector('.ref-kpi-top span:last-child');if(label)label.textContent=labels[i];const note=cards?.[i]?.querySelector('.ref-kpi-note');if(note)note.textContent=['Total del directorio autorizado','Registros con activa = true','Registros con activa = false','Sin estado explícito'][i];});
           const points=cached.map(x=>{let lat=Number(x.latitud),lon=Number(x.longitud);if(!Number.isFinite(lat)||!Number.isFinite(lon)||(lat===0&&lon===0)){const m=String(x.geolocalizacion||'').replace(/[()]/g,'').match(/(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)/);if(m){lat=Number(m[1]);lon=Number(m[2]);}}return{x,lat,lon};}).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&Math.abs(p.lat)<=90&&Math.abs(p.lon)<=180&&(p.lat!==0||p.lon!==0));
           if(typeof L!=='undefined'&&mapNode){
             mapNode.innerHTML='';
