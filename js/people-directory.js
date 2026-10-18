@@ -567,9 +567,15 @@
             }
 
             if (!data?.length) {
+                window.sucursalesConfiguracionGlobal = [];
                 tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center">Sin sucursales.</td></tr>';
                 return;
             }
+
+            // Compartir el directorio autorizado ya cargado con los módulos de mapa y configuración.
+            // Evita repetir consultas más restrictivas y permite conservar el alcance que autorizó Supabase.
+            window.sucursalesConfiguracionGlobal = data;
+            try { cacheSucursalesCompletoRRHH = data; } catch (_) {}
 
             tbody.innerHTML = data
                 .map(registro => {
