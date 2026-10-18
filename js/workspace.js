@@ -38,7 +38,7 @@ function metrics(){
  var week=Date.now()-7*86400000;
  var logsWeek=state.logs.filter(function(l){return new Date(l.ocurrio_en).getTime()>=week;}).length;
  var activeValue=state.notesError?"Error":active;
- var pendingTasks=document.getElementById("tk-pendiente");var taskValue=pendingTasks?pendingTasks.textContent.trim():"—";
+ var pinnedValue=state.notesError?"Error":pinned;var pendingTasks=document.getElementById("tk-pendiente");var taskValue=pendingTasks?pendingTasks.textContent.trim():"—";
  var overdueValue=state.notesError?"Error":overdue;
  var logsValue=state.logsError?"Error":logsWeek;
  renderRecentActivity();\n var box=$("space-metrics");
