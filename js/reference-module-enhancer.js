@@ -585,6 +585,15 @@
       if(!window.__simiRefEnhanceQueued){window.__simiRefEnhanceQueued=true;requestAnimationFrame(()=>{window.__simiRefEnhanceQueued=false;refresh();});}
     });
     observer.observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+    window.addEventListener('simi:sucursales-loaded',()=>{
+      const layout=document.querySelector('#view-sucursales .ref-sucursal-layout');
+      if(layout&&(layout._refMap||layout.dataset.refMapFailed==='true')){
+        if(layout._refMap){try{layout._refMap.remove();}catch(_){}layout._refMap=null;}
+        layout.dataset.loaded='';
+        layout.dataset.refMapFailed='';
+        refresh();
+      }
+    });
     document.addEventListener('click',e=>{if(e.target.closest('[onclick*="cambiarModulo"],.menu-btn,[data-module]'))setTimeout(refresh,80);},true);
     window.addEventListener('load',()=>setTimeout(refresh,400));
   }
