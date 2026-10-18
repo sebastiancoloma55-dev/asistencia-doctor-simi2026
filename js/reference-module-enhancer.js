@@ -171,10 +171,11 @@
     const draw=async()=>{
       if(typeof _supabase==='undefined'){if(note)note.textContent='El cliente de datos no está disponible en esta vista.';return;}
       try{
-        const {data,error,count}=await _supabase.from('sucursales').select('id,nombre,direccion,comuna,region,latitud,longitud,geolocalizacion,activa',{count:'exact'}).range(0,4999);
+        const {data,error}=await _supabase.from('sucursales').select('*').order('nombre').range(0,4999);
         if(error) throw error;
         const rows=data||[];
-        const totalCount=Number.isFinite(count)?count:rows.length;
+        if(rows.length)window.sucursalesConfiguracionGlobal=rows;
+        const totalCount=rows.length;
         const normalizeActive=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLocaleLowerCase('es-CL');
         const inactiveRows=rows.filter(x=>x.activa===false||x.activa===0||['false','0','inactivo','inactiva','no'].includes(normalizeActive(x.activa)));
         const activeRows=rows.filter(x=>x.activa===true||x.activa===1||['true','1','activo','activa','si','yes'].includes(normalizeActive(x.activa)));
