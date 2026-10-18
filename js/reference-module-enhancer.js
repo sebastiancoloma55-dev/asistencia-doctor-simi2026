@@ -182,7 +182,11 @@
         mapNode.innerHTML='';
         const map=L.map(mapNode,{scrollWheelZoom:false,zoomControl:true}).setView([-33.45,-70.66],5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map);
-        points.forEach(({x,lat,lon})=>L.circleMarker([lat,lon],{radius:5,color:'#0876ee',weight:2,fillColor:'#19a8a5',fillOpacity:.85}).addTo(map).bindPopup('<b>'+String(x.nombre||'Sucursal').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</b><br>'+String([x.direccion,x.comuna].filter(Boolean).join(', ')).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])));
+        points.forEach(({x,lat,lon})=>{
+          const marker=L.circleMarker([lat,lon],{radius:5,color:'#0876ee',weight:2,fillColor:'#19a8a5',fillOpacity:.85}).addTo(map);
+          const escape=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+          marker.bindPopup('<b>'+escape(x.nombre||'Sucursal')+'</b><br>'+escape([x.direccion,x.comuna].filter(Boolean).join(', ')));
+        });
         if(points.length)map.fitBounds(L.latLngBounds(points.map(p=>[p.lat,p.lon])),{padding:[18,18],maxZoom:10});
         else map.setView([-33.45,-70.66],5);
         if(note)note.textContent=points.length+' sucursales con coordenadas válidas de '+rows.length+' registros consultados.';
