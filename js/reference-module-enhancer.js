@@ -16,17 +16,20 @@
     if (!table) return [];
     return [...table.querySelectorAll('tbody tr')].filter(tr => tr.querySelectorAll('td').length > 1 && !/sin registros|no hay datos|no se encontraron/i.test(statusOf(tr)));
   };
-  function stats(rows) {
+  function stats(rows, headers=[]) {
     const total=rows.length;
-    let healthy=0,pending=0,alert=0,other=0;
+    const statusIndex=headers.findIndex(x=>/estado|status|situaci[oó]n|resultado|vigencia/.test(x));
+    let healthy=0,pending=0,alert=0,unknown=0;
     rows.forEach(row=>{
-      const t=statusOf(row);
-      if(/atraso|incompleta|sin marca|observaci[oó]n|rechazad|inactivo|error|alerta|incumpl|tempran/.test(t)) alert++;
-      else if(/pendiente|en revisi[oó]n|en curso|por aprobar|por enviar|solicitad/.test(t)) pending++;
-      else if(/activa|activo|vigente|aprobada|aprobado|realizada|finalizada|enviada|correcta|sin anomal[ií]a|ok/.test(t)) healthy++;
-      else other++;
+      const cells=[...row.querySelectorAll('td')];
+      const t=clean(statusIndex>=0?cells[statusIndex]?.innerText:'').toLocaleLowerCase('es-CL');
+      if(!t){unknown++;return;}
+      if(/atraso|incompleta|sin marca|observaci[oó]n|rechazad|inactivo|error|alerta|incumpl|tempran|vencid|caducad/.test(t)) alert++;
+      else if(/pendiente|en revisi[oó]n|en curso|por aprobar|por enviar|solicitad|borrador/.test(t)) pending++;
+      else if(/activa|activo|vigente|aprobada|aprobado|realizada|finalizada|enviada|correcta|sin anomal[ií]a|resuelta|completad|autorizad|ok/.test(t)) healthy++;
+      else unknown++;
     });
-    return [total,healthy,pending,alert || other];
+    return [total,healthy,pending,alert+unknown];
   }
   function makeOverview(section, cfg) {
     const rows=getRows(section);
@@ -47,7 +50,8 @@
     }
     const cards=overview.querySelector('.ref-kpis');
     const chart=overview.querySelector('.ref-bars');
-    const values=stats(rows);
+    const headers=[...(section.querySelector('table thead')?.querySelectorAll('th')||[])].map(x=>clean(x.innerText).toLocaleLowerCase('es-CL'));
+    const values=stats(rows,headers);
     cards.innerHTML='';
     cfg.labels.forEach((label,i)=>{
       const card=document.createElement('article'); card.className='ref-kpi';
@@ -297,10 +301,11 @@
   }
 
 
-  function enhanceTableAnalytics(){
+  function enhanceTableAnalytics(activeSection){
     const ids=['asistencia','licencias','vacaciones','envio_licencias','traslados','auditoria','reportes'];
     ids.forEach(id=>{
       const section=document.getElementById('view-'+id);
+      if(activeSection && section!==activeSection) return;
       const table=section?.querySelector('table');
       if(!section||!table) return;
       const rows=getRows(section);
@@ -457,13 +462,18 @@
         if(rows.length && section.querySelector('.ref-overview')) makeOverview(section,targets[id]);
       }
     });
-    enhanceTableAnalytics();
+    const active=document.querySelector('main section[id^="view-"]:not(.hidden)');
+    if(active) enhanceTableAnalytics(active);
   }
   function init(){
     refresh();
     const root=document.querySelector('main')||document.body;
-    const observer=new MutationObserver(records=>{ if(records.every(record=>{const t=record.target;const el=t.nodeType===1?t:t.parentElement;return !!el?.closest('.ref-overview');})) return; if(!window.__simiRefEnhanceQueued){window.__simiRefEnhanceQueued=true;requestAnimationFrame(()=>{window.__simiRefEnhanceQueued=false;refresh();});}});
-    observer.observe(root,{subtree:true,childList:true,characterData:true});
+    // Vigilar solo cambios de navegación; observar cada cambio de texto/tabla bloqueaba la navegación.
+    const observer=new MutationObserver(records=>{
+      if(!records.some(record=>record.target?.id?.startsWith('view-')||record.target?.closest?.('section[id^="view-"]'))) return;
+      if(!window.__simiRefEnhanceQueued){window.__simiRefEnhanceQueued=true;requestAnimationFrame(()=>{window.__simiRefEnhanceQueued=false;refresh();});}
+    });
+    observer.observe(root,{subtree:true,attributes:true,attributeFilter:['class']});
     document.addEventListener('click',e=>{if(e.target.closest('[onclick*="cambiarModulo"],.menu-btn,[data-module]'))setTimeout(refresh,80);},true);
     window.addEventListener('load',()=>setTimeout(refresh,400));
   }
