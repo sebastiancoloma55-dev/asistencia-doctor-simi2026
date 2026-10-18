@@ -3551,15 +3551,22 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         content.innerHTML='<p class="text-sm leading-6 text-slate-600">'+item.text+'</p>';
         const refreshActions={
           dashboard:['inicializarDashboard','Actualizar indicadores'],
+          espacio:['cargarEspacioTrabajo','Actualizar espacio de trabajo'],
+          tareas:['prepararModuloTareas','Actualizar tareas'],
           colaboradores:['cargarTablaColaboradores','Actualizar directorio'],
           sucursales:['cargarTablaSucursales','Actualizar directorio'],
-          asistencia:['actualizarIndicadoresAsistencia','Actualizar asistencia'],
-          envio_licencias:['cargarLicenciasManuales','Actualizar registros'],
-          vacaciones:['cargarHistorialVacaciones','Actualizar historial'],
-          correos:['cargarHistorialBorradoresNube','Actualizar historial de borradores'],
+          asistencia:['cargarAsistenciaDesdeNube','Actualizar asistencia'],
+          licencias:['cargarLicenciasDesdeNube','Actualizar licencias'],
+          vacaciones:['cargarVacacionesDesdeNube','Actualizar historial'],
+          papeletas:['cargarPapeletas','Actualizar papeletas'],
+          amonestaciones:['prepararModuloCoberturas','Actualizar coberturas'],
+          correos:['prepararModuloCorreos','Actualizar borradores'],
           configcorreos:['prepararConfiguracionCorreos','Actualizar configuración'],
-          mapas:['prepararMapa14','Actualizar mapa y sucursales'],
-          traslados:['cargarSolicitudesDotacion','Actualizar solicitudes'],
+          mapas:['prepararMapa14','Actualizar mapa'],
+          traslados:['iniciarModuloTraslados','Actualizar traslados'],
+          chat:['cargarChatInterno','Actualizar conversaciones'],
+          usuarios:['cargarUsuariosRoles','Actualizar usuarios y permisos'],
+          auditoria:['cargarAuditoria','Actualizar auditoría'],
           reportes:['prepararFiltrosReportesRRHH','Actualizar reportes'],
           operaciones:['cargarCentroOperaciones','Actualizar centro de operaciones'],
           calidad:['cargarPanelCalidad','Actualizar calidad de datos'],
@@ -3739,7 +3746,7 @@ hr{border-color:#e8edf3}
 @media(prefers-reduced-motion:reduce){.dashboard-welcome-compact-image{animation:none!important;transition:none!important}}
 </style>
 
-<script src="/js/reference-module-enhancer.js?v=20261018n" defer></script>
+<script src="/js/reference-module-enhancer.js?v=20261018o" defer></script>
 
 <style id="simi-final-layout-overrides-20261018">
 /* Aplicar después de las hojas heredadas para evitar que estilos antiguos anulen el rediseño */
