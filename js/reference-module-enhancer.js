@@ -32,29 +32,45 @@
     return [total,healthy,pending,alert+unknown];
   }
   function makeOverview(section, cfg) {
-    const rows=getRows(section);
-    if(!rows.length) return;
+    const isBranches=section.id==='view-sucursales';
     let overview=section.querySelector('.ref-overview');
     if(!overview){
       overview=document.createElement('div');
       overview.className='ref-overview';
       overview.dataset.refGenerated='true';
-      const cards=document.createElement('div'); cards.className='ref-kpis';
-      const chart=document.createElement('div'); chart.className='ref-chart';
-      chart.innerHTML='<div class="ref-chart-title">Distribución del registro</div><div class="ref-chart-subtitle">Cálculo sobre las filas visibles de la tabla actual</div><div class="ref-bars"></div>';
-      overview.append(cards,chart);
-      // El resumen se coloca a nivel del módulo, nunca dentro de la tarjeta/columna de una tabla.
+      const cards=document.createElement('div');cards.className='ref-kpis';
+      overview.append(cards);
+      if(!isBranches){
+        const chart=document.createElement('div');chart.className='ref-chart';
+        chart.innerHTML='<div class="ref-chart-title">Distribución del registro</div><div class="ref-chart-subtitle">Cálculo sobre las filas visibles de la tabla actual</div><div class="ref-bars"></div>';
+        overview.appendChild(chart);
+      }
       const intro=section.querySelector(':scope > .module-intro')||section.querySelector(':scope > .ui-card');
-      if(intro) intro.insertAdjacentElement('afterend',overview);
-      else section.insertBefore(overview,section.firstElementChild);
+      if(intro)intro.insertAdjacentElement('afterend',overview);else section.insertBefore(overview,section.firstElementChild);
     }
     const cards=overview.querySelector('.ref-kpis');
+    if(isBranches){
+      if(!overview.dataset.refBranchPending){
+        cards.innerHTML='';
+        cfg.labels.forEach((label,i)=>{
+          const card=document.createElement('article');card.className='ref-kpi';
+          card.style.setProperty('--ref-accent-strong',cfg.accent[i]||'#0876ee');
+          card.style.setProperty('--ref-accent',(cfg.accent[i]||'#0876ee')+'30');
+          card.innerHTML='<div class="ref-kpi-top"><span class="ref-kpi-dot"></span><span></span></div><div class="ref-kpi-value">—</div><div class="ref-kpi-note">Consultando Supabase…</div>';
+          card.querySelector('.ref-kpi-top span:last-child').textContent=label;cards.appendChild(card);
+        });
+        overview.dataset.refBranchPending='true';
+      }
+      return;
+    }
+    const rows=getRows(section);
+    if(!rows.length)return;
     const chart=overview.querySelector('.ref-bars');
     const headers=[...(section.querySelector('table thead')?.querySelectorAll('th')||[])].map(x=>clean(x.innerText).toLocaleLowerCase('es-CL'));
     const values=stats(rows,headers);
     cards.innerHTML='';
     cfg.labels.forEach((label,i)=>{
-      const card=document.createElement('article'); card.className='ref-kpi';
+      const card=document.createElement('article');card.className='ref-kpi';
       card.style.setProperty('--ref-accent-strong',cfg.accent[i]||'#0876ee');
       card.style.setProperty('--ref-accent',(cfg.accent[i]||'#0876ee')+'30');
       card.innerHTML='<div class="ref-kpi-top"><span class="ref-kpi-dot"></span><span></span></div><div class="ref-kpi-value"></div><div class="ref-kpi-note">Según la tabla cargada</div>';
@@ -62,17 +78,19 @@
       card.querySelector('.ref-kpi-value').textContent=values[i].toLocaleString('es-CL');
       cards.appendChild(card);
     });
-    chart.innerHTML='';
-    const max=Math.max(1,...values.slice(1));
-    ['Estado favorable','Pendiente / en curso','Alerta / otros'].forEach((label,i)=>{
-      const count=values[i+1]||0;
-      const row=document.createElement('div'); row.className='ref-bar-row';
-      const name=document.createElement('span'); name.textContent=label;
-      const track=document.createElement('div'); track.className='ref-bar-track';
-      const fill=document.createElement('div'); fill.className='ref-bar-fill'; fill.style.width=(count/max*100)+'%'; fill.style.background=cfg.accent[i+1]||'#0876ee'; track.appendChild(fill);
-      const n=document.createElement('span'); n.className='ref-bar-count'; n.textContent=count.toLocaleString('es-CL');
-      row.append(name,track,n); chart.appendChild(row);
-    });
+    if(chart){
+      chart.innerHTML='';
+      const max=Math.max(1,...values.slice(1));
+      ['Estado favorable','Pendiente / en curso','Alerta / otros'].forEach((label,i)=>{
+        const count=values[i+1]||0;
+        const row=document.createElement('div');row.className='ref-bar-row';
+        const name=document.createElement('span');name.textContent=label;
+        const track=document.createElement('div');track.className='ref-bar-track';
+        const fill=document.createElement('div');fill.className='ref-bar-fill';fill.style.width=(count/max*100)+'%';fill.style.background=cfg.accent[i+1]||'#0876ee';track.appendChild(fill);
+        const n=document.createElement('span');n.className='ref-bar-count';n.textContent=count.toLocaleString('es-CL');
+        row.append(name,track,n);chart.appendChild(row);
+      });
+    }
   }
   function enhanceUsers(){
     const section=document.getElementById('view-usuarios');
@@ -157,13 +175,14 @@
         if(error) throw error;
         const rows=data||[];
         const totalCount=Number.isFinite(count)?count:rows.length;
-        const inactiveRows=rows.filter(x=>x.activa===false||String(x.activa).toLocaleLowerCase('es-CL')==='false');
+        const inactiveRows=rows.filter(x=>x.activa===false||x.activa===0||['false','0','inactivo','inactiva','no'].includes(String(x.activa??'').toLocaleLowerCase('es-CL')));
         const activeCount=Math.max(0,Math.min(totalCount,rows.length-inactiveRows.length));
-        const inactiveCount=Math.max(0,totalCount-activeCount);
+        const inactiveCount=inactiveRows.length;
+        const unknownCount=Math.max(0,totalCount-rows.length);
         const branchOverview=section.querySelector('.ref-overview');
         const branchCards=branchOverview?.querySelectorAll('.ref-kpi');
         if(branchCards?.length>=4){
-          const vals=[totalCount,activeCount,inactiveCount,0];
+          const vals=[totalCount,activeCount,inactiveCount,unknownCount];
           vals.forEach((value,i)=>{const node=branchCards[i]?.querySelector('.ref-kpi-value');if(node)node.textContent=value.toLocaleString('es-CL');});
           const labels=['Total de sucursales','Activas','Inactivas','Sin estado'];
           labels.forEach((label,i)=>{const node=branchCards[i]?.querySelector('.ref-kpi-top span:last-child');if(node)node.textContent=label;});
@@ -501,7 +520,7 @@
     // indicadores conectados a sus propias consultas; duplicarlos con conteos de filas visibles
     // generaba cifras engañosas y rompía el ancho de las columnas.
     const branches=document.getElementById('view-sucursales');
-    if(branches) makeOverview(branches,targets.sucursales);
+    if(branches&&!branches.querySelector('.ref-overview')) makeOverview(branches,targets.sucursales);
   }
   function init(){
     refresh();
