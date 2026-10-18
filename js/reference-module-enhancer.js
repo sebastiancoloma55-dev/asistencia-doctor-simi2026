@@ -235,7 +235,7 @@
         setTimeout(()=>map.invalidateSize(),120);
       }catch(e){
         // Si otra vista ya cargó el directorio con éxito, reutilizar esos datos reales como fallback.
-        const cached=typeof sucursalesConfiguracionGlobal!=='undefined'&&Array.isArray(sucursalesConfiguracionGlobal)?sucursalesConfiguracionGlobal:[];
+        const cached=Array.isArray(window.sucursalesConfiguracionGlobal)&&window.sucursalesConfiguracionGlobal.length?window.sucursalesConfiguracionGlobal:(typeof cacheSucursalesCompletoRRHH!=='undefined'&&Array.isArray(cacheSucursalesCompletoRRHH)?cacheSucursalesCompletoRRHH:[]);
         if(cached.length){
           const normalizeActive=value=>String(value??'').trim().toLocaleLowerCase('es-CL');
           const active=cached.filter(x=>x.activa===true||x.activa===1||['true','1','activo','activa','si','yes'].includes(normalizeActive(x.activa))).length;
@@ -251,12 +251,13 @@
             if(points.length)map.fitBounds(L.latLngBounds(points.map(p=>[p.lat,p.lon])),{padding:[18,18],maxZoom:10});
             setTimeout(()=>map.invalidateSize(),120);
           }
-          if(note)note.textContent='Mostrando datos del directorio ya cargado ('+cached.length+' sucursales); consulta directa limitada por permisos. '+points.length+' con coordenadas.';
+          if(note)note.textContent='Directorio autorizado: '+cached.length+' sucursales; '+points.length+' con coordenadas registradas. Se muestran solo datos disponibles para tu perfil.';
           if(regionsNode){const groups={};cached.forEach(x=>{const key=clean(x.region||x.comuna||'Sin región');groups[key]=(groups[key]||0)+1;});const sorted=Object.entries(groups).sort((a,b)=>b[1]-a[1]).slice(0,6);regionsNode.innerHTML='';const max=Math.max(1,...sorted.map(x=>x[1]));sorted.forEach(([label,n])=>{const row=document.createElement('div');row.className='ref-bar-row';const name=document.createElement('span');name.textContent=label;const track=document.createElement('div');track.className='ref-bar-track';const fill=document.createElement('div');fill.className='ref-bar-fill';fill.style.width=(n/max*100)+'%';track.appendChild(fill);const count=document.createElement('span');count.className='ref-bar-count';count.textContent=n.toLocaleString('es-CL');row.append(name,track,count);regionsNode.appendChild(row);});}
           return;
         }
-        if(note)note.textContent='No se pudo consultar sucursales con la sesión actual. Inicia sesión con un perfil autorizado y vuelve a intentar.';
-        if(regionsNode)regionsNode.innerHTML='<div class="ref-empty-chart">La distribución requiere acceso autorizado al directorio de sucursales.</div>';
+        if(note)note.textContent='No hay un directorio autorizado disponible en esta sesión. Abre Sucursales y vuelve a este panel para reutilizar los datos cargados.';
+        if(mapNode)mapNode.innerHTML='<span>Abre primero Sucursales para cargar el directorio autorizado.</span>';
+        if(regionsNode)regionsNode.innerHTML='<div class="ref-empty-chart">La distribución estará disponible cuando se cargue el directorio autorizado.</div>';
       }
     };
     draw();
