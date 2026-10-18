@@ -525,12 +525,26 @@
   function init(){
     refresh();
     const root=document.querySelector('main')||document.body;
-    // Vigilar solo cambios de navegación; observar cada cambio de texto/tabla bloqueaba la navegación.
+    // Reaccionar tanto a la navegación como a tablas que se cargan de forma asíncrona.
+    // Se excluyen mutaciones dentro de componentes ref-* para evitar ciclos del propio enhancer.
+    const isEnhancerNode=node=>{
+      if(!node||node.nodeType!==1)return false;
+      const el=node;
+      return el.dataset?.refGenerated==='true'||[...(el.classList||[])].some(name=>name.startsWith('ref-'));
+    };
     const observer=new MutationObserver(records=>{
-      if(!records.some(record=>record.target?.id?.startsWith('view-')||record.target?.closest?.('section[id^="view-"]'))) return;
+      const relevant=records.some(record=>{
+        if(record.type==='attributes') return record.target?.id?.startsWith('view-')||record.target?.closest?.('section[id^="view-"]');
+        if(record.type!=='childList')return false;
+        if(record.target?.closest?.('[class*="ref-"]'))return false;
+        const changed=[...record.addedNodes,...record.removedNodes].filter(node=>node.nodeType===1);
+        if(changed.length&&changed.every(isEnhancerNode))return false;
+        return !!(record.target?.id?.startsWith('view-')||record.target?.closest?.('section[id^="view-"]'));
+      });
+      if(!relevant)return;
       if(!window.__simiRefEnhanceQueued){window.__simiRefEnhanceQueued=true;requestAnimationFrame(()=>{window.__simiRefEnhanceQueued=false;refresh();});}
     });
-    observer.observe(root,{subtree:true,attributes:true,attributeFilter:['class']});
+    observer.observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
     document.addEventListener('click',e=>{if(e.target.closest('[onclick*="cambiarModulo"],.menu-btn,[data-module]'))setTimeout(refresh,80);},true);
     window.addEventListener('load',()=>setTimeout(refresh,400));
   }
