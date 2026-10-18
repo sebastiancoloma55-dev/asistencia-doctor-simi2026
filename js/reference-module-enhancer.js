@@ -7,7 +7,6 @@
     licencias: {labels:['Registros visibles','Activas/vigentes','Pendientes','Cerradas/otras'],accent:['#0876ee','#12a875','#f59e0b','#9aaabd']},
     vacaciones: {labels:['Registros visibles','Aprobadas','Pendientes','Rechazadas/otras'],accent:['#0876ee','#12a875','#f59e0b','#e44e63']},
     envio_licencias: {labels:['Registros visibles','Enviadas','Pendientes','Con observaciones'],accent:['#0876ee','#12a875','#f59e0b','#e44e63']},
-    amonestaciones: {labels:['Solicitudes visibles','Realizadas','En curso','Pendientes/otras'],accent:['#0876ee','#12a875','#14b8a6','#f59e0b']},
     traslados: {labels:['Solicitudes visibles','Finalizadas','En curso','Pendientes/otras'],accent:['#0876ee','#12a875','#14b8a6','#f59e0b']}
   };
   const clean = s => (s || '').replace(/\s+/g,' ').trim();
@@ -299,7 +298,7 @@
 
 
   function enhanceTableAnalytics(){
-    const ids=['asistencia','licencias','vacaciones','envio_licencias','amonestaciones','traslados','auditoria','reportes'];
+    const ids=['asistencia','licencias','vacaciones','envio_licencias','traslados','auditoria','reportes'];
     ids.forEach(id=>{
       const section=document.getElementById('view-'+id);
       const table=section?.querySelector('table');
@@ -363,6 +362,53 @@
       draw(panel.querySelector('[data-chart="branches"]'),branch);
     });
   }
+
+  function enhanceCoverageLayout(){
+    const section=document.getElementById('view-amonestaciones');
+    if(!section||section.dataset.refCoverageLayout==='true')return;
+    const title=section.querySelector('.module-title-coberturas');
+    const alertForm=section.querySelector('#form-alerta-dotacion')?.closest('.ui-card');
+    const alerts=section.querySelector('#tabla-alertas-dotacion')?.closest('.ui-card');
+    const kpis=section.querySelector('#cob-pendientes')?.closest('.grid');
+    const history=section.querySelector('#tabla-coberturas')?.closest('.ui-card');
+    if(!title||!alertForm||!alerts||!kpis||!history)return;
+    section.dataset.refCoverageLayout='true';
+    section.classList.add('ref-coverage-page');
+    kpis.classList.add('ref-coverage-kpis');
+    title.insertAdjacentElement('afterend',kpis);
+    const workspace=document.createElement('div');workspace.className='ref-coverage-workspace';
+    const formColumn=document.createElement('div');formColumn.className='ref-coverage-form-column';
+    const alertsColumn=document.createElement('div');alertsColumn.className='ref-coverage-alerts-column';
+    title.insertAdjacentElement('afterend',workspace);
+    workspace.append(formColumn,alertsColumn);
+    formColumn.append(alertForm);
+    alertsColumn.append(alerts);
+    const assign=section.querySelector('#form-cobertura');
+    if(assign)assign.classList.add('ref-coverage-assignment');
+    const stats=section.querySelector('#cob-pendientes')?.closest('.grid');
+    const statePanel=document.createElement('section');statePanel.className='ref-coverage-state-panel ui-card';
+    statePanel.innerHTML='<div class="ref-chart-title">Resumen de cobertura</div><div class="ref-chart-subtitle">Estados actualizados desde las solicitudes registradas</div><div class="ref-coverage-state-track"><span data-coverage-state="pending"></span><span data-coverage-state="progress"></span><span data-coverage-state="done"></span></div><div class="ref-coverage-state-legend"><span><i class="pending"></i>Pendientes <b data-coverage-count="pending">—</b></span><span><i class="progress"></i>En curso <b data-coverage-count="progress">—</b></span><span><i class="done"></i>Realizadas <b data-coverage-count="done">—</b></span></div>';
+    alertsColumn.appendChild(statePanel);
+    const update=()=>{
+      const vals=[
+        Number(section.querySelector('#cob-pendientes')?.textContent)||0,
+        Number(section.querySelector('#cob-curso')?.textContent)||0,
+        Number(section.querySelector('#cob-realizadas')?.textContent)||0
+      ];
+      const total=Math.max(1,vals.reduce((a,b)=>a+b,0));
+      ['pending','progress','done'].forEach((key,i)=>{
+        const el=statePanel.querySelector('[data-coverage-count="'+key+'"]');
+        const bar=statePanel.querySelector('[data-coverage-state="'+key+'"]');
+        if(el)el.textContent=vals[i].toLocaleString('es-CL');
+        if(bar)bar.style.width=(vals[i]/total*100)+'%';
+      });
+    };
+    const observer=new MutationObserver(update);
+    ['cob-pendientes','cob-curso','cob-realizadas'].forEach(id=>{const el=section.querySelector('#'+id);if(el)observer.observe(el,{childList:true,characterData:true,subtree:true});});
+    update();
+    if(history)history.classList.add('ref-coverage-history');
+  }
+
   function enhanceModuleShells(){
     const shells={
       'view-dashboard':'ref-dashboard-page','view-espacio':'ref-space-page','view-tareas':'ref-tasks-page',
@@ -392,6 +438,7 @@
 
   function refresh(){
     enhanceModuleShells();
+    enhanceCoverageLayout();
     enhanceReportes();
     enhanceMapas();
     enhanceOperationsLayout();
