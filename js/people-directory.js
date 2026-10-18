@@ -543,7 +543,7 @@
                 if (typeof mostrarToast === 'function') mostrarToast('Primero espera a que cargue el directorio de colaboradores.', 'error');
                 return;
             }
-            const normalizar = valor => String(valor ?? '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().trim();
+            const normalizar = valor => String(valor ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
             const q = normalizar(document.getElementById('col-filtro-busqueda')?.value);
             const sucursalFiltro = String(document.getElementById('col-filtro-sucursal')?.value || '').trim();
             const estadoFiltro = String(document.getElementById('col-filtro-estado')?.value || '').trim().toLowerCase();
