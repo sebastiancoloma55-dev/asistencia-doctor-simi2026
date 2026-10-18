@@ -84,7 +84,7 @@
   function init(){
     refresh();
     const root=document.querySelector('main')||document.body;
-    const observer=new MutationObserver(()=>{ if(!window.__simiRefEnhanceQueued){window.__simiRefEnhanceQueued=true;requestAnimationFrame(()=>{window.__simiRefEnhanceQueued=false;refresh();});}});
+    const observer=new MutationObserver(records=>{ if(records.every(record=>{const t=record.target;const el=t.nodeType===1?t:t.parentElement;return !!el?.closest('.ref-overview');})) return; if(!window.__simiRefEnhanceQueued){window.__simiRefEnhanceQueued=true;requestAnimationFrame(()=>{window.__simiRefEnhanceQueued=false;refresh();});}});
     observer.observe(root,{subtree:true,childList:true,characterData:true});
     document.addEventListener('click',e=>{if(e.target.closest('[onclick*="cambiarModulo"],.menu-btn,[data-module]'))setTimeout(refresh,80);},true);
     window.addEventListener('load',()=>setTimeout(refresh,400));
