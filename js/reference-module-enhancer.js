@@ -43,10 +43,10 @@
       const chart=document.createElement('div'); chart.className='ref-chart';
       chart.innerHTML='<div class="ref-chart-title">Distribución del registro</div><div class="ref-chart-subtitle">Cálculo sobre las filas visibles de la tabla actual</div><div class="ref-bars"></div>';
       overview.append(cards,chart);
-      const firstTable=section.querySelector('table');
-      const anchor=firstTable?.closest('.ui-card') || firstTable;
-      if(anchor && anchor.parentElement) anchor.parentElement.insertBefore(overview,anchor);
-      else section.appendChild(overview);
+      // El resumen se coloca a nivel del módulo, nunca dentro de la tarjeta/columna de una tabla.
+      const intro=section.querySelector(':scope > .module-intro')||section.querySelector(':scope > .ui-card');
+      if(intro) intro.insertAdjacentElement('afterend',overview);
+      else section.insertBefore(overview,section.firstElementChild);
     }
     const cards=overview.querySelector('.ref-kpis');
     const chart=overview.querySelector('.ref-bars');
@@ -352,13 +352,7 @@
         });
         return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
       };
-      const status=aggregate(statusIndex,r=>{
-        const t=statusOf(r);
-        if(/atraso|incompleta|sin marca|observaci[oó]n|error|rechazad|alerta/.test(t))return 'Con alerta';
-        if(/pendiente|en revisi[oó]n|en curso|por aprobar|por enviar/.test(t))return 'Pendiente / en curso';
-        if(/activa|activo|vigente|aprobada|aprobado|realizada|finalizada|enviada|correcta|sin anomal[ií]a/.test(t))return 'Vigente / resuelto';
-        return 'Otros estados';
-      });
+      const status=aggregate(statusIndex,r=>statusIndex<0?'Sin columna de estado':'Sin estado');
       const branch=aggregate(branchIndex,r=>{
         const cells=[...r.querySelectorAll('td')];
         const text=clean(r.innerText);
