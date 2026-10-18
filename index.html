@@ -847,7 +847,9 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 /* Barra superior ejecutiva: sin duplicar navegación ni acciones gigantes */
 main>header{position:sticky!important;top:0;z-index:80!important;display:flex;align-items:center;gap:14px;min-height:68px;padding:10px 22px!important;background:rgba(255,255,255,.97)!important;border-bottom:1px solid #dce8f4!important;box-shadow:0 5px 18px rgba(8,47,85,.055)!important;backdrop-filter:blur(14px)}
 main>header #header-title{flex:1;min-width:120px;margin:0!important;color:#0a315c!important;font-size:17px!important;font-weight:900!important;letter-spacing:-.025em}
-main>header .topbar-quick-action{display:none!important}
+main>header .topbar-quick-action{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:0!important;width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important;padding:0!important;border:1px solid #cfe1f0!important;border-radius:10px!important;background:#eff8fc!important;color:#087f92!important;box-shadow:none!important}
+main>header .topbar-quick-action span{display:none!important}
+main>header .topbar-quick-action svg{width:17px!important;height:17px!important;margin:0!important}
 #quick-module-bar{display:none!important}
 main>header #topbar-notification-button{width:40px;height:40px;border:1px solid #cfe4f2!important;border-radius:12px;background:#eff9fc!important;color:#087f92!important;box-shadow:none!important}
 main>header .topbar-search{min-height:40px;border:1px solid #d6e4f2!important;border-radius:11px;background:#f8fbff!important;color:#345a7b!important;box-shadow:none!important}
@@ -1031,10 +1033,10 @@ main>header button[onclick*="cerrarSesion()"]{padding:9px 10px!important;border-
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <button type="button" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('tareas');setTimeout(()=>document.getElementById('tarea-titulo')?.focus(),250)">
+                    <button type="button" class="topbar-quick-action hidden sm:inline-flex" title="Nueva tarea rápida" aria-label="Nueva tarea rápida" onclick="cambiarModulo('tareas');setTimeout(()=>document.getElementById('tarea-titulo')?.focus(),250)">
                         <i data-lucide="plus" class="h-4 w-4"></i><span>Nueva tarea rápida</span>
                     </button>
-                    <button type="button" id="topbar-quick-note" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('espacio');setTimeout(()=>document.getElementById('rrhh-nota-titulo')?.focus(),250)"><i data-lucide="sticky-note" class="h-4 w-4"></i><span>Nueva nota rápida</span></button>
+                    <button type="button" id="topbar-quick-note" class="topbar-quick-action hidden sm:inline-flex" title="Nueva nota rápida" aria-label="Nueva nota rápida" onclick="cambiarModulo('espacio');setTimeout(()=>document.getElementById('rrhh-nota-titulo')?.focus(),250)"><i data-lucide="sticky-note" class="h-4 w-4"></i><span>Nueva nota rápida</span></button>
                     <button type="button" id="topbar-notification-button" class="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-100 bg-gradient-to-br from-white to-indigo-50 text-indigo-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" onclick="cambiarModulo('notificaciones');setTimeout(()=>cargarCentroNotificaciones(),150)" aria-label="Abrir notificaciones" title="Notificaciones">
                         <i data-lucide="bell-ring" class="h-5 w-5"></i><span id="topbar-notif-count" class="absolute -right-1 -top-1 hidden min-w-[18px] rounded-full bg-rose-600 px-1 text-center text-[10px] font-black leading-[18px] text-white">0</span>
                     </button>
@@ -3784,7 +3786,7 @@ main>header button[onclick*="cerrarSesion()"]{padding:8px!important;border-radiu
 #simi-context-toggle svg{width:22px!important;height:22px!important;margin:0!important}
 #simi-context-popover{position:absolute!important;right:0!important;bottom:64px!important;width:min(350px,calc(100vw - 28px))!important;max-height:min(70vh,540px)!important;overflow:auto!important;margin:0!important;border-radius:16px!important;box-shadow:0 18px 52px rgba(8,38,70,.24)!important}
 @media(max-width:1000px){main>header{gap:7px!important;padding:8px 12px!important}main>header #header-title{font-size:14px!important}main>header .topbar-user-email{display:none!important}}
-@media(max-width:640px){#sidebar{width:264px!important}#sidebar.sidebar-collapsed{width:0!important;min-width:0!important;border:0!important}main>header{min-height:56px!important;padding:7px 9px!important;gap:5px!important}main>header #header-title{min-width:64px!important;font-size:13px!important}main>header #btn-theme-settings{padding:7px!important}main>header #btn-cerrar-sesiones-global{display:none!important}main>header button[onclick*="cerrarSesion()"]{font-size:10px!important;padding:7px 4px!important}#simi-context-assistant{width:48px!important;height:48px!important}#simi-context-toggle{width:48px!important;height:48px!important;min-width:48px!important}#simi-context-popover{bottom:58px!important}}
+@media(max-width:640px){main>header .topbar-quick-action{display:none!important}#sidebar{width:264px!important}#sidebar.sidebar-collapsed{width:0!important;min-width:0!important;border:0!important}main>header{min-height:56px!important;padding:7px 9px!important;gap:5px!important}main>header #header-title{min-width:64px!important;font-size:13px!important}main>header #btn-theme-settings{padding:7px!important}main>header #btn-cerrar-sesiones-global{display:none!important}main>header button[onclick*="cerrarSesion()"]{font-size:10px!important;padding:7px 4px!important}#simi-context-assistant{width:48px!important;height:48px!important}#simi-context-toggle{width:48px!important;height:48px!important;min-width:48px!important}#simi-context-popover{bottom:58px!important}}
 </style>
 </body>
 </html>
