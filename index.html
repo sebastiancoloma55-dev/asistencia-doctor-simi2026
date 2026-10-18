@@ -3538,7 +3538,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         item.links.forEach(([label,module])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>{if(typeof window.cambiarModulo==='function')window.cambiarModulo(module);pop.hidden=true;toggle.setAttribute('aria-expanded','false');});links.appendChild(b);});
         if(window.lucide)window.lucide.createIcons();
       }
-      toggle.addEventListener('click',()=>{const opening=pop.hidden;render();pop.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));});
+      toggle.addEventListener('click',()=>{const opening=pop.hidden;render();if(opening){const r=assistant.getBoundingClientRect();if(r.left<innerWidth/2){pop.style.left='0';pop.style.right='auto';}else{pop.style.left='auto';pop.style.right='0';}}pop.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));});
       document.getElementById('simi-context-close').addEventListener('click',()=>{pop.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();});
       const observer=new MutationObserver(()=>{render();});
       document.querySelectorAll('section[id^="view-"]').forEach(v=>observer.observe(v,{attributes:true,attributeFilter:['class']}));
