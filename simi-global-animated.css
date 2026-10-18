@@ -567,3 +567,41 @@ main section[id^="view-"] button[class*="bg-simiNavy"],main section[id^="view-"]
 #login-overlay .nova-v3-brand-image,#login-overlay .nova-v3-core{border-color:#35d9ff!important;box-shadow:0 0 28px rgba(0,174,255,.34)!important}
 #login-overlay .nova-v3-submit{background:linear-gradient(100deg,#007cff,#064dff 65%,#00b9ff)!important}
 @media(prefers-reduced-motion:reduce){body::before,body::after{animation:none!important}}
+
+
+/* REVISION B: escenario animado real, por encima del fondo del navegador y detrás de toda la aplicación. */
+html,body{min-height:100%;background:#03132c!important}
+body{position:relative!important;isolation:isolate!important;background:transparent!important;color:#edf8ff}
+#simi-animated-backdrop{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;contain:strict;background:radial-gradient(ellipse at 18% 22%,rgba(0,115,255,.32),transparent 37%),radial-gradient(ellipse at 84% 18%,rgba(0,214,255,.18),transparent 30%),radial-gradient(ellipse at 80% 88%,rgba(88,48,255,.24),transparent 36%),linear-gradient(135deg,#020b20 0%,#052956 48%,#03132d 100%)}
+#simi-animated-backdrop:before{content:"";position:absolute;inset:-25%;background:repeating-linear-gradient(115deg,transparent 0 115px,rgba(0,180,255,.045) 117px,transparent 120px 220px),radial-gradient(circle at 50% 50%,transparent 0 26%,rgba(0,172,255,.09) 26.2%,transparent 26.7%,transparent 38%,rgba(0,172,255,.06) 38.2%,transparent 38.7%);animation:simiBackdropOrbit 48s linear infinite}
+#simi-animated-backdrop:after{content:"";position:absolute;inset:0;opacity:.28;background-image:radial-gradient(circle,rgba(74,225,255,.95) 0 1.3px,transparent 2px),radial-gradient(circle,rgba(119,124,255,.95) 0 1.5px,transparent 2.5px),url('/doctor-simi-logo.jpg');background-size:83px 83px,137px 137px,min(43vw,500px) auto;background-position:0 0,45px 66px,78% 78%;background-repeat:repeat,repeat,no-repeat;filter:saturate(1.4);animation:simiBackdropParticles 38s linear infinite alternate}
+#simi-animated-backdrop .simi-backdrop-orb{position:absolute;display:block;width:34vw;height:34vw;max-width:520px;max-height:520px;border-radius:50%;filter:blur(80px);opacity:.2;will-change:transform}
+#simi-animated-backdrop .simi-backdrop-orb-a{left:-10%;top:12%;background:#007bff;animation:simiOrbFloatA 18s ease-in-out infinite alternate}
+#simi-animated-backdrop .simi-backdrop-orb-b{right:-8%;top:36%;background:#00cfff;animation:simiOrbFloatB 22s ease-in-out infinite alternate}
+#simi-animated-backdrop .simi-backdrop-orb-c{left:34%;bottom:-20%;background:#553dff;animation:simiOrbFloatC 25s ease-in-out infinite alternate}
+#simi-animated-backdrop .simi-backdrop-beam{position:absolute;top:-40%;bottom:-40%;left:48%;width:1px;background:linear-gradient(transparent,rgba(0,211,255,.5),transparent);box-shadow:0 0 22px rgba(0,196,255,.28);transform:rotate(24deg);animation:simiBeamSweep 16s ease-in-out infinite alternate}
+@keyframes simiBackdropOrbit{from{transform:rotate(0deg) translate3d(-1%,0,0)}to{transform:rotate(4deg) translate3d(1%,1%,0)}}
+@keyframes simiBackdropParticles{from{background-position:0 0,45px 66px,78% 78%}to{background-position:150px -110px,-90px 170px,74% 70%}}
+@keyframes simiOrbFloatA{from{transform:translate3d(0,0,0) scale(.85)}to{transform:translate3d(15vw,12vh,0) scale(1.18)}}
+@keyframes simiOrbFloatB{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(-13vw,-9vh,0) scale(.82)}}
+@keyframes simiOrbFloatC{from{transform:translate3d(-5vw,0,0) scale(.9)}to{transform:translate3d(9vw,-13vh,0) scale(1.15)}}
+@keyframes simiBeamSweep{from{transform:translateX(-20vw) rotate(24deg);opacity:.2}to{transform:translateX(22vw) rotate(24deg);opacity:.8}}
+body>#toast-container{z-index:220!important}
+main{position:relative!important;z-index:2!important;background:transparent!important;color:#eef8ff!important;min-height:100vh}
+#sidebar{z-index:40!important}
+main>header{background:rgba(2,19,46,.82)!important;color:#f1f8ff!important;border-bottom:1px solid rgba(46,203,255,.36)!important;box-shadow:0 8px 32px rgba(0,0,0,.24)!important;backdrop-filter:blur(20px) saturate(150%)!important}
+main>header #header-title,main>header button,main>header span,main>header a{color:#eaf7ff!important}
+main section[id^="view-"]{position:relative!important;z-index:1!important;color:#edf8ff!important;background:transparent!important}
+main section[id^="view-"] .ui-card,main section[id^="view-"] .space-panel,main section[id^="view-"] .td-panel,main section[id^="view-"] .module-title-card,main section[id^="view-"] .module-intro,main section[id^="view-"] .usr-role-summary-card,main section[id^="view-"] .usr-matrix-tools,main section[id^="view-"] .dash-space-card,main section[id^="view-"] .colab-kpi,main section[id^="view-"] .task-kpi-grid>*{background:linear-gradient(145deg,rgba(5,43,91,.88),rgba(2,24,57,.9))!important;border:1px solid rgba(37,180,255,.44)!important;color:#f0f8ff!important;box-shadow:0 14px 36px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.07)!important;backdrop-filter:blur(15px) saturate(130%)!important}
+main section[id^="view-"] h1,main section[id^="view-"] h2,main section[id^="view-"] h3,main section[id^="view-"] h4,main section[id^="view-"] label,main section[id^="view-"] .section-title{color:#f3f9ff!important}
+main section[id^="view-"] p,main section[id^="view-"] small,main section[id^="view-"] .module-intro{color:#b9d9f5!important}
+main section[id^="view-"] input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]),main section[id^="view-"] select,main section[id^="view-"] textarea{background:rgba(1,17,43,.88)!important;color:#f5fbff!important;border:1px solid rgba(64,184,255,.52)!important}
+main section[id^="view-"] input::placeholder,main section[id^="view-"] textarea::placeholder{color:#8fb7dc!important}
+main section[id^="view-"] .table-scroll,main section[id^="view-"] .td-table-wrap{background:rgba(2,20,50,.94)!important;border:1px solid rgba(38,164,255,.48)!important}
+main section[id^="view-"] table,main section[id^="view-"] table tbody{background:transparent!important;color:#eaf6ff!important}
+main section[id^="view-"] table thead th{background:rgba(4,69,132,.97)!important;color:#a4edff!important;border-color:rgba(60,175,255,.3)!important}
+main section[id^="view-"] table tbody td{background:rgba(2,26,61,.68)!important;color:#e0efff!important;border-color:rgba(54,151,227,.24)!important}
+main section[id^="view-"] table tbody tr:hover td{background:rgba(0,143,236,.25)!important}
+#login-overlay.nova-v3-overlay:not(.hidden){z-index:120!important}
+@media(max-width:760px){#simi-animated-backdrop:after{background-size:80px 80px,120px 120px,300px auto;background-position:0 0,40px 60px,80% 85%}}
+@media(prefers-reduced-motion:reduce){#simi-animated-backdrop:before,#simi-animated-backdrop:after,#simi-animated-backdrop .simi-backdrop-orb,#simi-animated-backdrop .simi-backdrop-beam{animation:none!important}}
