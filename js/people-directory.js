@@ -560,7 +560,8 @@
 
             const { data, error } = await _supabase
                 .from('sucursales')
-                .select('*');
+                .select('*')
+                .order('nombre');
 
             if (error) {
                 throw error;
