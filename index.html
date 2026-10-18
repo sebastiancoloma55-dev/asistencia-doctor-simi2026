@@ -807,6 +807,44 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
     <link rel="stylesheet" href="/css/tareas-diarias-reference.css?v=20261018">
     <link rel="stylesheet" href="/css/modulos-referencia-exacta.css?v=20261018b">
     <link rel="stylesheet" href="/css/modulos-referencia-integral.css?v=20261018d">
+
+<style id="simi-sidebar-assistant-refinement-20261018">
+/* Navegación lateral renovada: jerarquía clara, legible y consistente con Doctor Simi */
+#sidebar{width:264px!important;max-width:86vw!important;background:linear-gradient(180deg,#082f61 0%,#073a79 52%,#052c59 100%)!important;border-right:1px solid rgba(25,168,165,.34)!important;box-shadow:8px 0 32px rgba(6,35,72,.13);color:#f7fbff;transition:width .2s ease,transform .2s ease}
+#sidebar>div:first-child{min-height:88px!important;padding:16px 15px!important;background:linear-gradient(135deg,rgba(25,168,165,.2),rgba(255,255,255,.035))!important;border-bottom:1px solid rgba(255,255,255,.12)!important}
+#sidebar>div:first-child img{border-radius:13px!important;box-shadow:0 4px 15px rgba(0,0,0,.18)}
+#sidebar h1{font-size:14px!important;letter-spacing:.045em;font-weight:900}
+#sidebar nav{padding:12px 10px 18px!important;scrollbar-width:thin;scrollbar-color:rgba(25,168,165,.48) transparent}
+#sidebar .menu-btn{min-height:41px!important;display:flex;align-items:center;gap:11px!important;width:100%;padding:10px 12px!important;margin:2px 0!important;border:1px solid transparent!important;border-radius:10px!important;color:#d5e4f2!important;font-size:12px!important;font-weight:650!important;line-height:1.25;box-shadow:none!important;transform:none!important;transition:background .16s,border-color .16s,color .16s!important}
+#sidebar .menu-btn>svg{width:17px!important;height:17px!important;opacity:.9;color:#a7c6dd}
+#sidebar .menu-btn:hover:not(.active){background:rgba(255,255,255,.075)!important;border-color:rgba(255,255,255,.09)!important;color:white!important}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{background:linear-gradient(100deg,rgba(25,168,165,.28),rgba(25,168,165,.11))!important;border-color:rgba(25,168,165,.72)!important;color:#fff!important;box-shadow:inset 3px 0 #19a8a5!important;font-weight:850!important}
+#sidebar .menu-btn.active>svg,#sidebar .menu-btn[aria-current="page"]>svg{color:#5ce0d5!important;opacity:1}
+#sidebar .nova-nav-divider,#sidebar [data-nav-group].nova-nav-divider{margin:15px 7px 7px!important;padding:11px 7px 5px!important;border-top:1px solid rgba(255,255,255,.13);color:#8fc3dc!important;font-size:9px!important;letter-spacing:.16em!important;font-weight:900!important}
+#sidebar .sidebar-credit{margin:8px 10px 12px!important;padding:10px!important;border:1px solid rgba(25,168,165,.35)!important;border-radius:13px!important;background:linear-gradient(120deg,rgba(25,168,165,.17),rgba(255,255,255,.035))!important}
+#sidebar .sidebar-credit-icon{background:#087f92!important;color:#fff!important;border-radius:9px!important}
+#sidebar-collapse-toggle{border-color:rgba(25,168,165,.4)!important;background:rgba(255,255,255,.06)!important}
+#sidebar-collapse-toggle:hover{background:rgba(25,168,165,.18)!important}
+#sidebar.sidebar-collapsed{width:76px!important}
+#sidebar.sidebar-collapsed>div:first-child{padding:13px 8px!important;justify-content:center}
+#sidebar.sidebar-collapsed>div:first-child h1,#sidebar.sidebar-collapsed>div:first-child p,#sidebar.sidebar-collapsed .menu-btn span,#sidebar.sidebar-collapsed .nova-nav-divider,#sidebar.sidebar-collapsed .sidebar-credit-copy{display:none!important}
+#sidebar.sidebar-collapsed .menu-btn{justify-content:center;padding:11px 7px!important}
+#sidebar.sidebar-collapsed .sidebar-credit{justify-content:center;padding:8px!important}
+@media(max-width:900px){#sidebar{width:264px!important}#sidebar.sidebar-collapsed{width:0!important;min-width:0!important;border:0!important}}
+
+/* Asistente útil: botón compacto de estrellas, siempre flotante y arrastrable */
+#simi-context-assistant{position:fixed!important;right:22px;bottom:24px;z-index:1000!important;width:54px;height:54px;margin:0!important;touch-action:none}
+#simi-context-toggle{width:54px!important;height:54px!important;min-width:54px!important;padding:0!important;display:grid!important;place-items:center!important;gap:0!important;border:1px solid rgba(255,255,255,.78)!important;border-radius:50%!important;background:linear-gradient(145deg,#19a8a5,#087f92 72%)!important;color:#fff!important;box-shadow:0 8px 24px rgba(7,59,112,.28),inset 0 1px rgba(255,255,255,.3)!important;cursor:grab!important;touch-action:none!important;user-select:none!important}
+#simi-context-toggle:active{cursor:grabbing!important}
+#simi-context-toggle span{display:none!important}
+#simi-context-toggle svg{width:23px!important;height:23px!important;margin:0!important}
+#simi-context-popover{position:absolute!important;right:0!important;bottom:66px!important;width:min(350px,calc(100vw - 28px))!important;max-height:min(70vh,540px)!important;overflow:auto!important;margin:0!important;border-radius:16px!important;box-shadow:0 18px 52px rgba(8,38,70,.24)!important}
+#simi-context-head{background:linear-gradient(115deg,#e7fbfa,#f5faff)!important}
+#simi-context-links button{border-color:#c8e4eb!important;color:#075985!important}
+#simi-context-links button:hover{background:#eafaf9!important;border-color:#19a8a5!important}
+#simi-context-assistant.is-dragging #simi-context-toggle{box-shadow:0 12px 30px rgba(7,59,112,.35)!important;opacity:.92}
+@media(max-width:640px){#simi-context-assistant{right:14px;bottom:16px;width:48px;height:48px}#simi-context-toggle{width:48px!important;height:48px!important;min-width:48px!important}#simi-context-toggle svg{width:21px!important;height:21px!important}#simi-context-popover{bottom:58px!important}}
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -3505,6 +3543,16 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       const observer=new MutationObserver(()=>{render();});
       document.querySelectorAll('section[id^="view-"]').forEach(v=>observer.observe(v,{attributes:true,attributeFilter:['class']}));
       render();
+      /* Drag libre del botón: no intercepta botones internos del panel contextual. */
+      let drag=null,dragged=false;
+      const assistant=document.getElementById('simi-context-assistant');
+      const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+      try{const saved=JSON.parse(localStorage.getItem('simi-context-position-v1')||'null');if(saved&&Number.isFinite(saved.x)&&Number.isFinite(saved.y)){assistant.style.left=clamp(saved.x,4,innerWidth-58)+'px';assistant.style.top=clamp(saved.y,4,innerHeight-58)+'px';assistant.style.right='auto';assistant.style.bottom='auto';}}catch(_){}
+      toggle.addEventListener('pointerdown',e=>{if(e.button!==0&&e.pointerType==='mouse')return;const r=assistant.getBoundingClientRect();drag={id:e.pointerId,startX:e.clientX,startY:e.clientY,left:r.left,top:r.top};dragged=false;toggle.setPointerCapture?.(e.pointerId);});
+      toggle.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const dx=e.clientX-drag.startX,dy=e.clientY-drag.startY;if(Math.abs(dx)>4||Math.abs(dy)>4)dragged=true;if(!dragged)return;assistant.classList.add('is-dragging');const x=clamp(drag.left+dx,4,innerWidth-assistant.offsetWidth-4),y=clamp(drag.top+dy,4,innerHeight-assistant.offsetHeight-4);assistant.style.left=x+'px';assistant.style.top=y+'px';assistant.style.right='auto';assistant.style.bottom='auto';});
+      const finishDrag=e=>{if(!drag||drag.id!==e.pointerId)return;try{localStorage.setItem('simi-context-position-v1',JSON.stringify({x:assistant.getBoundingClientRect().left,y:assistant.getBoundingClientRect().top}));}catch(_){}drag=null;assistant.classList.remove('is-dragging');if(dragged){toggle.dataset.justDragged='1';setTimeout(()=>delete toggle.dataset.justDragged,120);}};
+      toggle.addEventListener('pointerup',finishDrag);toggle.addEventListener('pointercancel',finishDrag);
+      toggle.addEventListener('click',e=>{if(toggle.dataset.justDragged==='1'){e.preventDefault();e.stopImmediatePropagation();}},true);
       document.addEventListener('click',e=>{if(e.target.closest('[onclick*="cambiarModulo"]')&&!pop.contains(e.target)&&!toggle.contains(e.target)){if(!pop.hidden)render();}});
     })();
     </script>
@@ -3651,6 +3699,6 @@ hr{border-color:#e8edf3}
 @media(prefers-reduced-motion:reduce){.dashboard-welcome-compact-image{animation:none!important;transition:none!important}}
 </style>
 
-<script src="/js/reference-module-enhancer.js?v=20261018i" defer></script>
+<script src="/js/reference-module-enhancer.js?v=20261018j" defer></script>
 </body>
 </html>
