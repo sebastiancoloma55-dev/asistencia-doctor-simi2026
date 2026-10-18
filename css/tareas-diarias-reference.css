@@ -1,0 +1,110 @@
+/* Tareas diarias — ajuste visual de referencia. Alcance exclusivo: #view-tareas */
+#view-tareas.task-dashboard-redesign{padding:16px 24px 22px!important;background:linear-gradient(135deg,#f5f9ff 0%,#edf5ff 100%)!important;color:#102b58!important;min-width:0}
+#view-tareas .td-heading{margin:0 0 16px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+#view-tareas .td-breadcrumb{font-size:10px!important;font-weight:800!important;letter-spacing:.08em!important;color:#5576a8!important;margin:0 0 5px!important}
+#view-tareas .td-breadcrumb span{padding:0 5px;color:#94a9c8}
+#view-tareas .td-heading-row{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important}
+#view-tareas .td-heading h3{font-size:clamp(25px,2.2vw,34px)!important;line-height:1.1!important;font-weight:850!important;letter-spacing:-.04em!important;color:#092c60!important;margin:0!important}
+#view-tareas .td-heading p{font-size:13px!important;color:#6380ad!important;margin:5px 0 0!important}
+#view-tareas .td-heading-actions{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:wrap!important}
+#view-tareas .td-primary-btn,#view-tareas .td-secondary-btn{height:39px!important;border-radius:11px!important;padding:0 14px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;font-size:11px!important;font-weight:800!important;white-space:nowrap!important}
+#view-tareas .td-primary-btn{background:linear-gradient(110deg,#2388ff,#0065db)!important;color:white!important;border:1px solid #1680f5!important;box-shadow:0 5px 14px #1677e52b!important}
+#view-tareas .td-primary-btn svg,#view-tareas .td-secondary-btn svg{width:16px!important;height:16px!important}
+#view-tareas .td-secondary-btn{background:#fff!important;border:1px solid #d9e7fa!important;color:#173b70!important;box-shadow:0 2px 5px #0c32600a!important}
+#view-tareas .td-date-chip{height:42px!important;display:flex!important;align-items:center!important;gap:10px!important;border:1px solid #d9e7fa!important;border-radius:12px!important;padding:0 13px!important;background:#fff!important;color:#163969!important;font-size:11px!important;font-weight:700!important}
+#view-tareas .td-date-chip svg{color:#1680f5!important;width:18px!important;height:18px!important}
+#view-tareas .td-new-menu{z-index:100!important;top:calc(100% + 8px)!important;right:0!important;width:230px!important;padding:6px!important;background:#fff!important;border:1px solid #dbe7f6!important;border-radius:13px!important;box-shadow:0 16px 38px #12345a20!important}
+#view-tareas .td-new-menu button{display:flex!important;align-items:center!important;gap:11px!important;width:100%!important;padding:10px!important;border-radius:9px!important;text-align:left!important;color:#143363!important}
+#view-tareas .td-new-menu button:hover{background:#f1f7ff!important}
+#view-tareas .td-new-menu button>svg{color:#147af3!important;width:19px!important;height:19px!important}
+#view-tareas .td-new-menu button b{display:block!important;font-size:11px!important}
+#view-tareas .td-new-menu button small{display:block!important;color:#7990b2!important;font-size:10px!important;margin-top:2px!important}
+#view-tareas .td-metrics-grid{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:10px!important;margin:0 0 14px!important}
+#view-tareas .td-metric{min-width:0!important;display:flex!important;align-items:center!important;gap:12px!important;padding:13px!important;min-height:86px!important;background:#ffffffde!important;border:1px solid #dce9fa!important;border-radius:14px!important;box-shadow:0 4px 14px #153d6b05!important}
+#view-tareas .td-metric-icon{width:43px!important;height:43px!important;min-width:43px!important;display:grid!important;place-items:center!important;border-radius:12px!important}
+#view-tareas .td-metric-icon svg{width:21px!important;height:21px!important}
+#view-tareas .td-metric-icon.blue{background:#e5f1ff!important;color:#0878f9!important}
+#view-tareas .td-metric-icon.green{background:#ddf8ee!important;color:#00a77c!important}
+#view-tareas .td-metric-icon.amber{background:#fff3d9!important;color:#ee9700!important}
+#view-tareas .td-metric-icon.red{background:#ffe8eb!important;color:#ff4055!important}
+#view-tareas .td-metric-icon.violet{background:#eee8ff!important;color:#7b4dff!important}
+#view-tareas .td-metric-icon.sky{background:#e2f0ff!important;color:#0878f9!important}
+#view-tareas .td-metric small{display:block!important;font-size:10px!important;font-weight:750!important;color:#5574a4!important;line-height:1.25!important}
+#view-tareas .td-metric b{display:block!important;font-size:26px!important;line-height:1.15!important;letter-spacing:-.04em!important;color:#0d2c5a!important;margin-top:2px!important}
+#view-tareas .td-metric em{display:block!important;font-style:normal!important;font-size:10px!important;color:#7189ae!important;margin-top:3px!important}
+#view-tareas .td-progress{display:block!important;width:100%!important;max-width:100px!important;height:5px!important;border-radius:99px!important;background:#e7eef8!important;margin-top:6px!important;overflow:hidden!important}
+#view-tareas .td-progress i{display:block!important;height:100%!important;width:0;background:#13b98a!important;border-radius:99px!important}
+#view-tareas .td-progress.red i{background:#ff4d62!important}
+#view-tareas .td-tabs{display:flex!important;align-items:stretch!important;gap:3px!important;overflow-x:auto!important;margin:0 0 10px!important;padding:0!important;border-bottom:1px solid #dce8f7!important;scrollbar-width:thin!important}
+#view-tareas .td-tabs .task-workspace-tab{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;white-space:nowrap!important;padding:12px 14px!important;border:1px solid transparent!important;border-bottom:2px solid transparent!important;border-radius:12px 12px 0 0!important;color:#57739d!important;font-size:11px!important;font-weight:750!important;background:#ffffff70!important}
+#view-tareas .td-tabs .task-workspace-tab svg{width:15px!important;height:15px!important}
+#view-tareas .td-tabs .task-workspace-tab.active{color:#0878f9!important;background:#fff!important;border-color:#e0ebfa!important;border-bottom-color:#0878f9!important}
+#view-tareas .td-main-grid{display:grid!important;grid-template-columns:minmax(0,1.85fr) minmax(280px,.82fr)!important;gap:10px!important;align-items:stretch!important}
+#view-tareas .td-side-column{display:grid!important;grid-template-rows:auto auto!important;gap:10px!important;min-width:0!important}
+#view-tareas .td-panel{background:#ffffffed!important;border:1px solid #dce8f8!important;border-radius:14px!important;box-shadow:0 5px 18px #153d6b06!important;min-width:0!important;overflow:hidden!important}
+#view-tareas .td-panel-heading{display:flex!important;align-items:center!important;gap:10px!important;padding:13px 15px!important;min-width:0!important}
+#view-tareas .td-panel-heading-icon{width:35px!important;height:35px!important;min-width:35px!important;display:grid!important;place-items:center!important;border-radius:10px!important;background:#e6f2ff!important;color:#0878f9!important}
+#view-tareas .td-panel-heading-icon svg{width:18px!important;height:18px!important}
+#view-tareas .td-panel-heading h4{font-size:13px!important;font-weight:850!important;letter-spacing:-.02em!important;color:#102f60!important;margin:0!important}
+#view-tareas .td-panel-heading p{font-size:10px!important;color:#6c86ae!important;margin:3px 0 0!important}
+#view-tareas .td-list-controls{display:flex!important;align-items:center!important;gap:8px!important;padding:0 15px 12px!important}
+#view-tareas .td-list-controls select{width:165px!important;min-width:0!important;height:33px!important;font-size:10px!important;padding:0 10px!important;border-color:#dce7f6!important;border-radius:9px!important}
+#view-tareas .td-search{display:flex!important;align-items:center!important;gap:7px!important;min-width:0!important;flex:1!important;height:33px!important;padding:0 10px!important;border:1px solid #dce7f6!important;border-radius:9px!important;background:#fff!important;color:#7390b9!important}
+#view-tareas .td-search svg{width:15px!important;height:15px!important;flex-shrink:0!important}
+#view-tareas .td-search input{width:100%!important;min-width:0!important;border:0!important;outline:0!important;font-size:10px!important;background:transparent!important;color:#163969!important}
+#view-tareas .td-table-wrap{padding:0 15px!important;overflow-x:auto!important}
+#view-tareas .td-task-table{width:100%!important;border-collapse:collapse!important;table-layout:auto!important;font-size:10px!important}
+#view-tareas .td-task-table thead{background:#f7faff!important}
+#view-tareas .td-task-table th{padding:9px 7px!important;color:#6680a7!important;font-size:9px!important;font-weight:800!important;text-align:left!important;border-bottom:1px solid #e4edf9!important;white-space:nowrap!important}
+#view-tareas .td-task-table td{padding:10px 7px!important;color:#24466f!important;vertical-align:middle!important;border-bottom:1px solid #eaf0f8!important}
+#view-tareas .td-task-table tbody tr:hover{background:#f7fbff!important}
+#view-tareas .td-task-table tbody tr:last-child td{border-bottom:0!important}
+#view-tareas .td-task-table td:first-child{min-width:190px!important}
+#view-tareas .td-task-table td:first-child strong,#view-tareas .td-task-table td:first-child b{color:#132f5d!important;font-size:11px!important}
+#view-tareas .td-task-table td:first-child small{display:block!important;color:#6d86ab!important;font-size:10px!important;margin-top:3px!important}
+#view-tareas .td-list-footer{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:8px!important;padding:10px 15px!important;border-top:1px solid #e9f0f9!important;color:#7188ad!important;font-size:10px!important}
+#view-tareas .td-list-footer button{display:inline-flex!important;align-items:center!important;gap:5px!important;color:#0878f9!important;font-weight:800!important;font-size:10px!important;white-space:nowrap!important}
+#view-tareas .td-list-footer button svg{width:14px!important;height:14px!important}
+#view-tareas .td-calendar-heading{padding-bottom:9px!important}
+#view-tareas .td-calendar-heading b{display:block!important;color:#173a6e!important;font-size:11px!important;margin-top:5px!important}
+#view-tareas .td-calendar-actions{display:flex!important;gap:5px!important;margin-left:auto!important}
+#view-tareas .td-calendar-actions button{width:30px!important;height:28px!important;display:grid!important;place-items:center!important;border:1px solid #dce8f8!important;border-radius:8px!important;background:#fff!important;color:#3e6192!important}
+#view-tareas .td-calendar-grid{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:2px!important;padding:0 12px 10px!important}
+#view-tareas .td-calendar-grid button,#view-tareas .td-calendar-grid>div{min-width:0!important;min-height:27px!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:7px!important;font-size:10px!important;color:#345780!important;border:0!important;background:transparent!important}
+#view-tareas .td-calendar-grid button:hover{background:#e9f3ff!important}
+#view-tareas .td-calendar-legend{display:flex!important;flex-wrap:wrap!important;gap:8px!important;padding:8px 12px 12px!important;border-top:1px solid #edf2f9!important;color:#6c83a6!important;font-size:9px!important}
+#view-tareas .td-calendar-legend span,#view-tareas .td-chart-legend span{display:inline-flex!important;align-items:center!important;gap:5px!important}
+#view-tareas .td-calendar-legend i,#view-tareas .td-chart-legend i{display:inline-block!important;width:8px!important;height:8px!important;border-radius:50%!important}
+#view-tareas .done{background:#10b981!important}#view-tareas .progress{background:#3895ff!important}#view-tareas .pending{background:#f7ae13!important}#view-tareas .overdue{background:#ff4d68!important}
+#view-tareas .td-upcoming-list{padding:0 13px 9px!important}
+#view-tareas .td-upcoming-item{display:flex!important;align-items:center!important;gap:9px!important;padding:9px 0!important;border-top:1px solid #edf2f9!important}
+#view-tareas .td-upcoming-icon{width:30px!important;height:30px!important;min-width:30px!important;display:grid!important;place-items:center!important;border-radius:9px!important;background:#e9f3ff!important;color:#0878f9!important}
+#view-tareas .td-upcoming-icon svg{width:16px!important;height:16px!important}
+#view-tareas .td-upcoming-item b{display:block!important;color:#193a6a!important;font-size:10px!important}
+#view-tareas .td-upcoming-item small{display:block!important;color:#6e87ad!important;font-size:9px!important;margin-top:2px!important}
+#view-tareas .td-upcoming-pill{margin-left:auto!important;white-space:nowrap!important;border-radius:99px!important;background:#eaf3ff!important;color:#2366b1!important;padding:5px 8px!important;font-size:9px!important;font-weight:800!important}
+#view-tareas .td-view-all{margin-left:auto!important;white-space:nowrap!important;border-radius:8px!important;background:#edf5ff!important;color:#1478ec!important;padding:5px 8px!important;font-size:9px!important;font-weight:800!important}
+#view-tareas .td-bottom-grid{display:grid!important;grid-template-columns:minmax(0,1.25fr) minmax(0,.9fr) minmax(0,.8fr)!important;gap:10px!important;margin-top:10px!important;align-items:stretch!important}
+#view-tareas .td-performance-stats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;padding:0 13px 13px!important}
+#view-tareas .td-performance-stats>div{border:1px solid #deebfa!important;border-radius:11px!important;background:linear-gradient(135deg,#fff,#f7fbff)!important;padding:10px!important;min-width:0!important}
+#view-tareas .td-performance-stats b{display:block!important;font-size:22px!important;line-height:1.15!important;color:#102e5c!important;letter-spacing:-.04em!important}
+#view-tareas .td-performance-stats small{display:block!important;font-size:9px!important;color:#5c79a3!important;margin-top:4px!important}
+#view-tareas .td-performance-stats em{display:block!important;font-style:normal!important;font-size:9px!important;color:#0eaa7d!important;margin-top:6px!important}
+#view-tareas #td-period{margin-left:auto!important;width:120px!important;min-width:100px!important;font-size:10px!important;padding:7px!important;border:1px solid #dce8f8!important;border-radius:9px!important}
+#view-tareas .td-week-chart{padding:5px 13px 8px!important;min-height:140px!important}
+#view-tareas .td-week-bars{display:flex!important;align-items:flex-end!important;justify-content:space-around!important;gap:8px!important;height:115px!important;border-bottom:1px solid #dce8f8!important;background:repeating-linear-gradient(to top,transparent 0,transparent 27px,#e8eff9 28px,#e8eff9 29px)!important}
+#view-tareas .td-week-column{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:4px!important;height:100%!important;min-width:0!important;flex:1!important}
+#view-tareas .td-week-column>i,#view-tareas .td-week-column>span{display:block!important;width:9px!important;border-radius:3px 3px 0 0!important;background:#10b981!important}
+#view-tareas .td-week-column>i{background:#10b981!important}
+#view-tareas .td-week-column>span{background:#ff4d68!important}
+#view-tareas .td-chart-legend{display:flex!important;justify-content:center!important;gap:13px!important;padding:0 12px 12px!important;color:#6882a8!important;font-size:9px!important}
+#view-tareas .td-user-performance{padding:0 14px 12px!important}
+#view-tareas .td-user-row{display:grid!important;grid-template-columns:24px minmax(0,1fr) minmax(50px,.9fr) 30px!important;align-items:center!important;gap:7px!important;padding:6px 0!important;font-size:10px!important;color:#23436f!important}
+#view-tareas .td-user-row>span:first-child{width:24px!important;height:24px!important;display:grid!important;place-items:center!important;border-radius:50%!important;background:#e4efff!important;color:#2264bc!important;font-weight:800!important}
+#view-tareas .td-user-bar{height:8px!important;border-radius:99px!important;background:#e8eff8!important;overflow:hidden!important}
+#view-tareas .td-user-bar i{display:block!important;height:100%!important;border-radius:99px!important;background:linear-gradient(90deg,#21c6ba,#0bb8ac)!important}
+#view-tareas .td-empty{padding:14px!important;color:#7890b3!important;font-size:11px!important}
+@media(max-width:1250px){#view-tareas .td-metrics-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}#view-tareas .td-main-grid{grid-template-columns:minmax(0,1.4fr) minmax(260px,.8fr)!important}#view-tareas .td-bottom-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#view-tareas .td-user-panel{grid-column:1/-1!important}}
+@media(max-width:900px){#view-tareas.task-dashboard-redesign{padding:14px!important}#view-tareas .td-heading-row{align-items:flex-start!important;flex-direction:column!important}#view-tareas .td-main-grid{grid-template-columns:1fr!important}#view-tareas .td-side-column{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:auto!important}}
+@media(max-width:640px){#view-tareas .td-metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#view-tareas .td-bottom-grid,#view-tareas .td-side-column{grid-template-columns:1fr!important}#view-tareas .td-performance-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}#view-tareas .td-heading-actions{width:100%!important}#view-tareas .td-date-chip{margin-left:auto!important}#view-tareas .td-list-controls{flex-wrap:wrap!important}#view-tareas .td-list-controls select{width:100%!important}#view-tareas .td-tabs .task-workspace-tab{padding:10px!important}#view-tareas .td-task-table{min-width:700px!important}}
+@media(prefers-reduced-motion:reduce){#view-tareas *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
