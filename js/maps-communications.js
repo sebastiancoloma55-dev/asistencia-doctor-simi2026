@@ -1,7 +1,19 @@
         // ============================================================
         // MAPA, SUCURSALES, CORREOS, COBERTURAS Y GEMINI
         // ============================================================
-        async function obtenerSucursalesConfig() { const {data,error}=await _supabase.from('sucursales').select('*').order('nombre'); if(error)throw error; return data||[]; }
+        async function obtenerSucursalesConfig() {
+            try {
+                const {data,error}=await _supabase.from('sucursales').select('*').order('nombre');
+                if(error)throw error;
+                const rows=data||[];
+                if(rows.length)window.sucursalesConfiguracionGlobal=rows;
+                return rows;
+            } catch(error) {
+                const cached=Array.isArray(window.sucursalesConfiguracionGlobal)?window.sucursalesConfiguracionGlobal:[];
+                if(cached.length)return cached;
+                throw error;
+            }
+        }
         function direccionSucursal(x){return [x.direccion,x.comuna,'Chile'].filter(Boolean).join(', ');}
         function calcularDiasDotacion(){
             const inicio=document.getElementById('dot-inicio')?.value,fin=document.getElementById('dot-fin')?.value,host=document.getElementById('dot-dias');
