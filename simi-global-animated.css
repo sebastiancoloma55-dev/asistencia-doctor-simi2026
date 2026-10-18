@@ -256,3 +256,233 @@ body>#login-overlay{position:fixed!important;z-index:150!important}
 @media(prefers-reduced-motion:reduce){
  body::after,#login-overlay .nova-v3-intro:before,#login-overlay .nova-v3-orb{animation:none!important}
 }
+
+/* FINAL REFERENCE MATCH: pharmacy/mascot background must remain visible behind the full app */
+body.bg-slate-50{
+  background:transparent!important;
+}
+body::before{
+  content:"";position:fixed!important;inset:0!important;z-index:0!important;pointer-events:none!important;
+  opacity:1!important;
+  background:
+    linear-gradient(112deg,rgba(2,20,49,.62) 0%,rgba(3,45,99,.42) 44%,rgba(3,18,47,.58) 100%),
+    url('/doctor-simi-pharmacy-reference.webp') center center / cover no-repeat,
+    url('/doctor-simi-pharmacy-hero.svg') center center / cover no-repeat,
+    linear-gradient(135deg,#041d46,#0878d5)!important;
+  animation:simi-background-glow 16s ease-in-out infinite alternate!important;
+}
+@keyframes simi-background-glow{
+  from{filter:saturate(1.05) brightness(.96)}
+  to{filter:saturate(1.28) brightness(1.08)}
+}
+body::after{
+  content:"";position:fixed!important;inset:-4%!important;z-index:0!important;pointer-events:none!important;
+  opacity:.30!important;
+  background:
+    radial-gradient(circle at 14% 24%,rgba(26,222,255,.8) 0 1px,transparent 3px),
+    radial-gradient(circle at 68% 12%,rgba(26,222,255,.7) 0 2px,transparent 4px),
+    radial-gradient(circle at 76% 72%,rgba(112,88,255,.8) 0 2px,transparent 4px),
+    radial-gradient(circle at 38% 83%,rgba(26,222,255,.65) 0 1px,transparent 3px);
+  background-size:170px 170px,230px 230px,280px 280px,210px 210px!important;
+  animation:simi-particle-drift 35s linear infinite!important;
+}
+@keyframes simi-particle-drift{
+  from{transform:translate3d(0,0,0)}
+  to{transform:translate3d(2%,-1.5%,0)}
+}
+/* The app itself sits above the fixed animated background; cards remain readable. */
+body>*{position:relative;z-index:1}
+body>#login-overlay{position:fixed!important;z-index:150!important}
+body>.flex.h-screen.overflow-hidden{
+  background:transparent!important;isolation:isolate;
+}
+body>.flex.h-screen.overflow-hidden>main{
+  background:rgba(235,247,255,.78)!important;
+  backdrop-filter:blur(2px) saturate(120%);
+}
+body>.flex.h-screen.overflow-hidden>main>header{
+  background:rgba(247,252,255,.88)!important;
+  backdrop-filter:blur(16px) saturate(140%)!important;
+}
+body>.flex.h-screen.overflow-hidden>main>#quick-module-bar,
+body>.flex.h-screen.overflow-hidden>main>[id^="view-"]{
+  background:transparent!important;
+}
+#sidebar{
+  background:linear-gradient(180deg,rgba(4,51,105,.98),rgba(2,34,77,.98))!important;
+  border-right:1px solid rgba(35,217,255,.65)!important;
+}
+#sidebar>div:first-child{
+  background:linear-gradient(120deg,rgba(0,174,255,.24),rgba(15,63,123,.30))!important;
+}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{
+  background:linear-gradient(100deg,rgba(0,188,255,.34),rgba(68,64,255,.30))!important;
+  box-shadow:inset 3px 0 #27ddff,0 0 24px rgba(0,175,255,.17)!important;
+}
+#sidebar .sidebar-credit{
+  background:linear-gradient(110deg,rgba(0,174,255,.23),rgba(88,79,255,.18))!important;
+  border-color:rgba(43,216,255,.5)!important;
+}
+/* Login: match the supplied reference composition and keep original sign-in handlers. */
+#login-overlay.nova-v3-overlay:not(.hidden){
+  min-height:100dvh!important;height:auto!important;overflow-y:auto!important;
+  display:flex!important;flex-direction:column!important;justify-content:center!important;
+  padding:clamp(18px,2.4vw,38px)!important;
+  background:
+    linear-gradient(110deg,rgba(0,35,91,.22),rgba(0,28,76,.12) 45%,rgba(0,20,56,.28)),
+    url('/doctor-simi-pharmacy-reference.webp') center center / cover no-repeat,
+    url('/doctor-simi-pharmacy-hero.svg') center center / cover no-repeat,
+    linear-gradient(120deg,#0266c8,#031a42)!important;
+}
+#login-overlay .nova-v3-atmosphere{z-index:0!important;opacity:.45!important}
+#login-overlay .nova-v3-grid{
+  opacity:.10!important;
+  background-image:linear-gradient(rgba(83,220,255,.28) 1px,transparent 1px),linear-gradient(90deg,rgba(83,220,255,.28) 1px,transparent 1px)!important;
+  mask-image:linear-gradient(100deg,#000,transparent 70%)!important;
+}
+#login-overlay .nova-v3-topbar{
+  width:min(1480px,100%)!important;padding:0 clamp(0px,1.2vw,18px)!important;
+  margin:0 auto 16px!important;z-index:2!important;
+}
+#login-overlay .nova-v3-brand{gap:14px!important;align-items:center!important}
+#login-overlay .nova-v3-brand-image{
+  width:74px!important;height:74px!important;border-radius:18px!important;
+  background:rgba(255,255,255,.94)!important;border:2px solid rgba(99,220,255,.8)!important;
+  box-shadow:0 0 30px rgba(0,180,255,.38)!important;
+}
+#login-overlay .nova-v3-brand-copy strong{
+  font-size:clamp(22px,2.3vw,34px)!important;line-height:1.02!important;
+  letter-spacing:-.035em!important;text-transform:none!important;color:#fff!important;
+}
+#login-overlay .nova-v3-brand-copy small{font-size:16px!important;color:#e2f3ff!important;margin-top:4px!important}
+#login-overlay .nova-v3-top-status{
+  max-width:fit-content!important;padding:10px 18px!important;border-radius:14px!important;
+  color:#ccecff!important;background:rgba(1,31,77,.42)!important;
+  border:1px solid rgba(91,213,255,.38)!important;backdrop-filter:blur(12px)!important;
+}
+#login-overlay .nova-v3-main{
+  width:min(1480px,100%)!important;margin:0 auto!important;
+  grid-template-columns:minmax(0,1.05fr) minmax(430px,.82fr)!important;
+  gap:clamp(24px,3.8vw,58px)!important;padding:0 clamp(0px,1.2vw,18px)!important;
+  align-items:stretch!important;z-index:2!important;
+}
+#login-overlay .nova-v3-intro{
+  min-height:clamp(620px,78vh,850px)!important;align-self:stretch!important;
+  padding:clamp(28px,3.2vw,52px)!important;overflow:hidden!important;
+  border:1px solid rgba(79,218,255,.72)!important;border-radius:24px!important;
+  background:
+    linear-gradient(105deg,rgba(1,32,82,.60),rgba(0,45,103,.38) 58%,rgba(0,29,74,.25)),
+    url('/doctor-simi-pharmacy-reference.webp') center center / cover no-repeat,
+    url('/doctor-simi-pharmacy-hero.svg') center center / cover no-repeat!important;
+  box-shadow:0 22px 80px rgba(0,12,39,.30),inset 0 1px rgba(255,255,255,.18)!important;
+  backdrop-filter:blur(5px)!important;
+}
+#login-overlay .nova-v3-intro:before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;z-index:0;
+  background:linear-gradient(115deg,rgba(0,137,255,.12),transparent 55%,rgba(0,207,255,.08));
+  animation:simi-login-sheen 10s ease-in-out infinite alternate!important;
+}
+#login-overlay .nova-v3-intro>*{position:relative;z-index:1}
+#login-overlay .nova-v3-kicker{color:#a4efff!important;font-size:10px!important;letter-spacing:.17em!important}
+#login-overlay .nova-v3-kicker-line{background:#27e2ff!important;box-shadow:0 0 15px #27e2ff!important}
+#login-overlay .nova-v3-intro h1{
+  margin:30px 0 20px!important;font-size:clamp(42px,4.25vw,68px)!important;
+  line-height:.99!important;letter-spacing:-.06em!important;color:#fff!important;
+  text-shadow:0 5px 28px rgba(0,15,46,.40)!important;
+}
+#login-overlay .nova-v3-intro h1 em{color:#36e4ff!important;font-style:normal!important}
+#login-overlay .nova-v3-description{color:#e1f3ff!important}
+#login-overlay .nova-v3-feature-list{
+  display:flex!important;flex-direction:column!important;gap:12px!important;
+  width:min(410px,100%)!important;margin-top:28px!important;
+}
+#login-overlay .nova-v3-feature{
+  display:flex!important;align-items:center!important;gap:14px!important;
+  min-height:65px!important;padding:9px 13px!important;border-radius:15px!important;
+  background:linear-gradient(105deg,rgba(3,38,88,.74),rgba(4,53,111,.44))!important;
+  border:1px solid rgba(115,214,255,.38)!important;
+  box-shadow:0 8px 24px rgba(0,12,45,.14),inset 0 1px rgba(255,255,255,.10)!important;
+  backdrop-filter:blur(12px)!important;
+}
+#login-overlay .nova-v3-feature>span:last-child{display:flex;flex-direction:column;gap:4px}
+#login-overlay .nova-v3-feature b{font-size:16px!important;color:#fff!important}
+#login-overlay .nova-v3-feature small{font-size:13px!important;color:#d2eaff!important}
+#login-overlay .nova-v3-feature-icon{
+  display:grid!important;place-items:center!important;flex:0 0 50px!important;width:50px!important;height:50px!important;
+  border-radius:12px!important;color:#fff!important;border:1px solid rgba(255,255,255,.15)!important;
+  box-shadow:0 0 20px rgba(0,154,255,.15)!important;
+}
+#login-overlay .nova-v3-feature-icon svg{width:25px!important;height:25px!important}
+#login-overlay .feature-blue{background:linear-gradient(135deg,#0067ff,#05baff)!important}
+#login-overlay .feature-pink{background:linear-gradient(135deg,#e52b91,#fa5d9c)!important}
+#login-overlay .feature-cyan{background:linear-gradient(135deg,#009caa,#20d6c5)!important}
+#login-overlay .feature-violet{background:linear-gradient(135deg,#5428ed,#8c56ff)!important}
+#login-overlay .feature-green{background:linear-gradient(135deg,#008b81,#17d6a3)!important}
+#login-overlay .nova-v3-bottom-note{
+  margin-top:18px!important;padding:14px!important;border-color:rgba(91,207,255,.35)!important;
+  background:rgba(1,27,68,.65)!important;color:#fff!important;backdrop-filter:blur(12px)!important;
+}
+#login-overlay .nova-v3-bottom-note small{color:#c4e2ff!important}
+#login-overlay .nova-v3-bottom-icon{background:rgba(0,181,255,.20)!important;color:#54e6ff!important}
+#login-overlay .nova-v3-auth{
+  width:100%!important;max-width:570px!important;justify-self:end!important;align-self:stretch!important;
+  min-height:clamp(620px,78vh,850px)!important;padding:clamp(28px,3.3vw,50px)!important;
+  border:1px solid rgba(56,211,255,.9)!important;border-radius:30px!important;
+  background:linear-gradient(145deg,rgba(2,34,81,.94),rgba(1,20,55,.96))!important;
+  box-shadow:0 28px 95px rgba(0,8,34,.48),inset 0 1px rgba(255,255,255,.14)!important;
+  backdrop-filter:blur(24px)!important;
+}
+#login-overlay .nova-v3-auth-symbol{
+  width:48px!important;height:48px!important;border-radius:15px!important;
+  color:#fff!important;background:linear-gradient(135deg,#087cff,#00d6ff)!important;
+  box-shadow:0 0 26px rgba(0,173,255,.35)!important;
+}
+#login-overlay .nova-v3-auth-heading{margin:30px 0 28px!important}
+#login-overlay .nova-v3-auth-heading>span{color:#54e6ff!important}
+#login-overlay .nova-v3-auth-heading h2{font-size:clamp(32px,3vw,44px)!important;color:#fff!important}
+#login-overlay .nova-v3-auth-heading p{color:#c5dff9!important}
+#login-overlay .nova-v3-field label{color:#dcecff!important}
+#login-overlay .nova-v3-input-wrap{
+  min-height:58px!important;border-radius:14px!important;
+  background:rgba(0,17,47,.58)!important;border:1px solid rgba(70,180,255,.62)!important;
+}
+#login-overlay .nova-v3-input-wrap input{color:#fff!important}
+#login-overlay .nova-v3-input-wrap input::placeholder{color:#a6c5e9!important}
+#login-overlay .nova-v3-input-wrap>i{color:#9dcfff!important}
+#login-overlay .nova-v3-submit{
+  min-height:64px!important;border-radius:15px!important;
+  background:linear-gradient(100deg,#007cff,#034bff 65%,#00b9ff)!important;
+  border:1px solid rgba(97,228,255,.85)!important;
+  box-shadow:0 12px 32px rgba(0,106,255,.34),inset 0 1px rgba(255,255,255,.25)!important;
+}
+#login-overlay .nova-v3-forgot{color:#3ce3ff!important}
+#login-overlay .nova-v3-auth-foot{border-top-color:rgba(99,193,255,.27)!important}
+#login-overlay .nova-v3-auth-foot small{color:#b9d9f6!important}
+#login-overlay .nova-v3-live{color:#72f5d1!important}
+@media(max-width:900px){
+  #login-overlay.nova-v3-overlay:not(.hidden){justify-content:flex-start!important}
+  #login-overlay .nova-v3-main{grid-template-columns:1fr!important;max-width:690px!important}
+  #login-overlay .nova-v3-intro,#login-overlay .nova-v3-auth{min-height:auto!important}
+  #login-overlay .nova-v3-intro{padding:28px!important}
+  #login-overlay .nova-v3-feature-list{display:grid!important;grid-template-columns:1fr 1fr!important;width:100%!important}
+  #login-overlay .nova-v3-feature{min-height:60px!important}
+}
+@media(max-width:560px){
+  #login-overlay.nova-v3-overlay:not(.hidden){padding:12px!important}
+  #login-overlay .nova-v3-topbar{margin-bottom:12px!important}
+  #login-overlay .nova-v3-brand-image{width:52px!important;height:52px!important}
+  #login-overlay .nova-v3-brand-copy strong{font-size:20px!important}
+  #login-overlay .nova-v3-brand-copy small{font-size:12px!important}
+  #login-overlay .nova-v3-top-status{display:none!important}
+  #login-overlay .nova-v3-main{padding:0!important;gap:14px!important}
+  #login-overlay .nova-v3-intro{padding:22px!important;border-radius:20px!important}
+  #login-overlay .nova-v3-intro h1{font-size:42px!important;margin:22px 0 16px!important}
+  #login-overlay .nova-v3-feature-list{grid-template-columns:1fr!important;gap:8px!important;margin-top:18px!important}
+  #login-overlay .nova-v3-feature{min-height:56px!important}
+  #login-overlay .nova-v3-feature-icon{width:42px!important;height:42px!important;flex-basis:42px!important}
+  #login-overlay .nova-v3-auth{padding:24px!important;border-radius:22px!important}
+  #login-overlay .nova-v3-footer{flex-wrap:wrap!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body::before,body::after,#login-overlay .nova-v3-intro:before{animation:none!important}
+}
