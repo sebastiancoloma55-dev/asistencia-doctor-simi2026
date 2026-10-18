@@ -34,16 +34,16 @@ window.toggleNuevaNotaEspacio=toggleNuevaNotaEspacio;
 function metrics(){
  var active=state.notes.filter(function(n){return n.estado==="ACTIVA";}).length;
  var pinned=state.notes.filter(function(n){return n.fijada&&n.estado==="ACTIVA";}).length;
- var overdue=state.notes.filter(function(n){return n.estado==="ACTIVA"&&n.vence_en&&new Date(n.vence_en)<new Date();}).length;
+ var now=new Date();var horizon=new Date(now.getTime()+7*86400000);var overdue=state.notes.filter(function(n){var d=n.vence_en?new Date(n.vence_en):null;return n.estado==="ACTIVA"&&d&&d>=now&&d<=horizon;}).length;
  var week=Date.now()-7*86400000;
  var logsWeek=state.logs.filter(function(l){return new Date(l.ocurrio_en).getTime()>=week;}).length;
  var activeValue=state.notesError?"Error":active;
- var pinnedValue=state.notesError?"Error":pinned;
+ var pendingTasks=document.getElementById("tk-pendiente");var taskValue=pendingTasks?pendingTasks.textContent.trim():"—";
  var overdueValue=state.notesError?"Error":overdue;
  var logsValue=state.logsError?"Error":logsWeek;
  renderRecentActivity();\n var box=$("space-metrics");
  if(box){
-  var vals=[["Notas activas",activeValue,"sticky-note","teal"],["Fijadas",pinnedValue,"pin","violet"],["Por revisar",overdueValue,"clock-alert","amber"],["Gestiones · 7 días",logsValue,"clock-arrow-down","blue"]];
+  var vals=[["Notas activas",activeValue,"sticky-note","teal"],["Tareas pendientes",taskValue,"clipboard-check","violet"],["Próximos vencimientos",overdueValue,"calendar-days","amber"],["Gestiones recientes",logsValue,"clock-arrow-down","blue"]];
   box.innerHTML=vals.map(function(x){return '<div class="space-metric space-metric-'+x[3]+'"><span class="space-metric-icon"><i data-lucide="'+x[2]+'"></i></span><span class="space-metric-copy"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></span></div>';}).join("");
  }
  var dash=$("dashboard-space-summary");
