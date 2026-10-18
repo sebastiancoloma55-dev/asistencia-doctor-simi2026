@@ -805,8 +805,8 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
     <link rel="stylesheet" href="/css/production-base-visual-refresh.css">
     <link rel="stylesheet" href="/css/colaboradores-reference.css?v=20261018b">
     <link rel="stylesheet" href="/css/tareas-diarias-reference.css?v=20261018">
-    <link rel="stylesheet" href="/css/modulos-referencia-exacta.css?v=20261018b">
-    <link rel="stylesheet" href="/css/modulos-referencia-integral.css?v=20261018d">
+    <link rel="stylesheet" href="/css/modulos-referencia-exacta.css?v=20261018c">
+    <link rel="stylesheet" href="/css/modulos-referencia-integral.css?v=20261018e">
 
 <style id="simi-sidebar-assistant-refinement-20261018">
 /* Navegación lateral renovada: jerarquía clara, legible y consistente con Doctor Simi */
@@ -3740,5 +3740,42 @@ hr{border-color:#e8edf3}
 </style>
 
 <script src="/js/reference-module-enhancer.js?v=20261018l" defer></script>
+
+<style id="simi-final-layout-overrides-20261018">
+/* Aplicar después de las hojas heredadas para evitar que estilos antiguos anulen el rediseño */
+#sidebar{width:264px!important;max-width:86vw!important;min-width:0!important;background:linear-gradient(180deg,#082f61 0%,#073a79 52%,#052c59 100%)!important;border-right:1px solid rgba(25,168,165,.34)!important;box-shadow:8px 0 32px rgba(6,35,72,.13)!important;color:#f7fbff!important;transition:width .2s ease,transform .2s ease}
+#sidebar>div:first-child{min-height:82px!important;padding:13px 13px!important;background:linear-gradient(135deg,rgba(25,168,165,.2),rgba(255,255,255,.035))!important;border-bottom:1px solid rgba(255,255,255,.12)!important}
+#sidebar>div:first-child img{border-radius:12px!important;box-shadow:0 4px 15px rgba(0,0,0,.18)!important}
+#sidebar h1{font-size:13px!important;letter-spacing:.045em!important;font-weight:900!important}
+#sidebar nav{padding:10px 9px 16px!important;scrollbar-width:thin!important;scrollbar-color:rgba(25,168,165,.48) transparent!important;visibility:visible!important}
+#sidebar .menu-btn{min-height:39px!important;display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;padding:9px 11px!important;margin:2px 0!important;border:1px solid transparent!important;border-radius:10px!important;color:#d5e4f2!important;font-size:11px!important;font-weight:650!important;line-height:1.25!important;box-shadow:none!important;transform:none!important;transition:background .16s,border-color .16s,color .16s!important}
+#sidebar .menu-btn>svg{width:17px!important;height:17px!important;flex:0 0 17px!important;opacity:.94!important;color:#a7c6dd!important}
+#sidebar .menu-btn:hover:not(.active){background:rgba(255,255,255,.075)!important;border-color:rgba(255,255,255,.09)!important;color:#fff!important}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{background:linear-gradient(100deg,rgba(25,168,165,.28),rgba(25,168,165,.11))!important;border-color:rgba(25,168,165,.72)!important;color:#fff!important;box-shadow:inset 3px 0 #19a8a5!important;font-weight:850!important}
+#sidebar .menu-btn.active>svg,#sidebar .menu-btn[aria-current="page"]>svg{color:#5ce0d5!important;opacity:1!important}
+#sidebar .nova-nav-divider{margin:13px 7px 6px!important;padding:10px 7px 4px!important;border-top:1px solid rgba(255,255,255,.13)!important;color:#8fc3dc!important;font-size:9px!important;letter-spacing:.15em!important;font-weight:900!important}
+#sidebar .sidebar-credit{margin:8px 9px 12px!important;padding:9px!important;border:1px solid rgba(25,168,165,.35)!important;border-radius:12px!important;background:linear-gradient(120deg,rgba(25,168,165,.17),rgba(255,255,255,.035))!important}
+#sidebar.sidebar-collapsed{width:74px!important}
+#sidebar.sidebar-collapsed>div:first-child{padding:12px 7px!important;justify-content:center!important}
+#sidebar.sidebar-collapsed>div:first-child h1,#sidebar.sidebar-collapsed>div:first-child p,#sidebar.sidebar-collapsed>div:first-child .sidebar-brand-text,#sidebar.sidebar-collapsed .menu-btn span,#sidebar.sidebar-collapsed .nova-nav-divider,#sidebar.sidebar-collapsed .sidebar-credit-copy{display:none!important}
+#sidebar.sidebar-collapsed .menu-btn{justify-content:center!important;padding:11px 6px!important}
+#sidebar.sidebar-collapsed .sidebar-credit{justify-content:center!important;padding:8px!important}
+main>header{position:sticky!important;top:0!important;z-index:80!important;display:flex!important;align-items:center!important;gap:10px!important;min-height:64px!important;padding:9px 18px!important;background:rgba(255,255,255,.97)!important;border-bottom:1px solid #dce8f4!important;box-shadow:0 5px 18px rgba(8,47,85,.055)!important;backdrop-filter:blur(14px)!important}
+main>header #header-title{flex:1!important;min-width:90px!important;margin:0!important;color:#0a315c!important;font-size:16px!important;font-weight:900!important;letter-spacing:-.025em!important}
+main>header .topbar-quick-action{display:none!important}
+#quick-module-bar{display:none!important}
+main>header #topbar-notification-button{width:39px!important;height:39px!important;border:1px solid #cfe4f2!important;border-radius:11px!important;background:#eff9fc!important;color:#087f92!important;box-shadow:none!important}
+main>header .topbar-search{min-height:39px!important;border:1px solid #d6e4f2!important;border-radius:10px!important;background:#f8fbff!important;color:#345a7b!important;box-shadow:none!important}
+main>header #btn-theme-settings{min-height:39px!important;border:1px solid #d6e4f2!important;border-radius:10px!important;background:#fff!important;color:#12385f!important;padding:8px 11px!important}
+main>header #btn-cerrar-sesiones-global{min-height:39px!important;border-radius:10px!important}
+main>header button[onclick*="cerrarSesion()"]{padding:8px!important;border-radius:9px!important;color:#087f92!important;font-weight:850!important}
+#simi-context-assistant{position:fixed!important;z-index:1000!important;width:52px!important;height:52px!important;margin:0!important;touch-action:none!important}
+#simi-context-toggle{width:52px!important;height:52px!important;min-width:52px!important;padding:0!important;display:grid!important;place-items:center!important;gap:0!important;border:1px solid rgba(255,255,255,.85)!important;border-radius:50%!important;background:linear-gradient(145deg,#19a8a5,#087f92 72%)!important;color:#fff!important;box-shadow:0 8px 24px rgba(7,59,112,.28),inset 0 1px rgba(255,255,255,.3)!important;cursor:grab!important;touch-action:none!important;user-select:none!important}
+#simi-context-toggle span{display:none!important}
+#simi-context-toggle svg{width:22px!important;height:22px!important;margin:0!important}
+#simi-context-popover{position:absolute!important;right:0!important;bottom:64px!important;width:min(350px,calc(100vw - 28px))!important;max-height:min(70vh,540px)!important;overflow:auto!important;margin:0!important;border-radius:16px!important;box-shadow:0 18px 52px rgba(8,38,70,.24)!important}
+@media(max-width:1000px){main>header{gap:7px!important;padding:8px 12px!important}main>header #header-title{font-size:14px!important}main>header .topbar-user-email{display:none!important}}
+@media(max-width:640px){#sidebar{width:264px!important}#sidebar.sidebar-collapsed{width:0!important;min-width:0!important;border:0!important}main>header{min-height:56px!important;padding:7px 9px!important;gap:5px!important}main>header #header-title{min-width:64px!important;font-size:13px!important}main>header #btn-theme-settings{padding:7px!important}main>header #btn-cerrar-sesiones-global{display:none!important}main>header button[onclick*="cerrarSesion()"]{font-size:10px!important;padding:7px 4px!important}#simi-context-assistant{width:48px!important;height:48px!important}#simi-context-toggle{width:48px!important;height:48px!important;min-width:48px!important}#simi-context-popover{bottom:58px!important}}
+</style>
 </body>
 </html>
