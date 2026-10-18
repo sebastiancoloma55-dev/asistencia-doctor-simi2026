@@ -167,7 +167,7 @@
   }
 
   async function refrescarMensajesChatActivo() {
-    if(chatPollingBusy||!activeConversation||document.visibilityState!=="visible")return;
+    if(chatPollingBusy||!activeConversation||document.visibilityState!=="visible"||document.getElementById("view-chat")?.classList.contains("hidden"))return;
     chatPollingBusy=true;
     try{
       const conversationId=activeConversation;
@@ -393,13 +393,14 @@
       await currentUserId();
       const [collabResult,branchResult,permissionResult]=await Promise.all([
         _supabase.from("colaboradores").select("id,rut,nombres,apellidos,cargo,sucursal_id,sucursal,estado").order("apellidos").limit(3000),
-        _supabase.from("sucursales").select("id,nombre,activa").eq("activa",true).order("nombre").limit(1000),
+        _supabase.from("sucursales").select("id,nombre,activa,latitud,longitud,direccion,comuna,region").eq("activa",true).order("nombre").limit(1000),
         _supabase.rpc("usuario_tiene_permiso",{p_permiso:"traslados_aprobar"})
       ]);
       if(collabResult.error)throw collabResult.error;
       if(branchResult.error)throw branchResult.error;
       collaborators=(collabResult.data||[]).filter(c=>!c.estado||!["INACTIVO","INACTIVA","DESVINCULADO"].includes(String(c.estado).toUpperCase()));
       branches=branchResult.data||[];
+      window.__simiTransferBranches=branches;
       const {data:sessionData}=await _supabase.auth.getSession();
       canApproveTransfers=!!permissionResult.data||String(sessionData?.session?.user?.email||"").toLowerCase()==="scoloma@farmaciasdoctorsimi.cl";
       filtrarColaboradoresTraslado();
@@ -467,6 +468,8 @@
       const {data,error}=await _supabase.from("traslados_personal").select("id,colaborador_id,rut,colaborador_nombre,cargo,sucursal_origen_id,sucursal_origen_nombre,sucursal_destino_id,sucursal_destino_nombre,fecha_inicio,fecha_termino,indefinido,motivo,estado,aplicado_en,created_at,solicitado_por,revisado_por,tipo_movimiento,cobertura_id").order("created_at",{ascending:false}).limit(1000);
       if(error)throw error;
       const allRows=data||[];
+      window.__simiTransferRows=allRows;
+      window.actualizarVistaTrasladosReferencia?.(allRows);
       renderTransferCalendar(allRows);
       renderTransferStaffing(allRows);
       const filter=$("traslado-filtro-estado")?.value||"TODOS";
