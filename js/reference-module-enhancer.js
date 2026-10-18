@@ -79,16 +79,17 @@
     const wizard=document.createElement('div'); wizard.className='ref-user-wizard';
     wizard.innerHTML='<div class="ref-user-step is-done"><span>✓</span><div><b>Persona</b><small>Selecciona o crea el usuario</small></div></div><div class="ref-user-step is-active"><span>2</span><div><b>Rol y funciones</b><small>Define sus permisos</small></div></div><div class="ref-user-step"><span>3</span><div><b>Sucursales autorizadas</b><small>Indica el alcance</small></div></div><div class="ref-user-step"><span>4</span><div><b>Revisar y guardar</b><small>Confirma la configuración</small></div></div>';
     formCard.parentElement.insertBefore(wizard,formCard);
-    const addHeading=(selector,text)=>{
+    const addHeading=(selector,text,groupSelector)=>{
       const el=formCard.querySelector(selector);
-      if(el && !el.previousElementSibling?.classList.contains('ref-user-section-title')){
-        const h=document.createElement('div');h.className='ref-user-section-title';h.textContent=text;el.parentElement.insertBefore(h,el);
+      const group=groupSelector?formCard.querySelector(groupSelector):(el?.parentElement);
+      if(group && !group.previousElementSibling?.classList.contains('ref-user-section-title')){
+        const h=document.createElement('div');h.className='ref-user-section-title';h.textContent=text;group.parentElement.insertBefore(h,group);
       }
     };
     addHeading('#usr-email','1. Selecciona la persona');
-    addHeading('#usr-permisos','2. Elige los permisos incluidos en este perfil');
-    addHeading('#usr-supervisores','3. Define el alcance por sucursal y supervisor');
-    addHeading('#usr-puede-asignar','4. Revisa las capacidades adicionales');
+    addHeading('#usr-permisos','2. Elige los permisos incluidos en este perfil','.sm\\:col-span-3.space-y-3');
+    addHeading('#usr-supervisores','3. Define el alcance por sucursal y supervisor','.sm\\:col-span-3.grid.grid-cols-1');
+    addHeading('#usr-puede-asignar','4. Revisa las capacidades adicionales','.sm\\:col-span-3.grid.grid-cols-2');
     const select=section.querySelector('#usr-rol');
     if(select && !section.querySelector('.ref-role-cards')){
       const cards=document.createElement('div');cards.className='ref-role-cards';
