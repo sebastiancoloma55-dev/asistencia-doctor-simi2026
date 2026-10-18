@@ -327,8 +327,7 @@
             if (modal) return modal;
             modal = document.createElement('div');
             modal.id = 'modal-ficha-colaborador';
-            modal.classList.add('ref-employee-history-modal');
-            modal.className = 'hidden fixed inset-0 z-[120] items-center justify-center bg-slate-950/60 p-3 sm:p-6';
+            modal.className = 'hidden fixed inset-0 z-[120] items-center justify-center bg-slate-950/60 p-3 sm:p-6 ref-employee-history-modal';
             modal.setAttribute('role', 'dialog');
             modal.setAttribute('aria-modal', 'true');
             modal.setAttribute('aria-labelledby', 'ficha-colaborador-title');
