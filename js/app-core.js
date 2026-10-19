@@ -922,6 +922,16 @@
             }
         }
 
+        // Publicar explícitamente el manejador para que el formulario y otros scripts puedan invocarlo.
+        // El evento submit se enlaza directamente, evitando depender de atributos HTML inline.
+        window.iniciarSesion = iniciarSesion;
+        const formularioLogin = document.getElementById('form-login');
+        if (formularioLogin && formularioLogin.dataset.loginSubmitBound !== 'true') {
+            formularioLogin.dataset.loginSubmitBound = 'true';
+            formularioLogin.removeAttribute('onsubmit');
+            formularioLogin.addEventListener('submit', iniciarSesion);
+        }
+
         async function cerrarSesion() {
             const { error } = await _supabase.auth.signOut();
 
