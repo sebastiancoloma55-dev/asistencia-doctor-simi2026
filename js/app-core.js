@@ -594,6 +594,64 @@
             }
         }
 
+        let canalRecargaGlobalRRHH = null;
+        let recargaGlobalEnCursoRRHH = false;
+
+        async function iniciarEscuchaRecargaGlobal(){
+            if(canalRecargaGlobalRRHH){
+                try{await _supabase.removeChannel(canalRecargaGlobalRRHH);}catch(_){}
+                canalRecargaGlobalRRHH=null;
+            }
+            canalRecargaGlobalRRHH=_supabase.channel('rrhh-recarga-global-v1',{config:{broadcast:{self:false}}})
+                .on('broadcast',{event:'recargar-paginas'},({payload})=>{
+                    if(!payload?.id || recargaGlobalEnCursoRRHH)return;
+                    recargaGlobalEnCursoRRHH=true;
+                    mostrarToast('El administrador solicitó actualizar la plataforma. Esta pestaña se recargará en 3 segundos…','warning',5000);
+                    setTimeout(()=>window.location.reload(),3000);
+                })
+                .subscribe((status)=>{
+                    if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
+                        console.warn('No se pudo mantener la escucha de recarga global:',status);
+                    }
+                });
+        }
+
+        async function solicitarRecargaGlobal(){
+            if(!esAdminPrincipalActual()){
+                mostrarToast('Solo el administrador principal puede recargar las páginas de todos.','warning');
+                return;
+            }
+            const confirmado=confirm('Esto recargará todas las pestañas abiertas de Asistencia Doctor Simi en los computadores conectados, incluida esta. Los formularios sin guardar podrían perderse. ¿Continuar?');
+            if(!confirmado)return;
+            const boton=document.getElementById('btn-recargar-paginas-global');
+            if(boton){boton.disabled=true;boton.classList.add('opacity-60');}
+            try{
+                const canal=canalRecargaGlobalRRHH||_supabase.channel('rrhh-recarga-global-v1',{config:{broadcast:{self:false}}});
+                if(!canalRecargaGlobalRRHH){
+                    canalRecargaGlobalRRHH=canal;
+                    await new Promise((resolve,reject)=>{
+                        const timeout=setTimeout(()=>reject(new Error('La conexión de control tardó demasiado. Intenta nuevamente.')),8000);
+                        canal.subscribe(status=>{
+                            if(status==='SUBSCRIBED'){clearTimeout(timeout);resolve();}
+                            if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){clearTimeout(timeout);reject(new Error('No se pudo conectar al canal de control en tiempo real.'));}
+                        });
+                    });
+                }
+                const {error}=await canalRecargaGlobalRRHH.send({
+                    type:'broadcast',
+                    event:'recargar-paginas',
+                    payload:{id:crypto.randomUUID(),solicitado_en:new Date().toISOString()}
+                });
+                if(error)throw error;
+                mostrarToast('Solicitud enviada. Las pestañas conectadas se actualizarán en unos segundos.','success',7000);
+                setTimeout(()=>window.location.reload(),3000);
+            }catch(error){
+                mostrarToast(error.message||'No se pudo enviar la recarga global.','error',8000);
+                if(boton){boton.disabled=false;boton.classList.remove('opacity-60');}
+            }
+        }
+        window.solicitarRecargaGlobal=solicitarRecargaGlobal;
+
         function actualizarBienvenidaUsuario(user){
             const perfil=typeof perfilActualSistema!=='undefined'&&perfilActualSistema?perfilActualSistema:{};
             const meta=user?.user_metadata||{};
@@ -656,6 +714,7 @@
                         if (window.cargarResumenEspacioDashboard) await window.cargarResumenEspacioDashboard();
                         await actualizarContadorNotificacionesTopbar();
                         iniciarVigilanciaSesionGlobal(false);
+                        await iniciarEscuchaRecargaGlobal();
                     }catch(perfilError){
                         await _supabase.auth.signOut();
                         perfilActualSistema=null;modulosPermitidosActuales=[];
@@ -743,6 +802,7 @@
                 if (window.cargarResumenEspacioDashboard) await window.cargarResumenEspacioDashboard();
                 await actualizarContadorNotificacionesTopbar();
                 iniciarVigilanciaSesionGlobal(true);
+                await iniciarEscuchaRecargaGlobal();
             } catch (error) {
                 try { await _supabase.auth.signOut(); } catch (_) {}
                 perfilActualSistema = null;
