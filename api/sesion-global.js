@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     return fail(res, 405, 'Método no permitido.');
   }
 
-  const token = String(req.headers.authorization || '').replace(/^Bearer\\s+/i, '').trim();
+  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
   if (!token) return fail(res, 401, 'Sesión requerida.');
 
   // All project URLs and keys come from server environment variables; never embed keys in source.
