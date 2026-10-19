@@ -53,7 +53,7 @@ using (
   public.usuario_tiene_alguno_permiso(array['licencias','reportes']::text[])
   and (
     public.usuario_es_admin_principal_2026()
-    or lower(btrim(sucursal)) = any ((select private.usuario_sucursales_visibles()))
+    or lower(btrim(sucursal)) = any (coalesce((select private.usuario_sucursales_visibles()), array[]::text[]))
   )
 );
 
@@ -72,7 +72,7 @@ with check (
   public.usuario_tiene_alguno_permiso(array['licencias']::text[])
   and (
     public.usuario_es_admin_principal_2026()
-    or lower(btrim(sucursal)) = any ((select private.usuario_sucursales_visibles()))
+    or lower(btrim(sucursal)) = any (coalesce((select private.usuario_sucursales_visibles()), array[]::text[]))
   )
 );
 
@@ -83,14 +83,14 @@ using (
   public.usuario_tiene_alguno_permiso(array['licencias']::text[])
   and (
     public.usuario_es_admin_principal_2026()
-    or lower(btrim(sucursal)) = any ((select private.usuario_sucursales_visibles()))
+    or lower(btrim(sucursal)) = any (coalesce((select private.usuario_sucursales_visibles()), array[]::text[]))
   )
 )
 with check (
   public.usuario_tiene_alguno_permiso(array['licencias']::text[])
   and (
     public.usuario_es_admin_principal_2026()
-    or lower(btrim(sucursal)) = any ((select private.usuario_sucursales_visibles()))
+    or lower(btrim(sucursal)) = any (coalesce((select private.usuario_sucursales_visibles()), array[]::text[]))
   )
 );
 
@@ -101,7 +101,7 @@ using (
   public.usuario_tiene_alguno_permiso(array['licencias']::text[])
   and (
     public.usuario_es_admin_principal_2026()
-    or lower(btrim(sucursal)) = any ((select private.usuario_sucursales_visibles()))
+    or lower(btrim(sucursal)) = any (coalesce((select private.usuario_sucursales_visibles()), array[]::text[]))
   )
 );
 
