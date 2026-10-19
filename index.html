@@ -990,6 +990,50 @@ main>header:has(#header-title){
 #theme-smart-actions button{min-height:42px!important;white-space:normal!important;line-height:1.25!important}
 #theme-settings-modal .theme-settings-card .theme-action-primary{background:var(--user-accent)!important;color:var(--user-accent-contrast)!important}
 </style>
+<style id="simi-requests-20261019-final">
+/* Ideas de diseño funcionales */
+#theme-ideas-panel:not(.hidden){display:grid!important}
+.theme-idea-card{min-width:0;padding:13px;border:1px solid var(--theme-border-color,#dce7f3);border-radius:15px;background:var(--theme-panel-bg,#fff);color:var(--theme-main-text,#16365c);box-shadow:0 5px 18px rgba(4,20,38,.08)}
+.theme-idea-card h3{margin:11px 0 4px;font-size:13px;font-weight:900;color:var(--theme-main-text,#16365c)}
+.theme-idea-card p{min-height:34px;margin:0 0 12px;font-size:11px;line-height:1.5;opacity:.78}
+.theme-idea-card>button{width:100%;padding:9px 10px;border:1px solid var(--user-accent,#19a8a5);border-radius:9px;background:var(--user-accent,#19a8a5);color:var(--user-accent-contrast,#fff);font-size:11px;font-weight:850}
+.theme-idea-preview{height:83px;display:flex;align-items:flex-end;gap:7px;padding:12px;border-radius:10px;overflow:hidden}.theme-idea-preview i{align-self:flex-start;margin-right:auto;width:22px;height:22px}.theme-idea-preview span{width:17%;height:25px;border-radius:5px 5px 2px 2px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.18)}.theme-idea-preview span:nth-of-type(2){height:42px}.theme-idea-preview span:nth-of-type(3){height:33px}
+.theme-idea-simi{background:linear-gradient(130deg,#071e33,#0e5361);color:#45e2d0}.theme-idea-aurora{background:linear-gradient(130deg,#102b2b,#176b52);color:#72efb8}.theme-idea-violet{background:linear-gradient(130deg,#17132e,#4b2d78);color:#d1c2ff}
+
+/* Login renovado con estética nocturna: eliminar tarjeta blanca y campos claros */
+#login-overlay.nova-v3-overlay{background:#06121b!important;color:#eaf5f7!important}
+.nova-v3-atmosphere{background:radial-gradient(ellipse at 20% 42%,rgba(0,191,166,.18),transparent 36%),radial-gradient(ellipse at 80% 55%,rgba(36,95,186,.20),transparent 40%),linear-gradient(135deg,#06121b 0%,#082735 48%,#06121b 100%)!important}
+.nova-v3-grid{opacity:.23!important;background-image:linear-gradient(rgba(108,222,210,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(108,222,210,.10) 1px,transparent 1px)!important}
+.nova-v3-auth{background:linear-gradient(145deg,rgba(10,32,45,.98),rgba(5,19,30,.98))!important;border:1px solid rgba(91,218,205,.32)!important;border-radius:28px!important;box-shadow:0 30px 100px rgba(0,0,0,.48),inset 0 1px rgba(255,255,255,.06),0 0 0 1px rgba(25,168,165,.06)!important;backdrop-filter:blur(26px)!important}
+.nova-v3-auth:after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(135deg,rgba(25,168,165,.07),transparent 45%,rgba(55,108,205,.07)}
+.nova-v3-auth>*{position:relative;z-index:1}.nova-v3-auth-symbol{background:linear-gradient(145deg,rgba(25,168,165,.22),rgba(25,168,165,.06))!important;border-color:rgba(73,224,208,.4)!important;color:#63e6d4!important}
+.nova-v3-auth-step,.nova-v3-auth-heading p{color:#9dbbc5!important}.nova-v3-auth-heading h2{color:#f3fbfc!important}
+.nova-v3-field label{color:#9ed2d5!important;letter-spacing:.14em!important}
+.nova-v3-input-wrap{background:#091d2b!important;border:1px solid #294b5a!important;border-radius:13px!important;box-shadow:inset 0 1px 5px rgba(0,0,0,.16)!important}
+.nova-v3-input-wrap:focus-within{border-color:#28c7b5!important;box-shadow:0 0 0 3px rgba(25,168,165,.15)!important}
+.nova-v3-input-wrap>input{background:transparent!important;color:#f0fbfc!important;caret-color:#5be3d2!important}.nova-v3-input-wrap>input::placeholder{color:#698996!important}
+.nova-v3-input-wrap>svg,.nova-v3-eye{color:#83b9c2!important}.nova-v3-eye:hover{color:#5be3d2!important}
+.nova-v3-form-meta,.nova-v3-form-meta label{color:#a3c1c8!important}.nova-v3-form-meta input[type=checkbox]{accent-color:#19c9b8!important}.nova-v3-forgot{color:#5be3d2!important}
+.nova-v3-submit{background:linear-gradient(100deg,#0d9c99,#19c9b8)!important;color:#031b24!important;border:1px solid rgba(113,255,231,.45)!important;box-shadow:0 12px 30px rgba(0,180,165,.2)!important}.nova-v3-submit:hover{filter:brightness(1.08)!important}
+.nova-v3-auth-foot{border-top-color:rgba(130,190,198,.18)!important}.nova-v3-lock{background:rgba(25,168,165,.09)!important;border-color:rgba(25,168,165,.3)!important;color:#5bdccc!important}.nova-v3-auth-foot b{color:#d9edef!important}.nova-v3-auth-foot small{color:#819faa!important}
+.nova-v3-error{background:#381a27!important;border:1px solid #8e3b51!important;color:#ffd9e2!important;border-radius:12px!important}.nova-v3-auth .text-slate-500,.nova-v3-auth .text-slate-600{color:#9dbbc5!important}
+.nova-v3-overlay .nova-v3-topbar{background:transparent!important;border:0!important}.nova-v3-brand,.nova-v3-brand *{color:#effbfc!important}.nova-v3-brand-image{background:rgba(12,38,50,.9)!important;border-color:rgba(95,221,208,.35)!important}.nova-v3-bottom-note{border-top-color:rgba(151,209,208,.2)!important}.nova-v3-float-tag{background:rgba(9,31,42,.9)!important;border-color:rgba(103,214,203,.25)!important}.nova-v3-footer{color:#78a2b1!important}
+@media(max-width:700px){.nova-v3-auth{background:linear-gradient(145deg,rgba(10,32,45,.99),rgba(5,19,30,.99))!important;border:1px solid rgba(91,218,205,.35)!important}}
+
+/* Barra superior con acciones en iconos; el mensaje personalizado queda visible */
+main>header .topbar-icon-action,main>header #btn-theme-settings,main>header .topbar-search,main>header #btn-recargar-paginas-global,main>header #btn-cerrar-sesiones-global{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 38px!important;width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important;padding:0!important;gap:0!important;border:1px solid #c5dce9!important;border-radius:11px!important;background:#f0f9fb!important;color:#087f92!important;box-shadow:none!important;font-size:0!important;line-height:0!important;transition:background .16s,border-color .16s,transform .16s!important}
+main>header .topbar-icon-action:hover,main>header #btn-theme-settings:hover,main>header .topbar-search:hover{background:#dff7f5!important;border-color:#19a8a5!important;transform:translateY(-1px)}
+main>header .topbar-icon-action svg,main>header #btn-theme-settings svg,main>header .topbar-search svg{display:block!important;width:17px!important;height:17px!important;min-width:17px!important;margin:0!important}
+main>header #btn-theme-settings .theme-button-label,main>header .topbar-search span,main>header .topbar-search kbd,main>header #btn-recargar-paginas-global span,main>header #btn-cerrar-sesiones-global span,main>header #modo-cafecito-label{display:none!important}
+main>header #btn-modo-cafecito{font-size:18px!important;line-height:1!important}main>header #btn-modo-cafecito span[aria-hidden=true]{display:inline!important;font-size:18px!important}
+main>header #topbar-custom-message{display:inline-flex!important;align-items:center!important;gap:7px!important;flex:0 1 auto!important;max-width:min(210px,20vw)!important;min-width:88px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:11px!important;line-height:1.2!important;padding:9px 10px!important;background:#e5fbfc!important;border:1px solid #a9e5e6!important;color:#07566b!important;border-radius:10px!important}
+main>header #topbar-custom-message-text{display:inline-block!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}main>header #topbar-custom-message-edit-icon{display:block!important;flex:0 0 12px!important}
+main>header #topbar-notification-button{flex:0 0 38px!important;width:38px!important;height:38px!important}main>header .topbar-user-email{max-width:155px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;font-size:10px!important}main>header .topbar-divider{display:none!important}
+main>header button[onclick*="cerrarSesion()"]{flex:0 0 38px!important;width:38px!important;height:38px!important;min-width:38px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:0!important;background:#fff1f2!important;border:1px solid #fecdd3!important;color:#be123c!important;font-size:0!important}
+main>header .topbar-quick-action{display:none!important}
+@media(max-width:900px){main>header{gap:6px!important;padding:8px 10px!important}main>header .topbar-user-email{display:none!important}main>header #topbar-custom-message{max-width:150px!important;min-width:70px!important}}
+@media(max-width:640px){main>header{gap:4px!important;padding:7px 8px!important}main>header #header-title{min-width:58px!important;max-width:25vw!important;font-size:12px!important}main>header .topbar-icon-action,main>header #btn-theme-settings,main>header .topbar-search,main>header #btn-recargar-paginas-global,main>header #btn-cerrar-sesiones-global,main>header #topbar-notification-button,main>header button[onclick*="cerrarSesion()"]{flex-basis:32px!important;width:32px!important;min-width:32px!important;height:32px!important;min-height:32px!important}main>header #topbar-custom-message{max-width:125px!important;min-width:60px!important;padding:7px 6px!important;font-size:10px!important}main>header #btn-modo-cafecito{display:inline-flex!important}}
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -1169,26 +1213,21 @@ main>header:has(#header-title){
                         <i data-lucide="bell-ring" class="h-5 w-5"></i><span id="topbar-notif-count" class="absolute -right-1 -top-1 hidden min-w-[18px] rounded-full bg-rose-600 px-1 text-center text-[10px] font-black leading-[18px] text-white">0</span>
                     </button>
                     <button type="button" id="topbar-custom-message" class="hidden sm:inline-flex items-center gap-2 rounded-lg border border-cyan-100 bg-cyan-50 px-2.5 py-2 text-xs font-extrabold text-cyan-800 transition hover:border-cyan-300 hover:bg-cyan-100" aria-label="Mensaje personalizable junto a las notificaciones" title="Mensaje junto a las notificaciones" onclick="editarMensajeTopbar()"><span id="topbar-custom-message-text">Chúpala meando</span><i id="topbar-custom-message-edit-icon" data-lucide="pencil" class="h-3 w-3 opacity-60"></i></button>
-                    <button type="button" id="btn-modo-cafecito" class="hidden sm:inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-xs font-extrabold text-amber-800 transition hover:-translate-y-0.5 hover:bg-amber-100" onclick="toggleModoCafecito()" title="Activar modo cafecito"><span aria-hidden="true">☕</span><span id="modo-cafecito-label">Cafecito</span></button>
-                    <button type="button" class="topbar-search hidden md:inline-flex" onclick="abrirBuscadorGlobal()" aria-label="Buscar módulos, Ctrl K" title="Buscar módulos (Ctrl+K)">
+                    <button type="button" id="btn-modo-cafecito" class="topbar-icon-action coffee-icon-action" onclick="toggleModoCafecito()" title="Activar modo cafecito" aria-label="Activar modo cafecito"><span aria-hidden="true">☕</span><span id="modo-cafecito-label">Cafecito</span></button>
+                    <button type="button" class="topbar-search topbar-icon-action" onclick="abrirBuscadorGlobal()" aria-label="Buscar módulos, Ctrl K" title="Buscar módulos (Ctrl+K)">
                         <i data-lucide="search" class="h-4 w-4"></i><span>Buscar módulo...</span><kbd>Ctrl K</kbd>
                     </button>
                     <span class="topbar-divider hidden sm:block"></span>
                     <span id="user-email-display" class="topbar-user-email hidden text-sm font-semibold text-slate-600 sm:inline">Cargando...</span>
 
-                    <button type="button" id="btn-theme-settings" onclick="openThemeSettings()" title="Personalizar colores y apariencia" aria-label="Personalizar colores y apariencia"><i data-lucide="palette" class="h-4 w-4"></i><span class="theme-button-label">Personalizar</span></button>
-                    <button type="button" id="btn-recargar-paginas-global" class="hidden rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs font-bold text-cyan-800 hover:bg-cyan-100" onclick="solicitarRecargaGlobal()" title="Recargar todas las pestañas abiertas de Asistencia Doctor Simi">
-                        <i data-lucide="refresh-cw" class="mr-1 inline h-4 w-4"></i><span>Recargar páginas de todos</span>
+                    <button type="button" id="btn-theme-settings" class="topbar-icon-action" onclick="openThemeSettings()" title="Personalizar colores y apariencia" aria-label="Personalizar colores y apariencia"><i data-lucide="palette" class="h-4 w-4"></i><span class="theme-button-label">Personalizar</span></button>
+                    <button type="button" id="btn-recargar-paginas-global" class="hidden topbar-icon-action" onclick="solicitarRecargaGlobal()" title="Recargar todas las pestañas abiertas de Asistencia Doctor Simi">
+                        <i data-lucide="refresh-cw" class="h-4 w-4"></i>
                     </button>
-                    <button type="button" id="btn-cerrar-sesiones-global" class="hidden rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100" onclick="cerrarSesionesDeTodos()" title="Cerrar las sesiones de todos los usuarios">
-                        <i data-lucide="log-out" class="mr-1 inline h-4 w-4"></i><span>Cerrar sesiones de todos</span>
+                    <button type="button" id="btn-cerrar-sesiones-global" class="hidden topbar-icon-action topbar-danger-action" onclick="cerrarSesionesDeTodos()" title="Cerrar las sesiones de todos los usuarios">
+                        <i data-lucide="users-round" class="h-4 w-4"></i>
                     </button>
-                    <button
-                        onclick="cerrarSesion()"
-                        class="text-xs font-bold text-simiRed hover:underline"
-                    >
-                        Cerrar sesión
-                    </button>
+                    <button type="button" onclick="cerrarSesion()" class="topbar-icon-action topbar-logout" aria-label="Cerrar sesión" title="Cerrar sesión"><i data-lucide="log-out" class="h-4 w-4"></i></button>
                 </div>
             </header>
 
@@ -2630,7 +2669,7 @@ main>header:has(#header-title){
     </div>
 
     <script src="/js/app-config.js"></script>
-<script src="/js/app-core.js?v=login-submit-prodfix-20261019"></script>
+<script src="/js/app-core.js?v=login-submit-prodfix-20261019b"></script>
 <script src="/js/freshness-dashboard.js?v=ultima-carga-por-modulo-151026"></script>
 <script src="/js/attendance-leave.js"></script>
 <script src="/js/workflows.js?v=permisos-envio-licencias-141026"></script>
@@ -3507,7 +3546,12 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
    <div><p class="text-xs font-black uppercase tracking-[.18em]" style="color:var(--user-accent)">Tu espacio de trabajo</p><h2 id="theme-settings-title" class="mt-1 text-xl font-black">Personalizar apariencia</h2><p class="mt-1 text-sm opacity-70">Personaliza los colores de cada zona. Verás la vista previa al instante; pulsa Guardar preferencias para conservarlos.</p></div>
    <button type="button" class="rounded-xl p-2 hover:bg-slate-100" onclick="closeThemeSettings()" aria-label="Cerrar"><i data-lucide="x"></i></button>
   </header>
-  <div class="grid grid-cols-1 gap-2 p-4 sm:grid-cols-3" id="theme-smart-actions">
+  <div id="theme-ideas-panel" class="hidden mx-5 mb-3 grid gap-3 sm:grid-cols-3" aria-live="polite">
+    <article class="theme-idea-card" data-idea-card="simi-night"><div class="theme-idea-preview theme-idea-simi"><i data-lucide="shield-check"></i><span></span><span></span><span></span></div><h3>Doctor Simi nocturno</h3><p>Azul profundo, turquesa y paneles oscuros.</p><button type="button" onclick="applyThemeIdea('simi-night')">Aplicar propuesta</button></article>
+    <article class="theme-idea-card" data-idea-card="aurora"><div class="theme-idea-preview theme-idea-aurora"><i data-lucide="layers-3"></i><span></span><span></span><span></span></div><h3>Aurora ejecutiva</h3><p>Grafito, verde esmeralda y contraste alto.</p><button type="button" onclick="applyThemeIdea('aurora')">Aplicar propuesta</button></article>
+    <article class="theme-idea-card" data-idea-card="violet"><div class="theme-idea-preview theme-idea-violet"><i data-lucide="orbit"></i><span></span><span></span><span></span></div><h3>Órbita digital</h3><p>Índigo, violeta y superficies nocturnas.</p><button type="button" onclick="applyThemeIdea('violet')">Aplicar propuesta</button></article>
+   </div>
+   <div class="grid grid-cols-1 gap-2 p-4 sm:grid-cols-3" id="theme-smart-actions">
    <button type="button" class="theme-action theme-action-secondary" onclick="autoThemeSettings()"><i data-lucide="sliders-horizontal" class="mr-1 inline h-4 w-4"></i>Ajustar automáticamente</button>
    <button type="button" class="theme-action theme-action-primary" onclick="customizeThemeForMe()"><i data-lucide="wand-sparkles" class="mr-1 inline h-4 w-4"></i>Personalízalo por mí</button>
    <button type="button" class="theme-action theme-action-secondary" onclick="showThemeIdeas()"><i data-lucide="lightbulb" class="mr-1 inline h-4 w-4"></i>Ideas de diseño</button>
@@ -3568,7 +3612,13 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
 
  window.autoThemeSettings=function(){const base=prefs.accent;const dark=shade(base,.58);prefs.sidebar=dark;prefs.background=mix(base,.94);prefs.panel='#ffffff';prefs.text='#18324f';prefs.border=mix(base,.78);prefs.table=mix(base,.88);prefs.topbar='#ffffff';prefs.mode='light';syncThemeControls();apply();if(window.mostrarToast)mostrarToast('Paleta equilibrada aplicada. Guarda preferencias para conservarla.','success',4500);};
  window.customizeThemeForMe=function(){const ideas=[{accent:'#19a8a5',sidebar:'#103b5c',background:'#f1f8fb',panel:'#ffffff',text:'#18324f',border:'#d5e6ee',table:'#e5f3f7',topbar:'#ffffff',mode:'light',nav:prefs.nav,density:prefs.density},{accent:'#6366f1',sidebar:'#24264f',background:'#f5f5ff',panel:'#ffffff',text:'#292c4a',border:'#dedff8',table:'#ededff',topbar:'#ffffff',mode:'light',nav:prefs.nav,density:prefs.density},{accent:'#0f9f75',sidebar:'#123f36',background:'#f2f8f4',panel:'#ffffff',text:'#183c32',border:'#d4e9df',table:'#e4f4ec',topbar:'#ffffff',mode:'light',nav:prefs.nav,density:prefs.density}];const idx=Number(localStorage.getItem(KEY+'_ideaIndex')||0)%ideas.length;localStorage.setItem(KEY+'_ideaIndex',String(idx+1));prefs={...ideas[idx]};syncThemeControls();apply();if(window.mostrarToast)mostrarToast('Te preparé una propuesta visual completa. Puedes seguir ajustándola antes de guardar.','success',5000);};
- window.showThemeIdeas=function(){const msg='Ideas de diseño: 1) Doctor Simi moderno: azul profundo + turquesa. 2) Ejecutivo: grafito + índigo. 3) Fresco: verde bosque + menta. Usa “Personalízalo por mí” para probarlas.';if(window.mostrarToast)mostrarToast(msg,'info',6500);else alert(msg);};
+ const themeIdeas={
+   'simi-night':{accent:'#19c9b8',sidebar:'#071e33',background:'#07141f',panel:'#0d2638',text:'#e8f5f7',border:'#234355',table:'#14364a',topbar:'#0b2233',mode:'dark',nav:prefs.nav,density:prefs.density},
+   'aurora':{accent:'#36d6a0',sidebar:'#102b2b',background:'#0b1718',panel:'#122627',text:'#e6f7f0',border:'#294744',table:'#183b36',topbar:'#0f2223',mode:'dark',nav:prefs.nav,density:prefs.density},
+   'violet':{accent:'#a78bfa',sidebar:'#17132e',background:'#0d0b1b',panel:'#19152d',text:'#f0edff',border:'#373052',table:'#252044',topbar:'#151128',mode:'dark',nav:prefs.nav,density:prefs.density}
+  };
+  window.showThemeIdeas=function(){const panel=document.getElementById('theme-ideas-panel');if(!panel)return;panel.classList.toggle('hidden');if(!panel.classList.contains('hidden')){if(window.lucide)window.lucide.createIcons();panel.scrollIntoView({behavior:'smooth',block:'nearest'});}};
+  window.applyThemeIdea=function(name){const idea=themeIdeas[name];if(!idea)return;prefs={...idea};syncThemeControls();apply();document.getElementById('theme-ideas-panel')?.classList.add('hidden');if(window.mostrarToast)mostrarToast('Propuesta aplicada en vivo. Puedes seguir ajustando los colores y guardar cuando estés conforme.','success',5000);};
  function syncThemeControls(){[['theme-custom-color','accent'],['theme-sidebar-color','sidebar'],['theme-background-color','background'],['theme-panel-color','panel'],['theme-text-color','text'],['theme-border-color','border'],['theme-table-color','table'],['theme-topbar-color','topbar']].forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.value=prefs[key];});const value=document.getElementById('theme-color-value');if(value)value.textContent=prefs.accent.toUpperCase();const mode=document.getElementById('theme-mode');if(mode)mode.value=prefs.mode;const nav=document.getElementById('theme-nav-style');if(nav)nav.value=prefs.nav;const density=document.getElementById('theme-density');if(density)density.value=prefs.density;}
 
  window.resetThemeSettings=function(){prefs={...defaults};localStorage.setItem(KEY,JSON.stringify(prefs));apply();if(window.mostrarToast)mostrarToast('Colores restablecidos. Guarda para conservarlos en tu cuenta.','success',4000);};
