@@ -3207,6 +3207,15 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       #simi-context-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
       #simi-context-links button{border:1px solid #dbe4ee;border-radius:9px;background:#fff;padding:8px 10px;color:#075985;font-size:12px;font-weight:800;cursor:pointer}
       #simi-context-links button:hover{background:#f1f8fc}
+      #simi-chat-form{display:flex;gap:8px;padding:0 16px 14px}
+      #simi-chat-input{min-width:0;flex:1;border:1px solid #cbd5e1;border-radius:12px;padding:10px 12px;font-size:13px;outline:none}
+      #simi-chat-input:focus{border-color:#0284c7;box-shadow:0 0 0 3px rgba(2,132,199,.12)}
+      #simi-chat-send{border:0;border-radius:12px;background:#075985;color:white;font-weight:800;padding:0 13px;cursor:pointer}
+      #simi-chat-answer{margin:0 16px 14px;padding:11px 12px;border-radius:12px;background:#f1f8fc;color:#334155;font-size:12px;line-height:1.55}
+      #simi-chat-answer[hidden]{display:none}
+      #simi-chat-shortcuts{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px}
+      #simi-chat-shortcuts button{border:1px solid #dbe4ee;border-radius:999px;background:#fff;padding:6px 9px;color:#075985;font-size:11px;font-weight:700;cursor:pointer}
+      #simi-chat-shortcuts button:hover{background:#f1f8fc}
       @media(max-width:640px){#simi-context-assistant{right:10px;bottom:44px}#simi-context-toggle{padding:11px 13px}#simi-context-toggle span{display:none}}
     </style>
     <div id="simi-context-assistant">
@@ -3217,7 +3226,16 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         </div>
         <div id="simi-context-content"><p class="text-sm text-slate-600">Selecciona un módulo para ver sus recomendaciones.</p></div>
         <div id="simi-context-links" class="px-4 pb-4"></div>
-        <p class="border-t border-slate-100 px-4 py-3 text-[10px] leading-4 text-slate-500">Ayuda contextual de vista previa. Las recomendaciones son orientativas y no modifican datos ni ejecutan aprobaciones.</p>
+        <div id="simi-chat-shortcuts" aria-label="Preguntas rápidas">
+          <button type="button" data-simi-question="¿Qué debería revisar primero?">¿Qué reviso primero?</button>
+          <button type="button" data-simi-question="¿Qué puedo hacer en esta pantalla?">¿Qué puedo hacer aquí?</button>
+        </div>
+        <div id="simi-chat-answer" role="status" aria-live="polite" hidden></div>
+        <form id="simi-chat-form" autocomplete="off">
+          <input id="simi-chat-input" type="text" maxlength="240" placeholder="Pregúntame sobre este módulo…" aria-label="Escribe tu consulta" />
+          <button id="simi-chat-send" type="submit" aria-label="Enviar consulta">Enviar</button>
+        </form>
+        <p class="border-t border-slate-100 px-4 py-3 text-[10px] leading-4 text-slate-500">Asistente guiado: responde preguntas frecuentes y te lleva al módulo relacionado. No modifica datos ni aprueba solicitudes.</p>
       </section>
       <button id="simi-context-toggle" type="button" aria-expanded="false" aria-controls="simi-context-popover"><i data-lucide="sparkles" class="h-5 w-5"></i><span>Asistente RR. HH.</span></button>
     </div>
@@ -3261,9 +3279,44 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         item.links.forEach(([label,module])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>{if(typeof window.cambiarModulo==='function')window.cambiarModulo(module);pop.hidden=true;toggle.setAttribute('aria-expanded','false');});links.appendChild(b);});
         if(window.lucide)window.lucide.createIcons();
       }
-      toggle.addEventListener('click',()=>{const opening=pop.hidden;render();pop.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));});
+      toggle.addEventListener('click',()=>{const opening=pop.hidden;render();pop.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));if(opening)setTimeout(()=>document.getElementById('simi-chat-input')?.focus(),60);});
       document.getElementById('simi-context-close').addEventListener('click',()=>{pop.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();});
-      const observer=new MutationObserver(()=>{render();});
+      const answerBox=document.getElementById('simi-chat-answer');
+      const chatInput=document.getElementById('simi-chat-input');
+      function answerQuestion(raw){
+        const q=String(raw||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+        const key=activeView(),ctx=contexts[key]||contexts.generic;
+        let answer='';
+        if(/^(hola|buenas|buenos dias|buenas tardes|buenas noches)/.test(q)){
+          answer='¡Hola! 😊 Estoy aquí para ayudarte. Ahora estás en «'+ctx.title+'». Puedes preguntarme qué revisar, cómo empezar o a qué módulo ir.';
+        }else if(/primero|prioridad|por donde empiezo|que reviso/.test(q)){
+          answer='En «'+ctx.title+'», te recomiendo empezar por esto: '+ctx.text+' Revisa también los accesos sugeridos de esta ventana.';
+        }else if(/modulo|pantalla|aqui|hacer|sirve/.test(q)){
+          answer='Esta ayuda está enfocada en «'+ctx.title+'». '+ctx.text+' Si necesitas continuar en otro lugar, selecciona uno de los accesos sugeridos.';
+        }else if(/licencia|medica/.test(q)){
+          answer='En licencias médicas, verifica fechas de inicio y término, continuidad y recepción del documento. Protege los datos médicos y valida los antecedentes antes de regularizar.';
+          if(key!=='licencias') answer+=' Puedo abrir el módulo Licencias médicas con el acceso de abajo.';
+        }else if(/vacacion|permiso|ausencia/.test(q)){
+          answer='Revisa fechas, saldo o tipo de permiso, autorizaciones y posibles cruces con la cobertura de la sucursal. No des por aprobada una solicitud hasta confirmar su estado.';
+        }else if(/asistencia|atraso|marca|turno/.test(q)){
+          answer='Compara la marcación con el turno asignado y revisa marcas incompletas o atrasos. Una marca faltante por sí sola no confirma una falta injustificada.';
+        }else if(/cobertura|traslado|sucursal/.test(q)){
+          answer='Antes de coordinar, confirma la necesidad de dotación, disponibilidad, jornada y sucursal de destino. Usa el mapa como estimación y valida la coordinación con la jefatura.';
+        }else if(/tarea|pendiente|recordatorio/.test(q)){
+          answer='Ordena las tareas por urgencia, responsable y fecha límite. Deja constancia al resolverlas para evitar gestiones duplicadas.';
+        }else if(/correo|email|enviar/.test(q)){
+          answer='Antes de enviar un correo, confirma destinatarios, contenido y adjuntos. Para documentación de RR. HH., utiliza los canales oficiales.';
+        }else if(/chat|conversar/.test(q)){
+          answer='Puedes usar el módulo Chat interno para mantener la conversación con el equipo. Evita compartir antecedentes médicos o datos sensibles innecesarios.';
+        }else{
+          answer='Puedo orientarte sobre «'+ctx.title+'» y ayudarte a llegar a otros módulos. Prueba preguntarme por asistencia, licencias, vacaciones, coberturas, traslados, tareas o correos.';
+        }
+        answerBox.textContent=answer;
+        answerBox.hidden=false;
+      }
+      document.getElementById('simi-chat-form').addEventListener('submit',e=>{e.preventDefault();const value=chatInput.value.trim();if(!value)return;answerQuestion(value);chatInput.value='';});
+      document.querySelectorAll('[data-simi-question]').forEach(b=>b.addEventListener('click',()=>answerQuestion(b.dataset.simiQuestion)));
+      const observer=new MutationObserver(()=>{if(!pop.hidden)render();});
       document.querySelectorAll('section[id^="view-"]').forEach(v=>observer.observe(v,{attributes:true,attributeFilter:['class']}));
       render();
       document.addEventListener('click',e=>{if(e.target.closest('[onclick*="cambiarModulo"]')&&!pop.contains(e.target)&&!toggle.contains(e.target)){if(!pop.hidden)render();}});
