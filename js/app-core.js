@@ -667,6 +667,8 @@
             if(roleLabel)roleLabel.textContent=esAdmin?'Administrador principal':'Usuario autorizado';
             const botonCierreGlobal=document.getElementById('btn-cerrar-sesiones-global');
             if(botonCierreGlobal)botonCierreGlobal.classList.toggle('hidden',!esAdmin);
+            const botonRecargaGlobal=document.getElementById('btn-recargar-paginas-global');
+            if(botonRecargaGlobal)botonRecargaGlobal.classList.toggle('hidden',!esAdmin);
         }
 
         function toggleSidebar(abrir) {
