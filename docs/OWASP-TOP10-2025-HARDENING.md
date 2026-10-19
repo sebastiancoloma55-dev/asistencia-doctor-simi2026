@@ -38,4 +38,13 @@ La migración queda versionada en una rama de trabajo; no se ejecuta automática
 - **Protección de contraseñas filtradas:** está desactivada en Supabase Auth. Requiere habilitarla en la configuración de Auth del proyecto y comprobar el impacto sobre altas y cambios de contraseña.
 - **Rendimiento:** el asesor encontró cinco claves foráneas sin índice. Son optimizaciones, no correcciones de seguridad; añadir índices tras confirmar el volumen y los planes de consulta.
 
+
+## Correcciones adicionales de hardening (19-10-2026)
+- El middleware de autorización ahora falla de forma cerrada: solo permite continuar cuando `usuarios_roles.activo` es explícitamente `true`; valores nulos o ausentes no conceden acceso.
+- La API administrativa de usuarios ya no devuelve al cliente los mensajes de error de Supabase ni detalles internos; los detalles permanecen en logs del servidor.
+- La API de geocodificación limita la caché en memoria a 300 entradas y cancela consultas al proveedor después de 8 segundos, reduciendo riesgo de consumo descontrolado de memoria y solicitudes colgadas.
+- Vercel añade `X-Permitted-Cross-Domain-Policies: none` y `X-DNS-Prefetch-Control: off`; los validadores estáticos comprueban también estas cabeceras y las nuevas protecciones.
+- No se agregó una CSP estricta porque el sitio todavía depende de scripts/estilos inline y CDNs; una política incorrecta puede romper el login y los módulos. Requiere inventario de orígenes y una fase de pruebas específica.
+- GitHub Actions permanecía en estado `queued` en la última consulta; por ello no se declara la CI aprobada. La compilación/preview de Vercel también debe terminar y probarse manualmente.
+
 No se ha aplicado esta migración ni cambiado configuración de Auth en el proyecto activo.
