@@ -907,7 +907,7 @@
             errorBox?.classList.add('hidden');
 
             try {
-                if (!window._supabase?.auth) {
+                if (typeof _supabase === 'undefined' || !_supabase?.auth) {
                     throw new Error('El servicio de autenticación no se inicializó. Recarga con Ctrl + F5; si continúa, informa a Soporte RR. HH.');
                 }
 
