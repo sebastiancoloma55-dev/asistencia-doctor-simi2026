@@ -13,7 +13,8 @@ const localScripts = [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]
   .map(match => match[1])
   .filter(src => src.startsWith('/') && !src.startsWith('//'));
 for (const src of localScripts) {
-  const file = path.join(root, src.replace(/^\//, ''));
+  const localPath = src.split(/[?#]/, 1)[0];
+  const file = path.join(root, localPath.replace(/^\//, ''));
   if (!existsSync(file)) fail(`El script local ${src} no existe.`);
 }
 

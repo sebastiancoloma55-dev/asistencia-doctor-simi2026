@@ -578,7 +578,7 @@
             // Traer licencias en paralelo al directorio evita una espera innecesaria.
             const [, registros] = await Promise.all([
                 obtenerMapaSupervisoresDirectorio(),
-                leerTablaCompleta('licencias_medicas', 'fecha_fin')
+                leerTablaCompleta('licencias_medicas', 'fecha_inicio')
             ]);
             datosLicenciasGlobal = registros;
 

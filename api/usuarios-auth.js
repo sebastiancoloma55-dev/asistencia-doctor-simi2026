@@ -65,7 +65,7 @@ export default async function handler(req, res) {
 
     const client = createClient(url, anon, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data: me, error: meError } = await client.auth.getUser(token);
-    if (meError || !me?.user) return fail(res, 401, `Sesion invalida${meError?.message ? ': '+meError.message : ''}`);
+    if (meError || !me?.user) return fail(res, 401, 'Sesión no válida o expirada');
 
     const admin = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
     
@@ -183,9 +183,9 @@ if (
       return res.status(200).json({ message: 'Usuario eliminado de Authentication y de la lista de accesos.' });
     }
 
-    return fail(res, 400, `Accion no valida: ${action || '(vacia)'}`);
+    return fail(res, 400, 'Acción no válida');
   } catch (error) {
     console.error('usuarios-auth', error);
-    return fail(res, 500, `Error interno: ${error?.message || String(error)}`);
+    return fail(res, 500, 'No se pudo completar la operación. Revisa los registros del servidor.');
   }
 }
