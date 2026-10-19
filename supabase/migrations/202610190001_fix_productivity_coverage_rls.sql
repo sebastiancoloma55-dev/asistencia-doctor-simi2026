@@ -195,11 +195,6 @@ using (
   usuario_es_admin_principal_2026()
   or usuario_rol_id = chat_usuario_actual_id()
   or asignado_por = chat_usuario_actual_id()
-  or exists (
-    select 1 from public.solicitudes_dotacion s
-    where s.id = solicitud_dotacion_responsables.solicitud_id
-      and s.solicitada_por = chat_usuario_actual_id()
-  )
   or (
     not private.usuario_es_perfil_productividad()
     and usuario_tiene_alguno_permiso(array['traslados','coberturas','amonestaciones']::text[])
