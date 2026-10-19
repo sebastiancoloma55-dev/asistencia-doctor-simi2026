@@ -53,5 +53,19 @@ for (const [file, marker] of [
   if (!read(file).includes(marker)) fail('Falta control esperado en ' + file + ': ' + marker);
 }
 
+
+const userAdmin = read('../api/usuarios-auth.js');
+for (const marker of ["Sesión no válida o expirada", "No se pudo completar la operación. Revisa los registros del servidor."]) {
+  if (!userAdmin.includes(marker)) fail('La API de administración debe devolver errores genéricos al cliente: ' + marker);
+}
+if (userAdmin.includes('meError?.message') || userAdmin.includes('Error interno: ${error?.message')) {
+  fail('La API de administración no debe exponer errores internos al cliente.');
+}
+
+const geocoder = read('../api/geocodificar.js');
+for (const marker of ['CACHE_MAX_ENTRIES = 300', 'AbortSignal.timeout(8000)', 'oldestKey !== undefined']) {
+  if (!geocoder.includes(marker)) fail('Falta protección de recursos en geocodificación: ' + marker);
+}
+
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Controles estáticos de seguridad correctos. La migración RLS aún requiere pruebas en staging.');
