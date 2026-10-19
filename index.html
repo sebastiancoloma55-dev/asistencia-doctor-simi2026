@@ -2236,7 +2236,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 .map-estimate-2026>div{border:1px solid #dbeafe;background:linear-gradient(135deg,#eff6ff,#fff);border-radius:13px;padding:12px}
 .map-estimate-2026 strong{display:block;color:#075985;font-size:18px;font-weight:850}
 .map-estimate-2026 span{display:block;color:#64748b;font-size:11px;line-height:1.4;margin-top:3px}
-.menu-btn.permission-hidden-2026{display:none!important}
+.menu-btn.permission-hidden-2026,.nova-nav-divider.permission-hidden-2026{display:none!important}
 .login-input{min-height:48px}
 .login-submit{min-height:49px;letter-spacing:.01em}
 .login-form-panel{background:linear-gradient(145deg,#fff,#f7fbff)}
@@ -2925,7 +2925,30 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     var role=String(profile&&profile.rol||'').trim().toUpperCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[\\s-]+/g,'_');
     return String(user&&user.email||'').trim().toLowerCase()===adminEmail || !!(profile&&profile.acceso_global===true) || ['ADMIN','ADMINISTRADOR','SUPERADMIN','SUPER_ADMIN','ADMIN_PRINCIPAL','ADMINISTRADOR_PRINCIPAL'].includes(role);
   }
-  function paintPermissions(){moduleNames.forEach(function(m){var b=document.getElementById('btn-'+m);if(b)b.classList.toggle('permission-hidden-2026',!hasModulePermission(m));});}
+  function paintPermissions(){
+    moduleNames.forEach(function(m){var b=document.getElementById('btn-'+m);if(b)b.classList.toggle('permission-hidden-2026',!hasModulePermission(m));});
+    // Ocultar también las categorías vacías para que el menú no revele módulos restringidos.
+    var nav=document.querySelector('#sidebar nav');
+    if(nav){
+      var divider=null,groupHasVisible=false;
+      Array.from(nav.children).forEach(function(el){
+        if(el.classList.contains('nova-nav-divider')){
+          if(divider)divider.classList.toggle('permission-hidden-2026',!groupHasVisible);
+          divider=el;groupHasVisible=false;
+        }else if(el.classList.contains('menu-btn')&&!el.classList.contains('permission-hidden-2026')){
+          groupHasVisible=true;
+        }
+      });
+      if(divider)divider.classList.toggle('permission-hidden-2026',!groupHasVisible);
+    }
+    // El acceso rápido superior a Notificaciones sigue exactamente el permiso del módulo.
+    var topNotif=document.getElementById('topbar-notification-button');
+    if(topNotif)topNotif.classList.toggle('permission-hidden-2026',!hasModulePermission('notificaciones'));
+    var quick=document.getElementById('quick-module-bar');
+    if(quick)quick.querySelectorAll('[data-module]').forEach(function(chip){
+      chip.hidden=!hasModulePermission(chip.dataset.module);
+    });
+  }
   function finishPermissionLoad(){
     permissionsReady=true;
     paintPermissions();
@@ -3045,12 +3068,19 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   if(typeof originalRoute==='function')window.mostrarRutaMapa14=async function(){
     var a=document.getElementById('map14-origen'),b=document.getElementById('map14-destino');
     var r=originalRoute.apply(this,arguments);
+    if(r&&typeof r.then==='function')await r;
     if(!a||!b||!a.value||!b.value||a.value===b.value)return r;
     var box=document.getElementById('mapa14-estimacion-2026');
     if(box){box.innerHTML='<div><strong>Calculando estimación…</strong><span>Buscando coordenadas para las sucursales seleccionadas.</span></div>';}
     await geocodificarOpcionMapa14(a.selectedOptions[0]);
     await geocodificarOpcionMapa14(b.selectedOptions[0]);
-    estimateRoute();
+    await estimateRoute();
+    // Solo al pulsar “Ver ruta” llevamos al usuario al mapa y a los resultados.
+    setTimeout(function(){
+      var target=document.getElementById('mapa14-frame')||document.getElementById('mapa14-resumen');
+      if(target)target.scrollIntoView({behavior:'smooth',block:'center'});
+      if(mapaRutaLeaflet)setTimeout(function(){mapaRutaLeaflet.invalidateSize();},250);
+    },120);
     return r;
   };
   function conectarBuscadoresMapa14(){
