@@ -3719,13 +3719,19 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   var originalRoute=window.mostrarRutaMapa14;
   var mapaRutaLeaflet=null,capaRutaLeaflet=null,marcadoresRutaLeaflet=[];
   function asegurarMapaLeaflet(){var el=document.getElementById('mapa14-frame');if(!el||!window.L)return null;if(!mapaRutaLeaflet){mapaRutaLeaflet=L.map(el,{scrollWheelZoom:true}).setView([-33.45,-70.66],5);var osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(mapaRutaLeaflet);osm.on('tileerror',function(){if(mapaRutaLeaflet&& !mapaRutaLeaflet._tilesAlternativos){mapaRutaLeaflet._tilesAlternativos=true;try{mapaRutaLeaflet.removeLayer(osm);L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors © CARTO'}).addTo(mapaRutaLeaflet);}catch(e){}}});}setTimeout(function(){if(mapaRutaLeaflet)mapaRutaLeaflet.invalidateSize();},150);return mapaRutaLeaflet;}
+  async function fetchWithTimeout(url,timeoutMs,options){
+    var controller=typeof AbortController!=='undefined'?new AbortController():null;
+    var timer=controller?setTimeout(function(){controller.abort();},timeoutMs):null;
+    try{return await fetch(url,Object.assign({},options||{},controller?{signal:controller.signal}:{}));}
+    finally{if(timer)clearTimeout(timer);}
+  }
   async function estimateRoute(){
     var a=document.getElementById('map14-origen'),b=document.getElementById('map14-destino'),m=document.getElementById('map14-modo'),summary=document.getElementById('mapa14-resumen');if(!a||!b||!m||!summary||!a.value||!b.value)return;
     var box=document.getElementById('mapa14-estimacion-2026');if(!box){box=document.createElement('div');box.id='mapa14-estimacion-2026';box.className='map-estimate-2026';summary.parentNode.insertAdjacentElement('afterend',box);}
     function coord(op){var lat=Number(op&&op.dataset.lat),lon=Number(op&&op.dataset.lon);return Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0)?{lat:lat,lon:lon}:null;}
     var p1=coord(a.selectedOptions[0]),p2=coord(b.selectedOptions[0]);if(!p1||!p2){box.innerHTML='<div><strong>Faltan coordenadas</strong><span>No pudimos ubicar ambas sucursales. Completa dirección y comuna o pulsa el botón de buscar coordenadas.</span></div>';var st=document.getElementById('mapa14-status');if(st)st.textContent='Faltan coordenadas para dibujar la ruta. También puedes abrir Google Maps.';return;}
     function rad(n){return n*Math.PI/180;}var dlat=rad(p2.lat-p1.lat),dlon=rad(p2.lon-p1.lon),h=Math.pow(Math.sin(dlat/2),2)+Math.cos(rad(p1.lat))*Math.cos(rad(p2.lat))*Math.pow(Math.sin(dlon/2),2),direct=6371*2*Math.asin(Math.min(1,Math.sqrt(h))),mode=m.value,route=direct*1.25,min=Math.max(1,Math.round(route/(mode==='w'?4.5:mode==='r'?22:35)*60)),max=Math.max(min+3,Math.round(min*1.35)),coords=[[p1.lat,p1.lon],[p2.lat,p2.lon]],label='estimación orientativa';
-    if(mode==='d'){try{var response=await fetch('https://router.project-osrm.org/route/v1/driving/'+p1.lon+','+p1.lat+';'+p2.lon+','+p2.lat+'?overview=full&geometries=geojson');if(response.ok){var data=await response.json(),r=data.routes&&data.routes[0];if(data.code==='Ok'&&r){route=r.distance/1000;min=Math.max(1,Math.round(r.duration/60));max=Math.max(min+2,Math.round(min*1.15));coords=r.geometry.coordinates.map(c=>[c[1],c[0]]);label='distancia por ruta vial';}}}catch(e){}}
+    if(mode==='d'){try{var response=await fetchWithTimeout('https://router.project-osrm.org/route/v1/driving/'+p1.lon+','+p1.lat+';'+p2.lon+','+p2.lat+'?overview=full&geometries=geojson',5000);if(response.ok){var data=await response.json(),r=data.routes&&data.routes[0];if(data.code==='Ok'&&r){route=r.distance/1000;min=Math.max(1,Math.round(r.duration/60));max=Math.max(min+2,Math.round(min*1.15));var rawCoords=r.geometry.coordinates,step=Math.max(1,Math.ceil(rawCoords.length/180));coords=rawCoords.filter((c,i)=>i===0||i===rawCoords.length-1||i%step===0).map(c=>[c[1],c[0]]);label='distancia por ruta vial';}}}catch(e){}}
     var fmt=n=>n.toLocaleString('es-CL',{maximumFractionDigits:1}),fmtDur=n=>{n=Math.max(0,Math.round(n));var days=Math.floor(n/1440),hours=Math.floor((n%1440)/60),mins=n%60;return (days?days+' día'+(days===1?'':'s')+' ':'')+(hours?hours+' h ':'')+(mins||(!days&&!hours)?mins+' min':'');};box.innerHTML='<div><strong>'+fmt(direct)+' km</strong><span>Distancia en línea recta</span></div><div><strong>'+fmt(route)+' km aprox.</strong><span>'+label+'</span></div><div><strong>'+fmtDur(min)+' – '+fmtDur(max)+'</strong><span>Tiempo orientativo; confirma en Google Maps</span></div>';
     var map=asegurarMapaLeaflet(),status=document.getElementById('mapa14-status');if(!map){var el=document.getElementById('mapa14-frame');if(el){var embed='https://maps.google.com/maps?saddr='+encodeURIComponent(p1.lat+','+p1.lon)+'&daddr='+encodeURIComponent(p2.lat+','+p2.lon)+'&output=embed';el.innerHTML='<iframe title="Mapa de ruta entre sucursales" src="'+embed+'" style="display:block;width:100%;height:100%;min-height:380px;border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'; }if(status)status.textContent='Vista alternativa del mapa de ruta. Para navegar, abre Google Maps.';return;}
     if(capaRutaLeaflet)map.removeLayer(capaRutaLeaflet);marcadoresRutaLeaflet.forEach(x=>map.removeLayer(x));marcadoresRutaLeaflet=[];
@@ -3742,7 +3748,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     var address=[op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', ');
     if(!address)return false;
     try{
-      var r=await fetch('/api/geocodificar?direccion='+encodeURIComponent([op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', '))+'&nombre='+encodeURIComponent(op.dataset.nombre||'')+'&comuna='+encodeURIComponent(op.dataset.comuna||''));
+      var r=await fetchWithTimeout('/api/geocodificar?direccion='+encodeURIComponent([op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', '))+'&nombre='+encodeURIComponent(op.dataset.nombre||'')+'&comuna='+encodeURIComponent(op.dataset.comuna||''),4000);
       if(!r.ok)return false;
       var j=await r.json();
       if(!Number.isFinite(Number(j.latitud))||!Number.isFinite(Number(j.longitud)))return false;
@@ -3752,16 +3758,30 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       return true;
     }catch(e){return false;}
   }
-  if(typeof originalRoute==='function')window.mostrarRutaMapa14=async function(){
+  var routeInProgress=false;
+  window.mostrarRutaMapa14=async function(){
+    if(routeInProgress)return;
     var a=document.getElementById('map14-origen'),b=document.getElementById('map14-destino');
-    var r=originalRoute.apply(this,arguments);
-    if(!a||!b||!a.value||!b.value||a.value===b.value)return r;
+    var button=document.querySelector('button[onclick="mostrarRutaMapa14()"]');
     var box=document.getElementById('mapa14-estimacion-2026');
-    if(box){box.innerHTML='<div><strong>Calculando estimación…</strong><span>Buscando coordenadas para las sucursales seleccionadas.</span></div>';}
-    await geocodificarOpcionMapa14(a.selectedOptions[0]);
-    await geocodificarOpcionMapa14(b.selectedOptions[0]);
-    estimateRoute();
-    return r;
+    if(!a||!b||!a.value||!b.value||a.value===b.value){
+      if(box)box.innerHTML='<div><strong>Selecciona dos sucursales distintas</strong><span>Elige un origen y un destino para calcular la ruta.</span></div>';
+      return;
+    }
+    routeInProgress=true;if(button){button.disabled=true;button.setAttribute('aria-busy','true');}
+    if(box)box.innerHTML='<div><strong>Calculando ruta…</strong><span>La consulta tiene límite de tiempo; la página seguirá respondiendo.</span></div>';
+    var status=document.getElementById('mapa14-status');if(status)status.textContent='Buscando coordenadas y calculando la ruta…';
+    try{
+      await Promise.all([geocodificarOpcionMapa14(a.selectedOptions[0]),geocodificarOpcionMapa14(b.selectedOptions[0])]);
+      await estimateRoute();
+      var frame=document.getElementById('mapa14-frame')||document.getElementById('mapa14-resumen');
+      if(frame)frame.scrollIntoView({behavior:'smooth',block:'center'});
+      if(mapaRutaLeaflet)setTimeout(function(){try{mapaRutaLeaflet.invalidateSize();}catch(e){}},180);
+    }catch(err){
+      console.error('Error al calcular la ruta',err);
+      if(box)box.innerHTML='<div><strong>No se pudo completar la ruta</strong><span>La consulta externa tardó demasiado o no respondió. Inténtalo de nuevo o abre Google Maps.</span></div>';
+      if(status)status.textContent='No se pudo calcular la ruta. Puedes volver a intentarlo.';
+    }finally{routeInProgress=false;if(button){button.disabled=false;button.removeAttribute('aria-busy');}}
   };
   window.filtrarSucursalesMapa14=function(tipo){
     var suffix=tipo==='destino'?'destino':'origen',input=document.getElementById('map14-buscar-'+suffix),select=document.getElementById('map14-'+suffix);
