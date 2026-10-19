@@ -2716,7 +2716,12 @@ main>header .topbar-quick-action{display:none!important}
 .map-estimate-2026>div{border:1px solid #dbeafe;background:linear-gradient(135deg,#eff6ff,#fff);border-radius:13px;padding:12px}
 .map-estimate-2026 strong{display:block;color:#075985;font-size:18px;font-weight:850}
 .map-estimate-2026 span{display:block;color:#64748b;font-size:11px;line-height:1.4;margin-top:3px}
-.menu-btn.permission-hidden-2026{display:none!important}
+.menu-btn.permission-hidden-2026,
+#sidebar nav .permission-hidden-2026,
+#sidebar nav [data-nav-group].permission-hidden-2026,
+#sidebar nav .nova-nav-divider.permission-hidden-2026,
+main>header #btn-recargar-paginas-global.hidden,
+main>header #btn-cerrar-sesiones-global.hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
 .login-input{min-height:48px}
 .login-submit{min-height:49px;letter-spacing:.01em}
 .login-form-panel{background:linear-gradient(145deg,#fff,#f7fbff)}
@@ -3402,16 +3407,56 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     return false;
   }
   function isGlobalAdmin(profile,user){
-    var role=String(profile&&profile.rol||'').trim().toUpperCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[\\s-]+/g,'_');
-    return String(user&&user.email||'').trim().toLowerCase()===adminEmail || !!(profile&&profile.acceso_global===true) || ['ADMIN','ADMINISTRADOR','SUPERADMIN','SUPER_ADMIN','ADMIN_PRINCIPAL','ADMINISTRADOR_PRINCIPAL'].includes(role);
+    // Únicamente la cuenta administradora principal puede ver y ejecutar funciones globales.
+    // No se confía en rol ni en acceso_global de la tabla, pues pueden estar desactualizados.
+    return String(user&&user.email||'').trim().toLowerCase()===adminEmail;
   }
-  function paintPermissions(){moduleNames.forEach(function(m){var b=document.getElementById('btn-'+m);if(b)b.classList.toggle('permission-hidden-2026',!hasModulePermission(m));});}
+  function paintPermissions(){
+    moduleNames.forEach(function(m){
+      var buttonId=m==='coberturas'?'btn-amonestaciones':'btn-'+m;
+      var b=document.getElementById(buttonId);
+      if(b)b.classList.toggle('permission-hidden-2026',!hasModulePermission(m));
+    });
+    // Asegurar que los módulos no autorizados tampoco permanezcan visibles en el contenido.
+    var viewMap={dashboard:'view-dashboard',espacio:'view-espacio',colaboradores:'view-colaboradores',sucursales:'view-sucursales',asistencia:'view-asistencia',licencias:'view-licencias',envio_licencias:'view-envio_licencias',vacaciones:'view-vacaciones',papeletas:'view-papeletas',correos:'view-correos',amonestaciones:'view-amonestaciones',coberturas:'view-amonestaciones',reportes:'view-reportes',usuarios:'view-usuarios',auditoria:'view-auditoria',configcorreos:'view-configcorreos',mapas:'view-mapas',tareas:'view-tareas',operaciones:'view-operaciones',calidad:'view-calidad',notificaciones:'view-notificaciones',integraciones:'view-integraciones',chat:'view-chat',traslados:'view-traslados',ayuda:'view-ayuda'};
+    Object.keys(viewMap).forEach(function(m){
+      var view=document.getElementById(viewMap[m]);
+      if(view&&!hasModulePermission(m))view.classList.add('hidden');
+    });
+    var nav=document.querySelector('#sidebar nav');
+    if(nav){
+      var currentGroup=null,hasVisible=false;
+      Array.from(nav.children).forEach(function(el){
+        if(el.classList.contains('nova-nav-divider')||el.hasAttribute('data-nav-group')){
+          if(currentGroup)currentGroup.classList.toggle('permission-hidden-2026',!hasVisible);
+          currentGroup=el;hasVisible=false;
+        }else if(el.classList.contains('menu-btn')&&!el.classList.contains('permission-hidden-2026')){
+          hasVisible=true;
+        }
+      });
+      if(currentGroup)currentGroup.classList.toggle('permission-hidden-2026',!hasVisible);
+    }
+    ['btn-recargar-paginas-global','btn-cerrar-sesiones-global'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el)el.classList.toggle('hidden',!isPrimaryAdminSession);
+    });
+    var quick=document.getElementById('quick-module-bar');
+    if(quick)quick.querySelectorAll('[data-module]').forEach(function(chip){
+      var key=chip.dataset.module;
+      chip.hidden=!hasModulePermission(key);
+    });
+  }
+  var permissionNavObserver=null;
   function finishPermissionLoad(){
     paintPermissions();
-    // Mostrar el menú solo después de cargar y aplicar los permisos: evita el destello
-    // de todos los módulos antes de que se oculten los no autorizados.
-    var nav=document.querySelector('aside nav');
-    if(nav)nav.style.visibility='visible';
+    var nav=document.querySelector('#sidebar nav');
+    if(nav){
+      nav.style.visibility='visible';
+      if(!permissionNavObserver){
+        permissionNavObserver=new MutationObserver(function(){paintPermissions();});
+        permissionNavObserver.observe(nav,{attributes:true,childList:true,subtree:true,attributeFilter:['class']});
+      }
+    }
   }
   async function loadPermissions(){
     try{
@@ -3419,6 +3464,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       var sessionResult=await _supabase.auth.getSession();
       if(sessionResult&&sessionResult.error)throw sessionResult.error;
       var user=sessionResult&&sessionResult.data&&sessionResult.data.session&&sessionResult.data.session.user;
+      isPrimaryAdminSession=String(user&&user.email||'').trim().toLowerCase()===adminEmail;
       if(!user){allowed=new Set(['dashboard']);finishPermissionLoad();return;}
       // El administrador principal no debe quedar bloqueado por una consulta de perfil.
       if(String(user.email||'').trim().toLowerCase()===adminEmail){
@@ -3441,7 +3487,8 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       }
       finishPermissionLoad();
     }catch(e){
-      // Fallo seguro: no conceder módulos cuando no se pueden verificar los permisos.
+      // Fallo seguro: ocultar módulos y acciones globales si no se pueden verificar permisos.
+      isPrimaryAdminSession=false;
       allowed=new Set(['dashboard']);
       finishPermissionLoad();
       if(window.mostrarToast)mostrarToast('No se pudieron verificar tus permisos. Por seguridad, solo queda habilitado el Dashboard.','error',12000);
@@ -3458,6 +3505,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         return;
       }
       var resultado=await originalChange.apply(this,arguments);
+      paintPermissions();
       // Cinturón de seguridad: el Dashboard y su panel inteligente solo pueden verse en la ruta Dashboard.
       // Evita que el contenido del Dashboard quede visible al navegar a Coberturas, Traslados u otro módulo.
       var dashboardView=document.getElementById('view-dashboard');
