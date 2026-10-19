@@ -922,6 +922,20 @@
             }
         }
 
+        // Enlace explícito del formulario de acceso: no depende de onsubmit inline.
+        window.iniciarSesion = iniciarSesion;
+        function enlazarFormularioLogin() {
+            const form = document.getElementById('form-login');
+            if (!form || form.dataset.loginSubmitBound === 'true') return;
+            form.dataset.loginSubmitBound = 'true';
+            form.addEventListener('submit', iniciarSesion);
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', enlazarFormularioLogin, { once: true });
+        } else {
+            enlazarFormularioLogin();
+        }
+
         async function cerrarSesion() {
             const { error } = await _supabase.auth.signOut();
 
