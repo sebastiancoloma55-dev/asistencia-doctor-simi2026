@@ -656,6 +656,8 @@
         let canalMensajeTopbarCompartido=null;
         let mensajeTopbarCompartido='Chúpala meando';
         let guardandoMensajeTopbar=false;
+        let temporizadorMensajeTopbar=null;
+        let consultaMensajeTopbarEnCurso=false;
 
         function pintarMensajeTopbar(mensaje){
             mensajeTopbarCompartido=String(mensaje??'').slice(0,100);
@@ -665,29 +667,55 @@
             if(boton)boton.classList.toggle('hidden',!mensajeTopbarCompartido);
         }
 
-        async function cargarMensajeTopbar(){
-            pintarMensajeTopbar(mensajeTopbarCompartido);
-            if(!_supabase)return;
+        async function refrescarMensajeTopbarCompartido(){
+            if(consultaMensajeTopbarEnCurso||!_supabase?.auth)return;
+            consultaMensajeTopbarEnCurso=true;
             try{
+                const {data:sesionData,error:sesionError}=await _supabase.auth.getSession();
+                if(sesionError||!sesionData?.session)return;
                 const {data,error}=await _supabase.from('configuracion_global')
-                    .select('valor').eq('clave',CLAVE_MENSAJE_TOPBAR).maybeSingle();
+                    .select('valor,actualizado_en').eq('clave',CLAVE_MENSAJE_TOPBAR).maybeSingle();
                 if(error)throw error;
                 if(data)pintarMensajeTopbar(data.valor);
             }catch(error){
-                console.warn('No se pudo cargar el mensaje compartido:',error.message||error);
+                console.warn('No se pudo sincronizar el mensaje compartido:',error.message||error);
+            }finally{
+                consultaMensajeTopbarEnCurso=false;
             }
+        }
+
+        async function cargarMensajeTopbar(){
+            const {data:sesionData,error:sesionError}=await _supabase.auth.getSession();
+            if(sesionError||!sesionData?.session)return;
+            await refrescarMensajeTopbarCompartido();
+            if(!canalMensajeTopbarCompartido){
+                canalMensajeTopbarCompartido=_supabase.channel('mensaje-topbar-compartido-v2')
+                    .on('postgres_changes',{event:'*',schema:'public',table:'configuracion_global',filter:'clave=eq.mensaje_topbar'},payload=>{
+                        if(payload.new&&payload.new.clave===CLAVE_MENSAJE_TOPBAR)pintarMensajeTopbar(payload.new.valor);
+                        else void refrescarMensajeTopbarCompartido();
+                    })
+                    .subscribe(status=>{
+                        if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
+                            console.warn('Realtime del mensaje no disponible; se usará sincronización de respaldo:',status);
+                        }
+                    });
+            }
+            if(!temporizadorMensajeTopbar){
+                temporizadorMensajeTopbar=setInterval(()=>void refrescarMensajeTopbarCompartido(),15000);
+            }
+        }
+
+        async function detenerEscuchaMensajeTopbar(){
+            if(temporizadorMensajeTopbar){clearInterval(temporizadorMensajeTopbar);temporizadorMensajeTopbar=null;}
             if(canalMensajeTopbarCompartido){
                 try{await _supabase.removeChannel(canalMensajeTopbarCompartido);}catch(_){}
                 canalMensajeTopbarCompartido=null;
             }
-            canalMensajeTopbarCompartido=_supabase.channel('mensaje-topbar-compartido-v1')
-                .on('postgres_changes',{event:'*',schema:'public',table:'configuracion_global',filter:'clave=eq.mensaje_topbar'},payload=>{
-                    if(payload.new&&payload.new.clave===CLAVE_MENSAJE_TOPBAR)pintarMensajeTopbar(payload.new.valor);
-                })
-                .subscribe(status=>{
-                    if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.warn('No se pudo suscribir al mensaje compartido:',status);
-                });
         }
+        document.addEventListener('visibilitychange',()=>{
+            if(document.visibilityState==='visible')void refrescarMensajeTopbarCompartido();
+        });
+        window.addEventListener('focus',()=>void refrescarMensajeTopbarCompartido());
 
         async function editarMensajeTopbar(){
             if(!esAdminPrincipalActual()){
@@ -710,7 +738,8 @@
                 },{onConflict:'clave'});
                 if(error)throw error;
                 pintarMensajeTopbar(mensaje);
-                mostrarToast('Mensaje actualizado para todos los usuarios conectados.','success',6000);
+                await refrescarMensajeTopbarCompartido();
+                mostrarToast('Mensaje guardado. Se sincronizará con las demás sesiones.','success',6000);
             }catch(error){
                 mostrarToast('No se pudo guardar el mensaje compartido: '+(error.message||'error de conexión o permisos.'),'error',8000);
             }finally{
@@ -718,7 +747,6 @@
             }
         }
         window.editarMensajeTopbar=editarMensajeTopbar;
-        void cargarMensajeTopbar();
 
         function actualizarBienvenidaUsuario(user){
             const perfil=typeof perfilActualSistema!=='undefined'&&perfilActualSistema?perfilActualSistema:{};
@@ -785,6 +813,7 @@
                         await actualizarContadorNotificacionesTopbar();
                         iniciarVigilanciaSesionGlobal(false);
                         await iniciarEscuchaRecargaGlobal();
+                        await cargarMensajeTopbar();
                     }catch(perfilError){
                         await _supabase.auth.signOut();
                         perfilActualSistema=null;modulosPermitidosActuales=[];
@@ -873,6 +902,7 @@
                 await actualizarContadorNotificacionesTopbar();
                 iniciarVigilanciaSesionGlobal(true);
                 await iniciarEscuchaRecargaGlobal();
+                await cargarMensajeTopbar();
             } catch (error) {
                 try { await _supabase.auth.signOut(); } catch (_) {}
                 perfilActualSistema = null;
@@ -900,6 +930,7 @@
                 return;
             }
 
+            await detenerEscuchaMensajeTopbar();
             perfilActualSistema=null;modulosPermitidosActuales=[];
             modulos.forEach(nombre=>document.getElementById('btn-'+nombre)?.classList.remove('hidden'));
             datosAsistenciaGlobal = [];
