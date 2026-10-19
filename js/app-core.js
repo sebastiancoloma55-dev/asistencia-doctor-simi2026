@@ -866,11 +866,33 @@
 
         async function iniciarSesion(event) {
             event.preventDefault();
-
             const boton = document.getElementById('btn-login');
             const errorBox = document.getElementById('login-error');
             const label = boton?.querySelector('.nova-v3-submit-label');
             const icon = boton?.querySelector('.nova-v3-submit-icon');
+            const email = document.getElementById('login-email')?.value.trim();
+            const password = document.getElementById('login-pass')?.value || '';
+            let authCompleted = false;
+
+            const withLoginTimeout = (promise, ms, stage) => new Promise((resolve, reject) => {
+                const timer = setTimeout(() => reject(new Error(
+                    stage === 'auth'
+                      ? 'La conexión de autenticación está tardando demasiado. Comprueba tu conexión e inténtalo nuevamente. Si persiste, Soporte debe revisar la configuración de Supabase.'
+                      : 'Tus credenciales fueron verificadas, pero no se pudieron cargar tus permisos a tiempo. Por seguridad no se abrirá el portal. Inténtalo otra vez y, si persiste, contacta a Soporte RR. HH.'
+                )), ms);
+                Promise.resolve(promise).then(
+                    value => { clearTimeout(timer); resolve(value); },
+                    error => { clearTimeout(timer); reject(error); }
+                );
+            });
+
+            if (!email || !password) {
+                if (errorBox) {
+                    errorBox.textContent = 'Ingresa tu correo corporativo y contraseña.';
+                    errorBox.classList.remove('hidden');
+                }
+                return;
+            }
 
             syncRememberedLoginEmail();
             if (boton) {
@@ -882,33 +904,84 @@
                 if (icon) icon.innerHTML = '<i data-lucide="loader-circle"></i>';
                 if (window.lucide?.createIcons) window.lucide.createIcons();
             }
-            errorBox.classList.add('hidden');
+            errorBox?.classList.add('hidden');
 
             try {
-                const { data, error } = await _supabase.auth.signInWithPassword({
-                    email: document.getElementById('login-email').value.trim(),
-                    password: document.getElementById('login-pass').value
-                });
+                if (!window._supabase?.auth) {
+                    throw new Error('El servicio de autenticación no se inicializó. Recarga con Ctrl + F5; si continúa, informa a Soporte RR. HH.');
+                }
 
-                if (error) throw error;
+                const result = await withLoginTimeout(
+                    _supabase.auth.signInWithPassword({ email, password }),
+                    15000,
+                    'auth'
+                );
+                if (result.error) throw result.error;
+                if (!result.data?.user) throw new Error('Supabase no devolvió un usuario autenticado. Verifica tus credenciales o contacta a Soporte.');
 
-                await cargarPerfilPermisosActual(data.user);
-                actualizarBienvenidaUsuario(data.user);
-                document.getElementById('user-email-display').innerText = data.user.email;
-                document.getElementById('login-overlay').classList.add('hidden');
-                await cambiarModulo(tienePermisoModulo('dashboard') ? 'dashboard' : modulosPermitidosActuales[0], false);
-                await inicializarDashboard();
-                if (window.cargarResumenEspacioDashboard) await window.cargarResumenEspacioDashboard();
-                await actualizarContadorNotificacionesTopbar();
-                iniciarVigilanciaSesionGlobal(true);
-                await iniciarEscuchaRecargaGlobal();
-                await cargarMensajeTopbar();
+                authCompleted = true;
+                const user = result.data.user;
+
+                // No se permite entrar hasta cargar los permisos reales del usuario.
+                await withLoginTimeout(cargarPerfilPermisosActual(user), 12000, 'permissions');
+                if (!Array.isArray(modulosPermitidosActuales) || modulosPermitidosActuales.length === 0) {
+                    throw new Error('La cuenta se autenticó, pero no tiene módulos habilitados. Solicita a un administrador que revise tu rol y permisos.');
+                }
+
+                actualizarBienvenidaUsuario(user);
+                const emailDisplay = document.getElementById('user-email-display');
+                if (emailDisplay) emailDisplay.innerText = user.email || email;
+                document.getElementById('login-overlay')?.classList.add('hidden');
+
+                // El acceso ya fue validado: liberar el botón antes de cargar módulos y widgets.
+                if (boton) {
+                    boton.disabled = false;
+                    boton.removeAttribute('aria-busy');
+                    boton.classList.remove('is-loading');
+                    if (label) label.textContent = 'Acceder al portal';
+                    else boton.textContent = 'Acceder al portal';
+                    if (icon) icon.innerHTML = '<i data-lucide="arrow-up-right"></i>';
+                    if (window.lucide?.createIcons) window.lucide.createIcons();
+                }
+
+                // Las tareas secundarias no deben dejar el login girando ni invalidar una sesión correcta.
+                (async () => {
+                    const tasks = [
+                        () => cambiarModulo(tienePermisoModulo('dashboard') ? 'dashboard' : modulosPermitidosActuales[0], false),
+                        () => inicializarDashboard(),
+                        () => window.cargarResumenEspacioDashboard?.(),
+                        () => actualizarContadorNotificacionesTopbar(),
+                        () => iniciarVigilanciaSesionGlobal(true),
+                        () => iniciarEscuchaRecargaGlobal(),
+                        () => cargarMensajeTopbar()
+                    ];
+                    for (const task of tasks) {
+                        try {
+                            await Promise.race([
+                                Promise.resolve().then(task),
+                                new Promise((_, reject) => setTimeout(() => reject(new Error('Tiempo de espera agotado')), 10000))
+                            ]);
+                        } catch (startupError) {
+                            console.error('[Asistencia Doctor Simi] Tarea posterior al inicio de sesión:', startupError);
+                        }
+                    }
+                })();
             } catch (error) {
-                try { await _supabase.auth.signOut(); } catch (_) {}
-                perfilActualSistema = null;
-                modulosPermitidosActuales = [];
-                errorBox.textContent = error.message || 'Credenciales incorrectas.';
-                errorBox.classList.remove('hidden');
+                // Si falla la carga de permisos después de autenticar, fallar de forma segura.
+                if (authCompleted) {
+                    try {
+                        await withLoginTimeout(_supabase.auth.signOut(), 5000, 'signout');
+                    } catch (signOutError) {
+                        console.error('[Asistencia Doctor Simi] No se pudo cerrar la sesión tras un fallo de permisos:', signOutError);
+                    }
+                    perfilActualSistema = null;
+                    modulosPermitidosActuales = [];
+                }
+                if (errorBox) {
+                    errorBox.textContent = error?.message || 'No se pudo iniciar sesión. Inténtalo nuevamente.';
+                    errorBox.classList.remove('hidden');
+                }
+                console.error('[Asistencia Doctor Simi] Error de acceso:', error);
             } finally {
                 if (boton) {
                     boton.disabled = false;
