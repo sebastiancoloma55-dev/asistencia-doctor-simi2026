@@ -1136,7 +1136,7 @@ main>header:has(#header-title){
           <div class="nova-v3-auth-top"><span class="nova-v3-auth-symbol"><i data-lucide="shield-check"></i></span><span class="nova-v3-auth-step">ACCESO <b> / 01</b></span></div>
           <div class="nova-v3-auth-heading"><span>BIENVENIDO/A DE VUELTA</span><h2>Entra a tu<br>espacio.</h2><p>Usa tus credenciales corporativas para continuar.</p></div>
 
-          <form id="form-login" class="nova-v3-form" onsubmit="iniciarSesion(event)">
+          <form id="form-login" class="nova-v3-form">
             <div class="nova-v3-field"><label for="login-email">CORREO CORPORATIVO</label><div class="nova-v3-input-wrap"><i data-lucide="at-sign"></i><input id="login-email" type="email" autocomplete="username" required placeholder="nombre@farmaciasdoctorsimi.cl" aria-label="Correo electrónico"></div></div>
             <div class="nova-v3-field"><label for="login-pass">CONTRASEÑA</label><div class="nova-v3-input-wrap"><i data-lucide="key-round"></i><input id="login-pass" type="password" autocomplete="current-password" required placeholder="Introduce tu contraseña" aria-label="Contraseña"><button type="button" class="nova-v3-eye" id="btn-toggle-password" onclick="togglePasswordVisibility()" aria-label="Mostrar contraseña" title="Mostrar contraseña"><i data-lucide="eye" id="password-eye-icon"></i></button></div></div>
             <div class="nova-v3-form-meta"><label class="nova-v3-remember"><input id="login-remember" type="checkbox"><span></span> Recordar correo</label><button type="button" class="nova-v3-forgot" onclick="recuperarContrasena()">¿Olvidaste tu contraseña?</button></div>
@@ -2723,7 +2723,7 @@ main>header:has(#header-title){
     </div>
 
     <script src="/js/app-config.js"></script>
-<script src="/js/app-core.js?v=fix-login-syntax-151026d"></script>
+<script src="/js/app-core.js?v=fix-login-submit-20261019"></script>
 <script src="/js/freshness-dashboard.js?v=ultima-carga-por-modulo-151026"></script>
 <script src="/js/attendance-leave.js"></script>
 <script src="/js/workflows.js?v=permisos-envio-licencias-141026"></script>
@@ -3643,7 +3643,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
 
 <script>
 (function(){
- const KEY='doctorSimiUiPreferencesV1';
+ let KEY='doctorSimiUiPreferencesV1:guest';
  const defaults={accent:'#19a8a5',sidebar:'#073a79',background:'#f3f7fc',panel:'#ffffff',text:'#16365c',border:'#dce7f3',table:'#e7f3fc',topbar:'#ffffff',mode:'light',nav:'hybrid',density:'comfortable'};
  let prefs={...defaults};
  function validColor(v){return /^#[0-9a-f]{6}$/i.test(String(v||''));}
@@ -3654,8 +3654,21 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
  function apply(){const root=document.documentElement;root.style.setProperty('--user-accent',prefs.accent);root.style.setProperty('--user-accent-strong',shade(prefs.accent,.2));root.style.setProperty('--user-accent-bright',mix(prefs.accent,.42));root.style.setProperty('--user-accent-contrast',luminance(prefs.accent)>.43?'#102038':'#ffffff');root.style.setProperty('--user-accent-soft',mix(prefs.accent,.9));root.style.setProperty('--user-sidebar-start',prefs.sidebar);root.style.setProperty('--user-sidebar-end',shade(prefs.sidebar,.18));root.style.setProperty('--user-sidebar-foreground',luminance(prefs.sidebar)>.48?'#102038':'#ffffff');root.style.setProperty('--user-sidebar-muted',luminance(prefs.sidebar)>.48?'#41536a':'rgba(255,255,255,.76)');const sideEl=document.getElementById('sidebar');if(sideEl){sideEl.style.setProperty('background','linear-gradient(180deg,'+prefs.sidebar+','+shade(prefs.sidebar,.18)+')','important');sideEl.style.setProperty('color',luminance(prefs.sidebar)>.48?'#102038':'#ffffff','important');sideEl.style.setProperty('border-right-color',prefs.border,'important');sideEl.querySelectorAll('h1,h2,p,span,label,a,button,[role="button"]').forEach(el=>{el.style.setProperty('color',luminance(prefs.sidebar)>.48?'#102038':'#ffffff','important');});sideEl.querySelectorAll('.menu-btn.active,.menu-btn[aria-current="page"]').forEach(el=>{el.style.setProperty('background','linear-gradient(110deg,'+prefs.accent+','+shade(prefs.accent,.2)+')','important');el.style.setProperty('border-color',prefs.accent,'important');});}document.querySelectorAll('main>header,main header[role="banner"],#quick-module-bar').forEach(el=>{el.style.setProperty('background-color',prefs.topbar,'important');el.style.setProperty('border-color',prefs.border,'important');});root.style.setProperty('--theme-app-bg',prefs.background);root.style.setProperty('--theme-panel-bg',prefs.panel);root.style.setProperty('--theme-main-text',prefs.text);root.style.setProperty('--theme-border-color',prefs.border);root.style.setProperty('--theme-table-head',prefs.table);root.style.setProperty('--theme-topbar-bg',prefs.topbar);document.body.classList.toggle('theme-dark',prefs.mode==='dark'||(prefs.mode==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches));document.body.classList.toggle('sidebar-compact',prefs.nav==='compact');document.body.classList.toggle('ui-density-compact',prefs.density==='compact');document.getElementById('theme-custom-color')?.setAttribute('value',prefs.accent);const color=document.getElementById('theme-color-value');if(color)color.textContent=prefs.accent.toUpperCase();const mode=document.getElementById('theme-mode');if(mode)mode.value=prefs.mode;const side=document.getElementById('theme-sidebar-color');if(side)side.value=prefs.sidebar;[['theme-background-color','background'],['theme-panel-color','panel'],['theme-text-color','text'],['theme-border-color','border'],['theme-table-color','table'],['theme-topbar-color','topbar']].forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.value=prefs[key];});const nav=document.getElementById('theme-nav-style');if(nav)nav.value=prefs.nav;const density=document.getElementById('theme-density');if(density)density.value=prefs.density;document.querySelectorAll('.theme-swatch').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===prefs.accent)));}
  function getClient(){try{if(typeof _supabase!=='undefined'&&_supabase)return _supabase;}catch(e){}return window._supabase||window.supabaseClient||null;}
  function loadLocal(){try{const p=JSON.parse(localStorage.getItem(KEY)||'{}');prefs={...defaults,...p};if(!validColor(prefs.accent))prefs.accent=defaults.accent;['sidebar','background','panel','text','border','table','topbar'].forEach(k=>{if(!validColor(prefs[k]))prefs[k]=defaults[k];});}catch(e){prefs={...defaults};}apply();}
- async function loadCloud(){try{const client=getClient();if(!client||!client.auth)return;const s=await client.auth.getSession();const user=s?.data?.session?.user;if(!user)return;const r=await client.from('user_ui_preferences').select('preferences').eq('user_id',user.id).maybeSingle();if(!r.error&&r.data?.preferences&&typeof r.data.preferences==='object'){prefs={...defaults,...r.data.preferences};if(!validColor(prefs.accent))prefs.accent=defaults.accent;['sidebar','background','panel','text','border','table','topbar'].forEach(k=>{if(!validColor(prefs[k]))prefs[k]=defaults[k];});localStorage.setItem(KEY,JSON.stringify(prefs));apply();}}catch(e){/* Preferencias locales siguen disponibles si nube no está configurada. */}}
- window.openThemeSettings=function(){const m=document.getElementById('theme-settings-modal');if(!m)return;const custom=document.getElementById('theme-custom-color'),sidebar=document.getElementById('theme-sidebar-color'),mode=document.getElementById('theme-mode'),nav=document.getElementById('theme-nav-style'),density=document.getElementById('theme-density'),value=document.getElementById('theme-color-value');if(custom)custom.value=prefs.accent;if(sidebar)sidebar.value=prefs.sidebar;[['theme-background-color','background'],['theme-panel-color','panel'],['theme-text-color','text'],['theme-border-color','border'],['theme-table-color','table'],['theme-topbar-color','topbar']].forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.value=prefs[key];});if(mode)mode.value=prefs.mode;if(nav)nav.value=prefs.nav;if(density)density.value=prefs.density;if(value)value.textContent=prefs.accent.toUpperCase();m.classList.add('open');apply();if(window.lucide)lucide.createIcons();};
+ async function loadCloud(){
+    try{
+      const client=getClient();if(!client||!client.auth)return;
+      const s=await client.auth.getSession();const user=s?.data?.session?.user;if(!user)return;
+      KEY='doctorSimiUiPreferencesV1:'+user.id;loadLocal();
+      const r=await client.from('user_ui_preferences').select('preferences').eq('user_id',user.id).maybeSingle();
+      if(!r.error&&r.data?.preferences&&typeof r.data.preferences==='object'){
+        prefs={...defaults,...r.data.preferences};
+        if(!validColor(prefs.accent))prefs.accent=defaults.accent;
+        ['sidebar','background','panel','text','border','table','topbar'].forEach(k=>{if(!validColor(prefs[k]))prefs[k]=defaults[k];});
+        localStorage.setItem(KEY,JSON.stringify(prefs));apply();
+      }
+    }catch(e){console.warn('No se pudieron sincronizar las preferencias personales:',e);}
+  }
+  window.openThemeSettings=function(){const m=document.getElementById('theme-settings-modal');if(!m)return;const custom=document.getElementById('theme-custom-color'),sidebar=document.getElementById('theme-sidebar-color'),mode=document.getElementById('theme-mode'),nav=document.getElementById('theme-nav-style'),density=document.getElementById('theme-density'),value=document.getElementById('theme-color-value');if(custom)custom.value=prefs.accent;if(sidebar)sidebar.value=prefs.sidebar;[['theme-background-color','background'],['theme-panel-color','panel'],['theme-text-color','text'],['theme-border-color','border'],['theme-table-color','table'],['theme-topbar-color','topbar']].forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.value=prefs[key];});if(mode)mode.value=prefs.mode;if(nav)nav.value=prefs.nav;if(density)density.value=prefs.density;if(value)value.textContent=prefs.accent.toUpperCase();m.classList.add('open');apply();if(window.lucide)lucide.createIcons();};
  window.closeThemeSettings=function(){document.getElementById('theme-settings-modal')?.classList.remove('open');};
  window.saveThemeSettings=async function(){const color=document.getElementById('theme-custom-color')?.value;const sidebar=document.getElementById('theme-sidebar-color')?.value;if(validColor(color))prefs.accent=color;if(validColor(sidebar))prefs.sidebar=sidebar;[['theme-background-color','background'],['theme-panel-color','panel'],['theme-text-color','text'],['theme-border-color','border'],['theme-table-color','table'],['theme-topbar-color','topbar']].forEach(([id,key])=>{const value=document.getElementById(id)?.value;if(validColor(value))prefs[key]=value;});prefs.mode=document.getElementById('theme-mode')?.value||'light';prefs.nav=document.getElementById('theme-nav-style')?.value||'hybrid';prefs.density=document.getElementById('theme-density')?.value||'comfortable';localStorage.setItem(KEY,JSON.stringify(prefs));apply();let cloudSaved=false;try{const client=getClient();const s=client?.auth?await client.auth.getSession():null;const user=s?.data?.session?.user;if(user){const r=await client.from('user_ui_preferences').upsert({user_id:user.id,preferences:prefs,updated_at:new Date().toISOString()},{onConflict:'user_id'});cloudSaved=!r.error;}}catch(e){}if(window.mostrarToast)mostrarToast(cloudSaved?'Preferencias guardadas en tu cuenta y en este dispositivo.':'Preferencias guardadas en este dispositivo. No se pudo sincronizar con la nube; revisa tu sesión y permisos.',cloudSaved?'success':'warning',6500);closeThemeSettings();};
 
@@ -3665,7 +3678,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
  function syncThemeControls(){[['theme-custom-color','accent'],['theme-sidebar-color','sidebar'],['theme-background-color','background'],['theme-panel-color','panel'],['theme-text-color','text'],['theme-border-color','border'],['theme-table-color','table'],['theme-topbar-color','topbar']].forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.value=prefs[key];});const value=document.getElementById('theme-color-value');if(value)value.textContent=prefs.accent.toUpperCase();const mode=document.getElementById('theme-mode');if(mode)mode.value=prefs.mode;const nav=document.getElementById('theme-nav-style');if(nav)nav.value=prefs.nav;const density=document.getElementById('theme-density');if(density)density.value=prefs.density;}
 
  window.resetThemeSettings=function(){prefs={...defaults};localStorage.setItem(KEY,JSON.stringify(prefs));apply();if(window.mostrarToast)mostrarToast('Colores restablecidos. Guarda para conservarlos en tu cuenta.','success',4000);};
- document.addEventListener('DOMContentLoaded',function(){loadLocal();document.querySelectorAll('.theme-swatch').forEach(b=>b.addEventListener('click',()=>{prefs.accent=b.dataset.color;const custom=document.getElementById('theme-custom-color'),value=document.getElementById('theme-color-value');if(custom)custom.value=prefs.accent;if(value)value.textContent=prefs.accent.toUpperCase();apply();}));const custom=document.getElementById('theme-custom-color');custom?.addEventListener('input',()=>{prefs.accent=custom.value.toLowerCase();const value=document.getElementById('theme-color-value');if(value)value.textContent=prefs.accent.toUpperCase();apply();});document.getElementById('theme-mode')?.addEventListener('change',e=>{prefs.mode=e.target.value;apply();});document.getElementById('theme-sidebar-color')?.addEventListener('input',e=>{prefs.sidebar=e.target.value;apply();});[['theme-background-color','background'],['theme-panel-color','panel'],['theme-text-color','text'],['theme-border-color','border'],['theme-table-color','table'],['theme-topbar-color','topbar']].forEach(([id,key])=>document.getElementById(id)?.addEventListener('input',e=>{prefs[key]=e.target.value.toLowerCase();apply();}));document.getElementById('theme-nav-style')?.addEventListener('change',e=>{prefs.nav=e.target.value;apply();});document.getElementById('theme-density')?.addEventListener('change',e=>{prefs.density=e.target.value;document.body.classList.toggle('ui-density-compact',prefs.density==='compact');});loadCloud();const client=getClient();if(client?.auth?.onAuthStateChange){client.auth.onAuthStateChange((_event,session)=>{if(session?.user)setTimeout(()=>{loadCloud();},0);});}});
+ document.addEventListener('DOMContentLoaded',function(){loadLocal();document.querySelectorAll('.theme-swatch').forEach(b=>b.addEventListener('click',()=>{prefs.accent=b.dataset.color;const custom=document.getElementById('theme-custom-color'),value=document.getElementById('theme-color-value');if(custom)custom.value=prefs.accent;if(value)value.textContent=prefs.accent.toUpperCase();apply();}));const custom=document.getElementById('theme-custom-color');custom?.addEventListener('input',()=>{prefs.accent=custom.value.toLowerCase();const value=document.getElementById('theme-color-value');if(value)value.textContent=prefs.accent.toUpperCase();apply();});document.getElementById('theme-mode')?.addEventListener('change',e=>{prefs.mode=e.target.value;apply();});document.getElementById('theme-sidebar-color')?.addEventListener('input',e=>{prefs.sidebar=e.target.value;apply();});[['theme-background-color','background'],['theme-panel-color','panel'],['theme-text-color','text'],['theme-border-color','border'],['theme-table-color','table'],['theme-topbar-color','topbar']].forEach(([id,key])=>document.getElementById(id)?.addEventListener('input',e=>{prefs[key]=e.target.value.toLowerCase();apply();}));document.getElementById('theme-nav-style')?.addEventListener('change',e=>{prefs.nav=e.target.value;apply();});document.getElementById('theme-density')?.addEventListener('change',e=>{prefs.density=e.target.value;document.body.classList.toggle('ui-density-compact',prefs.density==='compact');});loadCloud();const client=getClient();if(client?.auth?.onAuthStateChange){client.auth.onAuthStateChange((_event,session)=>{if(session?.user)setTimeout(()=>{loadCloud();},0);else if(_event==='SIGNED_OUT'){KEY='doctorSimiUiPreferencesV1:guest';loadLocal();}});}});
  window.addEventListener('storage',e=>{if(e.key===KEY)loadLocal();});window.addEventListener('keydown',e=>{if(e.key==='Escape')closeThemeSettings();});
 })();
 </script>
@@ -4158,5 +4171,89 @@ setTimeout(maybeShowMascot,45000);
 </script>
 
 <script src="/js/cafecito-presencia.js?v=20261019"></script>
+
+<style id="simi-login-dark-repair">
+#login-overlay .nova-v3-auth{background:linear-gradient(145deg,rgba(13,37,51,.97),rgba(5,20,31,.98))!important;color:#e9f3f7!important;border:1px solid rgba(89,214,193,.28)!important;border-radius:26px!important;box-shadow:0 30px 90px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.045)!important;backdrop-filter:blur(24px)!important;max-height:none!important;overflow:visible!important}
+#login-overlay .nova-v3-auth-heading h2{color:#f2fbfc!important}#login-overlay .nova-v3-auth-heading p{color:#9db8c2!important}
+#login-overlay .nova-v3-auth-heading>span,#login-overlay .nova-v3-field label{color:#6ee7d2!important}
+#login-overlay .nova-v3-input-wrap{background:#071a27!important;border:1px solid #244655!important;box-shadow:none!important}
+#login-overlay .nova-v3-input-wrap:focus-within{background:#0a2230!important;border-color:#31cdb6!important;box-shadow:0 0 0 3px rgba(49,205,182,.13)!important}
+#login-overlay .nova-v3-input-wrap input,#login-overlay .nova-v3-input-wrap input[type=email],#login-overlay .nova-v3-input-wrap input[type=password]{background:transparent!important;background-color:transparent!important;color:#f0f8fa!important;-webkit-text-fill-color:#f0f8fa!important}
+#login-overlay .nova-v3-input-wrap input:-webkit-autofill,#login-overlay .nova-v3-input-wrap input:-webkit-autofill:hover,#login-overlay .nova-v3-input-wrap input:-webkit-autofill:focus{-webkit-text-fill-color:#f0f8fa!important;box-shadow:0 0 0 1000px #071a27 inset!important;transition:background-color 99999s ease-out 0s}
+#login-overlay .nova-v3-input-wrap>svg,#login-overlay .nova-v3-eye{color:#7fa7b3!important}
+#login-overlay .nova-v3-remember{color:#a6c0c8!important}#login-overlay .nova-v3-remember span{border-color:#456775!important}
+#login-overlay .nova-v3-auth-foot{border-top-color:#24414d!important}#login-overlay .nova-v3-auth-foot b{color:#d6e9ed!important}#login-overlay .nova-v3-auth-foot small{color:#8aa8b2!important}
+#login-overlay .nova-v3-submit{background:linear-gradient(110deg,#087e7d,#19a8a5)!important;color:#f5ffff!important;border-color:#31cdb6!important;box-shadow:0 12px 32px rgba(25,168,165,.2)!important}
+#login-overlay .nova-v3-submit-icon{background:rgba(2,30,39,.32)!important}
+#login-overlay .nova-v3-error{background:rgba(120,25,43,.24)!important;color:#ffd5dc!important;border-color:rgba(255,120,145,.38)!important}
+.theme-ideas-preview{margin:0 16px 8px;padding:16px;border:1px solid #23404e;border-radius:16px;background:linear-gradient(145deg,#0b2130,#102a39);color:#e9f3f7}
+.theme-ideas-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.theme-ideas-heading strong{font-size:14px;font-weight:900;color:#f0fbfc}.theme-ideas-heading p{font-size:12px;line-height:1.5;color:#a6c0c8;margin-top:4px}
+.theme-ideas-close{font-size:24px;line-height:1;padding:0 6px;color:#a6c0c8;background:transparent;border:0;cursor:pointer}
+.theme-ideas-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.theme-idea-card{min-width:0;padding:12px;border:1px solid #2b4b59;border-radius:13px;background:#0a1b28;color:#e9f3f7}
+.theme-idea-swatches{display:flex;gap:6px;margin-bottom:10px}.theme-idea-swatches i{width:25px;height:25px;border-radius:7px;display:block}
+.theme-idea-card strong{font-size:12px;display:block}.theme-idea-card p{font-size:11px;line-height:1.45;min-height:32px;color:#9eb7c0;margin:5px 0 10px}
+.theme-idea-card button{width:100%;border:1px solid #2c7e80;background:#0d4149;color:#c9fff6;border-radius:9px;padding:8px 6px;font-size:11px;font-weight:800;cursor:pointer}
+.theme-idea-card button:hover,.theme-idea-card button[aria-pressed=true]{background:#19a8a5;color:#04232c;border-color:#19a8a5}
+@media(max-width:640px){.theme-ideas-grid{grid-template-columns:1fr}.theme-idea-card p{min-height:0}}
+</style>
+<script id="simi-theme-ideas-live">
+(function(){
+ const palettes=[
+ {name:'Simi Nocturno',description:'Azul profundo y turquesa corporativo',accent:'#19a8a5',sidebar:'#061a2b',background:'#071520',panel:'#0d2533',text:'#e9f3f7',border:'#21404e',table:'#132f3e',topbar:'#091f2d',mode:'dark'},
+ {name:'Grafito Eléctrico',description:'Grafito, azul luminoso y alto contraste',accent:'#6ea8fe',sidebar:'#111827',background:'#0a0f1a',panel:'#131c2b',text:'#eef3fb',border:'#29384b',table:'#1a283a',topbar:'#101827',mode:'dark'},
+ {name:'Esmeralda Ejecutivo',description:'Verde esmeralda y tonos profundos',accent:'#39d6b0',sidebar:'#052e2b',background:'#061c1d',panel:'#0c2b2c',text:'#e8f7f4',border:'#1e4945',table:'#123936',topbar:'#082524',mode:'dark'}
+ ];
+ let lastIndex=0;
+ function applyIdea(i){
+   const p=palettes[i];if(!p)return;
+   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+   set('theme-custom-color',p.accent);set('theme-sidebar-color',p.sidebar);set('theme-background-color',p.background);set('theme-panel-color',p.panel);set('theme-text-color',p.text);set('theme-border-color',p.border);set('theme-table-color',p.table);set('theme-topbar-color',p.topbar);set('theme-mode','dark');['theme-custom-color','theme-sidebar-color','theme-background-color','theme-panel-color','theme-text-color','theme-border-color','theme-table-color','theme-topbar-color'].forEach(id=>{const el=document.getElementById(id);if(el)el.dispatchEvent(new Event('input',{bubbles:true}));});const modeEl=document.getElementById('theme-mode');if(modeEl)modeEl.dispatchEvent(new Event('change',{bubbles:true}));
+   const value=document.getElementById('theme-color-value');if(value)value.textContent=p.accent.toUpperCase();
+   document.querySelectorAll('.theme-swatch').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===p.accent)));
+   const root=document.documentElement;
+   root.style.setProperty('--user-accent',p.accent);root.style.setProperty('--user-accent-strong',p.accent);root.style.setProperty('--user-sidebar-start',p.sidebar);root.style.setProperty('--user-sidebar-end',p.sidebar);root.style.setProperty('--theme-app-bg',p.background);root.style.setProperty('--theme-panel-bg',p.panel);root.style.setProperty('--theme-main-text',p.text);root.style.setProperty('--theme-border-color',p.border);root.style.setProperty('--theme-table-head',p.table);root.style.setProperty('--theme-topbar-bg',p.topbar);
+   document.body.classList.add('theme-dark');
+   const side=document.getElementById('sidebar');if(side)side.style.setProperty('background','linear-gradient(180deg,'+p.sidebar+','+p.sidebar+')','important');
+   document.querySelectorAll('main>header,#quick-module-bar').forEach(el=>el.style.setProperty('background',p.topbar,'important'));
+   document.querySelectorAll('.ui-card,[id^="view-"] .bg-white,[id^="view-"] .bg-slate-50').forEach(el=>{el.style.setProperty('background',p.panel,'important');el.style.setProperty('color',p.text,'important');el.style.setProperty('border-color',p.border,'important');});
+   const box=document.getElementById('theme-ideas-preview');if(box)box.querySelectorAll('[data-idea]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.idea)===i)));
+   if(window.mostrarToast)mostrarToast('Vista previa «'+p.name+'» aplicada. Pulsa Guardar preferencias para conservarla.','success',4500);
+ }
+ window.showThemeIdeas=function(){
+   let box=document.getElementById('theme-ideas-preview');
+   if(!box){box=document.createElement('section');box.id='theme-ideas-preview';box.className='theme-ideas-preview';document.getElementById('theme-smart-actions')?.insertAdjacentElement('afterend',box);}
+   box.innerHTML='<div class="theme-ideas-heading"><div><strong>Ideas de diseño</strong><p>Selecciona una propuesta para verla aplicada al instante. No se guarda hasta que pulses Guardar preferencias.</p></div><button type="button" class="theme-ideas-close" aria-label="Cerrar ideas">×</button></div><div class="theme-ideas-grid">'+palettes.map((p,i)=>'<article class="theme-idea-card"><div class="theme-idea-swatches"><i style="background:'+p.sidebar+'"></i><i style="background:'+p.accent+'"></i><i style="background:'+p.panel+';border:1px solid '+p.border+'"></i><i style="background:'+p.background+';border:1px solid '+p.border+'"></i></div><strong>'+p.name+'</strong><p>'+p.description+'</p><button type="button" data-idea="'+i+'" aria-pressed="false">Probar diseño</button></article>').join('')+'</div>';
+   box.querySelector('.theme-ideas-close')?.addEventListener('click',()=>box.remove());
+   box.querySelectorAll('button[data-idea]').forEach(b=>b.addEventListener('click',()=>{lastIndex=Number(b.dataset.idea);applyIdea(lastIndex);}));
+   box.scrollIntoView({behavior:'smooth',block:'nearest'});
+ };
+ window.customizeThemeForMe=function(){lastIndex=(lastIndex+1)%palettes.length;applyIdea(lastIndex);};
+ window.autoThemeSettings=function(){applyIdea(0);if(window.mostrarToast)mostrarToast('Tema oscuro equilibrado aplicado. Guarda preferencias para conservarlo.','success',4000);};
+})();
+</script>
+
+<script id="login-submit-failsafe">
+(function(){
+  function attachLoginFailsafe(){
+    const form=document.getElementById('form-login');
+    if(!form||form.dataset.loginSubmitBound==='true')return;
+    form.dataset.loginSubmitBound='true';
+    form.addEventListener('submit',function(event){
+      event.preventDefault();
+      const box=document.getElementById('login-error');
+      if(box){
+        box.textContent='El módulo de acceso no se inicializó correctamente. Recarga la página con Ctrl + F5. Si el problema continúa, informa a Soporte RR. HH. con el error de la consola del navegador.';
+        box.classList.remove('hidden');
+      }
+      console.error('[Asistencia Doctor Simi] El manejador de autenticación no quedó enlazado.');
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachLoginFailsafe,{once:true});
+  else attachLoginFailsafe();
+})();
+</script>
+
 </body>
 </html>
