@@ -3447,6 +3447,195 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       if(window.mostrarToast)mostrarToast('No se pudieron verificar tus permisos. Por seguridad, solo queda habilitado el Dashboard.','error',12000);
     }
   }
+  // Coberturas: funciones de carga y guardado que faltaban en la versión de la vista previa.
+  function escapeCoverageText(value){
+    return String(value==null?'':value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
+  }
+  async function getCoverageProfile(){
+    var session=await _supabase.auth.getSession();
+    var user=session&&session.data&&session.data.session&&session.data.session.user;
+    if(!user)throw new Error('La sesión expiró. Inicia sesión nuevamente.');
+    var email=String(user.email||'').trim().toLowerCase();
+    if(roleProfileCache&&roleProfileCacheEmail===email)return roleProfileCache;
+    var q=await _supabase.from('usuarios_roles').select('id,email,nombre,rol,permisos,activo,acceso_global').eq('email',email).maybeSingle();
+    if(q.error)throw q.error;
+    if(!q.data||q.data.activo===false)throw new Error('No se encontró un perfil activo para esta cuenta.');
+    roleProfileCache=q.data;roleProfileCacheEmail=email;
+    return q.data;
+  }
+  function isProductivityCoverageProfile(profile){
+    return ['ocabanas@farmaciasdoctorsimi.cl','dcantellano@farmaciasdoctorsimi.cl','cpalacio@farmaciasdoctorsimi.cl'].includes(String(profile&&profile.email||'').toLowerCase());
+  }
+  function coverageStatus(message,isError){
+    var el=document.getElementById('dot-estado');
+    if(el){el.textContent=message;el.classList.toggle('text-rose-700',!!isError);el.classList.toggle('text-slate-500',!isError);}
+  }
+  async function cargarSucursalesCoberturas(){
+    var q=await _supabase.from('sucursales').select('id,nombre,comuna,activa').eq('activa',true).order('nombre',{ascending:true});
+    if(q.error)throw q.error;
+    var branchSelect=document.getElementById('dot-sucursal'),dest=document.getElementById('cob-destino');
+    if(branchSelect)branchSelect.innerHTML='<option value="">Selecciona sucursal</option>';
+    if(dest)dest.innerHTML='<option value="">Selecciona local a cubrir</option>';
+    (q.data||[]).forEach(function(branch){
+      var label=branch.nombre+(branch.comuna?' · '+branch.comuna:'');
+      if(branchSelect){var op=document.createElement('option');op.value=branch.id;op.textContent=label;op.dataset.name=branch.nombre;branchSelect.appendChild(op);}
+      if(dest){var op2=document.createElement('option');op2.value=branch.nombre;op2.textContent=label;dest.appendChild(op2);}
+    });
+  }
+  async function cargarResponsablesCoberturas(){
+    var select=document.getElementById('dot-responsables');if(!select)return;
+    var q=await _supabase.from('usuarios_roles').select('id,nombre,email,activo').eq('activo',true).order('nombre',{ascending:true});
+    if(q.error)throw q.error;
+    select.replaceChildren();
+    (q.data||[]).forEach(function(u){
+      var op=document.createElement('option');op.value=u.id;op.textContent=(u.nombre||u.email)+' · '+u.email;select.appendChild(op);
+    });
+  }
+  function formatCoverageDate(v){if(!v)return '—';var d=new Date(String(v).slice(0,10)+'T12:00:00');return Number.isNaN(d.getTime())?String(v):d.toLocaleDateString('es-CL');}
+  async function cargarSolicitudesDotacion(){
+    var body=document.getElementById('tabla-alertas-dotacion');if(!body)return;
+    body.innerHTML='<tr><td colspan="6" class="p-4 text-sm text-slate-500">Cargando alertas…</td></tr>';
+    try{
+      var profile=await getCoverageProfile();
+      var q=await _supabase.from('solicitudes_dotacion').select('id,sucursal_nombre,fecha_inicio,fecha_fin,cantidad,cargo_requerido,turno,hora_inicio,hora_fin,motivo,observaciones,estado,solicitada_por,created_at').order('created_at',{ascending:false}).limit(300);
+      if(q.error)throw q.error;
+      var rows=q.data||[];
+      if(isProductivityCoverageProfile(profile)){
+        var assigned=await _supabase.from('solicitud_dotacion_responsables').select('solicitud_id').eq('usuario_rol_id',profile.id);
+        var ids=new Set((assigned.data||[]).map(function(x){return String(x.solicitud_id);}));
+        rows=rows.filter(function(x){return Number(x.solicitada_por)===Number(profile.id)||ids.has(String(x.id));});
+      }
+      if(!rows.length){body.innerHTML='<tr><td colspan="6" class="p-4 text-sm text-slate-500">No hay alertas de cobertura propias o asignadas para mostrar.</td></tr>';return;}
+      body.innerHTML=rows.map(function(row){
+        var period=formatCoverageDate(row.fecha_inicio)+' – '+formatCoverageDate(row.fecha_fin);
+        var state=String(row.estado||'PENDIENTE').toUpperCase();
+        var action=state==='PENDIENTE'?'<button type="button" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white" onclick="resolverSolicitudDotacion(\''+escapeCoverageText(row.id)+'\')">Marcar resuelta</button>':(state==='RESUELTA'?'<button type="button" class="rounded-lg border border-emerald-300 px-3 py-2 text-xs font-bold text-emerald-800" onclick="abrirFormularioCobertura(\''+escapeCoverageText(row.id)+'\')">Asignar cobertura</button>':'—');
+        return '<tr><td class="p-3"><b>'+escapeCoverageText(row.sucursal_nombre)+'</b><small class="block text-slate-500">'+escapeCoverageText(row.cargo_requerido)+' · '+escapeCoverageText(row.cantidad)+' persona(s)</small></td><td class="p-3">'+escapeCoverageText(period)+'<small class="block text-slate-500">'+escapeCoverageText(row.turno||'')+'</small></td><td class="p-3">'+(Number(row.solicitada_por)===Number(profile.id)?'Creada por ti':'Asignada / compartida')+'</td><td class="p-3">'+escapeCoverageText(row.motivo)+'</td><td class="p-3"><span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-bold">'+escapeCoverageText(state)+'</span></td><td class="p-3">'+action+'</td></tr>';
+      }).join('');
+    }catch(err){body.innerHTML='<tr><td colspan="6" class="p-4 text-sm text-rose-700">No se pudieron cargar las alertas: '+escapeCoverageText(err.message||err)+'</td></tr>';}
+  }
+  async function cargarHistorialCoberturas(){
+    var body=document.getElementById('tabla-coberturas');if(!body)return;
+    body.innerHTML='<tr><td colspan="6" class="p-4 text-sm text-slate-500">Cargando historial…</td></tr>';
+    try{
+      var profile=await getCoverageProfile();
+      var q=await _supabase.from('coberturas').select('id,nombre,rut,tipo_profesional,local_origen,local_destino,fecha_inicio,fecha_fin,dias,motivo,observaciones,estado_solicitud,created_at,creado_por_rol_id').order('created_at',{ascending:false}).limit(500);
+      if(q.error)throw q.error;
+      var rows=q.data||[];
+      if(isProductivityCoverageProfile(profile))rows=rows.filter(function(x){return Number(x.creado_por_rol_id)===Number(profile.id);});
+      var counts={pendientes:0,curso:0,realizadas:0};
+      rows.forEach(function(x){var st=String(x.estado_solicitud||'').toUpperCase();if(st.includes('REALIZ')||st.includes('COMPLET'))counts.realizadas++;else if(st.includes('CURSO')||st.includes('APROB'))counts.curso++;else counts.pendientes++;});
+      var put=function(id,val){var el=document.getElementById(id);if(el)el.textContent=String(val);};
+      put('cob-pendientes',counts.pendientes);put('cob-curso',counts.curso);put('cob-realizadas',counts.realizadas);
+      if(!rows.length){body.innerHTML='<tr><td colspan="6" class="p-4 text-sm text-slate-500">Todavía no tienes coberturas en tu historial.</td></tr>';return;}
+      body.innerHTML=rows.map(function(x){return '<tr><td class="p-3"><b>'+escapeCoverageText(x.nombre||'—')+'</b><small class="block text-slate-500">'+escapeCoverageText(x.rut||'')+'</small></td><td class="p-3">'+escapeCoverageText(x.local_origen||'—')+'</td><td class="p-3">'+escapeCoverageText(x.local_destino||'—')+'</td><td class="p-3">'+escapeCoverageText(formatCoverageDate(x.fecha_inicio)+' – '+formatCoverageDate(x.fecha_fin))+'<small class="block text-slate-500">'+escapeCoverageText(x.dias||'')+' día(s)</small></td><td class="p-3">'+escapeCoverageText(x.motivo||'—')+'</td><td class="p-3">'+escapeCoverageText(x.estado_solicitud||'—')+'</td></tr>';}).join('');
+    }catch(err){body.innerHTML='<tr><td colspan="6" class="p-4 text-sm text-rose-700">No se pudo cargar el historial: '+escapeCoverageText(err.message||err)+'</td></tr>';}
+  }
+  window.prepararModuloCoberturas=async function(){
+    var body=document.getElementById('tabla-coberturas');
+    try{
+      await getCoverageProfile();
+      await Promise.all([cargarSucursalesCoberturas(),cargarResponsablesCoberturas()]);
+      await Promise.all([cargarSolicitudesDotacion(),cargarHistorialCoberturas()]);
+    }catch(err){
+      if(body)body.innerHTML='<tr><td colspan="6" class="p-4 text-sm text-rose-700">No se pudo inicializar Coberturas: '+escapeCoverageText(err.message||err)+'</td></tr>';
+      console.error('Inicialización de Coberturas',err);
+    }
+  };
+  window.crearSolicitudDotacion=async function(event){
+    if(event)event.preventDefault();
+    var form=document.getElementById('form-alerta-dotacion');if(!form)return;
+    var button=form.querySelector('button[type="submit"],button:not([type])');if(button)button.disabled=true;
+    try{
+      var profile=await getCoverageProfile();
+      var branch=document.getElementById('dot-sucursal'),selected=branch&&branch.selectedOptions[0];
+      var responsible=Array.from((document.getElementById('dot-responsables')||{}).selectedOptions||[]).map(function(o){return Number(o.value);}).filter(Number.isFinite);
+      if(!selected||!selected.value)throw new Error('Selecciona la sucursal que necesita cobertura.');
+      if(!responsible.length)throw new Error('Selecciona al menos una persona responsable.');
+      var inicio=document.getElementById('dot-inicio').value,fin=document.getElementById('dot-fin').value;
+      if(!inicio||!fin||fin<inicio)throw new Error('Revisa las fechas de inicio y término.');
+      var payload={sucursal_id:selected.value,sucursal_nombre:selected.dataset.name||selected.textContent,fecha_inicio:inicio,fecha_fin:fin,cantidad:Number(document.getElementById('dot-cantidad').value||1),cargo_requerido:document.getElementById('dot-cargo').value,turno:document.getElementById('dot-turno').value,hora_inicio:document.getElementById('dot-hora-inicio').value||null,hora_fin:document.getElementById('dot-hora-fin').value||null,motivo:document.getElementById('dot-motivo').value.trim(),observaciones:document.getElementById('dot-observaciones').value.trim()||null,estado:'PENDIENTE',solicitada_por:profile.id,destinatario_id:responsible[0]};
+      var created=await _supabase.from('solicitudes_dotacion').insert(payload).select('id').single();
+      if(created.error)throw created.error;
+      var links=responsible.map(function(id){return {solicitud_id:created.data.id,usuario_rol_id:id,asignado_por:profile.id};});
+      var assigned=await _supabase.from('solicitud_dotacion_responsables').insert(links);
+      if(assigned.error)throw new Error('La alerta se guardó, pero no se pudieron registrar los responsables: '+assigned.error.message);
+      form.reset();window.calcularDiasDotacion();
+      coverageStatus('Alerta guardada y asignada a '+responsible.length+' responsable(s).',false);
+      await Promise.all([cargarSolicitudesDotacion(),cargarHistorialCoberturas()]);
+    }catch(err){coverageStatus('No se pudo guardar la alerta: '+(err.message||err),true);console.error('Crear alerta de cobertura',err);}
+    finally{if(button)button.disabled=false;}
+  };
+  window.calcularDiasDotacion=function(){
+    var a=document.getElementById('dot-inicio'),b=document.getElementById('dot-fin'),d=document.getElementById('dot-dias');
+    if(!a||!b||!d)return;
+    if(a.value&&b.value&&b.value>=a.value){d.value=Math.floor((new Date(b.value+'T12:00:00')-new Date(a.value+'T12:00:00'))/86400000)+1;}
+    else d.value='';
+  };
+  window.actualizarHorarioDotacion=function(){
+    var turno=document.getElementById('dot-turno'),a=document.getElementById('dot-hora-inicio'),b=document.getElementById('dot-hora-fin');
+    if(!turno||!a||!b)return;
+    if(turno.value==='AM'){a.value='08:30';b.value='17:30';}
+    else if(turno.value==='PM'){a.value='10:45';b.value='19:45';}
+    else if(turno.value==='COMPLETO'){a.value='08:30';b.value='19:30';}
+    else {a.value='';b.value='';}
+  };
+  window.resolverSolicitudDotacion=async function(id){
+    try{
+      var profile=await getCoverageProfile();
+      var q=await _supabase.from('solicitudes_dotacion').update({estado:'RESUELTA',revisada_por:profile.id,revisada_en:new Date().toISOString()}).eq('id',id);
+      if(q.error)throw q.error;
+      await cargarSolicitudesDotacion();
+      window.abrirFormularioCobertura(id);
+    }catch(err){coverageStatus('No se pudo marcar la alerta como resuelta: '+(err.message||err),true);}
+  };
+  window.abrirFormularioCobertura=function(id){
+    var form=document.getElementById('form-cobertura'),hidden=document.getElementById('cob-solicitud-id');
+    if(hidden)hidden.value=id;if(form)form.classList.remove('hidden');
+    if(form)form.scrollIntoView({behavior:'smooth',block:'center'});
+  };
+  window.buscarCoberturaPersona=async function(){
+    var input=document.getElementById('cob-buscar'),panel=document.getElementById('cob-resultados');if(!input||!panel)return;
+    var term=input.value.trim();if(term.length<2){panel.classList.add('hidden');panel.replaceChildren();return;}
+    try{
+      var q=await _supabase.from('colaboradores').select('id,rut,nombres,apellidos,cargo,sucursal,estado').or('nombres.ilike.%'+term+'%,apellidos.ilike.%'+term+'%,rut.ilike.%'+term+'%').limit(12);
+      if(q.error)throw q.error;
+      panel.replaceChildren();
+      (q.data||[]).filter(function(p){return !p.estado||String(p.estado).toUpperCase()==='ACTIVO';}).forEach(function(p){
+        var b=document.createElement('button');b.type='button';b.className='block w-full border-b p-3 text-left text-sm hover:bg-cyan-50';
+        b.textContent=[p.nombres,p.apellidos,p.rut,p.cargo].filter(Boolean).join(' · ');
+        b.addEventListener('click',function(){
+          document.getElementById('cob-id').value=p.id;document.getElementById('cob-nombre').value=[p.nombres,p.apellidos].filter(Boolean).join(' ');
+          document.getElementById('cob-rut').value=p.rut||'';document.getElementById('cob-tipo').value=p.cargo||'';
+          document.getElementById('cob-origen').value=p.sucursal||'';
+          input.value=[p.nombres,p.apellidos].filter(Boolean).join(' ');panel.classList.add('hidden');
+        });panel.appendChild(b);
+      });
+      if(!panel.childElementCount){var empty=document.createElement('p');empty.className='p-3 text-sm text-slate-500';empty.textContent='No se encontraron colaboradores activos.';panel.appendChild(empty);}
+      panel.classList.remove('hidden');
+    }catch(err){panel.innerHTML='<p class="p-3 text-sm text-rose-700">'+escapeCoverageText(err.message||err)+'</p>';panel.classList.remove('hidden');}
+  };
+  window.calcularDiasCobertura=function(){
+    var a=document.getElementById('cob-inicio'),b=document.getElementById('cob-fin'),d=document.getElementById('cob-dias');
+    if(!a||!b||!d)return;
+    if(a.value&&b.value&&b.value>=a.value)d.value=Math.floor((new Date(b.value+'T12:00:00')-new Date(a.value+'T12:00:00'))/86400000)+1;
+    else d.value='';
+  };
+  window.guardarCobertura=async function(event){
+    if(event)event.preventDefault();
+    var form=document.getElementById('form-cobertura'),button=form&&form.querySelector('button[type="submit"],button:not([type])');
+    if(button)button.disabled=true;
+    try{
+      var profile=await getCoverageProfile();
+      var payload={colaborador_id:document.getElementById('cob-id').value||null,rut:document.getElementById('cob-rut').value,nombre:document.getElementById('cob-nombre').value,tipo_profesional:document.getElementById('cob-tipo').value,local_origen:document.getElementById('cob-origen').value,local_destino:document.getElementById('cob-destino').value,fecha_inicio:document.getElementById('cob-inicio').value,fecha_fin:document.getElementById('cob-fin').value,dias:Number(document.getElementById('cob-dias').value),motivo:document.getElementById('cob-motivo').value.trim(),observaciones:document.getElementById('cob-observaciones').value.trim(),estado_solicitud:'PENDIENTE',solicitud_dotacion_id:document.getElementById('cob-solicitud-id').value||null,creado_por_rol_id:profile.id};
+      var q=await _supabase.from('coberturas').insert(payload);
+      if(q.error)throw q.error;
+      form.reset();form.classList.add('hidden');
+      await Promise.all([cargarSolicitudesDotacion(),cargarHistorialCoberturas()]);
+      coverageStatus('Cobertura guardada correctamente.',false);
+    }catch(err){coverageStatus('No se pudo guardar la cobertura: '+(err.message||err),true);console.error('Guardar cobertura',err);}
+    finally{if(button)button.disabled=false;}
+  };
   var originalChange=window.cambiarModulo;
   if(typeof originalChange==='function'){
     window.cambiarModulo=async function(modulo,cargar){
