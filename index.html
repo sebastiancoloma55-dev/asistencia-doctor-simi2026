@@ -990,6 +990,106 @@ main>header:has(#header-title){
 #theme-smart-actions button{min-height:42px!important;white-space:normal!important;line-height:1.25!important}
 #theme-settings-modal .theme-settings-card .theme-action-primary{background:var(--user-accent)!important;color:var(--user-accent-contrast)!important}
 </style>
+<style id="nova-v3-login-redesign-20261019">
+/* Rediseño integral del login: aislarlo de los estilos globales de la plataforma */
+#login-overlay.nova-v3-overlay{height:100dvh!important;min-height:100dvh!important;max-height:100dvh!important;overflow:hidden!important;background:#071923!important;color:#f5fafb!important;display:flex!important;flex-direction:column!important}
+#login-overlay .nova-v3-atmosphere{background:radial-gradient(ellipse at 15% 55%,rgba(17,161,151,.18),transparent 42%),radial-gradient(ellipse at 82% 20%,rgba(35,106,151,.16),transparent 36%),linear-gradient(135deg,#071923 0%,#0b2634 58%,#102f3c 100%)!important}
+#login-overlay .nova-v3-grid{opacity:.09!important;background-size:64px 64px!important}
+#login-overlay .nova-v3-orb,#login-overlay .nova-v3-cross,#login-overlay .nova-v3-coordinate{display:none!important}
+#login-overlay .nova-v3-topbar{flex:0 0 76px!important;width:100%!important;max-width:1440px!important;min-height:76px!important;margin:0 auto!important;padding:14px clamp(22px,5vw,72px)!important;background:transparent!important;border:0!important;color:#f5fafb!important}
+#login-overlay .nova-v3-brand{color:#f5fafb!important}
+#login-overlay .nova-v3-brand-image{width:42px!important;height:42px!important;border-radius:13px!important;background:#fff!important;border:1px solid rgba(255,255,255,.25)!important;box-shadow:none!important}
+#login-overlay .nova-v3-brand-copy strong{color:#f5fafb!important;font-size:12px!important;letter-spacing:.14em!important}
+#login-overlay .nova-v3-brand-copy small{color:#9eb8c2!important}
+#login-overlay .nova-v3-top-status{color:#b3c9d1!important}
+#login-overlay .nova-v3-main{flex:1 1 auto!important;min-height:0!important;width:min(1220px,100%)!important;margin:0 auto!important;grid-template-columns:minmax(0,1.1fr) minmax(370px,.82fr)!important;align-items:center!important;gap:clamp(36px,7vw,100px)!important;padding:18px clamp(22px,5vw,72px)!important}
+#login-overlay .nova-v3-intro{padding:0!important}
+#login-overlay .nova-v3-kicker{font-size:10px!important;letter-spacing:.19em!important;color:#65d6c6!important}
+#login-overlay .nova-v3-intro h1{font-size:clamp(44px,5.2vw,72px)!important;line-height:1.02!important;letter-spacing:-.06em!important;margin:22px 0 18px!important;max-width:650px!important}
+#login-overlay .nova-v3-intro h1 em{color:#56d5c3!important}
+#login-overlay .nova-v3-description{font-size:14px!important;line-height:1.8!important;max-width:460px!important;color:#b0c4cb!important}
+#login-overlay .nova-v3-feature-grid{display:grid!important;grid-template-columns:1fr!important;gap:9px!important;max-width:440px!important;margin:30px 0 24px!important}
+#login-overlay .nova-v3-feature{display:flex!important;align-items:center!important;gap:13px!important;padding:11px 14px!important;border:1px solid rgba(162,209,212,.14)!important;border-radius:13px!important;background:rgba(255,255,255,.035)!important}
+#login-overlay .nova-v3-feature-number{display:grid!important;place-items:center!important;flex:0 0 34px!important;height:34px!important;border-radius:10px!important;background:rgba(67,207,190,.12)!important;color:#76e4d4!important;font-size:10px!important;font-weight:850!important}
+#login-overlay .nova-v3-feature b,#login-overlay .nova-v3-feature small{display:block!important}
+#login-overlay .nova-v3-feature b{color:#edf7f8!important;font-size:12px!important;font-weight:750!important}
+#login-overlay .nova-v3-feature small{color:#91adb7!important;font-size:10px!important;margin-top:4px!important}
+#login-overlay .nova-v3-bottom-note{max-width:440px!important;padding-top:15px!important;border-top-color:rgba(180,218,218,.15)!important}
+#login-overlay .nova-v3-bottom-icon{color:#70dece!important;background:rgba(85,216,198,.08)!important}
+#login-overlay .nova-v3-bottom-note b{color:#e4f0f2!important}
+#login-overlay .nova-v3-bottom-note small{color:#91aab3!important}
+#login-overlay .nova-v3-auth{align-self:center!important;width:100%!important;max-width:430px!important;max-height:calc(100% - 6px)!important;overflow:auto!important;padding:clamp(25px,2.5vw,36px)!important;background:#fff!important;color:#153044!important;border:1px solid #e3edf0!important;border-radius:22px!important;box-shadow:0 28px 80px rgba(0,0,0,.25)!important;backdrop-filter:none!important}
+#login-overlay .nova-v3-auth:before{background:linear-gradient(90deg,transparent,#18a89f,transparent)!important;opacity:1!important}
+#login-overlay .nova-v3-auth-symbol{background:#e9f8f6!important;color:#0b938c!important;border-color:#c8eeea!important}
+#login-overlay .nova-v3-auth-step{color:#7a9099!important}
+#login-overlay .nova-v3-auth-step b{color:#0a9a91!important}
+#login-overlay .nova-v3-auth-heading{margin:24px 0 23px!important}
+#login-overlay .nova-v3-auth-heading>span{color:#078f88!important;font-size:9px!important;letter-spacing:.17em!important}
+#login-overlay .nova-v3-auth-heading h2{font-size:clamp(30px,2.7vw,38px)!important;line-height:1.06!important;color:#102c3d!important;margin:10px 0 9px!important}
+#login-overlay .nova-v3-auth-heading p{font-size:12px!important;color:#687f89!important}
+#login-overlay .nova-v3-form{gap:16px!important}
+#login-overlay .nova-v3-field label{color:#35515d!important;font-size:10px!important;letter-spacing:.09em!important;margin-bottom:7px!important}
+#login-overlay .nova-v3-input-wrap{min-height:51px!important;padding:0 13px!important;gap:10px!important;background:#f5f8fa!important;border:1px solid #dbe6e9!important;border-radius:11px!important;box-shadow:none!important}
+#login-overlay .nova-v3-input-wrap:focus-within{background:#fff!important;border-color:#16a69c!important;box-shadow:0 0 0 3px rgba(22,166,156,.12)!important}
+#login-overlay .nova-v3-input-wrap>svg{color:#718c96!important;width:17px!important;height:17px!important}
+#login-overlay .nova-v3-input-wrap input,#login-overlay .nova-v3-input-wrap input[type="email"],#login-overlay .nova-v3-input-wrap input[type="password"]{appearance:none!important;width:100%!important;min-width:0!important;background:transparent!important;background-color:transparent!important;color:#173647!important;-webkit-text-fill-color:#173647!important;border:0!important;box-shadow:none!important;outline:none!important;font-size:13px!important;padding:14px 0!important}
+#login-overlay .nova-v3-input-wrap input::placeholder{color:#8ca0a8!important;-webkit-text-fill-color:#8ca0a8!important;opacity:1!important}
+#login-overlay .nova-v3-eye{color:#5d7b85!important;background:transparent!important}
+#login-overlay .nova-v3-eye:hover{background:#e8f4f3!important;color:#087f79!important}
+#login-overlay .nova-v3-remember{color:#617b85!important;font-size:10px!important}
+#login-overlay .nova-v3-remember span{border-color:#b5c9ce!important}
+#login-overlay .nova-v3-remember input:checked+span{background:#0e9d94!important;border-color:#0e9d94!important}
+#login-overlay .nova-v3-forgot{color:#078f88!important;font-size:10px!important}
+#login-overlay .nova-v3-error{color:#a51d32!important;background:#fff1f2!important;border-color:#fecdd3!important}
+#login-overlay .nova-v3-submit{min-height:52px!important;padding:7px 8px 7px 17px!important;border:1px solid #078f88!important;border-radius:11px!important;background:#078f88!important;color:#fff!important;box-shadow:0 9px 22px rgba(7,143,136,.18)!important;font-size:12px!important}
+#login-overlay .nova-v3-submit:hover{background:#067c77!important;filter:none!important;box-shadow:0 12px 26px rgba(7,143,136,.23)!important}
+#login-overlay .nova-v3-submit-icon{background:rgba(255,255,255,.16)!important}
+#login-overlay .nova-v3-auth-foot{border-top-color:#e6eef0!important;margin-top:20px!important;padding-top:14px!important}
+#login-overlay .nova-v3-lock{color:#168c86!important;border-color:#d8e9e9!important;background:#f4fbfa!important}
+#login-overlay .nova-v3-auth-foot b{color:#294754!important}
+#login-overlay .nova-v3-auth-foot small{color:#80949c!important}
+#login-overlay .nova-v3-live{color:#138c78!important}
+#login-overlay .nova-v3-footer{flex:0 0 32px!important;width:100%!important;max-width:1440px!important;margin:0 auto!important;padding:8px clamp(22px,5vw,72px) 10px!important;color:#7f9ca6!important;font-size:8px!important;background:transparent!important}
+#login-overlay .nova-v3-footer-mark{color:#c4d8dc!important}
+@media(max-width:900px){
+ #login-overlay.nova-v3-overlay{height:100dvh!important;min-height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important}
+ #login-overlay .nova-v3-topbar{flex-basis:65px!important;min-height:65px!important;padding:12px 22px!important}
+ #login-overlay .nova-v3-main{flex:0 0 auto!important;grid-template-columns:1fr!important;gap:26px!important;padding:16px 22px 24px!important}
+ #login-overlay .nova-v3-intro h1{font-size:clamp(38px,8vw,54px)!important;margin:16px 0 12px!important}
+ #login-overlay .nova-v3-feature-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;margin:20px 0!important}
+ #login-overlay .nova-v3-feature{align-items:flex-start!important;gap:8px!important;padding:10px!important}
+ #login-overlay .nova-v3-feature-number{flex-basis:28px!important;height:28px!important}
+ #login-overlay .nova-v3-feature b{font-size:10px!important}
+ #login-overlay .nova-v3-feature small{font-size:9px!important;line-height:1.4!important}
+ #login-overlay .nova-v3-bottom-note{display:none!important}
+ #login-overlay .nova-v3-auth{justify-self:center!important;max-width:520px!important;max-height:none!important;padding:26px!important}
+ #login-overlay .nova-v3-footer{flex:0 0 auto!important;padding:12px 22px 18px!important}
+}
+@media(max-width:520px){
+ #login-overlay .nova-v3-top-status{font-size:8px!important;letter-spacing:.08em!important;gap:7px!important}
+ #login-overlay .nova-v3-brand-image{width:36px!important;height:36px!important}
+ #login-overlay .nova-v3-brand-copy strong{font-size:10px!important}
+ #login-overlay .nova-v3-brand-copy small{font-size:8px!important}
+ #login-overlay .nova-v3-feature-grid{grid-template-columns:1fr!important}
+ #login-overlay .nova-v3-feature{align-items:center!important}
+ #login-overlay .nova-v3-auth{padding:23px 20px!important;border-radius:18px!important}
+ #login-overlay .nova-v3-auth-heading h2{font-size:31px!important}
+ #login-overlay .nova-v3-footer span:nth-child(2){display:none!important}
+}
+@media(max-height:760px) and (min-width:901px){
+ #login-overlay .nova-v3-topbar{flex-basis:62px!important;min-height:62px!important}
+ #login-overlay .nova-v3-main{padding-top:8px!important;padding-bottom:8px!important;gap:36px!important}
+ #login-overlay .nova-v3-intro h1{font-size:clamp(40px,4.4vw,58px)!important;margin:16px 0 12px!important}
+ #login-overlay .nova-v3-feature-grid{gap:6px!important;margin:18px 0!important}
+ #login-overlay .nova-v3-feature{padding:8px 11px!important}
+ #login-overlay .nova-v3-auth{padding:23px!important}
+ #login-overlay .nova-v3-auth-heading{margin:18px 0!important}
+ #login-overlay .nova-v3-form{gap:12px!important}
+ #login-overlay .nova-v3-auth-foot{margin-top:15px!important;padding-top:12px!important}
+ #login-overlay .nova-v3-footer{flex-basis:25px!important;padding-top:5px!important;padding-bottom:6px!important}
+}
+@media(prefers-reduced-motion:reduce){#login-overlay .nova-v3-orbit,#login-overlay .nova-v3-core,#login-overlay .nova-v3-core-pulse{animation:none!important}}
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -1020,20 +1120,13 @@ main>header:has(#header-title){
       <main class="nova-v3-main">
         <section class="nova-v3-intro" aria-label="Portal de Recursos Humanos">
           <div class="nova-v3-kicker"><span class="nova-v3-kicker-line"></span> PLATAFORMA DE OPERACIONES HUMANAS</div>
-          <h1>Las personas<br>mueven <em>todo.</em></h1>
-          <p class="nova-v3-description">Un centro de control para asistencia, turnos y equipos. Todo conectado. Todo en orden.</p>
+          <h1>Tu equipo.<br><em>Todo en orden.</em></h1>
+          <p class="nova-v3-description">Asistencia, turnos y gestión de personas en un solo lugar. Entra y continúa donde tu equipo te necesita.</p>
 
-          <div class="nova-v3-orbit-scene" aria-hidden="true">
-            <div class="nova-v3-orbit nova-v3-orbit-outer"></div>
-            <div class="nova-v3-orbit nova-v3-orbit-middle"></div>
-            <div class="nova-v3-orbit nova-v3-orbit-inner"></div>
-            <span class="nova-v3-orbit-dot nova-v3-dot-one"></span>
-            <span class="nova-v3-orbit-dot nova-v3-dot-two"></span>
-            <span class="nova-v3-orbit-dot nova-v3-dot-three"></span>
-            <div class="nova-v3-core"><img src="/doctor-simi-logo.jpg" alt=""><span class="nova-v3-core-pulse"></span></div>
-            <div class="nova-v3-float-tag nova-v3-tag-one"><span class="nova-v3-tag-icon">01</span><span><b>ASISTENCIA</b><small>Control diario</small></span></div>
-            <div class="nova-v3-float-tag nova-v3-tag-two"><span class="nova-v3-tag-icon">02</span><span><b>PERSONAS</b><small>Equipos conectados</small></span></div>
-            <div class="nova-v3-float-tag nova-v3-tag-three"><span class="nova-v3-tag-icon">03</span><span><b>OPERACIONES</b><small>Todo bajo control</small></span></div>
+          <div class="nova-v3-feature-grid" aria-label="Áreas de la plataforma">
+            <div class="nova-v3-feature"><span class="nova-v3-feature-number">01</span><span><b>Asistencia y turnos</b><small>Control diario y novedades</small></span></div>
+            <div class="nova-v3-feature"><span class="nova-v3-feature-number">02</span><span><b>Personas y sucursales</b><small>Información conectada</small></span></div>
+            <div class="nova-v3-feature"><span class="nova-v3-feature-number">03</span><span><b>Gestión de RR. HH.</b><small>Procesos en un solo espacio</small></span></div>
           </div>
 
           <div class="nova-v3-bottom-note"><span class="nova-v3-bottom-icon"><i data-lucide="shield-check"></i></span><span><b>Un espacio de trabajo protegido</b><small>Acceso exclusivo para personal autorizado</small></span><span class="nova-v3-bottom-arrow">↗</span></div>
