@@ -1041,6 +1041,7 @@ main>header button[onclick*="cerrarSesion()"]{padding:9px 10px!important;border-
                         <i data-lucide="bell-ring" class="h-5 w-5"></i><span id="topbar-notif-count" class="absolute -right-1 -top-1 hidden min-w-[18px] rounded-full bg-rose-600 px-1 text-center text-[10px] font-black leading-[18px] text-white">0</span>
                     </button>
                     <button type="button" id="topbar-custom-message" class="hidden sm:inline-flex items-center gap-2 rounded-lg border border-cyan-100 bg-cyan-50 px-2.5 py-2 text-xs font-extrabold text-cyan-800 transition hover:border-cyan-300 hover:bg-cyan-100" aria-label="Mensaje personalizable junto a las notificaciones" title="Mensaje junto a las notificaciones" onclick="editarMensajeTopbar()"><span id="topbar-custom-message-text">Chúpala meando</span><i id="topbar-custom-message-edit-icon" data-lucide="pencil" class="h-3 w-3 opacity-60"></i></button>
+                    <button type="button" id="btn-modo-cafecito" class="hidden sm:inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-xs font-extrabold text-amber-800 transition hover:-translate-y-0.5 hover:bg-amber-100" onclick="toggleModoCafecito()" title="Activar modo cafecito"><span aria-hidden="true">☕</span><span id="modo-cafecito-label">Cafecito</span></button>
                     <button type="button" class="topbar-search hidden md:inline-flex" onclick="abrirBuscadorGlobal()" aria-label="Buscar módulos, Ctrl K" title="Buscar módulos (Ctrl+K)">
                         <i data-lucide="search" class="h-4 w-4"></i><span>Buscar módulo...</span><kbd>Ctrl K</kbd>
                     </button>
@@ -1081,6 +1082,11 @@ main>header button[onclick*="cerrarSesion()"]{padding:9px 10px!important;border-
                     <div class="dashboard-welcome-compact-visual" aria-label="Imagen original de Doctor Simi y la farmacia"><img class="dashboard-welcome-compact-image" src="/doctor-simi-pharmacy-reference.webp" alt="Doctor Simi saludando frente a una farmacia Farmacias Similares" loading="lazy" decoding="async" fetchpriority="low"></div>
                 </section>
 
+                <section id="frase-divertida-del-dia" class="simi-fun-phrase" aria-label="Frase divertida del día">
+                    <span class="simi-fun-phrase-emoji" aria-hidden="true">💬</span>
+                    <div class="simi-fun-phrase-copy"><span>PAUSA DE BUEN HUMOR</span><p id="simi-frase-dia">El Excel no se llena solo… lamentablemente 😂</p></div>
+                    <button type="button" onclick="cambiarFraseDelDia()" aria-label="Cambiar frase divertida" title="Otra frase">🎲</button>
+                </section>
                 <div id="dashboard-space-summary" class="dash-space-card" aria-live="polite">
                     <div class="dash-space-intro"><div><span class="dash-space-kicker">TU MESA DE TRABAJO</span><h3>Lo que tienes entre manos</h3><p>Notas, recordatorios y gestiones sin perder el hilo.</p></div><button type="button" onclick="cambiarModulo('espacio')" class="dash-space-open">Abrir mi espacio <i data-lucide="arrow-up-right"></i></button></div>
                     <div class="dash-space-stat-grid"><div><span class="dash-space-stat-icon"><i data-lucide="sticky-note"></i></span><span><b>0</b><small>Notas activas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="pin"></i></span><span><b>0</b><small>Notas fijadas</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-alert"></i></span><span><b>0</b><small>Fuera de plazo</small></span></div><div><span class="dash-space-stat-icon"><i data-lucide="clock-arrow-down"></i></span><span><b>0</b><small>Gestiones recientes</small></span></div></div>
@@ -3793,5 +3799,121 @@ main>header button[onclick*="cerrarSesion()"]{padding:8px!important;border-radiu
 @media(max-width:1000px){main>header{gap:7px!important;padding:8px 12px!important}main>header #header-title{font-size:14px!important}main>header .topbar-user-email{display:none!important}}
 @media(max-width:640px){main>header .topbar-quick-action{display:none!important}#sidebar{width:264px!important}#sidebar.sidebar-collapsed{width:0!important;min-width:0!important;border:0!important}main>header{min-height:56px!important;padding:7px 9px!important;gap:5px!important}main>header #header-title{min-width:64px!important;font-size:13px!important}main>header #btn-theme-settings{padding:7px!important}main>header #btn-cerrar-sesiones-global{display:none!important}main>header button[onclick*="cerrarSesion()"]{font-size:10px!important;padding:7px 4px!important}#simi-context-assistant{width:48px!important;height:48px!important}#simi-context-toggle{width:48px!important;height:48px!important;min-width:48px!important}#simi-context-popover{bottom:58px!important}}
 </style>
+
+<style id="simi-fun-details-styles">
+.simi-fun-phrase{display:flex;align-items:center;gap:12px;padding:12px 15px;border:1px solid #d8edf5;border-radius:15px;background:linear-gradient(105deg,#fff 0%,#f0fbff 62%,#fff7e8 100%);box-shadow:0 5px 16px rgba(7,59,112,.045)}
+.simi-fun-phrase-emoji{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:#e0f7fa;font-size:20px}
+.simi-fun-phrase-copy{min-width:0;flex:1}.simi-fun-phrase-copy>span{font-size:9px;font-weight:950;letter-spacing:.14em;color:#087f92}.simi-fun-phrase-copy p{margin-top:3px;font-size:12px;font-weight:750;color:#244667}
+.simi-fun-phrase>button{display:grid;place-items:center;width:34px;height:34px;border:1px solid #d5e8f4;border-radius:10px;background:#fff;transition:transform .18s}.simi-fun-phrase>button:hover{transform:rotate(18deg) scale(1.05)}
+#btn-modo-cafecito{white-space:nowrap}
+body.simi-coffee-mode main{background-image:radial-gradient(ellipse at 85% 12%,rgba(255,218,168,.16),transparent 30%)}
+body.simi-coffee-mode .dashboard-welcome-compact{box-shadow:0 0 0 2px rgba(217,146,66,.18),0 12px 28px rgba(7,59,112,.12)}
+.simi-fun-toast{position:fixed;z-index:2000;left:50%;bottom:26px;transform:translate(-50%,20px);max-width:min(420px,calc(100vw - 28px));padding:11px 16px;border:1px solid #cce9f2;border-radius:14px;background:#fff;color:#12385f;font-size:12px;font-weight:800;box-shadow:0 14px 38px rgba(8,47,85,.2);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.simi-fun-toast.is-visible{opacity:1;transform:translate(-50%,0)}
+#simi-hidden-mascot{position:fixed;z-index:950;left:calc(min(264px, 22vw) + 14px);bottom:18px;display:flex;align-items:center;gap:8px;max-width:250px;padding:8px 12px 8px 9px;border:1px solid #cce9f2;border-radius:999px;background:rgba(255,255,255,.97);color:#12406b;box-shadow:0 8px 24px rgba(7,59,112,.13);font-size:11px;font-weight:800;opacity:0;transform:translateY(8px) scale(.96);pointer-events:none;transition:opacity .25s,transform .25s}
+#simi-hidden-mascot.is-visible{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+#simi-hidden-mascot .mascot-face{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#e5f8fb;font-size:19px;flex:0 0 auto}
+#simi-hidden-mascot button{color:#087f92;font-size:10px;font-weight:900;text-decoration:underline}
+.simi-confetti-piece{position:fixed;z-index:2001;top:-12px;width:7px;height:12px;border-radius:2px;pointer-events:none;animation:simi-confetti-fall 1.25s ease-in forwards}
+@keyframes simi-confetti-fall{to{transform:translate3d(var(--drift),105vh,0) rotate(620deg);opacity:.1}}
+.simi-secret-logo-pop{animation:simi-logo-pop .55s ease}
+@keyframes simi-logo-pop{50%{transform:rotate(-5deg) scale(1.1);filter:drop-shadow(0 0 9px rgba(25,168,165,.7))}}
+@media(max-width:640px){.simi-fun-phrase{padding:10px;gap:9px}.simi-fun-phrase-copy p{font-size:11px}#simi-hidden-mascot{left:12px;bottom:76px;max-width:210px}}
+@media(prefers-reduced-motion:reduce){.simi-fun-phrase>button,#simi-hidden-mascot,.simi-fun-toast,.simi-secret-logo-pop{transition:none!important;animation:none!important}.simi-confetti-piece{display:none!important}}
+</style>
+<div id="simi-fun-toast" class="simi-fun-toast" role="status" aria-live="polite"></div>
+<div id="simi-hidden-mascot" aria-live="polite"><span class="mascot-face" aria-hidden="true">🧑🏻‍⚕️</span><span id="simi-hidden-mascot-line">¡Te pillé trabajando! 😄</span><button type="button" onclick="simiMascotaSaludo(true)">¡Hola!</button></div>
+<script>
+(function(){
+'use strict';
+const frases=[
+'El Excel no se llena solo… lamentablemente 😂',
+'Respira, toma agüita y seguimos 💧',
+'Un pendiente menos, una victoria más 🏆',
+'Que tus fórmulas siempre cuadren y tus correos sean cortos 📊',
+'Hoy también mereces una pausa para el cafecito ☕',
+'Si todo está en orden, revisa dos veces por si acaso 👀',
+'Modo RR. HH.: resolver lo imposible con una planilla 😎',
+'No es magia… son macros bien hechas ✨',
+'¡Tú puedes! Hasta ese archivo llamado FINAL_v7_ahora_si.xlsx 💪',
+'Un día sin duplicados es un gran día 🎉',
+'La paciencia es una habilidad avanzada de Recursos Humanos 🧘',
+'Que hoy te sobren soluciones y te falten urgencias 💙'
+];
+const saludos=['¡Te pillé trabajando! 😄','Doctor Simi reportándose 🫡','¡Vas súper! No olvides parpadear 👀','Psst… toma agüita 💧','¡Un pendiente menos y a celebrar! 🎉','Si el Excel coopera, hoy ganamos todos 😂'];
+let toastTimer=null, mascotTimer=null, mascotHideTimer=null, logoClicks=0, taskWins=0, coffeeMode=false;
+function toast(text){
+ const el=document.getElementById('simi-fun-toast');if(!el)return;
+ el.textContent=text;el.classList.add('is-visible');clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>el.classList.remove('is-visible'),3000);
+}
+window.cambiarFraseDelDia=function(){
+ const el=document.getElementById('simi-frase-dia');if(!el)return;
+ const actual=el.textContent;let lista=frases.filter(x=>x!==actual);
+ el.textContent=lista[Math.floor(Math.random()*lista.length)];
+ const card=document.getElementById('frase-divertida-del-dia');
+ if(card){card.animate?.([{transform:'scale(.99)'},{transform:'scale(1)'}],{duration:180});}
+};
+window.toggleModoCafecito=function(){
+ coffeeMode=!coffeeMode;document.body.classList.toggle('simi-coffee-mode',coffeeMode);
+ const label=document.getElementById('modo-cafecito-label');
+ if(label)label.textContent=coffeeMode?'Modo ON':'Cafecito';
+ const button=document.getElementById('btn-modo-cafecito');
+ if(button){button.title=coffeeMode?'Desactivar modo cafecito':'Activar modo cafecito';button.setAttribute('aria-pressed',String(coffeeMode));}
+ toast(coffeeMode?'☕ Modo cafecito activado. Respira, toma agüita y seguimos.':'💙 Modo cafecito desactivado. ¡Seguimos!');
+};
+window.simiMascotaSaludo=function(clicked){
+ const line=document.getElementById('simi-hidden-mascot-line');
+ if(line)line.textContent=clicked?'¡Hola! Recuerda que lo estás haciendo genial 💙':saludos[Math.floor(Math.random()*saludos.length)];
+ const mascot=document.getElementById('simi-hidden-mascot');
+ if(mascot){mascot.classList.add('is-visible');clearTimeout(mascotHideTimer);mascotHideTimer=setTimeout(()=>mascot.classList.remove('is-visible'),clicked?6500:7000);}
+};
+function maybeShowMascot(){
+ if(document.hidden||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ const mascot=document.getElementById('simi-hidden-mascot');if(!mascot)return;
+ if(Math.random()<.65)window.simiMascotaSaludo(false);
+ const next=160000+Math.random()*160000;mascotTimer=setTimeout(maybeShowMascot,next);
+}
+function celebrate(){
+ if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ for(let i=0;i<26;i++){
+  const p=document.createElement('i');p.className='simi-confetti-piece';
+  p.style.left=(Math.random()*100)+'vw';p.style.setProperty('--drift',((Math.random()-.5)*180)+'px');
+  p.style.background=['#19a8a5','#0b5394','#f6c85f','#f78da7','#8b7cf6'][i%5];
+  p.style.animationDelay=(Math.random()*.22)+'s';document.body.appendChild(p);setTimeout(()=>p.remove(),1600);
+ }
+ toast('🎉 ¡Jornada conquistada! Un logro más para el equipo.');
+}
+function awardTaskBadge(){
+ taskWins++;
+ if(taskWins===1)toast('🏅 Primera insignia: ¡Manos a la obra!');
+ else if(taskWins===3)toast('🏆 Insignia desbloqueada: ¡Ritmo imparable!');
+ else if(taskWins===5)toast('🌟 Insignia secreta: ¡Leyenda de RR. HH.!');
+}
+document.addEventListener('change',e=>{
+ const t=e.target;
+ if(t instanceof HTMLInputElement&&t.type==='checkbox'&&t.checked){
+  const label=(t.closest('label')?.innerText||t.parentElement?.innerText||'').toLowerCase();
+  if(/tarea|pendiente|complet|finaliz|terminad/.test(label)){awardTaskBadge();if(taskWins%3===0)celebrate();}
+ }
+});
+document.addEventListener('click',e=>{
+ const btn=e.target.closest('button');
+ if(btn){
+  const text=(btn.innerText||btn.getAttribute('aria-label')||'').trim().toLowerCase();
+  if(/completar tarea|marcar como completad|finalizar tarea|tarea completada/.test(text)){awardTaskBadge();if(taskWins%3===0)celebrate();}
+ }
+ const brand=e.target.closest('.nova-v3-brand');
+ if(brand){
+  logoClicks++;
+  if(logoClicks>=5){logoClicks=0;brand.classList.remove('simi-secret-logo-pop');void brand.offsetWidth;brand.classList.add('simi-secret-logo-pop');toast('🎁 ¡Sorpresa secreta desbloqueada! ¡Doctor Simi te manda buena vibra!');celebrate();}
+ }
+});
+const firstPhrase=frases[Math.floor((new Date().getFullYear()*366+Math.floor((Date.now()-new Date(new Date().getFullYear(),0,0))/86400000))%frases.length)];
+const phraseEl=document.getElementById('simi-frase-dia');if(phraseEl)phraseEl.textContent=firstPhrase;
+setTimeout(maybeShowMascot,45000);
+})();
+</script>
+
 </body>
 </html>
