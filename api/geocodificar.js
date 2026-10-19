@@ -1,6 +1,7 @@
 import { requireModuleAccess } from '../lib/server-auth.js';
 
 const cache = new Map();
+const CACHE_MAX_ENTRIES = 300;
 let ultimo = 0;
 
 async function consultarNominatim(consulta) {
@@ -13,7 +14,8 @@ async function consultarNominatim(consulta) {
     headers: {
       'User-Agent': 'RRHH-Doctor-Simi/1.0 (contacto: rrhh@farmaciasdoctorsimi.cl)',
       'Accept-Language': 'es'
-    }
+    },
+    signal: AbortSignal.timeout(8000)
   });
   if (!response.ok) throw new Error('No se pudo consultar el geocodificador.');
   const data = await response.json();
@@ -54,6 +56,10 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'No se encontró la dirección. Completa calle y comuna en el directorio de sucursales.' });
     }
     const output = { latitud: Number(hit.lat), longitud: Number(hit.lon), nombre: hit.display_name };
+    if (!cache.has(key) && cache.size >= CACHE_MAX_ENTRIES) {
+      const oldestKey = cache.keys().next().value;
+      if (oldestKey !== undefined) cache.delete(oldestKey);
+    }
     cache.set(key, output);
     return res.status(200).json(output);
   } catch {
