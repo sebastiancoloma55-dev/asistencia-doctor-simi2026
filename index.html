@@ -2716,6 +2716,7 @@ main>header .topbar-quick-action{display:none!important}
 .map-estimate-2026>div{border:1px solid #dbeafe;background:linear-gradient(135deg,#eff6ff,#fff);border-radius:13px;padding:12px}
 .map-estimate-2026 strong{display:block;color:#075985;font-size:18px;font-weight:850}
 .map-estimate-2026 span{display:block;color:#64748b;font-size:11px;line-height:1.4;margin-top:3px}
+#sidebar nav{visibility:hidden}
 .permission-hidden-2026{display:none!important}
 .login-input{min-height:48px}
 .login-submit{min-height:49px;letter-spacing:.01em}
@@ -3395,14 +3396,10 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
   function permissionName(m){return m;}
   function hasModulePermission(m){
-    if(m==='ayuda')return true;
-    if(allowed.has(m))return true;
-    // Mi espacio comparte el permiso de Tareas para perfiles ya configurados.
-    if(m==='espacio')return allowed.has('tareas');
-    // Compatibilidad con perfiles antiguos que guardaban "coberturas" para el módulo de amonestaciones.
-    if(m==='amonestaciones')return allowed.has('coberturas');
-    if(m==='coberturas')return allowed.has('amonestaciones');
-    return false;
+    // El botón visible como “Coberturas” llama a la ruta histórica “amonestaciones”.
+    // Esa ruta solo se autoriza con el permiso explícito de Coberturas.
+    if(m==='amonestaciones'||m==='coberturas')return allowed.has('coberturas');
+    return allowed.has(m);
   }
   function isGlobalAdmin(profile,user){
     var role=String(profile&&profile.rol||'').trim().toUpperCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[\\s-]+/g,'_');
@@ -3410,8 +3407,13 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   }
   function paintPermissions(){
     moduleNames.forEach(function(m){
+      var permitted=hasModulePermission(m);
       var b=document.getElementById('btn-'+m);
-      if(b)b.classList.toggle('permission-hidden-2026',!hasModulePermission(m));
+      if(b)b.classList.toggle('permission-hidden-2026',!permitted);
+      // Protección visual adicional: una vista no autorizada no puede reaparecer
+      // por cambiar de módulo o por un script que quite la clase "hidden".
+      var view=document.getElementById('view-'+m);
+      if(view)view.classList.toggle('permission-hidden-2026',!permitted);
     });
     // Ocultar las categorías vacías y mantener el menú filtrado aunque otros scripts
     // actualicen clases o el usuario navegue entre módulos.
@@ -3431,7 +3433,11 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     // Solo el administrador principal puede ver controles que afectan a todos.
     ['btn-recargar-paginas-global','btn-cerrar-sesiones-global'].forEach(function(id){
       var el=document.getElementById(id);
-      if(el)el.classList.toggle('hidden',!isPrimaryAdminSession);
+      if(el){
+        el.classList.toggle('permission-hidden-2026',!isPrimaryAdminSession);
+        if(!isPrimaryAdminSession)el.style.setProperty('display','none','important');
+        else el.style.removeProperty('display');
+      }
     });
     // Filtrar también los accesos rápidos y los resultados de búsqueda ya renderizados.
     var quick=document.getElementById('quick-module-bar');
@@ -3503,7 +3509,15 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       // (solo Dashboard) si la restauración de sesión o la carga del perfil todavía no terminó.
       await loadPermissions();
       if(!hasModulePermission(modulo)){
-        if(window.mostrarToast)mostrarToast('Este apartado no está habilitado para tu usuario. Solicita al administrador que lo autorice en Usuarios y roles.','warning');
+        // Cerrar cualquier vista protegida que algún módulo haya dejado visible.
+        moduleNames.forEach(function(m){
+          if(!hasModulePermission(m)){
+            var deniedView=document.getElementById('view-'+m);
+            if(deniedView)deniedView.classList.add('permission-hidden-2026');
+          }
+        });
+        paintPermissions();
+        if(window.mostrarToast)mostrarToast('Este apartado no está habilitado para tu usuario.','warning');
         return;
       }
       var resultado=await originalChange.apply(this,arguments);
@@ -3535,7 +3549,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     function coord(op){var lat=Number(op&&op.dataset.lat),lon=Number(op&&op.dataset.lon);return Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0)?{lat:lat,lon:lon}:null;}
     var p1=coord(a.selectedOptions[0]),p2=coord(b.selectedOptions[0]);if(!p1||!p2){box.innerHTML='<div><strong>Faltan coordenadas</strong><span>No pudimos ubicar ambas sucursales. Completa dirección y comuna o pulsa el botón de buscar coordenadas.</span></div>';var st=document.getElementById('mapa14-status');if(st)st.textContent='Faltan coordenadas para dibujar la ruta. También puedes abrir Google Maps.';return;}
     function rad(n){return n*Math.PI/180;}var dlat=rad(p2.lat-p1.lat),dlon=rad(p2.lon-p1.lon),h=Math.pow(Math.sin(dlat/2),2)+Math.cos(rad(p1.lat))*Math.cos(rad(p2.lat))*Math.pow(Math.sin(dlon/2),2),direct=6371*2*Math.asin(Math.min(1,Math.sqrt(h))),mode=m.value,route=direct*1.25,min=Math.max(1,Math.round(route/(mode==='w'?4.5:mode==='r'?22:35)*60)),max=Math.max(min+3,Math.round(min*1.35)),coords=[[p1.lat,p1.lon],[p2.lat,p2.lon]],label='estimación orientativa';
-    if(mode==='d'){try{var response=await fetch('https://router.project-osrm.org/route/v1/driving/'+p1.lon+','+p1.lat+';'+p2.lon+','+p2.lat+'?overview=full&geometries=geojson');if(response.ok){var data=await response.json(),r=data.routes&&data.routes[0];if(data.code==='Ok'&&r){route=r.distance/1000;min=Math.max(1,Math.round(r.duration/60));max=Math.max(min+2,Math.round(min*1.15));coords=r.geometry.coordinates.map(c=>[c[1],c[0]]);label='distancia por ruta vial';}}}catch(e){}}
+    if(mode==='d'){var controller=null,timer=null;try{controller=new AbortController();timer=setTimeout(function(){controller.abort();},5000);var response=await fetch('https://router.project-osrm.org/route/v1/driving/'+p1.lon+','+p1.lat+';'+p2.lon+','+p2.lat+'?overview=full&geometries=geojson',{signal:controller.signal});if(response.ok){var data=await response.json(),r=data.routes&&data.routes[0];if(data.code==='Ok'&&r){route=r.distance/1000;min=Math.max(1,Math.round(r.duration/60));max=Math.max(min+2,Math.round(min*1.15));coords=r.geometry.coordinates.map(c=>[c[1],c[0]]);label='distancia por ruta vial';}}}catch(e){}finally{if(timer)clearTimeout(timer);}}
     var fmt=n=>n.toLocaleString('es-CL',{maximumFractionDigits:1}),fmtDur=n=>{n=Math.max(0,Math.round(n));var days=Math.floor(n/1440),hours=Math.floor((n%1440)/60),mins=n%60;return (days?days+' día'+(days===1?'':'s')+' ':'')+(hours?hours+' h ':'')+(mins||(!days&&!hours)?mins+' min':'');};box.innerHTML='<div><strong>'+fmt(direct)+' km</strong><span>Distancia en línea recta</span></div><div><strong>'+fmt(route)+' km aprox.</strong><span>'+label+'</span></div><div><strong>'+fmtDur(min)+' – '+fmtDur(max)+'</strong><span>Tiempo orientativo; confirma en Google Maps</span></div>';
     var map=asegurarMapaLeaflet(),status=document.getElementById('mapa14-status');if(!map){var el=document.getElementById('mapa14-frame');if(el){var embed='https://maps.google.com/maps?saddr='+encodeURIComponent(p1.lat+','+p1.lon)+'&daddr='+encodeURIComponent(p2.lat+','+p2.lon)+'&output=embed';el.innerHTML='<iframe title="Mapa de ruta entre sucursales" src="'+embed+'" style="display:block;width:100%;height:100%;min-height:380px;border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'; }if(status)status.textContent='Vista alternativa del mapa de ruta. Para navegar, abre Google Maps.';return;}
     if(capaRutaLeaflet)map.removeLayer(capaRutaLeaflet);marcadoresRutaLeaflet.forEach(x=>map.removeLayer(x));marcadoresRutaLeaflet=[];
@@ -3551,27 +3565,54 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     var p=String(op.value||'').split(',');if(p.length===2){lat=Number(p[0]);lon=Number(p[1]);if(Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0)){op.dataset.lat=String(lat);op.dataset.lon=String(lon);return true;}}
     var address=[op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', ');
     if(!address)return false;
+    var controller=null,timer=null;
     try{
-      var r=await fetch('/api/geocodificar?direccion='+encodeURIComponent([op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', '))+'&nombre='+encodeURIComponent(op.dataset.nombre||'')+'&comuna='+encodeURIComponent(op.dataset.comuna||''));
+      controller=new AbortController();
+      timer=setTimeout(function(){controller.abort();},3500);
+      var r=await fetch('/api/geocodificar?direccion='+encodeURIComponent([op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', '))+'&nombre='+encodeURIComponent(op.dataset.nombre||'')+'&comuna='+encodeURIComponent(op.dataset.comuna||''),{signal:controller.signal});
       if(!r.ok)return false;
       var j=await r.json();
       if(!Number.isFinite(Number(j.latitud))||!Number.isFinite(Number(j.longitud)))return false;
       op.dataset.lat=String(j.latitud);op.dataset.lon=String(j.longitud);
-      var client=window._supabase||_supabase;
-      if(client&&op.dataset.id){try{await client.from('sucursales').update({latitud:Number(j.latitud),longitud:Number(j.longitud)}).eq('id',op.dataset.id);}catch(e){}}
+      // La consulta de una ruta no debe escribir cambios en la base de sucursales.
       return true;
-    }catch(e){return false;}
+    }catch(e){return false;}finally{if(timer)clearTimeout(timer);}
   }
-  if(typeof originalRoute==='function')window.mostrarRutaMapa14=async function(){
+  var rutaMapaEnCurso=false;
+  window.mostrarRutaMapa14=async function(){
+    if(rutaMapaEnCurso)return;
     var a=document.getElementById('map14-origen'),b=document.getElementById('map14-destino');
-    var r=originalRoute.apply(this,arguments);
-    if(!a||!b||!a.value||!b.value||a.value===b.value)return r;
     var box=document.getElementById('mapa14-estimacion-2026');
-    if(box){box.innerHTML='<div><strong>Calculando estimación…</strong><span>Buscando coordenadas para las sucursales seleccionadas.</span></div>';}
-    await geocodificarOpcionMapa14(a.selectedOptions[0]);
-    await geocodificarOpcionMapa14(b.selectedOptions[0]);
-    estimateRoute();
-    return r;
+    var summary=document.getElementById('mapa14-resumen');
+    var status=document.getElementById('mapa14-status');
+    var button=document.querySelector('button[onclick="mostrarRutaMapa14()"]');
+    if(!a||!b||!a.value||!b.value||a.value===b.value){
+      if(window.mostrarToast)mostrarToast('Selecciona dos sucursales distintas para consultar la ruta.','warning');
+      return;
+    }
+    rutaMapaEnCurso=true;if(button){button.disabled=true;button.setAttribute('aria-busy','true');}
+    if(box)box.innerHTML='<div><strong>Calculando ruta…</strong><span>Consultando solo las dos sucursales seleccionadas. Si el servicio externo tarda, se mostrará una estimación local.</span></div>';
+    if(summary)summary.textContent='Calculando distancia y tiempo aproximados…';
+    if(status)status.textContent='Consultando origen y destino.';
+    try{
+      // No llamar la función antigua: recorría/actualizaba el mapa completo y podía bloquear la interfaz.
+      await Promise.all([
+        geocodificarOpcionMapa14(a.selectedOptions[0]),
+        geocodificarOpcionMapa14(b.selectedOptions[0])
+      ]);
+      await estimateRoute();
+      if(status&&status.textContent==='Consultando origen y destino.')status.textContent='Estimación calculada. La ruta vial puede variar.';
+      setTimeout(function(){
+        var target=document.getElementById('mapa14-frame')||document.getElementById('mapa14-resumen');
+        if(target)target.scrollIntoView({behavior:'smooth',block:'center'});
+        if(mapaRutaLeaflet)setTimeout(function(){mapaRutaLeaflet.invalidateSize();},250);
+      },80);
+    }catch(e){
+      if(box)box.innerHTML='<div><strong>No se pudo calcular la ruta</strong><span>Comprueba las coordenadas de ambas sucursales o abre Google Maps para continuar.</span></div>';
+      if(status)status.textContent='No se pudo calcular la ruta. Puedes intentarlo de nuevo.';
+    }finally{
+      rutaMapaEnCurso=false;if(button){button.disabled=false;button.removeAttribute('aria-busy');}
+    }
   };
   function conectarBuscadoresMapa14(){
     [['map14-buscar-origen','origen'],['map14-buscar-destino','destino']].forEach(function(x){
