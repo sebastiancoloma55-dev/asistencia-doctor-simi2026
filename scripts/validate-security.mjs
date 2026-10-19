@@ -27,6 +27,11 @@ if (/using\s*\(\s*true\s*\)|with check\s*\(\s*true\s*\)/i.test(migration)) {
   fail('La migración no debe crear políticas RLS con condición true.');
 }
 
+const html = read('../index.html');
+if (html.includes('lucide@latest')) fail('Lucide debe estar fijado a una versión concreta.');
+if (html.includes('supabase-js@2"') || html.includes('supabase-js@2\\'')) fail('Supabase JS debe estar fijado a una versión concreta.');
+if (html.includes('https://cdn.tailwindcss.com"') || html.includes('https://cdn.tailwindcss.com\\'')) fail('Tailwind CDN debe estar fijado a una versión concreta.');
+
 const serverAuth = read('../lib/server-auth.js');
 for (const marker of ['auth.getUser(token)', 'profile.activo === false', 'permissions.includes(permission)']) {
   if (!serverAuth.includes(marker)) fail('Falta control de autorización en lib/server-auth.js: ' + marker);
