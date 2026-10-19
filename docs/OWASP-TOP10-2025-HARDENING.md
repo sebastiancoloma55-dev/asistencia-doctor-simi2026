@@ -47,4 +47,12 @@ La migración queda versionada en una rama de trabajo; no se ejecuta automática
 - No se agregó una CSP estricta porque el sitio todavía depende de scripts/estilos inline y CDNs; una política incorrecta puede romper el login y los módulos. Requiere inventario de orígenes y una fase de pruebas específica.
 - GitHub Actions permanecía en estado `queued` en la última consulta; por ello no se declara la CI aprobada. La compilación/preview de Vercel también debe terminar y probarse manualmente.
 
+
+## Incidencia de timeout en Licencias y Ausentismo (19-10-2026)
+- Diagnóstico de solo lectura: `public.licencias_medicas` contiene 40.589 filas. El administrador principal evita el filtro por sucursal, mientras que los usuarios normales están sujetos a una política RLS que llama a `private.usuario_puede_ver_sucursal(NULL::uuid, sucursal)` por fila.
+- La lectura del módulo solicita todas las columnas y recorre el histórico completo en páginas de 1.000 filas. Esto aumenta el trabajo bajo RLS y concuerda con el timeout observado para usuarios con alcance limitado.
+- Se preparó `20261019130000_optimize_licencias_rls_timeout.sql`: calcula las sucursales visibles como una lista por sentencia, combina permiso de módulo y alcance en políticas explícitas para SELECT/INSERT/UPDATE/DELETE, y agrega un índice por `lower(btrim(sucursal))`.
+- La migración NO se ha aplicado a la base activa. Debe probarse con una cuenta no administradora y una cuenta con acceso global antes de producción, porque modifica políticas de autorización.
+- En el commit de esta migración, las validaciones automáticas de aplicación, proyecto y OWASP terminaron correctamente; esto valida estructura estática, no prueba la política contra usuarios reales.
+
 No se ha aplicado esta migración ni cambiado configuración de Auth en el proyecto activo.
