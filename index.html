@@ -1069,12 +1069,12 @@ main>header button[onclick*="cerrarSesion()"]{padding:9px 10px!important;border-
                         <div class="dashboard-welcome-compact-kicker">PLATAFORMA DE GESTIÓN · RECURSOS HUMANOS</div>
                         <div class="dashboard-welcome-compact-heading">
                             <span class="dashboard-welcome-compact-icon" aria-hidden="true"><i data-lucide="layout-dashboard"></i></span>
-                            <h2 id="dashboard-welcome-compact-title">¡Bienvenido/a, Sebastián Coloma!</h2>
+                            <h2 id="dashboard-welcome-name" aria-live="polite">¡Bienvenido/a!</h2>
                         </div>
-                        <p>Tienes acceso de administrador principal a todos los módulos y herramientas del sistema.</p>
+                        <p id="dashboard-welcome-subtitle">Tu centro de control para asistencia, ausentismo y operaciones.</p>
                     </div>
-                    <div class="dashboard-welcome-compact-admin"><i data-lucide="shield-check" aria-hidden="true"></i><span>Administrador principal</span></div>
-                    <div class="dashboard-welcome-compact-visual" aria-label="Imagen original de Doctor Simi y la farmacia"><img class="dashboard-welcome-compact-image" src="/doctor-simi-pharmacy-reference.webp" alt="Doctor Simi saludando frente a una farmacia Farmacias Similares" loading="eager" decoding="async"></div>
+                    <div id="dashboard-welcome-role" class="dashboard-welcome-compact-admin"><i data-lucide="shield-check" aria-hidden="true"></i><span data-role-label>Usuario autorizado</span></div>
+                    <div class="dashboard-welcome-compact-visual" aria-label="Imagen original de Doctor Simi y la farmacia"><img class="dashboard-welcome-compact-image" src="/doctor-simi-pharmacy-reference.webp" alt="Doctor Simi saludando frente a una farmacia Farmacias Similares" loading="lazy" decoding="async" fetchpriority="low"></div>
                 </section>
 
                 <div id="dashboard-space-summary" class="dash-space-card" aria-live="polite">
