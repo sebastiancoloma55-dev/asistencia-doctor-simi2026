@@ -3719,11 +3719,28 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     estimateRoute();
     return r;
   };
+  window.filtrarSucursalesMapa14=function(tipo){
+    var suffix=tipo==='destino'?'destino':'origen',input=document.getElementById('map14-buscar-'+suffix),select=document.getElementById('map14-'+suffix);
+    if(!input||!select)return;
+    var q=String(input.value||'').trim().toLocaleLowerCase('es-CL');
+    Array.from(select.options).forEach(function(op){if(!op.value){op.hidden=false;return;}op.hidden=!!q&&!String(op.textContent||'').toLocaleLowerCase('es-CL').includes(q);});
+  };
+  window.restaurarMapa14=function(){
+    ['map14-buscar-origen','map14-buscar-destino'].forEach(function(id){var input=document.getElementById(id);if(input)input.value='';});
+    ['map14-origen','map14-destino'].forEach(function(id){var select=document.getElementById(id);if(select){Array.from(select.options).forEach(function(op){op.hidden=false;});select.value='';}});
+    if(capaRutaLeaflet&&mapaRutaLeaflet){try{mapaRutaLeaflet.removeLayer(capaRutaLeaflet);}catch(e){}capaRutaLeaflet=null;}
+    marcadoresRutaLeaflet.forEach(function(m){try{if(mapaRutaLeaflet)mapaRutaLeaflet.removeLayer(m);}catch(e){}});marcadoresRutaLeaflet=[];
+    var summary=document.getElementById('mapa14-resumen'),box=document.getElementById('mapa14-estimacion-2026'),status=document.getElementById('mapa14-status');
+    if(summary)summary.textContent='Selecciona origen, destino y medio de transporte.';
+    if(box)box.innerHTML='<div><strong>Estimación aproximada</strong><span>Selecciona dos sucursales y pulsa “Ver ruta” para consultar la distancia y el tiempo.</span></div>';
+    if(status)status.textContent='Selección restablecida. Elige dos sucursales para consultar una ruta.';
+    if(mapaRutaLeaflet)mapaRutaLeaflet.setView([-33.45,-70.66],5);
+  };
   function conectarBuscadoresMapa14(){
     [['map14-buscar-origen','origen'],['map14-buscar-destino','destino']].forEach(function(x){
       var el=document.getElementById(x[0]);if(el&&!el.dataset.filtroConectado){el.dataset.filtroConectado='1';el.addEventListener('input',function(){if(window.filtrarSucursalesMapa14)window.filtrarSucursalesMapa14(x[1]);});}
     });
-    ['map14-origen','map14-destino','map14-modo'].forEach(function(id){var el=document.getElementById(id);if(el&&!el.dataset.estimacionConectada){el.dataset.estimacionConectada='1';el.addEventListener('change',function(){if(id==='map14-origen'||id==='map14-destino')estimateRoute();});}});
+    ['map14-origen','map14-destino','map14-modo'].forEach(function(id){var el=document.getElementById(id);if(el&&!el.dataset.estimacionConectada){el.dataset.estimacionConectada='1';el.addEventListener('change',function(){if(id==='map14-origen'||id==='map14-destino'){var st=document.getElementById('mapa14-status');if(st)st.textContent='Origen y destino seleccionados. Pulsa “Ver ruta” para calcular.';}});}});
   }
   function enhanceMapNote(){var frame=document.getElementById('mapa14-frame');if(!frame||document.getElementById('mapa14-estimacion-2026'))return;var box=document.createElement('div');box.id='mapa14-estimacion-2026';box.className='map-estimate-2026';box.innerHTML='<div><strong>Estimación aproximada</strong><span>Selecciona dos sucursales con GPS para ver distancia y tiempo orientativos.</span></div>';frame.parentNode.insertBefore(box,frame);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setupSelectors();enhanceMapNote();conectarBuscadoresMapa14();});else{setupSelectors();enhanceMapNote();conectarBuscadoresMapa14();}
