@@ -890,6 +890,97 @@ tbody tr:hover{background:color-mix(in srgb,var(--theme-panel-bg) 80%,var(--user
 #theme-settings-modal .theme-settings-card{background:var(--theme-panel-bg)!important;color:var(--theme-main-text)!important;border-color:var(--theme-border-color)!important}
 @media(prefers-reduced-motion:reduce){#sidebar,.ui-card,button{transition:none!important}}
 </style>
+
+<style id="simi-theme-editor-fix">
+/* Modal de personalización: nunca ocultar los controles inferiores */
+#theme-settings-modal{padding:12px!important;align-items:center!important;overflow-y:auto!important}
+#theme-settings-modal .theme-settings-card{
+  width:min(760px,100%)!important;
+  max-height:min(92dvh,920px)!important;
+  height:auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  background:var(--theme-panel-bg,#fff)!important;
+  color:var(--theme-main-text,#16365c)!important;
+}
+#theme-settings-modal .theme-settings-card>header{flex:0 0 auto!important}
+#theme-settings-modal .theme-settings-card>div.grid{flex:0 0 auto!important}
+#theme-settings-modal .theme-settings-card>footer{
+  position:sticky!important;bottom:0!important;z-index:5!important;
+  flex:0 0 auto!important;margin-top:auto!important;
+  background:var(--theme-panel-bg,#fff)!important;
+  border-top:1px solid var(--theme-border-color,#dce7f3)!important;
+  box-shadow:0 -8px 18px rgba(15,23,42,.08)!important;
+}
+#theme-settings-modal .theme-settings-card h2,
+#theme-settings-modal .theme-settings-card label,
+#theme-settings-modal .theme-settings-card p,
+#theme-settings-modal .theme-settings-card span{color:var(--theme-main-text,#16365c)}
+#theme-settings-modal .theme-settings-card .theme-action-primary{
+  background:var(--user-accent,#19a8a5)!important;
+  color:var(--user-accent-contrast,#fff)!important;
+  border:1px solid var(--user-accent,#19a8a5)!important;
+}
+#theme-settings-modal .theme-settings-card .theme-action-secondary{
+  background:var(--theme-panel-bg,#fff)!important;
+  color:var(--theme-main-text,#16365c)!important;
+  border:1px solid var(--theme-border-color,#dce7f3)!important;
+}
+#theme-settings-modal input[type=color]{
+  display:block!important;width:100%!important;min-height:44px!important;
+  padding:4px!important;border:1px solid var(--theme-border-color,#dce7f3)!important;
+  border-radius:12px!important;background:var(--theme-panel-bg,#fff)!important;
+}
+#theme-settings-modal .theme-swatch{width:36px!important;height:36px!important;min-height:36px!important;flex:0 0 36px!important;padding:0!important;border-radius:50%!important}
+#theme-settings-modal .theme-settings-card>header>button{flex:0 0 auto!important}
+#sidebar{
+  background:linear-gradient(180deg,var(--user-sidebar-start,#073a79),var(--user-sidebar-end,#062f63))!important;
+  color:var(--user-sidebar-foreground,#fff)!important;
+}
+#sidebar h1,#sidebar h2,#sidebar p,#sidebar span,#sidebar label,
+#sidebar a,#sidebar button,#sidebar nav button,#sidebar nav a{
+  color:var(--user-sidebar-foreground,#fff)!important;
+}
+#sidebar .text-slate-300,#sidebar .text-slate-400{color:var(--user-sidebar-muted,rgba(255,255,255,.76))!important}
+#sidebar>div:first-child{background:linear-gradient(120deg,color-mix(in srgb,var(--user-accent,#19a8a5) 22%,transparent),transparent)!important}
+#sidebar nav a:hover,#sidebar nav button:hover,#sidebar nav [role=button]:hover{
+  background:color-mix(in srgb,var(--user-accent,#19a8a5) 22%,transparent)!important;
+  border-color:var(--user-accent,#19a8a5)!important;
+}
+#sidebar nav .active,#sidebar nav [aria-current=page],#sidebar nav a.bg-simiBlue{
+  background:color-mix(in srgb,var(--user-accent,#19a8a5) 28%,var(--user-sidebar-start,#073a79))!important;
+  border-color:var(--user-accent,#19a8a5)!important;
+  box-shadow:inset 3px 0 var(--user-accent,#19a8a5)!important;
+}
+/* Aplicar el fondo elegido al área de trabajo real, no solo al body */
+body>div.flex.h-screen.overflow-hidden,
+body>div.flex.h-screen.overflow-hidden>main,
+body>div.flex.h-screen.overflow-hidden main,
+#view-dashboard,#view-dashboard>div,
+#view-dashboard .dashboard-ops-summary{
+  background-color:var(--theme-app-bg,#f3f7fc)!important;
+}
+body>div.flex.h-screen.overflow-hidden main>header,
+body>div.flex.h-screen.overflow-hidden main header:has(#header-title),
+main>header:has(#header-title){
+  background:var(--theme-topbar-bg,#fff)!important;
+  color:var(--theme-main-text,#16365c)!important;
+  border-color:var(--theme-border-color,#dce7f3)!important;
+}
+#header-title{color:var(--theme-main-text,#16365c)!important}
+#quick-module-bar{background:var(--theme-topbar-bg,#fff)!important;border-color:var(--theme-border-color,#dce7f3)!important}
+#theme-settings-modal .theme-settings-card .theme-action-primary:hover{filter:brightness(.96)}
+@media(max-width:640px){
+  #theme-settings-modal{padding:6px!important}
+  #theme-settings-modal .theme-settings-card{max-height:96dvh!important;border-radius:16px!important}
+  #theme-settings-modal .theme-settings-card>footer{gap:8px!important;padding:12px!important}
+  #theme-settings-modal .theme-settings-card>footer>div{width:100%;display:flex;justify-content:flex-end;flex-wrap:wrap}
+}
+</style>
+
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -3404,7 +3495,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
 <div id="theme-settings-modal" role="dialog" aria-modal="true" aria-labelledby="theme-settings-title" onclick="if(event.target===this)closeThemeSettings()">
  <section class="theme-settings-card">
   <header class="flex items-start justify-between gap-4 border-b p-5 sm:p-6" style="border-color:var(--user-line)">
-   <div><p class="text-xs font-black uppercase tracking-[.18em]" style="color:var(--user-accent)">Tu espacio de trabajo</p><h2 id="theme-settings-title" class="mt-1 text-xl font-black">Personalizar apariencia</h2><p class="mt-1 text-sm opacity-70">Personaliza los colores principales de la interfaz. Los cambios son solo visuales y no alteran tus permisos.</p></div>
+   <div><p class="text-xs font-black uppercase tracking-[.18em]" style="color:var(--user-accent)">Tu espacio de trabajo</p><h2 id="theme-settings-title" class="mt-1 text-xl font-black">Personalizar apariencia</h2><p class="mt-1 text-sm opacity-70">Personaliza los colores de cada zona. Verás la vista previa al instante; pulsa Guardar preferencias para conservarlos.</p></div>
    <button type="button" class="rounded-xl p-2 hover:bg-slate-100" onclick="closeThemeSettings()" aria-label="Cerrar"><i data-lucide="x"></i></button>
   </header>
   <div class="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
@@ -3421,8 +3512,8 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     </div>
     <label for="theme-custom-color" class="mt-3 block text-xs font-bold opacity-75">Elige cualquier color</label><div class="flex items-center gap-3"><input id="theme-custom-color" type="color" value="#19a8a5" class="h-11 w-14 cursor-pointer rounded-lg border p-1"><span id="theme-color-value" class="text-sm font-bold">#19A8A5</span></div>
    </div>
-   <div class="space-y-3"><label for="theme-sidebar-color" class="block text-sm font-extrabold">Menú lateral</label><input id="theme-sidebar-color" type="color" value="#073a79" class="h-11 w-full cursor-pointer rounded-lg border p-1">
-    <label for="theme-topbar-color" class="block pt-2 text-sm font-extrabold">Barra superior</label><input id="theme-topbar-color" type="color" value="#ffffff" class="h-11 w-full cursor-pointer rounded-lg border p-1">
+   <div class="space-y-3"><label for="theme-sidebar-color" class="block text-sm font-extrabold">Fondo del menú lateral</label><input id="theme-sidebar-color" type="color" value="#073a79" class="h-11 w-full cursor-pointer rounded-lg border p-1">
+    <label for="theme-topbar-color" class="block pt-2 text-sm font-extrabold">Fondo de la barra superior</label><input id="theme-topbar-color" type="color" value="#ffffff" class="h-11 w-full cursor-pointer rounded-lg border p-1">
    </div>
    <div class="space-y-3"><label for="theme-background-color" class="block text-sm font-extrabold">Fondo de toda la plataforma</label><input id="theme-background-color" type="color" value="#f3f7fc" class="h-11 w-full cursor-pointer rounded-lg border p-1">
     <label for="theme-panel-color" class="block pt-2 text-sm font-extrabold">Tarjetas y paneles</label><input id="theme-panel-color" type="color" value="#ffffff" class="h-11 w-full cursor-pointer rounded-lg border p-1">
