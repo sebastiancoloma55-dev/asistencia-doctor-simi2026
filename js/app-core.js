@@ -601,14 +601,14 @@
             const email=String(user?.email||perfil.email||'').trim();
             const nombreVisible=nombre||email.split('@')[0]||'equipo de Asistencia';
             const nameEl=document.getElementById('dashboard-welcome-name');
-            if(nameEl)nameEl.textContent=nombreVisible;
+            if(nameEl)nameEl.textContent='¡Bienvenido/a, '+nombreVisible+'!';
+            const esAdmin=esAdminPrincipalActual();
             const subtitle=document.getElementById('dashboard-welcome-subtitle');
-            if(subtitle)subtitle.textContent=esAdminPrincipalActual()?'Tienes acceso de administrador principal a todos los módulos y herramientas del sistema.':'Tu centro de control para asistencia, ausentismo y operaciones.';
-            const role=document.getElementById('dashboard-welcome-role');
-            if(role)role.innerHTML='<i data-lucide="shield-check" class="h-4 w-4"></i> '+(esAdminPrincipalActual()?'Administrador principal':'Usuario autorizado');
+            if(subtitle)subtitle.textContent=esAdmin?'Tienes acceso de administrador principal a todos los módulos y herramientas del sistema.':'Tu centro de control para asistencia, ausentismo y operaciones.';
+            const roleLabel=document.querySelector('#dashboard-welcome-role [data-role-label]');
+            if(roleLabel)roleLabel.textContent=esAdmin?'Administrador principal':'Usuario autorizado';
             const botonCierreGlobal=document.getElementById('btn-cerrar-sesiones-global');
-            if(botonCierreGlobal)botonCierreGlobal.classList.toggle('hidden',!esAdminPrincipalActual());
-            if(window.lucide)lucide.createIcons();
+            if(botonCierreGlobal)botonCierreGlobal.classList.toggle('hidden',!esAdmin);
         }
 
         function toggleSidebar(abrir) {
