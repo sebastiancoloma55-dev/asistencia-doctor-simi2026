@@ -958,7 +958,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <button type="button" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('tareas');setTimeout(()=>document.getElementById('tarea-titulo')?.focus(),250)">
+                    <button type="button" id="topbar-quick-task" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('tareas');setTimeout(()=>document.getElementById('tarea-titulo')?.focus(),250)">
                         <i data-lucide="plus" class="h-4 w-4"></i><span>Nueva tarea rápida</span>
                     </button>
                     <button type="button" id="topbar-quick-note" class="topbar-quick-action hidden sm:inline-flex" onclick="cambiarModulo('espacio');setTimeout(()=>document.getElementById('rrhh-nota-titulo')?.focus(),250)"><i data-lucide="sticky-note" class="h-4 w-4"></i><span>Nueva nota rápida</span></button>
@@ -2944,6 +2944,10 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     // El acceso rápido superior a Notificaciones sigue exactamente el permiso del módulo.
     var topNotif=document.getElementById('topbar-notification-button');
     if(topNotif)topNotif.classList.toggle('permission-hidden-2026',!hasModulePermission('notificaciones'));
+    var quickTask=document.getElementById('topbar-quick-task');
+    if(quickTask)quickTask.classList.toggle('permission-hidden-2026',!hasModulePermission('tareas'));
+    var quickNote=document.getElementById('topbar-quick-note');
+    if(quickNote)quickNote.classList.toggle('permission-hidden-2026',!hasModulePermission('espacio'));
     var quick=document.getElementById('quick-module-bar');
     if(quick)quick.querySelectorAll('[data-module]').forEach(function(chip){
       chip.hidden=!hasModulePermission(chip.dataset.module);
