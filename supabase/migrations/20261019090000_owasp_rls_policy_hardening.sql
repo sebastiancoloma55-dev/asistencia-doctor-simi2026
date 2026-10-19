@@ -91,6 +91,12 @@ with check (
 );
 -- Keep papeletas_delete_admin_principal_only.
 
+-- Trigger-only SECURITY DEFINER functions were flagged by the advisor because of default EXECUTE grants.
+-- They are trigger handlers, not intended public RPC endpoints. All relation references in these bodies
+-- are schema-qualified; empty search_path prevents object-shadowing attacks.
+alter function public.notificar_asignacion_tarea() set search_path = '';
+alter function public.tg_auditar_envio_licencia_manual() set search_path = '';
+
 -- Vacation history: permission and branch scope are checked together for every operation.
 drop policy if exists scope_sucursal_vacaciones_2026 on public.vacaciones_historico;
 drop policy if exists permiso_modulo_delete_2026 on public.vacaciones_historico;
