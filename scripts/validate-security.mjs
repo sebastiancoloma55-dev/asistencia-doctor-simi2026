@@ -5,7 +5,7 @@ const read = path => readFileSync(new URL(path, import.meta.url), 'utf8');
 
 const vercel = JSON.parse(read('../vercel.json'));
 const headers = new Map((vercel.headers || []).flatMap(rule => (rule.headers || []).map(h => [h.key.toLowerCase(), h.value])));
-for (const key of ['x-content-type-options', 'x-frame-options', 'referrer-policy', 'strict-transport-security', 'permissions-policy']) {
+for (const key of ['x-content-type-options', 'x-frame-options', 'referrer-policy', 'strict-transport-security', 'permissions-policy', 'x-permitted-cross-domain-policies', 'x-dns-prefetch-control']) {
   if (!headers.has(key)) fail('Falta cabecera de seguridad Vercel: ' + key);
 }
 if (headers.get('x-content-type-options') !== 'nosniff') fail('X-Content-Type-Options debe ser nosniff.');
