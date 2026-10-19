@@ -1136,7 +1136,7 @@ main>header:has(#header-title){
           <div class="nova-v3-auth-top"><span class="nova-v3-auth-symbol"><i data-lucide="shield-check"></i></span><span class="nova-v3-auth-step">ACCESO <b> / 01</b></span></div>
           <div class="nova-v3-auth-heading"><span>BIENVENIDO/A DE VUELTA</span><h2>Entra a tu<br>espacio.</h2><p>Usa tus credenciales corporativas para continuar.</p></div>
 
-          <form id="form-login" class="nova-v3-form" onsubmit="iniciarSesion(event)">
+          <form id="form-login" class="nova-v3-form">
             <div class="nova-v3-field"><label for="login-email">CORREO CORPORATIVO</label><div class="nova-v3-input-wrap"><i data-lucide="at-sign"></i><input id="login-email" type="email" autocomplete="username" required placeholder="nombre@farmaciasdoctorsimi.cl" aria-label="Correo electrónico"></div></div>
             <div class="nova-v3-field"><label for="login-pass">CONTRASEÑA</label><div class="nova-v3-input-wrap"><i data-lucide="key-round"></i><input id="login-pass" type="password" autocomplete="current-password" required placeholder="Introduce tu contraseña" aria-label="Contraseña"><button type="button" class="nova-v3-eye" id="btn-toggle-password" onclick="togglePasswordVisibility()" aria-label="Mostrar contraseña" title="Mostrar contraseña"><i data-lucide="eye" id="password-eye-icon"></i></button></div></div>
             <div class="nova-v3-form-meta"><label class="nova-v3-remember"><input id="login-remember" type="checkbox"><span></span> Recordar correo</label><button type="button" class="nova-v3-forgot" onclick="recuperarContrasena()">¿Olvidaste tu contraseña?</button></div>
@@ -2723,7 +2723,7 @@ main>header:has(#header-title){
     </div>
 
     <script src="/js/app-config.js"></script>
-<script src="/js/app-core.js?v=fix-login-syntax-151026d"></script>
+<script src="/js/app-core.js?v=fix-login-submit-20261019"></script>
 <script src="/js/freshness-dashboard.js?v=ultima-carga-por-modulo-151026"></script>
 <script src="/js/attendance-leave.js"></script>
 <script src="/js/workflows.js?v=permisos-envio-licencias-141026"></script>
@@ -4231,6 +4231,27 @@ setTimeout(maybeShowMascot,45000);
  };
  window.customizeThemeForMe=function(){lastIndex=(lastIndex+1)%palettes.length;applyIdea(lastIndex);};
  window.autoThemeSettings=function(){applyIdea(0);if(window.mostrarToast)mostrarToast('Tema oscuro equilibrado aplicado. Guarda preferencias para conservarlo.','success',4000);};
+})();
+</script>
+
+<script id="login-submit-failsafe">
+(function(){
+  function attachLoginFailsafe(){
+    const form=document.getElementById('form-login');
+    if(!form||form.dataset.loginSubmitBound==='true')return;
+    form.dataset.loginSubmitBound='true';
+    form.addEventListener('submit',function(event){
+      event.preventDefault();
+      const box=document.getElementById('login-error');
+      if(box){
+        box.textContent='El módulo de acceso no se inicializó correctamente. Recarga la página con Ctrl + F5. Si el problema continúa, informa a Soporte RR. HH. con el error de la consola del navegador.';
+        box.classList.remove('hidden');
+      }
+      console.error('[Asistencia Doctor Simi] El manejador de autenticación no quedó enlazado.');
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachLoginFailsafe,{once:true});
+  else attachLoginFailsafe();
 })();
 </script>
 
