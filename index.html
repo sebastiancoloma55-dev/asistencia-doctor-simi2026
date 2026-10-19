@@ -2716,7 +2716,7 @@ main>header .topbar-quick-action{display:none!important}
 .map-estimate-2026>div{border:1px solid #dbeafe;background:linear-gradient(135deg,#eff6ff,#fff);border-radius:13px;padding:12px}
 .map-estimate-2026 strong{display:block;color:#075985;font-size:18px;font-weight:850}
 .map-estimate-2026 span{display:block;color:#64748b;font-size:11px;line-height:1.4;margin-top:3px}
-.menu-btn.permission-hidden-2026{display:none!important}
+.permission-hidden-2026{display:none!important}
 .login-input{min-height:48px}
 .login-submit{min-height:49px;letter-spacing:.01em}
 .login-form-panel{background:linear-gradient(145deg,#fff,#f7fbff)}
@@ -3387,6 +3387,9 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   function updateSelectorCounts(){['usr-supervisores','usr-sucursales','correo-sucursales','correo-supervisores'].forEach(function(id){var el=document.getElementById(id);if(el&&el._uxUpdate2026)el._uxUpdate2026();});}
   window.actualizarContadoresSelectores2026=updateSelectorCounts;
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
+  var isPrimaryAdminSession=false;
+  var permissionNavObserver=null;
+  var permissionSearchObserver=null;
   var allowed=new Set(['dashboard']);
   var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','ayuda'];
   var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
@@ -3405,13 +3408,57 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     var role=String(profile&&profile.rol||'').trim().toUpperCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[\\s-]+/g,'_');
     return String(user&&user.email||'').trim().toLowerCase()===adminEmail || !!(profile&&profile.acceso_global===true) || ['ADMIN','ADMINISTRADOR','SUPERADMIN','SUPER_ADMIN','ADMIN_PRINCIPAL','ADMINISTRADOR_PRINCIPAL'].includes(role);
   }
-  function paintPermissions(){moduleNames.forEach(function(m){var b=document.getElementById('btn-'+m);if(b)b.classList.toggle('permission-hidden-2026',!hasModulePermission(m));});}
+  function paintPermissions(){
+    moduleNames.forEach(function(m){
+      var b=document.getElementById('btn-'+m);
+      if(b)b.classList.toggle('permission-hidden-2026',!hasModulePermission(m));
+    });
+    // Ocultar las categorías vacías y mantener el menú filtrado aunque otros scripts
+    // actualicen clases o el usuario navegue entre módulos.
+    var nav=document.querySelector('#sidebar nav');
+    if(nav){
+      var divider=null,groupHasVisible=false;
+      Array.from(nav.children).forEach(function(el){
+        if(el.classList.contains('nova-nav-divider')||el.hasAttribute('data-nav-group')){
+          if(divider)divider.classList.toggle('permission-hidden-2026',!groupHasVisible);
+          divider=el;groupHasVisible=false;
+        }else if(el.classList.contains('menu-btn')&&!el.classList.contains('permission-hidden-2026')){
+          groupHasVisible=true;
+        }
+      });
+      if(divider)divider.classList.toggle('permission-hidden-2026',!groupHasVisible);
+    }
+    // Solo el administrador principal puede ver controles que afectan a todos.
+    ['btn-recargar-paginas-global','btn-cerrar-sesiones-global'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el)el.classList.toggle('hidden',!isPrimaryAdminSession);
+    });
+    // Filtrar también los accesos rápidos y los resultados de búsqueda ya renderizados.
+    var quick=document.getElementById('quick-module-bar');
+    if(quick)quick.querySelectorAll('[data-module]').forEach(function(chip){
+      var b=document.getElementById('btn-'+chip.dataset.module);
+      chip.hidden=!b||b.classList.contains('permission-hidden-2026');
+    });
+    var results=document.getElementById('global-search-results');
+    if(results)results.querySelectorAll('[data-search-module]').forEach(function(item){
+      item.hidden=!hasModulePermission(item.dataset.searchModule);
+    });
+  }
   function finishPermissionLoad(){
     paintPermissions();
-    // Mostrar el menú solo después de cargar y aplicar los permisos: evita el destello
-    // de todos los módulos antes de que se oculten los no autorizados.
-    var nav=document.querySelector('aside nav');
-    if(nav)nav.style.visibility='visible';
+    var nav=document.querySelector('#sidebar nav');
+    if(nav){
+      nav.style.visibility='visible';
+      if(!permissionNavObserver){
+        permissionNavObserver=new MutationObserver(function(){paintPermissions();});
+        permissionNavObserver.observe(nav,{attributes:true,childList:true,subtree:true,attributeFilter:['class']});
+      }
+    }
+    var results=document.getElementById('global-search-results');
+    if(results&&!permissionSearchObserver){
+      permissionSearchObserver=new MutationObserver(function(){paintPermissions();});
+      permissionSearchObserver.observe(results,{childList:true,subtree:true});
+    }
   }
   async function loadPermissions(){
     try{
@@ -3419,6 +3466,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       var sessionResult=await _supabase.auth.getSession();
       if(sessionResult&&sessionResult.error)throw sessionResult.error;
       var user=sessionResult&&sessionResult.data&&sessionResult.data.session&&sessionResult.data.session.user;
+      isPrimaryAdminSession=String(user&&user.email||'').trim().toLowerCase()===adminEmail;
       if(!user){allowed=new Set(['dashboard']);finishPermissionLoad();return;}
       // El administrador principal no debe quedar bloqueado por una consulta de perfil.
       if(String(user.email||'').trim().toLowerCase()===adminEmail){
@@ -3441,7 +3489,8 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       }
       finishPermissionLoad();
     }catch(e){
-      // Fallo seguro: no conceder módulos cuando no se pueden verificar los permisos.
+      // Fallo seguro: sin verificación válida no se muestran controles globales ni módulos.
+      isPrimaryAdminSession=false;
       allowed=new Set(['dashboard']);
       finishPermissionLoad();
       if(window.mostrarToast)mostrarToast('No se pudieron verificar tus permisos. Por seguridad, solo queda habilitado el Dashboard.','error',12000);
@@ -3458,6 +3507,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         return;
       }
       var resultado=await originalChange.apply(this,arguments);
+      paintPermissions();
       // Cinturón de seguridad: el Dashboard y su panel inteligente solo pueden verse en la ruta Dashboard.
       // Evita que el contenido del Dashboard quede visible al navegar a Coberturas, Traslados u otro módulo.
       var dashboardView=document.getElementById('view-dashboard');
