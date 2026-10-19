@@ -1,0 +1,22 @@
+name: Verificación de seguridad OWASP
+
+on:
+  push:
+    branches:
+      - fix/owasp-top10-hardening-20261019
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-security-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validar estructura y seguridad
+        run: npm run check
