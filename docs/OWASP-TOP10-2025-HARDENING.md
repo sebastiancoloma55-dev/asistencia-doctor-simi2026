@@ -29,3 +29,13 @@
 
 ## Límite de esta entrega
 La migración queda versionada en una rama de trabajo; no se ejecuta automáticamente contra Supabase. La seguridad de las APIs, las dependencias y los usos de HTML dinámico requiere revisión adicional y pruebas específicas antes de declarar cerrado OWASP Top 10.
+
+## Hallazgos adicionales de los asesores de Supabase (19-10-2026)
+- **Alta prioridad:** las políticas RLS permisivas en auditoría, coberturas, papeletas y vacaciones permiten que políticas separadas se combinen mediante OR; la migración propuesta las consolida por operación.
+- **Funciones SECURITY DEFINER:** el asesor reporta 24 funciones ejecutables por authenticated. No se deben revocar en bloque: varias son RPC intencionales y validan permisos dentro del cuerpo. Hay que revisar individualmente su autorización y search_path.
+- **Funciones trigger:** `notificar_asignacion_tarea()` y `tg_auditar_envio_licencia_manual()` son handlers de trigger, no endpoints RPC de negocio. La migración propuesta fija su search_path vacío porque sus referencias a tablas están calificadas por esquema.
+- **Recordatorios de tareas:** `tareas_recordatorios` tiene RLS habilitado y ninguna política. Eso deniega acceso a los roles API ordinarios; puede ser correcto si solo escribe un trigger/servidor. Verificar el flujo antes de añadir políticas.
+- **Protección de contraseñas filtradas:** está desactivada en Supabase Auth. Requiere habilitarla en la configuración de Auth del proyecto y comprobar el impacto sobre altas y cambios de contraseña.
+- **Rendimiento:** el asesor encontró cinco claves foráneas sin índice. Son optimizaciones, no correcciones de seguridad; añadir índices tras confirmar el volumen y los planes de consulta.
+
+No se ha aplicado esta migración ni cambiado configuración de Auth en el proyecto activo.
