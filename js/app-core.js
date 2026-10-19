@@ -652,37 +652,73 @@
         }
         window.solicitarRecargaGlobal=solicitarRecargaGlobal;
 
-        const CLAVE_MENSAJE_TOPBAR='rrhh_topbar_custom_message_v1';
-        function cargarMensajeTopbar(){
+        const CLAVE_MENSAJE_TOPBAR='mensaje_topbar';
+        let canalMensajeTopbarCompartido=null;
+        let mensajeTopbarCompartido='Chúpala meando';
+        let guardandoMensajeTopbar=false;
+
+        function pintarMensajeTopbar(mensaje){
+            mensajeTopbarCompartido=String(mensaje??'').slice(0,100);
             const el=document.getElementById('topbar-custom-message-text');
-            if(!el)return;
-            let mensaje='Chúpala meando';
-            try{const guardado=localStorage.getItem(CLAVE_MENSAJE_TOPBAR);if(guardado!==null)mensaje=guardado;}catch(_){}
-            el.textContent=mensaje||'';
+            if(el)el.textContent=mensajeTopbarCompartido;
             const boton=document.getElementById('topbar-custom-message');
-            if(boton)boton.classList.toggle('hidden',!mensaje);
+            if(boton)boton.classList.toggle('hidden',!mensajeTopbarCompartido);
         }
-        function editarMensajeTopbar(){
+
+        async function cargarMensajeTopbar(){
+            pintarMensajeTopbar(mensajeTopbarCompartido);
+            if(!_supabase)return;
+            try{
+                const {data,error}=await _supabase.from('configuracion_global')
+                    .select('valor').eq('clave',CLAVE_MENSAJE_TOPBAR).maybeSingle();
+                if(error)throw error;
+                if(data)pintarMensajeTopbar(data.valor);
+            }catch(error){
+                console.warn('No se pudo cargar el mensaje compartido:',error.message||error);
+            }
+            if(canalMensajeTopbarCompartido){
+                try{await _supabase.removeChannel(canalMensajeTopbarCompartido);}catch(_){}
+                canalMensajeTopbarCompartido=null;
+            }
+            canalMensajeTopbarCompartido=_supabase.channel('mensaje-topbar-compartido-v1')
+                .on('postgres_changes',{event:'*',schema:'public',table:'configuracion_global',filter:'clave=eq.mensaje_topbar'},payload=>{
+                    if(payload.new&&payload.new.clave===CLAVE_MENSAJE_TOPBAR)pintarMensajeTopbar(payload.new.valor);
+                })
+                .subscribe(status=>{
+                    if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.warn('No se pudo suscribir al mensaje compartido:',status);
+                });
+        }
+
+        async function editarMensajeTopbar(){
             if(!esAdminPrincipalActual()){
                 mostrarToast('Solo el administrador principal puede modificar este mensaje.','warning');
                 return;
             }
-            let actual='Chúpala meando';
-            try{actual=localStorage.getItem(CLAVE_MENSAJE_TOPBAR)??actual;}catch(_){}
-            const nuevo=prompt('Escribe el mensaje que aparecerá junto a la campanita. Déjalo vacío para ocultarlo:',actual);
+            const nuevo=prompt('Escribe el mensaje que aparecerá junto a la campanita. Déjalo vacío para ocultarlo:',mensajeTopbarCompartido);
             if(nuevo===null)return;
             const mensaje=nuevo.trim().slice(0,100);
+            if(guardandoMensajeTopbar)return;
+            guardandoMensajeTopbar=true;
             try{
-                if(mensaje==='')localStorage.setItem(CLAVE_MENSAJE_TOPBAR,'');
-                else localStorage.setItem(CLAVE_MENSAJE_TOPBAR,mensaje);
-                cargarMensajeTopbar();
-                mostrarToast('Mensaje actualizado en este navegador.','success');
-            }catch(_){
-                mostrarToast('El navegador no permitió guardar el mensaje.','error');
+                const {data:userData,error:userError}=await _supabase.auth.getUser();
+                if(userError||!userData?.user)throw new Error('Tu sesión no está disponible. Vuelve a iniciar sesión.');
+                const {error}=await _supabase.from('configuracion_global').upsert({
+                    clave:CLAVE_MENSAJE_TOPBAR,
+                    valor:mensaje,
+                    actualizado_por:userData.user.id,
+                    actualizado_en:new Date().toISOString()
+                },{onConflict:'clave'});
+                if(error)throw error;
+                pintarMensajeTopbar(mensaje);
+                mostrarToast('Mensaje actualizado para todos los usuarios conectados.','success',6000);
+            }catch(error){
+                mostrarToast('No se pudo guardar el mensaje compartido: '+(error.message||'error de conexión o permisos.'),'error',8000);
+            }finally{
+                guardandoMensajeTopbar=false;
             }
         }
         window.editarMensajeTopbar=editarMensajeTopbar;
-        cargarMensajeTopbar();
+        void cargarMensajeTopbar();
 
         function actualizarBienvenidaUsuario(user){
             const perfil=typeof perfilActualSistema!=='undefined'&&perfilActualSistema?perfilActualSistema:{};
