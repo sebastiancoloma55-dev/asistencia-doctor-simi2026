@@ -652,6 +652,38 @@
         }
         window.solicitarRecargaGlobal=solicitarRecargaGlobal;
 
+        const CLAVE_MENSAJE_TOPBAR='rrhh_topbar_custom_message_v1';
+        function cargarMensajeTopbar(){
+            const el=document.getElementById('topbar-custom-message-text');
+            if(!el)return;
+            let mensaje='Chúpala meando';
+            try{const guardado=localStorage.getItem(CLAVE_MENSAJE_TOPBAR);if(guardado!==null)mensaje=guardado;}catch(_){}
+            el.textContent=mensaje||'';
+            const boton=document.getElementById('topbar-custom-message');
+            if(boton)boton.classList.toggle('hidden',!mensaje);
+        }
+        function editarMensajeTopbar(){
+            if(!esAdminPrincipalActual()){
+                mostrarToast('Solo el administrador principal puede modificar este mensaje.','warning');
+                return;
+            }
+            let actual='Chúpala meando';
+            try{actual=localStorage.getItem(CLAVE_MENSAJE_TOPBAR)??actual;}catch(_){}
+            const nuevo=prompt('Escribe el mensaje que aparecerá junto a la campanita. Déjalo vacío para ocultarlo:',actual);
+            if(nuevo===null)return;
+            const mensaje=nuevo.trim().slice(0,100);
+            try{
+                if(mensaje==='')localStorage.setItem(CLAVE_MENSAJE_TOPBAR,'');
+                else localStorage.setItem(CLAVE_MENSAJE_TOPBAR,mensaje);
+                cargarMensajeTopbar();
+                mostrarToast('Mensaje actualizado en este navegador.','success');
+            }catch(_){
+                mostrarToast('El navegador no permitió guardar el mensaje.','error');
+            }
+        }
+        window.editarMensajeTopbar=editarMensajeTopbar;
+        cargarMensajeTopbar();
+
         function actualizarBienvenidaUsuario(user){
             const perfil=typeof perfilActualSistema!=='undefined'&&perfilActualSistema?perfilActualSistema:{};
             const meta=user?.user_metadata||{};
