@@ -3484,12 +3484,19 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   }
   async function cargarResponsablesCoberturas(){
     var select=document.getElementById('dot-responsables');if(!select)return;
-    var q=await _supabase.from('usuarios_roles').select('id,nombre,email,activo').eq('activo',true).order('nombre',{ascending:true});
-    if(q.error)throw q.error;
-    select.replaceChildren();
-    (q.data||[]).forEach(function(u){
-      var op=document.createElement('option');op.value=u.id;op.textContent=(u.nombre||u.email)+' · '+u.email;select.appendChild(op);
-    });
+    try{
+      var q=await _supabase.from('usuarios_roles').select('id,nombre,email,activo').eq('activo',true).order('nombre',{ascending:true});
+      if(q.error)throw q.error;
+      select.replaceChildren();
+      (q.data||[]).forEach(function(u){
+        var op=document.createElement('option');op.value=u.id;op.textContent=(u.nombre||u.email)+' · '+u.email;select.appendChild(op);
+      });
+      if(!select.options.length){var empty=document.createElement('option');empty.value='';empty.textContent='No hay responsables disponibles';select.appendChild(empty);}
+    }catch(err){
+      select.innerHTML='<option value="">No se pudo cargar la lista de responsables</option>';
+      console.error('Cargar responsables de coberturas',err);
+      coverageStatus('El historial puede consultarse, pero no se pudo cargar la lista de responsables: '+(err.message||err),true);
+    }
   }
   function formatCoverageDate(v){if(!v)return '—';var d=new Date(String(v).slice(0,10)+'T12:00:00');return Number.isNaN(d.getTime())?String(v):d.toLocaleDateString('es-CL');}
   async function cargarSolicitudesDotacion(){
