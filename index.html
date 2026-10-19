@@ -3905,6 +3905,14 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       #simi-context-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
       #simi-context-links button{border:1px solid #dbe4ee;border-radius:9px;background:#fff;padding:8px 10px;color:#075985;font-size:12px;font-weight:800;cursor:pointer}
       #simi-context-links button:hover{background:#f1f8fc}
+      #simi-chat-thread{display:flex;flex-direction:column;gap:8px;max-height:190px;overflow:auto;padding:10px 12px;background:#f8fbff;border-top:1px solid #e2e8f0}
+      .simi-chat-message{max-width:92%;padding:9px 11px;border-radius:13px;font-size:12px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+      .simi-chat-message.assistant{align-self:flex-start;background:#e7f8f7;color:#164e63;border:1px solid #c5eeeb}
+      .simi-chat-message.user{align-self:flex-end;background:#0b5394;color:#fff}
+      #simi-chat-form{display:flex;gap:7px;padding:10px 12px;border-top:1px solid #e2e8f0;background:#fff}
+      #simi-chat-input{min-width:0;flex:1;border:1px solid #cbd5e1;border-radius:10px;padding:9px 10px;font-size:12px;outline:none}
+      #simi-chat-input:focus{border-color:#19a8a5;box-shadow:0 0 0 3px rgba(25,168,165,.13)}
+      #simi-chat-form button{border:0;border-radius:10px;background:#087f92;color:#fff;padding:0 12px;font-size:12px;font-weight:800}
       @media(max-width:640px){#simi-context-assistant{right:10px;bottom:44px}#simi-context-toggle{padding:11px 13px}#simi-context-toggle span{display:none}}
     </style>
     <div id="simi-context-assistant">
@@ -3915,7 +3923,10 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         </div>
         <div id="simi-context-content"><p class="text-sm text-slate-600">Selecciona un módulo para ver sus recomendaciones.</p></div>
         <div id="simi-context-links" class="px-4 pb-4"></div>
-        <p class="border-t border-slate-100 px-4 py-3 text-[10px] leading-4 text-slate-500">Ayuda contextual de vista previa. Las recomendaciones son orientativas y no modifican datos ni ejecutan aprobaciones.</p>
+        <div class="border-t border-slate-100 px-4 pt-3"><div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Conversa con Simi</div><p class="mt-1 text-[11px] text-slate-500">Mantiene el hilo mientras navegas por los módulos de esta sesión.</p></div>
+        <div id="simi-chat-thread" aria-live="polite" aria-label="Conversación con Simi"><div class="simi-chat-message assistant">¡Hola! Soy Simi. Cuéntame qué necesitas y seguimos desde ahí 💙</div></div>
+        <form id="simi-chat-form"><input id="simi-chat-input" type="text" maxlength="500" autocomplete="off" placeholder="Escribe tu mensaje…" aria-label="Mensaje para Simi"><button type="submit">Enviar</button></form>
+        <p class="border-t border-slate-100 px-4 py-3 text-[10px] leading-4 text-slate-500">Ayuda contextual de vista previa. Las respuestas son orientativas; no ejecuta aprobaciones ni acciones administrativas.</p>
       </section>
       <button id="simi-context-toggle" type="button" aria-label="Abrir asistente contextual de Recursos Humanos" title="Asistente contextual de Recursos Humanos" aria-expanded="false" aria-controls="simi-context-popover"><i data-lucide="sparkles" class="h-5 w-5"></i><span>Asistente RR. HH.</span></button>
     </div>
@@ -3994,6 +4005,46 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       }
       toggle.addEventListener('click',()=>{const opening=pop.hidden;render();if(opening){const r=assistant.getBoundingClientRect();if(r.left<innerWidth/2){pop.style.left='0';pop.style.right='auto';}else{pop.style.left='auto';pop.style.right='0';}}pop.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));});
       document.getElementById('simi-context-close').addEventListener('click',()=>{pop.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();});
+      const chatForm=document.getElementById('simi-chat-form'),chatInput=document.getElementById('simi-chat-input'),chatThread=document.getElementById('simi-chat-thread');
+      const simiConversation=[];
+      function simiTopic(text){
+        const t=String(text||'').toLocaleLowerCase('es-CL').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        if(/cobertura|dotacion|alerta|historial/.test(t))return 'coberturas';
+        if(/mapa|ruta|distancia|gps|sucursal de origen/.test(t))return 'mapas';
+        if(/permiso|modulo|acceso|no aparece|oculto|rol/.test(t))return 'permisos';
+        if(/licencia|ausentismo|medica/.test(t))return 'licencias';
+        if(/vacacion|feriado|permiso/.test(t))return 'vacaciones';
+        if(/tarea|productividad|pendiente/.test(t))return 'tareas';
+        if(/notificacion|aviso/.test(t))return 'notificaciones';
+        return null;
+      }
+      function simiReply(topic,message){
+        const t=String(message||'').toLocaleLowerCase('es-CL');
+        if(topic==='coberturas')return 'Sigamos con Coberturas. El flujo es: crear la alerta, asignar responsables y revisar el historial propio. Si la tabla no carga, revisa el aviso de error del módulo; los permisos de base de datos deben limitar el historial al creador. ¿Quieres que continuemos con la creación de una alerta o con el historial?';
+        if(topic==='mapas')return 'Seguimos con Mapa y distancias. Elige origen, destino y transporte y pulsa “Ver ruta”. La consulta debe tener límite de tiempo para que no congele la página; si el servicio de rutas no responde, puedes abrir Google Maps. ¿La página se queda cargando o aparece un mensaje de error?';
+        if(topic==='permisos')return 'Seguimos con los permisos. El menú y el contenido deben ocultar los módulos no autorizados en cada navegación. Eso debe complementarse con políticas RLS en Supabase; ocultar un botón por sí solo no protege los datos. ¿Qué módulo vuelve a aparecer?';
+        if(topic==='licencias')return 'Sigamos con Licencias médicas. Trabaja desde el módulo autorizado y verifica el estado de carga o el mensaje de error. Evita compartir datos médicos personales en este chat de ayuda.';
+        if(topic==='vacaciones')return 'Seguimos con Vacaciones y permisos. Revisa el estado de la solicitud, el período y los avisos del módulo. Puedo orientarte con el procedimiento, pero no aprobaré ni modificaré solicitudes por ti.';
+        if(topic==='tareas')return 'Seguimos con productividad. Podemos ordenar las tareas por prioridad, responsable y fecha límite. Dime cuál es el pendiente y te ayudo a dividirlo en pasos.';
+        if(topic==='notificaciones')return 'Seguimos con Notificaciones. Revisa primero los avisos que requieren acción y luego confirma si quedó registrada la gestión. Si el módulo desaparece, hay que revisar el permiso asignado y la sesión actual.';
+        if(/^(y eso|eso|continua|continua por favor|sigue|mas|más|ok|ya|si|sí|dale|como asi|cómo así)[?.! ]*$/.test(t))return 'Claro, sigo con el mismo tema. Cuéntame qué parte quieres profundizar: el error que viste, los pasos para corregirlo o cómo comprobar que quedó funcionando.';
+        return 'Te sigo leyendo 💙. Puedo ayudarte a orientarte en el módulo actual (“'+(contexts[activeView()]||contexts.generic).title+'”), aclarar permisos o revisar los pasos de una gestión. Cuéntame qué intentaste y qué resultado apareció.';
+      }
+      function appendSimiMessage(text,who){
+        if(!chatThread)return;
+        const item=document.createElement('div');item.className='simi-chat-message '+(who==='user'?'user':'assistant');item.textContent=text;chatThread.appendChild(item);chatThread.scrollTop=chatThread.scrollHeight;
+      }
+      if(chatForm&&chatInput&&chatThread){
+        chatForm.addEventListener('submit',function(e){
+          e.preventDefault();const message=chatInput.value.trim();if(!message)return;
+          appendSimiMessage(message,'user');
+          const detected=simiTopic(message),last=simiConversation.length?simiConversation[simiConversation.length-1].topic:null,topic=detected||last||simiTopic(activeView())||'general';
+          simiConversation.push({message:message,topic:topic});
+          const reply=simiReply(topic,message);
+          simiConversation.push({message:reply,topic:topic});
+          appendSimiMessage(reply,'assistant');chatInput.value='';chatInput.focus();
+        });
+      }
       const observer=new MutationObserver(()=>{render();});
       document.querySelectorAll('section[id^="view-"]').forEach(v=>observer.observe(v,{attributes:true,attributeFilter:['class']}));
       render();
