@@ -1249,6 +1249,16 @@ main>header .topbar-quick-action{display:none!important}
                     <div class="dashboard-welcome-compact-visual" aria-label="Imagen original de Doctor Simi y la farmacia"><img class="dashboard-welcome-compact-image" src="/doctor-simi-pharmacy-reference.webp" alt="Doctor Simi saludando frente a una farmacia Farmacias Similares" loading="lazy" decoding="async" fetchpriority="low"></div>
                 </section>
 
+                <section id="mensaje-motivacional-del-dia" class="rounded-2xl border border-cyan-100 bg-gradient-to-r from-sky-50 via-white to-teal-50 px-4 py-4 shadow-sm sm:px-5" aria-label="Mensaje motivacional">
+                    <div class="flex items-start gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-100 text-xl" aria-hidden="true">✨</span>
+                        <div class="min-w-0">
+                            <p class="text-xs font-extrabold uppercase tracking-widest text-teal-700">Un impulso para tu día</p>
+                            <p id="simi-mensaje-motivacional" class="mt-1 text-sm font-semibold leading-relaxed text-slate-700" aria-live="polite">Cada pequeño avance cuenta. Sigue adelante: tu trabajo marca la diferencia. 💙</p>
+                        </div>
+                    </div>
+                </section>
+
                 <section id="frase-divertida-del-dia" class="simi-fun-phrase" aria-label="Frase divertida del día">
                     <span class="simi-fun-phrase-emoji" aria-hidden="true">💬</span>
                     <div class="simi-fun-phrase-copy"><span>PAUSA DE BUEN HUMOR</span><p id="simi-frase-dia">El Excel no se llena solo… lamentablemente 😂</p></div>
@@ -2669,12 +2679,12 @@ main>header .topbar-quick-action{display:none!important}
     </div>
 
     <script src="/js/app-config.js"></script>
-<script src="/js/app-core.js?v=login-timeout-fix-20261019c"></script>
+<script src="/js/app-core.js?v=welcome-motivation-20261020b"></script>
 <script src="/js/freshness-dashboard.js?v=ultima-carga-por-modulo-151026"></script>
 <script src="/js/attendance-leave.js"></script>
 <script src="/js/workflows.js?v=permisos-envio-licencias-141026"></script>
-<script src="/js/maps-communications.js?v=20261018b"></script>
-<script src="/js/medical-leave-registration.js?v=licencias-zip-eml-permisos-141026"></script>
+<script src="/js/maps-communications.js?v=map-globals-fix-20261020"></script>
+<script src="/js/medical-leave-registration.js?v=cat-progress-20261019b"></script>
 <script src="/js/people-directory.js?v=20261018d"></script>
 <script src="/js/chat-transfers.js"></script>
 <script src="/js/employee-history.js"></script>
@@ -3392,6 +3402,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   var permissionNavObserver=null;
   var permissionSearchObserver=null;
   var allowed=new Set(['dashboard']);
+  var permissionCheckedAt=0;
   var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','ayuda'];
   var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
   function permissionName(m){return m;}
@@ -3451,6 +3462,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     });
   }
   function finishPermissionLoad(){
+    permissionCheckedAt=Date.now();
     paintPermissions();
     var nav=document.querySelector('#sidebar nav');
     if(nav){
@@ -3466,7 +3478,9 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       permissionSearchObserver.observe(results,{childList:true,subtree:true});
     }
   }
-  async function loadPermissions(){
+  async function loadPermissions(force){
+    // Cache corto para evitar consultar Supabase en cada cambio de módulo; una denegación fuerza revalidación.
+    if(!force&&permissionCheckedAt&&Date.now()-permissionCheckedAt<12000)return;
     try{
       // La sesión también puede fallar; todo el flujo debe terminar en un estado seguro.
       var sessionResult=await _supabase.auth.getSession();
@@ -3502,12 +3516,52 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       if(window.mostrarToast)mostrarToast('No se pudieron verificar tus permisos. Por seguridad, solo queda habilitado el Dashboard.','error',12000);
     }
   }
+  function mostrarAyudaAccesoModulo(modulo){
+    var old=document.getElementById('simi-acceso-ayuda-modal');if(old)old.remove();
+    var overlay=document.createElement('div');overlay.id='simi-acceso-ayuda-modal';
+    overlay.style.cssText='position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(4,18,32,.58);backdrop-filter:blur(5px)';
+    var card=document.createElement('section');card.setAttribute('role','dialog');card.setAttribute('aria-modal','true');card.setAttribute('aria-labelledby','simi-acceso-ayuda-titulo');
+    card.style.cssText='width:min(440px,100%);border:1px solid var(--simi-ui-line,#dce7f3);border-radius:20px;padding:24px;background:var(--simi-ui-panel,#fff);color:var(--simi-ui-text,#16365c);box-shadow:0 24px 70px rgba(0,0,0,.25)';
+    card.innerHTML='<div style="display:flex;gap:14px;align-items:flex-start"><span style="display:grid;place-items:center;flex:0 0 44px;height:44px;border-radius:14px;background:color-mix(in srgb,var(--simi-ui-accent,#19a8a5) 14%,transparent);color:var(--simi-ui-accent-strong,#087f82);font-size:22px">🔐</span><div style="min-width:0;flex:1"><h2 id="simi-acceso-ayuda-titulo" style="margin:0;font-size:18px;font-weight:850">¿Necesitas acceso a este módulo?</h2><p style="margin:8px 0 0;font-size:13px;line-height:1.6;opacity:.82">Puedes consultar al administrador para revisar el acceso a esta sección.</p></div><button type="button" data-cerrar-acceso aria-label="Cerrar" style="font-size:22px;line-height:1;padding:0 4px;opacity:.65">×</button></div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:22px"><button type="button" data-cerrar-acceso style="padding:10px 14px;border:1px solid var(--simi-ui-line,#dce7f3);border-radius:11px;font-weight:750">Ahora no</button><button type="button" id="simi-acceso-ir-chat" style="padding:10px 15px;border-radius:11px;background:var(--simi-ui-accent,#19a8a5);color:var(--user-accent-contrast,#fff);font-weight:850">Hablar con administración</button></div>';
+    overlay.appendChild(card);document.body.appendChild(overlay);
+    overlay.addEventListener('click',function(e){if(e.target===overlay||e.target.closest('[data-cerrar-acceso]'))overlay.remove();});
+    card.querySelector('#simi-acceso-ir-chat').addEventListener('click',async function(){
+      overlay.remove();
+      if(!hasModulePermission('chat')){
+        window.location.href='mailto:'+adminEmail+'?subject='+encodeURIComponent('Solicitud de acceso al módulo '+String(modulo||'').replace(/[-_]/g,' '))+'&body='+encodeURIComponent('Hola, solicito revisar mi acceso al módulo '+String(modulo||'').replace(/[-_]/g,' ')+'.');
+        return;
+      }
+      if(typeof window.cambiarModulo==='function')await window.cambiarModulo('chat');
+      var attempts=0;
+      var openAdminChat=function(){
+        attempts++;
+        var select=document.getElementById('chat-usuarios-nuevos');
+        var options=select?Array.from(select.options):[];
+        var opt=options.find(function(o){
+          var label=String(o.textContent||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+          return label.includes('scoloma@farmaciasdoctorsimi.cl')||(label.includes('sebastian')&&label.includes('coloma'));
+        });
+        if(opt&&select&&typeof window.crearConversacionChat==='function'){
+          options.forEach(function(o){o.selected=false;});opt.selected=true;
+          select.dispatchEvent(new Event('change',{bubbles:true}));
+          window.crearConversacionChat();
+          return;
+        }
+        if(attempts<12)setTimeout(openAdminChat,300);
+      };
+      setTimeout(openAdminChat,250);
+    });
+    var close=card.querySelector('[data-cerrar-acceso]');if(close)close.focus();
+  }
   var originalChange=window.cambiarModulo;
   if(typeof originalChange==='function'){
     window.cambiarModulo=async function(modulo,cargar){
       // Releer la sesión y los permisos justo antes de validar cada navegación evita usar el Set inicial
       // (solo Dashboard) si la restauración de sesión o la carga del perfil todavía no terminó.
       await loadPermissions();
+      if(!hasModulePermission(modulo)){
+        await loadPermissions(true);
+      }
       if(!hasModulePermission(modulo)){
         // Cerrar cualquier vista protegida que algún módulo haya dejado visible.
         moduleNames.forEach(function(m){
@@ -3517,7 +3571,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
           }
         });
         paintPermissions();
-        if(window.mostrarToast)mostrarToast('Este apartado no está habilitado para tu usuario.','warning');
+        mostrarAyudaAccesoModulo(modulo);
         return;
       }
       var resultado=await originalChange.apply(this,arguments);
@@ -3540,85 +3594,10 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     function maskDashboardKpis(){[{k:'kpi-colaboradores',c:'bar-count-colaboradores',b:'bar-colaboradores',p:'colaboradores'},{k:'kpi-sucursales',c:'bar-count-sucursales',b:'bar-sucursales',p:'sucursales'},{k:'kpi-asistencia',c:'bar-count-asistencia',b:'bar-asistencia',p:'asistencia'},{k:'kpi-licencias',c:'bar-count-licencias',b:'bar-licencias',p:'licencias'}].forEach(function(x){if(allowed.has(x.p))return;var k=document.getElementById(x.k),c=document.getElementById(x.c),b=document.getElementById(x.b);if(k)k.textContent='—';if(c)c.textContent='Sin permiso';if(b)b.style.width='0%';});}
   window.inicializarDashboard=async function(){await loadPermissions();var result=await originalInit.apply(this,arguments);maskDashboardKpis();return result;};
   }
-  var originalRoute=window.mostrarRutaMapa14;
-  var mapaRutaLeaflet=null,capaRutaLeaflet=null,marcadoresRutaLeaflet=[];
-  function asegurarMapaLeaflet(){var el=document.getElementById('mapa14-frame');if(!el||!window.L)return null;if(!mapaRutaLeaflet){mapaRutaLeaflet=L.map(el,{scrollWheelZoom:true}).setView([-33.45,-70.66],5);var osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(mapaRutaLeaflet);osm.on('tileerror',function(){if(mapaRutaLeaflet&& !mapaRutaLeaflet._tilesAlternativos){mapaRutaLeaflet._tilesAlternativos=true;try{mapaRutaLeaflet.removeLayer(osm);L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors © CARTO'}).addTo(mapaRutaLeaflet);}catch(e){}}});}setTimeout(function(){if(mapaRutaLeaflet)mapaRutaLeaflet.invalidateSize();},150);return mapaRutaLeaflet;}
-  async function estimateRoute(){
-    var a=document.getElementById('map14-origen'),b=document.getElementById('map14-destino'),m=document.getElementById('map14-modo'),summary=document.getElementById('mapa14-resumen');if(!a||!b||!m||!summary||!a.value||!b.value)return;
-    var box=document.getElementById('mapa14-estimacion-2026');if(!box){box=document.createElement('div');box.id='mapa14-estimacion-2026';box.className='map-estimate-2026';summary.parentNode.insertAdjacentElement('afterend',box);}
-    function coord(op){var lat=Number(op&&op.dataset.lat),lon=Number(op&&op.dataset.lon);return Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0)?{lat:lat,lon:lon}:null;}
-    var p1=coord(a.selectedOptions[0]),p2=coord(b.selectedOptions[0]);if(!p1||!p2){box.innerHTML='<div><strong>Faltan coordenadas</strong><span>No pudimos ubicar ambas sucursales. Completa dirección y comuna o pulsa el botón de buscar coordenadas.</span></div>';var st=document.getElementById('mapa14-status');if(st)st.textContent='Faltan coordenadas para dibujar la ruta. También puedes abrir Google Maps.';return;}
-    function rad(n){return n*Math.PI/180;}var dlat=rad(p2.lat-p1.lat),dlon=rad(p2.lon-p1.lon),h=Math.pow(Math.sin(dlat/2),2)+Math.cos(rad(p1.lat))*Math.cos(rad(p2.lat))*Math.pow(Math.sin(dlon/2),2),direct=6371*2*Math.asin(Math.min(1,Math.sqrt(h))),mode=m.value,route=direct*1.25,min=Math.max(1,Math.round(route/(mode==='w'?4.5:mode==='r'?22:35)*60)),max=Math.max(min+3,Math.round(min*1.35)),coords=[[p1.lat,p1.lon],[p2.lat,p2.lon]],label='estimación orientativa';
-    if(mode==='d'){var controller=null,timer=null;try{controller=new AbortController();timer=setTimeout(function(){controller.abort();},5000);var response=await fetch('https://router.project-osrm.org/route/v1/driving/'+p1.lon+','+p1.lat+';'+p2.lon+','+p2.lat+'?overview=full&geometries=geojson',{signal:controller.signal});if(response.ok){var data=await response.json(),r=data.routes&&data.routes[0];if(data.code==='Ok'&&r){route=r.distance/1000;min=Math.max(1,Math.round(r.duration/60));max=Math.max(min+2,Math.round(min*1.15));coords=r.geometry.coordinates.map(c=>[c[1],c[0]]);label='distancia por ruta vial';}}}catch(e){}finally{if(timer)clearTimeout(timer);}}
-    var fmt=n=>n.toLocaleString('es-CL',{maximumFractionDigits:1}),fmtDur=n=>{n=Math.max(0,Math.round(n));var days=Math.floor(n/1440),hours=Math.floor((n%1440)/60),mins=n%60;return (days?days+' día'+(days===1?'':'s')+' ':'')+(hours?hours+' h ':'')+(mins||(!days&&!hours)?mins+' min':'');};box.innerHTML='<div><strong>'+fmt(direct)+' km</strong><span>Distancia en línea recta</span></div><div><strong>'+fmt(route)+' km aprox.</strong><span>'+label+'</span></div><div><strong>'+fmtDur(min)+' – '+fmtDur(max)+'</strong><span>Tiempo orientativo; confirma en Google Maps</span></div>';
-    var map=asegurarMapaLeaflet(),status=document.getElementById('mapa14-status');if(!map){var el=document.getElementById('mapa14-frame');if(el){var embed='https://maps.google.com/maps?saddr='+encodeURIComponent(p1.lat+','+p1.lon)+'&daddr='+encodeURIComponent(p2.lat+','+p2.lon)+'&output=embed';el.innerHTML='<iframe title="Mapa de ruta entre sucursales" src="'+embed+'" style="display:block;width:100%;height:100%;min-height:380px;border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'; }if(status)status.textContent='Vista alternativa del mapa de ruta. Para navegar, abre Google Maps.';return;}
-    if(capaRutaLeaflet)map.removeLayer(capaRutaLeaflet);marcadoresRutaLeaflet.forEach(x=>map.removeLayer(x));marcadoresRutaLeaflet=[];
-    capaRutaLeaflet=L.polyline(coords,{color:'#009bb5',weight:5,opacity:.9}).addTo(map);
-    marcadoresRutaLeaflet.push(L.marker([p1.lat,p1.lon]).addTo(map).bindPopup('Origen: '+(a.selectedOptions[0].dataset.nombre||a.selectedOptions[0].textContent)));
-    marcadoresRutaLeaflet.push(L.marker([p2.lat,p2.lon]).addTo(map).bindPopup('Destino: '+(b.selectedOptions[0].dataset.nombre||b.selectedOptions[0].textContent)));
-    map.fitBounds(capaRutaLeaflet.getBounds().pad(.18));setTimeout(()=>map.invalidateSize(),180);if(status)status.textContent=mode==='d'?'Ruta vial estimada dibujada. Para navegación paso a paso, abre Google Maps.':'Puntos ubicados; la línea es orientativa para este modo. Abre Google Maps para ver la ruta real.';
-  }
-  async function geocodificarOpcionMapa14(op){
-    if(!op)return false;
-    var lat=Number(op.dataset.lat),lon=Number(op.dataset.lon);
-    if(Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0))return true;
-    var p=String(op.value||'').split(',');if(p.length===2){lat=Number(p[0]);lon=Number(p[1]);if(Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0)){op.dataset.lat=String(lat);op.dataset.lon=String(lon);return true;}}
-    var address=[op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', ');
-    if(!address)return false;
-    var controller=null,timer=null;
-    try{
-      controller=new AbortController();
-      timer=setTimeout(function(){controller.abort();},3500);
-      var r=await fetch('/api/geocodificar?direccion='+encodeURIComponent([op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', '))+'&nombre='+encodeURIComponent(op.dataset.nombre||'')+'&comuna='+encodeURIComponent(op.dataset.comuna||''),{signal:controller.signal});
-      if(!r.ok)return false;
-      var j=await r.json();
-      if(!Number.isFinite(Number(j.latitud))||!Number.isFinite(Number(j.longitud)))return false;
-      op.dataset.lat=String(j.latitud);op.dataset.lon=String(j.longitud);
-      // La consulta de una ruta no debe escribir cambios en la base de sucursales.
-      return true;
-    }catch(e){return false;}finally{if(timer)clearTimeout(timer);}
-  }
-  var rutaMapaEnCurso=false;
-  window.mostrarRutaMapa14=async function(){
-    if(rutaMapaEnCurso)return;
-    var a=document.getElementById('map14-origen'),b=document.getElementById('map14-destino');
-    var box=document.getElementById('mapa14-estimacion-2026');
-    var summary=document.getElementById('mapa14-resumen');
-    var status=document.getElementById('mapa14-status');
-    var button=document.querySelector('button[onclick="mostrarRutaMapa14()"]');
-    if(!a||!b||!a.value||!b.value||a.value===b.value){
-      if(window.mostrarToast)mostrarToast('Selecciona dos sucursales distintas para consultar la ruta.','warning');
-      return;
-    }
-    rutaMapaEnCurso=true;if(button){button.disabled=true;button.setAttribute('aria-busy','true');}
-    if(box)box.innerHTML='<div><strong>Calculando ruta…</strong><span>Consultando solo las dos sucursales seleccionadas. Si el servicio externo tarda, se mostrará una estimación local.</span></div>';
-    if(summary)summary.textContent='Calculando distancia y tiempo aproximados…';
-    if(status)status.textContent='Consultando origen y destino.';
-    try{
-      // No llamar la función antigua: recorría/actualizaba el mapa completo y podía bloquear la interfaz.
-      await Promise.all([
-        geocodificarOpcionMapa14(a.selectedOptions[0]),
-        geocodificarOpcionMapa14(b.selectedOptions[0])
-      ]);
-      await estimateRoute();
-      if(status&&status.textContent==='Consultando origen y destino.')status.textContent='Estimación calculada. La ruta vial puede variar.';
-      setTimeout(function(){
-        var target=document.getElementById('mapa14-frame')||document.getElementById('mapa14-resumen');
-        if(target)target.scrollIntoView({behavior:'smooth',block:'center'});
-        if(mapaRutaLeaflet)setTimeout(function(){mapaRutaLeaflet.invalidateSize();},250);
-      },80);
-    }catch(e){
-      if(box)box.innerHTML='<div><strong>No se pudo calcular la ruta</strong><span>Comprueba las coordenadas de ambas sucursales o abre Google Maps para continuar.</span></div>';
-      if(status)status.textContent='No se pudo calcular la ruta. Puedes intentarlo de nuevo.';
-    }finally{
-      rutaMapaEnCurso=false;if(button){button.disabled=false;button.removeAttribute('aria-busy');}
-    }
-  };
   function conectarBuscadoresMapa14(){
     [['map14-buscar-origen','origen'],['map14-buscar-destino','destino']].forEach(function(x){
       var el=document.getElementById(x[0]);if(el&&!el.dataset.filtroConectado){el.dataset.filtroConectado='1';el.addEventListener('input',function(){if(window.filtrarSucursalesMapa14)window.filtrarSucursalesMapa14(x[1]);});}
     });
-    ['map14-origen','map14-destino','map14-modo'].forEach(function(id){var el=document.getElementById(id);if(el&&!el.dataset.estimacionConectada){el.dataset.estimacionConectada='1';el.addEventListener('change',function(){if(id==='map14-origen'||id==='map14-destino')estimateRoute();});}});
   }
   function enhanceMapNote(){var frame=document.getElementById('mapa14-frame');if(!frame||document.getElementById('mapa14-estimacion-2026'))return;var box=document.createElement('div');box.id='mapa14-estimacion-2026';box.className='map-estimate-2026';box.innerHTML='<div><strong>Estimación aproximada</strong><span>Selecciona dos sucursales con GPS para ver distancia y tiempo orientativos.</span></div>';frame.parentNode.insertBefore(box,frame);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setupSelectors();enhanceMapNote();conectarBuscadoresMapa14();});else{setupSelectors();enhanceMapNote();conectarBuscadoresMapa14();}
@@ -4261,6 +4240,22 @@ main>header button.topbar-logout{color:#e65a69!important}
 #quick-module-bar{background:var(--simi-ui-topbar)!important;border-bottom:1px solid var(--simi-ui-line)!important;padding:7px 16px!important;gap:7px!important}
 #quick-module-bar .quick-module-chip{border:1px solid var(--simi-ui-line)!important;background:var(--simi-ui-panel)!important;color:var(--simi-ui-text)!important;border-radius:10px!important;font-size:10px!important}
 #quick-module-bar .quick-module-chip svg{color:var(--simi-ui-accent)!important}
+/* Mensaje motivacional: contraste accesible en temas claros y oscuros */
+#mensaje-motivacional-del-dia{background:var(--simi-ui-panel,#f0fdfa)!important;border:1px solid var(--simi-ui-line,#bde7e8)!important;color:#163b4a!important}
+#mensaje-motivacional-del-dia #simi-mensaje-motivacional{color:#163b4a!important;opacity:1!important;text-shadow:none!important;font-weight:650!important}
+#mensaje-motivacional-del-dia p,#mensaje-motivacional-del-dia span{color:#163b4a!important;opacity:1!important;text-shadow:none!important}
+#mensaje-motivacional-del-dia .text-teal-700{color:#087f82!important}
+#mensaje-motivacional-del-dia .bg-cyan-100{background:#cffafe!important}
+#simi-acceso-ayuda-modal{color-scheme:light}
+#simi-acceso-ayuda-modal section{color:#16365c!important;background:#fff!important}
+#simi-acceso-ayuda-modal section p{color:#334155!important;opacity:1!important}
+#simi-acceso-ayuda-modal section button{cursor:pointer}
+#mapa14-frame{touch-action:pan-y!important;overscroll-behavior:auto!important;isolation:isolate}
+/* El mapa solo presenta la ruta: no debe capturar los gestos verticales de la página en móviles. */
+#mapa14-frame .leaflet-container,#mapa14-frame .leaflet-pane,#mapa14-frame .leaflet-marker-pane,#mapa14-frame .leaflet-overlay-pane,#mapa14-frame .leaflet-tile-pane{touch-action:pan-y!important;overscroll-behavior:auto!important;pointer-events:none!important}
+#mapa14-frame .leaflet-control-container{display:none!important}
+#mapa14-frame .leaflet-control-zoom{display:none!important}
+@media(max-width:700px){#mapa14-frame{min-height:300px}#mapa14-frame iframe{min-height:300px!important}}
 /* Componentes consistentes para todos los módulos */
 main{background:var(--simi-ui-bg)!important;color:var(--simi-ui-text)!important}
 main section[id^="view-"]{color:var(--simi-ui-text)}

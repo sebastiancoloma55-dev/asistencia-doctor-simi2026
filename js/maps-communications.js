@@ -172,6 +172,7 @@
             await cargarSucursalesDotacion();
             document.getElementById('tabla-config-sucursales').innerHTML=lista.map(x=>`<tr><td class="p-3 font-bold">${escaparHTML(x.nombre)}</td><td class="p-3">${escaparHTML(direccionSucursal(x))}</td><td class="p-3">${escaparHTML(x.horario_apertura||'')}</td><td class="p-3">${escaparHTML(x.horario_cierre||'')}</td><td class="p-3">${escaparHTML(x.correo_sucursal||'')}</td><td class="p-3">${escaparHTML(x.correo_copia||'')}</td></tr>`).join('');
         }
+        window.prepararMapaYConfiguracionSucursales = prepararMapaYConfiguracionSucursales;
         function mostrarRutaSucursales(){const o=document.getElementById('map-origen').value,d=document.getElementById('map-destino').value,m=document.getElementById('map-modo').value;if(!o||!d){mostrarToast('Selecciona origen y destino.','warning');return;}document.getElementById('mapa-sucursales').src=`https://www.google.com/maps?output=embed&saddr=${encodeURIComponent(o)}&daddr=${encodeURIComponent(d)}&dirflg=${m}`;}
         function descargarPlantillaSucursales(){const datos=[{nombre:'Nombre exacto de la sucursal',direccion:'Dirección',comuna:'Comuna',horario_apertura:'09:00',horario_cierre:'19:00',correo_sucursal:'sucursal@empresa.cl',correo_copia:'supervisor@empresa.cl'}],wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(datos);XLSX.utils.book_append_sheet(wb,ws,'Configuracion');XLSX.writeFile(wb,'Plantilla_configuracion_sucursales.xlsx');}
         async function importarConfiguracionSucursales(event){try{const filas=await leerExcel(event.target.files[0]);for(const f of filas){const nombre=texto(obtenerCampo(f,['nombre','Nombre Sucursal','Sucursal']));if(!nombre)continue;const cambios={direccion:texto(obtenerCampo(f,['direccion','Dirección'])),comuna:texto(obtenerCampo(f,['comuna','Comuna'])),horario_apertura:texto(obtenerCampo(f,['horario_apertura','Horario Apertura'])),horario_cierre:texto(obtenerCampo(f,['horario_cierre','Horario Cierre'])),correo_sucursal:texto(obtenerCampo(f,['correo_sucursal','Correo Sucursal'])),correo_copia:texto(obtenerCampo(f,['correo_copia','Correo Copia','CC']))};const {error}=await _supabase.from('sucursales').update(cambios).eq('nombre',nombre);if(error)throw error;}await prepararMapaYConfiguracionSucursales();await registrarActualizacionFuente('config_sucursales',event.target.files?.[0]?.name||'Plantilla de configuración',filas.length,'manual');mostrarToast('Configuración de sucursales actualizada.','success');}catch(e){mostrarToast(e.message,'error');}finally{event.target.value='';}}
@@ -569,19 +570,42 @@
             return conservados;
         }
 
-        // Indicador de avance real para vista previa y generación del ZIP.
+        // Progreso visual con gatito animado. El porcentaje sigue conectado al avance real.
         function asegurarPanelProgresoCorreos() {
             let panel = document.getElementById('correo-progreso-ejecucion');
             if (panel) return panel;
-            const anchor = document.getElementById('lista-borradores');
-            if (!anchor) return null;
+            if (!document.getElementById('simi-cat-progress-style')) {
+                const style = document.createElement('style');
+                style.id = 'simi-cat-progress-style';
+                style.textContent = `
+                  #correo-progreso-ejecucion{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(4,24,53,.64);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+                  #correo-progreso-ejecucion.hidden{display:none}
+                  #correo-progreso-ejecucion .simi-progress-card{width:min(760px,100%);overflow:hidden;border:1px solid rgba(255,255,255,.75);border-radius:28px;background:linear-gradient(145deg,#fff 0%,#f3fbff 60%,#effdfa 100%);box-shadow:0 28px 90px rgba(0,20,55,.35);animation:simiProgressIn .28s ease-out}
+                  #correo-progreso-ejecucion .simi-progress-hero{position:relative;overflow:hidden;padding:24px 26px 16px;background:linear-gradient(120deg,#0759c7 0%,#168be4 52%,#0db8b2 100%);color:white}
+                  #correo-progreso-ejecucion .simi-progress-track{position:relative;height:72px;margin-top:12px;border-radius:18px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.24);overflow:hidden}
+                  #correo-progreso-ejecucion .simi-progress-track:before{content:"";position:absolute;left:0;right:0;top:50%;border-top:2px dashed rgba(255,255,255,.52)}
+                  #correo-progreso-ejecucion .simi-cat-runner{position:absolute;top:5px;left:0%;transform:translateX(-50%);font-size:42px;line-height:1;filter:drop-shadow(0 5px 5px rgba(0,0,0,.18));transition:left .45s cubic-bezier(.2,.8,.2,1);animation:simiCatBounce .7s ease-in-out infinite alternate;white-space:nowrap;z-index:2}
+                  #correo-progreso-ejecucion .simi-cat-package{display:inline-block;font-size:20px;vertical-align:middle;margin-left:2px}
+                  #correo-progreso-ejecucion .simi-progress-bar{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#19a8a5,#27c8d0,#5eead4);box-shadow:0 0 20px rgba(25,168,165,.32);transition:width .35s ease}
+                  #correo-progreso-ejecucion .simi-step{display:flex;align-items:center;gap:8px;font-size:11px;color:#64748b}
+                  #correo-progreso-ejecucion .simi-step-dot{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;border:2px solid #cbd5e1;background:white;font-weight:800}
+                  #correo-progreso-ejecucion .simi-step.active{color:#075985;font-weight:800}
+                  #correo-progreso-ejecucion .simi-step.active .simi-step-dot{border-color:#19a8a5;color:#087e8b;box-shadow:0 0 0 4px rgba(25,168,165,.12)}
+                  #correo-progreso-ejecucion .simi-step.done .simi-step-dot{background:#0dbaa0;color:white;border-color:#0dbaa0}
+                  @keyframes simiCatBounce{from{margin-top:0}to{margin-top:7px}}
+                  @keyframes simiProgressIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+                  @media(prefers-reduced-motion:reduce){#correo-progreso-ejecucion *,#correo-progreso-ejecucion *:before{animation:none!important;transition:none!important}}
+                `;
+                document.head.appendChild(style);
+            }
             panel = document.createElement('section');
             panel.id = 'correo-progreso-ejecucion';
-            panel.className = 'hidden ui-card mb-4 p-4';
+            panel.className = 'hidden';
             panel.setAttribute('role', 'status');
             panel.setAttribute('aria-live', 'polite');
-            panel.innerHTML = '<div class="flex items-center justify-between gap-3"><strong id="correo-progreso-titulo" class="text-sm font-extrabold text-slate-800">Procesando…</strong><strong id="correo-progreso-porcentaje" class="text-sm tabular-nums text-simiRed">0%</strong></div><div class="mt-3 h-3 overflow-hidden rounded-full bg-slate-100"><div id="correo-progreso-barra" class="h-full rounded-full bg-simiRed transition-all duration-200" style="width:0%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div><p id="correo-progreso-detalle" class="mt-2 text-xs text-slate-500">Preparando tarea…</p>';
-            anchor.parentNode.insertBefore(panel, anchor);
+            panel.innerHTML = '<div class="simi-progress-card"><div class="simi-progress-hero"><div class="flex items-start gap-4"><div class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/20 text-3xl shadow-inner">✉️</div><div class="min-w-0 flex-1"><div class="text-xs font-extrabold uppercase tracking-[.18em] text-white/75">Doctor Simi · Asistencia RR. HH.</div><div class="mt-1 flex flex-wrap items-center justify-between gap-2"><strong id="correo-progreso-titulo" class="text-xl font-black sm:text-2xl">Preparando borradores…</strong><strong id="correo-progreso-porcentaje" class="text-2xl font-black tabular-nums">0%</strong></div><p id="correo-progreso-detalle" class="mt-1 text-sm text-white/90">Preparando tarea…</p></div></div><div class="simi-progress-track"><div id="correo-progreso-barra" class="simi-progress-bar absolute inset-y-0 left-0" style="width:0%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div><div id="correo-progreso-gato" class="simi-cat-runner" style="left:0%">🐱<span class="simi-cat-package">✉️</span></div></div><div class="mt-2 flex justify-between text-[10px] font-bold uppercase tracking-wider text-white/80"><span>Preparando</span><span>Procesando</span><span>Finalizando</span></div></div><div class="p-5 sm:p-7"><div class="mb-4 flex items-center justify-between gap-3"><div><div class="text-sm font-extrabold text-slate-900">Tu gatito está trabajando</div><div class="mt-1 text-xs text-slate-500">El avance se actualiza con el proceso real. No cierres esta ventana.</div></div><div id="correo-progreso-estado" class="rounded-full bg-cyan-50 px-3 py-1.5 text-xs font-extrabold text-cyan-800">En curso</div><button type="button" id="correo-progreso-cerrar" class="hidden rounded-xl bg-white px-4 py-2 text-sm font-extrabold text-slate-900 shadow hover:bg-cyan-50 focus:outline-none focus:ring-2 focus:ring-cyan-500" aria-label="Cerrar progreso y volver">Cerrar y volver</button></div><div class="h-3 overflow-hidden rounded-full bg-slate-200"><div id="correo-progreso-barra-secundaria" class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-teal-400 transition-all duration-300" style="width:0%"></div></div><div class="mt-4 grid grid-cols-3 gap-2 sm:gap-3"><div id="correo-progreso-paso-1" class="simi-step active"><span class="simi-step-dot">1</span><span>Preparar</span></div><div id="correo-progreso-paso-2" class="simi-step"><span class="simi-step-dot">2</span><span>Procesar</span></div><div id="correo-progreso-paso-3" class="simi-step"><span class="simi-step-dot">3</span><span>Completar</span></div></div><div class="mt-5 rounded-2xl border border-cyan-100 bg-cyan-50/70 p-3 text-xs leading-5 text-slate-600"><span class="font-extrabold text-cyan-900">Tip:</span> Los correos son borradores para revisar en Outlook; no se envían automáticamente.</div></div></div>';
+            document.body.appendChild(panel);
+            panel.querySelector('#correo-progreso-cerrar')?.addEventListener('click', () => { if (panel.dataset.estado === 'completado' || panel.dataset.estado === 'error') panel.classList.add('hidden'); });
             return panel;
         }
         function actualizarProgresoCorreos(porcentaje, titulo, detalle, estado) {
@@ -593,11 +617,25 @@
             const title = document.getElementById('correo-progreso-titulo');
             const value = document.getElementById('correo-progreso-porcentaje');
             const bar = document.getElementById('correo-progreso-barra');
+            const bar2 = document.getElementById('correo-progreso-barra-secundaria');
             const desc = document.getElementById('correo-progreso-detalle');
+            const cat = document.getElementById('correo-progreso-gato');
+            const state = document.getElementById('correo-progreso-estado');
             if (title) title.textContent = titulo || 'Procesando…';
             if (value) value.textContent = pct + '%';
-            if (bar) { bar.style.width = pct + '%'; bar.setAttribute('aria-valuenow', String(pct)); bar.classList.toggle('bg-emerald-600', estado === 'completado'); bar.classList.toggle('bg-red-600', estado === 'error'); }
+            if (bar) { bar.style.width = pct + '%'; bar.setAttribute('aria-valuenow', String(pct)); }
+            if (bar2) bar2.style.width = pct + '%';
+            if (cat) { cat.style.left = Math.min(95, Math.max(5, pct)) + '%'; const pkg=cat.querySelector('.simi-cat-package'); if(pkg) pkg.textContent = /zip|comprim|archivo|descarg/i.test(titulo||'') ? '📦' : '✉️'; }
             if (desc) desc.textContent = detalle || '';
+            if (state) { state.textContent = estado === 'completado' ? '¡Listo!' : estado === 'error' ? 'Requiere atención' : 'En curso'; state.className = 'rounded-full px-3 py-1.5 text-xs font-extrabold ' + (estado === 'completado' ? 'bg-emerald-100 text-emerald-800' : estado === 'error' ? 'bg-rose-100 text-rose-800' : 'bg-cyan-50 text-cyan-800'); }
+            [1,2,3].forEach((n)=>{const el=document.getElementById('correo-progreso-paso-'+n);if(!el)return;el.classList.toggle('done',(estado==='completado')||(pct>=n*33));el.classList.toggle('active',estado!=='completado'&&estado!=='error'&&pct<(n*33)&&pct>=(n-1)*33);});
+            const closeButton = document.getElementById('correo-progreso-cerrar');
+            if (closeButton) closeButton.classList.toggle('hidden', estado !== 'completado' && estado !== 'error');
+            const helper = panel.querySelector('.simi-progress-card .simi-progress-hero + .p-5 .mb-4 .text-xs.text-slate-500');
+            if (helper && (estado === 'completado' || estado === 'error')) helper.textContent = 'El proceso terminó. Pulsa “Cerrar y volver” para continuar.';
+            if (estado === 'completado' || estado === 'error') {
+                if (cat) { cat.style.left = '95%'; cat.style.animation = 'none'; cat.innerHTML = (estado === 'completado' ? '😺<span class="simi-cat-package">✨</span>' : '🙀<span class="simi-cat-package">⚠️</span>'); }
+            }
         }
         const esperarPintadoCorreo = () => new Promise(resolve => setTimeout(resolve, 0));
 
@@ -1054,7 +1092,7 @@
             conGps.forEach(({sucursal,punto})=>marcadorFarmaciaMapa14(sucursal,punto));
             if(ajustarVista&&conGps.length){
                 const bounds=L.latLngBounds(conGps.map(x=>[x.punto.lat,x.punto.lon]));
-                mapa14Leaflet.fitBounds(bounds,{padding:[28,28],maxZoom:11});
+                mapa14Leaflet.fitBounds(bounds,{padding:[28,28],maxZoom:11,animate:false});
             }else if(ajustarVista&&!conGps.length)mapa14Leaflet.setView([-33.45,-70.66],5);
             return conGps.length;
         }
@@ -1071,7 +1109,7 @@
             const host=document.getElementById('mapa14-frame'),status=document.getElementById('mapa14-status');
             if(!host||!window.L){if(status)status.textContent='No se pudo cargar el mapa interactivo. Los enlaces a Google Maps siguen disponibles.';return;}
             if(!mapa14Leaflet){
-                mapa14Leaflet=L.map(host,{scrollWheelZoom:true}).setView([-33.45,-70.66],5);
+                mapa14Leaflet=L.map(host,{scrollWheelZoom:false,dragging:false,touchZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,zoomAnimation:false,fadeAnimation:false,markerZoomAnimation:false,inertia:false}).setView([-33.45,-70.66],5);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(mapa14Leaflet);
                 mapa14Marcadores=L.layerGroup().addTo(mapa14Leaflet);
                 setTimeout(()=>mapa14Leaflet&&mapa14Leaflet.invalidateSize(),200);
@@ -1128,6 +1166,8 @@
             inicializarMapa14(mapa14Sucursales);
             if (window.lucide) lucide.createIcons();
         }
+        window.prepararMapa14 = prepararMapa14;
+        window.mostrarRutaMapa14 = mostrarRutaMapa14;
         async function mostrarRutaMapa14() {
             const selOrigen=document.getElementById('map14-origen'),selDestino=document.getElementById('map14-destino');
             const origen=selOrigen?.value||'',destino=selDestino?.value||'',modo=document.getElementById('map14-modo')?.value||'d';
@@ -1160,7 +1200,7 @@
             if(stepsHost){stepsHost.classList.add('hidden');stepsHost.innerHTML='';}
             if(puntos.length&&mapa14Leaflet){
                 const bounds=L.latLngBounds(puntos.map(p=>[p.lat,p.lon]));
-                mapa14Leaflet.fitBounds(bounds,{padding:[40,40],maxZoom:12});
+                mapa14Leaflet.fitBounds(bounds,{padding:[40,40],maxZoom:12,animate:false});
             }
             if(!validPoint(p1)||!validPoint(p2)){
                 if(status)status.textContent='El mapa muestra solo las ubicaciones seleccionadas. Falta GPS en una de ellas; usa Google Maps para obtener el recorrido vial.';
@@ -1176,14 +1216,12 @@
             if(status)status.textContent='Calculando el trayecto vial por calles y avenidas…';
             try{
                 const url='https://router.project-osrm.org/route/v1/driving/'+p1.lon+','+p1.lat+';'+p2.lon+','+p2.lat+'?overview=full&geometries=geojson&steps=true';
-                const response=await fetch(url,{headers:{'Accept':'application/json'}});
-                if(!response.ok)throw new Error('El servidor de rutas respondió '+response.status);
-                const payload=await response.json();
+                const routeController=new AbortController();const routeTimeout=setTimeout(()=>routeController.abort(),6000);let response,payload;try{response=await fetch(url,{headers:{'Accept':'application/json'},signal:routeController.signal,cache:'no-store'});if(!response.ok)throw new Error('El servidor de rutas respondió '+response.status);payload=await response.json();}finally{clearTimeout(routeTimeout);}
                 if(payload.code!=='Ok'||!payload.routes?.length)throw new Error('No se encontró un recorrido vial para estas coordenadas.');
                 const route=payload.routes[0];
                 if(mapa14Ruta&&mapa14Leaflet)mapa14Leaflet.removeLayer(mapa14Ruta);
                 mapa14Ruta=L.geoJSON(route.geometry,{style:{color:'#078ca6',weight:6,opacity:.95,lineCap:'round',lineJoin:'round'}}).addTo(mapa14Leaflet);
-                mapa14Leaflet.fitBounds(mapa14Ruta.getBounds(),{padding:[35,35],maxZoom:14});
+                mapa14Leaflet.fitBounds(mapa14Ruta.getBounds(),{padding:[35,35],maxZoom:14,animate:false});
                 const km=Number(route.distance||0)/1000,minutes=Math.round(Number(route.duration||0)/60);
                 if(distanceEl)distanceEl.textContent=km<10?km.toFixed(1)+' km':km.toFixed(1)+' km';
                 if(timeEl)timeEl.textContent=minutes<60?minutes+' min':Math.floor(minutes/60)+' h '+(minutes%60)+' min';
@@ -1195,8 +1233,10 @@
                     stepsHost.innerHTML='<b>Calles y giros del trayecto</b><ol>'+allSteps.slice(0,18).map(step=>'<li>'+escaparHTML(turnLabel(step.maneuver))+(step.name?' por <strong>'+escaparHTML(step.name)+'</strong>':'')+'</li>').join('')+'</ol>';
                     stepsHost.classList.remove('hidden');
                 }
+                const estimate=document.getElementById('mapa14-estimacion-2026');if(estimate)estimate.innerHTML='<div><strong>'+km.toFixed(1)+' km</strong><span>Distancia vial estimada</span></div><div><strong>'+(minutes<60?minutes+' min':Math.floor(minutes/60)+' h '+(minutes%60)+' min)+'</strong><span>Tiempo aproximado</span></div>';
                 if(status)status.textContent='Ruta vial calculada por calles y avenidas. Se muestran únicamente el origen y el destino; las demás farmacias están ocultas hasta que restaures la vista.';
             }catch(error){
+                const estimate=document.getElementById('mapa14-estimacion-2026');if(estimate)estimate.innerHTML='<div><strong>Ruta no disponible en este momento</strong><span>El servicio de rutas tardó demasiado o no respondió. Vuelve a intentarlo o abre Google Maps.</span></div>';
                 if(mapa14Ruta&&mapa14Leaflet){mapa14Leaflet.removeLayer(mapa14Ruta);mapa14Ruta=null;}
                 if(stats)stats.classList.add('hidden');
                 if(stepsHost){stepsHost.innerHTML='';stepsHost.classList.add('hidden');}
