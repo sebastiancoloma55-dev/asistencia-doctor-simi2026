@@ -87,6 +87,28 @@
   else ensureElement();
 })();
 </script>
+<script id="simi-global-mascot-button-20261020">
+(function(){
+  function applyMascot(){
+    var button=document.getElementById('simi-context-toggle');
+    if(!button||button.dataset.simiMascotApplied==='true') return;
+    button.dataset.simiMascotApplied='true';
+    button.classList.add('has-simi-mascot');
+    button.setAttribute('aria-label','Abrir asistente Doctor Simi');
+    button.setAttribute('title','Asistente Doctor Simi');
+    button.innerHTML='<svg class="simi-assistant-mascot-icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M11 18c0-7 5-11 13-11s13 4 13 11v9c0 8-6 13-13 13S11 35 11 27z" fill="#f5c9a7" stroke="#12385f" stroke-width="1.5"/><path d="M8 18c0-10 7-15 16-15s16 5 16 15l-4 2-3-7-9-2-10 4-2 5z" fill="#fff" stroke="#12385f" stroke-width="1.5"/><path d="M10 17l-4 4 5 2M38 17l4 4-5 2" fill="#fff" stroke="#12385f" stroke-width="1.5" stroke-linejoin="round"/><circle cx="19" cy="23" r="1.5" fill="#12385f"/><circle cx="29" cy="23" r="1.5" fill="#12385f"/><path d="M20 29q4 4 8 0" fill="none" stroke="#9d4d47" stroke-width="1.5" stroke-linecap="round"/><path d="M12 35l-5 8h34l-5-8-6-2-6 5-6-5z" fill="#fff" stroke="#12385f" stroke-width="1.5" stroke-linejoin="round"/><path d="M22 37h4l-2 4z" fill="#19a8a5"/><path d="M34 32l2-4 2 4 4 2-4 2-2 4-2-4-4-2z" fill="#f6deba" stroke="#fff" stroke-width="1"/></svg>';
+  }
+  function start(){
+    applyMascot();
+    if(!document.body) return;
+    var observer=new MutationObserver(applyMascot);
+    observer.observe(document.body,{childList:true,subtree:true});
+    setTimeout(function(){observer.disconnect();},12000);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start,{once:true});
+  else start();
+})();
+</script>
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/lucide@0.468.0"></script>
@@ -1130,6 +1152,9 @@ main>header .topbar-quick-action{display:none!important}
 @keyframes simiDataLoaderWave{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
 @media(max-width:520px){#simi-global-data-loader{top:7px;padding:8px 10px;border-radius:13px}#simi-global-data-loader .simi-loader-mascot{width:33px;height:33px;flex-basis:33px}}
 @media(prefers-reduced-motion:reduce){#simi-global-data-loader,#simi-global-data-loader *{animation:none!important;transition:none!important}#simi-global-data-loader .simi-loader-bar{width:100%;transform:none}}
+#simi-context-toggle svg.simi-assistant-mascot-icon{width:43px!important;height:43px!important;min-width:43px!important;min-height:43px!important;stroke-width:1!important}
+#simi-context-toggle.has-simi-mascot{overflow:hidden!important;background:linear-gradient(145deg,#19a8a5,#087f92)!important}
+#simi-context-toggle.has-simi-mascot:hover{filter:brightness(1.06)}
 </style>
 
 </head>
