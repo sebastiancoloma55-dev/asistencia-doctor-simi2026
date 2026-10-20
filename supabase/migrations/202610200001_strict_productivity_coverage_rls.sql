@@ -190,3 +190,115 @@ with check (
     )
   )
 );
+
+
+-- Las asignaciones de responsables también se limitan a los registros propios/asignados.
+drop policy if exists solicitud_dotacion_responsables_select on public.solicitud_dotacion_responsables;
+create policy solicitud_dotacion_responsables_select_own_or_authorized
+on public.solicitud_dotacion_responsables
+for select to authenticated
+using (
+  public.usuario_es_admin_principal_2026()
+  or usuario_rol_id = public.chat_usuario_actual_id()
+  or asignado_por = public.chat_usuario_actual_id()
+  or (
+    not private.usuario_es_perfil_productividad()
+    and public.usuario_tiene_alguno_permiso(array['coberturas','traslados','amonestaciones']::text[])
+  )
+);
+
+-- Traslados: productividad solo puede consultar/gestionar los propios; RRHH autorizado
+-- conserva el alcance operativo por sucursales.
+alter table public.traslados_personal enable row level security;
+drop policy if exists scope_traslados_delete_2026 on public.traslados_personal;
+drop policy if exists simi_propiedad_delete_traslados on public.traslados_personal;
+drop policy if exists scope_traslados_insert_2026 on public.traslados_personal;
+drop policy if exists simi_propiedad_insert_traslados on public.traslados_personal;
+drop policy if exists traslados_personal_insert_authorized on public.traslados_personal;
+drop policy if exists scope_traslados_select_2026 on public.traslados_personal;
+drop policy if exists simi_propiedad_select_traslados on public.traslados_personal;
+drop policy if exists traslados_personal_select_authorized on public.traslados_personal;
+drop policy if exists scope_traslados_update_2026 on public.traslados_personal;
+drop policy if exists simi_propiedad_update_traslados on public.traslados_personal;
+
+create policy traslados_select_own_or_authorized on public.traslados_personal
+for select to authenticated
+using (
+  public.usuario_es_admin_principal_2026()
+  or (
+    public.usuario_tiene_alguno_permiso(array['traslados','coberturas']::text[])
+    and (
+      (private.usuario_es_perfil_productividad() and solicitado_por = public.chat_usuario_actual_id())
+      or
+      (not private.usuario_es_perfil_productividad()
+        and (
+          private.usuario_puede_ver_sucursal(sucursal_origen_id, sucursal_origen_nombre)
+          or private.usuario_puede_ver_sucursal(sucursal_destino_id, sucursal_destino_nombre)
+        ))
+    )
+  )
+);
+
+create policy traslados_insert_own on public.traslados_personal
+for insert to authenticated
+with check (
+  public.usuario_es_admin_principal_2026()
+  or (
+    public.usuario_tiene_alguno_permiso(array['traslados','coberturas']::text[])
+    and solicitado_por = public.chat_usuario_actual_id()
+    and estado = 'SOLICITADO'
+    and private.usuario_puede_ver_sucursal(sucursal_origen_id, sucursal_origen_nombre)
+    and private.usuario_puede_ver_sucursal(sucursal_destino_id, sucursal_destino_nombre)
+  )
+);
+
+create policy traslados_update_own_or_authorized on public.traslados_personal
+for update to authenticated
+using (
+  public.usuario_es_admin_principal_2026()
+  or (
+    public.usuario_tiene_alguno_permiso(array['traslados','coberturas']::text[])
+    and (
+      (private.usuario_es_perfil_productividad() and solicitado_por = public.chat_usuario_actual_id())
+      or
+      (not private.usuario_es_perfil_productividad()
+        and (
+          private.usuario_puede_ver_sucursal(sucursal_origen_id, sucursal_origen_nombre)
+          or private.usuario_puede_ver_sucursal(sucursal_destino_id, sucursal_destino_nombre)
+        ))
+    )
+  )
+)
+with check (
+  public.usuario_es_admin_principal_2026()
+  or (
+    public.usuario_tiene_alguno_permiso(array['traslados','coberturas']::text[])
+    and (
+      (private.usuario_es_perfil_productividad() and solicitado_por = public.chat_usuario_actual_id())
+      or
+      (not private.usuario_es_perfil_productividad()
+        and (
+          private.usuario_puede_ver_sucursal(sucursal_origen_id, sucursal_origen_nombre)
+          or private.usuario_puede_ver_sucursal(sucursal_destino_id, sucursal_destino_nombre)
+        ))
+    )
+  )
+);
+
+create policy traslados_delete_own_or_authorized on public.traslados_personal
+for delete to authenticated
+using (
+  public.usuario_es_admin_principal_2026()
+  or (
+    public.usuario_tiene_alguno_permiso(array['traslados','coberturas']::text[])
+    and (
+      (private.usuario_es_perfil_productividad() and solicitado_por = public.chat_usuario_actual_id())
+      or
+      (not private.usuario_es_perfil_productividad()
+        and (
+          private.usuario_puede_ver_sucursal(sucursal_origen_id, sucursal_origen_nombre)
+          or private.usuario_puede_ver_sucursal(sucursal_destino_id, sucursal_destino_nombre)
+        ))
+    )
+  )
+);
