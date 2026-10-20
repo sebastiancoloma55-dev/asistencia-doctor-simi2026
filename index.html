@@ -3532,15 +3532,24 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
         return;
       }
       if(typeof window.cambiarModulo==='function')await window.cambiarModulo('chat');
-      setTimeout(function(){
-        var search=document.getElementById('chat-buscar-conversacion');
-        if(search){search.value='scoloma';search.dispatchEvent(new Event('input',{bubbles:true}));}
+      var attempts=0;
+      var openAdminChat=function(){
+        attempts++;
         var select=document.getElementById('chat-usuarios-nuevos');
-        if(select){
-          var opt=Array.from(select.options).find(function(o){return String(o.value||'').toLowerCase()===adminEmail||String(o.textContent||'').toLowerCase().includes('sebastián coloma')||String(o.textContent||'').toLowerCase().includes('sebastian coloma');});
-          if(opt){opt.selected=true;select.dispatchEvent(new Event('change',{bubbles:true}));}
+        var options=select?Array.from(select.options):[];
+        var opt=options.find(function(o){
+          var label=String(o.textContent||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+          return label.includes('scoloma@farmaciasdoctorsimi.cl')||(label.includes('sebastian')&&label.includes('coloma'));
+        });
+        if(opt&&select&&typeof window.crearConversacionChat==='function'){
+          options.forEach(function(o){o.selected=false;});opt.selected=true;
+          select.dispatchEvent(new Event('change',{bubbles:true}));
+          window.crearConversacionChat();
+          return;
         }
-      },350);
+        if(attempts<12)setTimeout(openAdminChat,300);
+      };
+      setTimeout(openAdminChat,250);
     });
     var close=card.querySelector('[data-cerrar-acceso]');if(close)close.focus();
   }
