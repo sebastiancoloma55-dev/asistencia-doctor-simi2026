@@ -1213,9 +1213,7 @@
             if(status)status.textContent='Calculando el trayecto vial por calles y avenidas…';
             try{
                 const url='https://router.project-osrm.org/route/v1/driving/'+p1.lon+','+p1.lat+';'+p2.lon+','+p2.lat+'?overview=full&geometries=geojson&steps=true';
-                const routeController=new AbortController();const routeTimeout=setTimeout(()=>routeController.abort(),4500);let response;try{response=await fetch(url,{headers:{'Accept':'application/json'},signal:routeController.signal,cache:'no-store'});}finally{clearTimeout(routeTimeout);}
-                if(!response.ok)throw new Error('El servidor de rutas respondió '+response.status);
-                const payload=await response.json();
+                const routeController=new AbortController();const routeTimeout=setTimeout(()=>routeController.abort(),6000);let response,payload;try{response=await fetch(url,{headers:{'Accept':'application/json'},signal:routeController.signal,cache:'no-store'});if(!response.ok)throw new Error('El servidor de rutas respondió '+response.status);payload=await response.json();}finally{clearTimeout(routeTimeout);}
                 if(payload.code!=='Ok'||!payload.routes?.length)throw new Error('No se encontró un recorrido vial para estas coordenadas.');
                 const route=payload.routes[0];
                 if(mapa14Ruta&&mapa14Leaflet)mapa14Leaflet.removeLayer(mapa14Ruta);
