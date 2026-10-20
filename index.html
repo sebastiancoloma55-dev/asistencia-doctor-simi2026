@@ -4250,8 +4250,11 @@ main>header button.topbar-logout{color:#e65a69!important}
 #simi-acceso-ayuda-modal section{color:#16365c!important;background:#fff!important}
 #simi-acceso-ayuda-modal section p{color:#334155!important;opacity:1!important}
 #simi-acceso-ayuda-modal section button{cursor:pointer}
-#mapa14-frame{touch-action:pan-y;overscroll-behavior:contain}
-#mapa14-frame .leaflet-container{touch-action:pan-y!important;overscroll-behavior:auto!important}#mapa14-frame .leaflet-control-zoom{display:none!important}#mapa14-frame .leaflet-pane{pointer-events:auto}
+#mapa14-frame{touch-action:pan-y!important;overscroll-behavior:auto!important;isolation:isolate}
+/* El mapa solo presenta la ruta: no debe capturar los gestos verticales de la página en móviles. */
+#mapa14-frame .leaflet-container,#mapa14-frame .leaflet-pane,#mapa14-frame .leaflet-marker-pane,#mapa14-frame .leaflet-overlay-pane,#mapa14-frame .leaflet-tile-pane{touch-action:pan-y!important;overscroll-behavior:auto!important;pointer-events:none!important}
+#mapa14-frame .leaflet-control-container{display:none!important}
+#mapa14-frame .leaflet-control-zoom{display:none!important}
 @media(max-width:700px){#mapa14-frame{min-height:300px}#mapa14-frame iframe{min-height:300px!important}}
 /* Componentes consistentes para todos los módulos */
 main{background:var(--simi-ui-bg)!important;color:var(--simi-ui-text)!important}
