@@ -1234,11 +1234,11 @@
                     else renderizarVacaciones();
                 }
                 if (modulo === 'papeletas') { await prepararModuloPapeletas(); await cargarPapeletas(); }
-                if (modulo === 'sucursales') await prepararMapaYConfiguracionSucursales();
+                if (modulo === 'sucursales') { const preparar = window.prepararMapaYConfiguracionSucursales; if (typeof preparar !== 'function') throw new Error('No se pudo cargar el módulo de sucursales. Recarga la página.'); await preparar(); }
                 if (modulo === 'correos') await prepararModuloCorreos();
                 if (modulo === 'amonestaciones') await prepararModuloCoberturas();
                 if (modulo === 'configcorreos') await prepararConfiguracionCorreos();
-                if (modulo === 'mapas') await prepararMapa14();
+                if (modulo === 'mapas') { const preparar = window.prepararMapa14; if (typeof preparar !== 'function') throw new Error('No se pudo cargar el mapa. Recarga la página.'); await preparar(); }
                 if (modulo === 'tareas') await prepararModuloTareas();
                 if (modulo === 'operaciones') await cargarCentroOperaciones();
                 if (modulo === 'calidad') await cargarPanelCalidad();
