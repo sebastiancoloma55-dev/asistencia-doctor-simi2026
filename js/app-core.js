@@ -755,7 +755,12 @@
             const email=String(user?.email||perfil.email||'').trim();
             const nombreVisible=nombre||email.split('@')[0]||'equipo de Asistencia';
             const nameEl=document.getElementById('dashboard-welcome-name');
-            if(nameEl)nameEl.textContent='¡Bienvenido/a, '+nombreVisible+'!';
+            // Un emoji aleatorio por sesión: se mantiene estable aunque se refresque el perfil.
+            const emojisBienvenida=['👋','✨','🌟','😊','🚀','🎉','🐱','🌈','💙','🙌','☀️','🍀','🦊','🌻','💫','🤗'];
+            if(!window.__emojiBienvenidaSesion){
+                window.__emojiBienvenidaSesion=emojisBienvenida[Math.floor(Math.random()*emojisBienvenida.length)];
+            }
+            if(nameEl)nameEl.textContent='¡Bienvenido/a, '+nombreVisible+'! '+window.__emojiBienvenidaSesion;
             const esAdmin=esAdminPrincipalActual();
             const subtitle=document.getElementById('dashboard-welcome-subtitle');
             if(subtitle)subtitle.textContent=esAdmin?'Tienes acceso de administrador principal a todos los módulos y herramientas del sistema.':'Tu centro de control para asistencia, ausentismo y operaciones.';
