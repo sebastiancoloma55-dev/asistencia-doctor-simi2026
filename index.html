@@ -3603,7 +3603,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     function coord(op){var lat=Number(op&&op.dataset.lat),lon=Number(op&&op.dataset.lon);return Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&(lat!==0||lon!==0)?{lat:lat,lon:lon}:null;}
     var p1=coord(a.selectedOptions[0]),p2=coord(b.selectedOptions[0]);if(!p1||!p2){box.innerHTML='<div><strong>Faltan coordenadas</strong><span>No pudimos ubicar ambas sucursales. Completa dirección y comuna o pulsa el botón de buscar coordenadas.</span></div>';var st=document.getElementById('mapa14-status');if(st)st.textContent='Faltan coordenadas para dibujar la ruta. También puedes abrir Google Maps.';return;}
     function rad(n){return n*Math.PI/180;}var dlat=rad(p2.lat-p1.lat),dlon=rad(p2.lon-p1.lon),h=Math.pow(Math.sin(dlat/2),2)+Math.cos(rad(p1.lat))*Math.cos(rad(p2.lat))*Math.pow(Math.sin(dlon/2),2),direct=6371*2*Math.asin(Math.min(1,Math.sqrt(h))),mode=m.value,route=direct*1.25,min=Math.max(1,Math.round(route/(mode==='w'?4.5:mode==='r'?22:35)*60)),max=Math.max(min+3,Math.round(min*1.35)),coords=[[p1.lat,p1.lon],[p2.lat,p2.lon]],label='estimación orientativa';
-    if(mode==='d'){var controller=null,timer=null;try{controller=new AbortController();timer=setTimeout(function(){controller.abort();},5000);var response=await fetch('https://router.project-osrm.org/route/v1/driving/'+p1.lon+','+p1.lat+';'+p2.lon+','+p2.lat+'?overview=full&geometries=geojson',{signal:controller.signal});if(response.ok){var data=await response.json(),r=data.routes&&data.routes[0];if(data.code==='Ok'&&r){route=r.distance/1000;min=Math.max(1,Math.round(r.duration/60));max=Math.max(min+2,Math.round(min*1.15));coords=r.geometry.coordinates.map(c=>[c[1],c[0]]);label='distancia por ruta vial';}}}catch(e){}finally{if(timer)clearTimeout(timer);}}
+    if(mode==='d'){var controller=null,timer=null;try{controller=new AbortController();timer=setTimeout(function(){controller.abort();},2500);var response=await fetch('https://router.project-osrm.org/route/v1/driving/'+p1.lon+','+p1.lat+';'+p2.lon+','+p2.lat+'?overview=full&geometries=geojson',{signal:controller.signal,cache:'no-store'});if(response.ok){var data=await response.json(),r=data.routes&&data.routes[0];if(data.code==='Ok'&&r){route=r.distance/1000;min=Math.max(1,Math.round(r.duration/60));max=Math.max(min+2,Math.round(min*1.15));coords=r.geometry.coordinates.map(c=>[c[1],c[0]]);label='distancia por ruta vial';}}}catch(e){}finally{if(timer)clearTimeout(timer);}}
     var fmt=n=>n.toLocaleString('es-CL',{maximumFractionDigits:1}),fmtDur=n=>{n=Math.max(0,Math.round(n));var days=Math.floor(n/1440),hours=Math.floor((n%1440)/60),mins=n%60;return (days?days+' día'+(days===1?'':'s')+' ':'')+(hours?hours+' h ':'')+(mins||(!days&&!hours)?mins+' min':'');};box.innerHTML='<div><strong>'+fmt(direct)+' km</strong><span>Distancia en línea recta</span></div><div><strong>'+fmt(route)+' km aprox.</strong><span>'+label+'</span></div><div><strong>'+fmtDur(min)+' – '+fmtDur(max)+'</strong><span>Tiempo orientativo; confirma en Google Maps</span></div>';
     var map=asegurarMapaLeaflet(),status=document.getElementById('mapa14-status');if(!map){var el=document.getElementById('mapa14-frame');if(el){var embed='https://maps.google.com/maps?saddr='+encodeURIComponent(p1.lat+','+p1.lon)+'&daddr='+encodeURIComponent(p2.lat+','+p2.lon)+'&output=embed';el.innerHTML='<iframe title="Mapa de ruta entre sucursales" src="'+embed+'" style="display:block;width:100%;height:100%;min-height:380px;border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'; }if(status)status.textContent='Vista alternativa del mapa de ruta. Para navegar, abre Google Maps.';return;}
     if(capaRutaLeaflet)map.removeLayer(capaRutaLeaflet);marcadoresRutaLeaflet.forEach(x=>map.removeLayer(x));marcadoresRutaLeaflet=[];
@@ -3622,7 +3622,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     var controller=null,timer=null;
     try{
       controller=new AbortController();
-      timer=setTimeout(function(){controller.abort();},3500);
+      timer=setTimeout(function(){controller.abort();},1800);
       var r=await fetch('/api/geocodificar?direccion='+encodeURIComponent([op.dataset.direccion,op.dataset.comuna,'Chile'].filter(Boolean).join(', '))+'&nombre='+encodeURIComponent(op.dataset.nombre||'')+'&comuna='+encodeURIComponent(op.dataset.comuna||''),{signal:controller.signal});
       if(!r.ok)return false;
       var j=await r.json();
@@ -3650,14 +3650,18 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     if(status)status.textContent='Consultando origen y destino.';
     try{
       // No llamar la función antigua: recorría/actualizaba el mapa completo y podía bloquear la interfaz.
-      await Promise.all([
-        geocodificarOpcionMapa14(a.selectedOptions[0]),
-        geocodificarOpcionMapa14(b.selectedOptions[0])
+      // Límite corto para que servicios de coordenadas lentos no dejen la acción bloqueada.
+      await Promise.race([
+        Promise.all([
+          geocodificarOpcionMapa14(a.selectedOptions[0]),
+          geocodificarOpcionMapa14(b.selectedOptions[0])
+        ]),
+        new Promise(function(resolve){setTimeout(resolve,1900);})
       ]);
       await estimateRoute();
       if(status&&status.textContent==='Consultando origen y destino.')status.textContent='Estimación calculada. La ruta vial puede variar.';
       // No forzar scrollIntoView: en móviles puede dejar la página atrapada en el contenedor del mapa.
-      setTimeout(function(){if(mapaRutaLeaflet)mapaRutaLeaflet.invalidateSize();},180);
+      setTimeout(function(){if(mapaRutaLeaflet)mapaRutaLeaflet.invalidateSize({pan:false});},180);
     }catch(e){
       if(box)box.innerHTML='<div><strong>No se pudo calcular la ruta</strong><span>Comprueba las coordenadas de ambas sucursales o abre Google Maps para continuar.</span></div>';
       if(status)status.textContent='No se pudo calcular la ruta. Puedes intentarlo de nuevo.';
@@ -4313,10 +4317,18 @@ main>header button.topbar-logout{color:#e65a69!important}
 #quick-module-bar .quick-module-chip{border:1px solid var(--simi-ui-line)!important;background:var(--simi-ui-panel)!important;color:var(--simi-ui-text)!important;border-radius:10px!important;font-size:10px!important}
 #quick-module-bar .quick-module-chip svg{color:var(--simi-ui-accent)!important}
 /* Mensaje motivacional: contraste accesible en temas claros y oscuros */
-#mensaje-motivacional-del-dia{background:color-mix(in srgb,var(--simi-ui-panel,#fff) 92%,var(--simi-ui-accent,#19a8a5) 8%)!important;border-color:var(--simi-ui-line,#cde6ef)!important;color:var(--simi-ui-text,#16365c)!important}
-#mensaje-motivacional-del-dia #simi-mensaje-motivacional{color:var(--simi-ui-text,#16365c)!important;opacity:1!important;text-shadow:none!important}
-#mensaje-motivacional-del-dia p,#mensaje-motivacional-del-dia span{color:var(--simi-ui-text,#16365c)!important;opacity:1!important}
-#mensaje-motivacional-del-dia .text-teal-700{color:var(--simi-ui-accent-strong,#087f82)!important}
+#mensaje-motivacional-del-dia{background:var(--simi-ui-panel,#f0fdfa)!important;border:1px solid var(--simi-ui-line,#bde7e8)!important;color:#163b4a!important}
+#mensaje-motivacional-del-dia #simi-mensaje-motivacional{color:#163b4a!important;opacity:1!important;text-shadow:none!important;font-weight:650!important}
+#mensaje-motivacional-del-dia p,#mensaje-motivacional-del-dia span{color:#163b4a!important;opacity:1!important;text-shadow:none!important}
+#mensaje-motivacional-del-dia .text-teal-700{color:#087f82!important}
+#mensaje-motivacional-del-dia .bg-cyan-100{background:#cffafe!important}
+#simi-acceso-ayuda-modal{color-scheme:light}
+#simi-acceso-ayuda-modal section{color:#16365c!important;background:#fff!important}
+#simi-acceso-ayuda-modal section p{color:#334155!important;opacity:1!important}
+#simi-acceso-ayuda-modal section button{cursor:pointer}
+#mapa14-frame{touch-action:pan-y;overscroll-behavior:contain}
+#mapa14-frame .leaflet-container{touch-action:pan-x pan-y;overscroll-behavior:contain}
+@media(max-width:700px){#mapa14-frame{min-height:300px}#mapa14-frame iframe{min-height:300px!important}}
 /* Componentes consistentes para todos los módulos */
 main{background:var(--simi-ui-bg)!important;color:var(--simi-ui-text)!important}
 main section[id^="view-"]{color:var(--simi-ui-text)}
