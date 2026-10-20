@@ -1066,7 +1066,6 @@
             const distancia=document.getElementById('mapa14-distancia');if(distancia)distancia.textContent='—';
             const tiempo=document.getElementById('mapa14-tiempo');if(tiempo)tiempo.textContent='—';
             const puntos=document.getElementById('mapa14-puntos');if(puntos)puntos.textContent=String(mapa14Sucursales.filter(x=>coordenadasSucursalMapa(x)).length);
-            if(window.lucide)lucide.createIcons();
         }
         function renderOpcionesMapa14(tipo, query = '') {
             const select = document.getElementById(tipo === 'origen' ? 'map14-origen' : 'map14-destino');
@@ -1088,7 +1087,6 @@
             if(document.getElementById('map14-buscar-origen'))document.getElementById('map14-buscar-origen').oninput=e=>renderOpcionesMapa14('origen',e.target.value);
             if(document.getElementById('map14-buscar-destino'))document.getElementById('map14-buscar-destino').oninput=e=>renderOpcionesMapa14('destino',e.target.value);
             inicializarMapa14(mapa14Sucursales);
-            if (window.lucide) lucide.createIcons();
         }
         window.prepararMapa14 = prepararMapa14;
         window.mostrarRutaMapa14 = mostrarRutaMapa14;
