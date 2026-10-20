@@ -1091,7 +1091,7 @@
             conGps.forEach(({sucursal,punto})=>marcadorFarmaciaMapa14(sucursal,punto));
             if(ajustarVista&&conGps.length){
                 const bounds=L.latLngBounds(conGps.map(x=>[x.punto.lat,x.punto.lon]));
-                mapa14Leaflet.fitBounds(bounds,{padding:[28,28],maxZoom:11});
+                mapa14Leaflet.fitBounds(bounds,{padding:[28,28],maxZoom:11,animate:false});
             }else if(ajustarVista&&!conGps.length)mapa14Leaflet.setView([-33.45,-70.66],5);
             return conGps.length;
         }
@@ -1108,7 +1108,7 @@
             const host=document.getElementById('mapa14-frame'),status=document.getElementById('mapa14-status');
             if(!host||!window.L){if(status)status.textContent='No se pudo cargar el mapa interactivo. Los enlaces a Google Maps siguen disponibles.';return;}
             if(!mapa14Leaflet){
-                mapa14Leaflet=L.map(host,{scrollWheelZoom:true}).setView([-33.45,-70.66],5);
+                mapa14Leaflet=L.map(host,{scrollWheelZoom:false,dragging:false,touchZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,zoomAnimation:false,fadeAnimation:false,markerZoomAnimation:false,inertia:false}).setView([-33.45,-70.66],5);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(mapa14Leaflet);
                 mapa14Marcadores=L.layerGroup().addTo(mapa14Leaflet);
                 setTimeout(()=>mapa14Leaflet&&mapa14Leaflet.invalidateSize(),200);
@@ -1197,7 +1197,7 @@
             if(stepsHost){stepsHost.classList.add('hidden');stepsHost.innerHTML='';}
             if(puntos.length&&mapa14Leaflet){
                 const bounds=L.latLngBounds(puntos.map(p=>[p.lat,p.lon]));
-                mapa14Leaflet.fitBounds(bounds,{padding:[40,40],maxZoom:12});
+                mapa14Leaflet.fitBounds(bounds,{padding:[40,40],maxZoom:12,animate:false});
             }
             if(!validPoint(p1)||!validPoint(p2)){
                 if(status)status.textContent='El mapa muestra solo las ubicaciones seleccionadas. Falta GPS en una de ellas; usa Google Maps para obtener el recorrido vial.';
@@ -1213,14 +1213,14 @@
             if(status)status.textContent='Calculando el trayecto vial por calles y avenidas…';
             try{
                 const url='https://router.project-osrm.org/route/v1/driving/'+p1.lon+','+p1.lat+';'+p2.lon+','+p2.lat+'?overview=full&geometries=geojson&steps=true';
-                const response=await fetch(url,{headers:{'Accept':'application/json'}});
+                const routeController=new AbortController();const routeTimeout=setTimeout(()=>routeController.abort(),4500);let response;try{response=await fetch(url,{headers:{'Accept':'application/json'},signal:routeController.signal,cache:'no-store'});}finally{clearTimeout(routeTimeout);}
                 if(!response.ok)throw new Error('El servidor de rutas respondió '+response.status);
                 const payload=await response.json();
                 if(payload.code!=='Ok'||!payload.routes?.length)throw new Error('No se encontró un recorrido vial para estas coordenadas.');
                 const route=payload.routes[0];
                 if(mapa14Ruta&&mapa14Leaflet)mapa14Leaflet.removeLayer(mapa14Ruta);
                 mapa14Ruta=L.geoJSON(route.geometry,{style:{color:'#078ca6',weight:6,opacity:.95,lineCap:'round',lineJoin:'round'}}).addTo(mapa14Leaflet);
-                mapa14Leaflet.fitBounds(mapa14Ruta.getBounds(),{padding:[35,35],maxZoom:14});
+                mapa14Leaflet.fitBounds(mapa14Ruta.getBounds(),{padding:[35,35],maxZoom:14,animate:false});
                 const km=Number(route.distance||0)/1000,minutes=Math.round(Number(route.duration||0)/60);
                 if(distanceEl)distanceEl.textContent=km<10?km.toFixed(1)+' km':km.toFixed(1)+' km';
                 if(timeEl)timeEl.textContent=minutes<60?minutes+' min':Math.floor(minutes/60)+' h '+(minutes%60)+' min';
@@ -1232,8 +1232,10 @@
                     stepsHost.innerHTML='<b>Calles y giros del trayecto</b><ol>'+allSteps.slice(0,18).map(step=>'<li>'+escaparHTML(turnLabel(step.maneuver))+(step.name?' por <strong>'+escaparHTML(step.name)+'</strong>':'')+'</li>').join('')+'</ol>';
                     stepsHost.classList.remove('hidden');
                 }
+                const estimate=document.getElementById('mapa14-estimacion-2026');if(estimate)estimate.innerHTML='<div><strong>'+km.toFixed(1)+' km</strong><span>Distancia vial estimada</span></div><div><strong>'+(minutes<60?minutes+' min':Math.floor(minutes/60)+' h '+(minutes%60)+' min)+'</strong><span>Tiempo aproximado</span></div>';
                 if(status)status.textContent='Ruta vial calculada por calles y avenidas. Se muestran únicamente el origen y el destino; las demás farmacias están ocultas hasta que restaures la vista.';
             }catch(error){
+                const estimate=document.getElementById('mapa14-estimacion-2026');if(estimate)estimate.innerHTML='<div><strong>Ruta no disponible en este momento</strong><span>El servicio de rutas tardó demasiado o no respondió. Vuelve a intentarlo o abre Google Maps.</span></div>';
                 if(mapa14Ruta&&mapa14Leaflet){mapa14Leaflet.removeLayer(mapa14Ruta);mapa14Ruta=null;}
                 if(stats)stats.classList.add('hidden');
                 if(stepsHost){stepsHost.innerHTML='';stepsHost.classList.add('hidden');}
