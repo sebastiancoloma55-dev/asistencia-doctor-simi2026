@@ -336,7 +336,8 @@
       if(!rows.length)throw new Error('No se encontraron registros seleccionados. Actualiza la lista.');
       const zip=new JSZip(), folder=zip.folder('Borradores_Outlook_Licencias');
       
-      for(let i=0;i<rows.length;i++) {\n        if(window.actualizarProgresoCorreos)window.actualizarProgresoCorreos(10+Math.round(((i+1)/Math.max(rows.length,1))*48),'Preparando archivos EML','Preparando archivo '+(i+1)+' de '+rows.length+'…');
+      for(let i=0;i<rows.length;i++) {
+        if(window.actualizarProgresoCorreos)window.actualizarProgresoCorreos(10+Math.round(((i+1)/Math.max(rows.length,1))*48),'Preparando archivos EML','Preparando archivo '+(i+1)+' de '+rows.length+'…');
         const r=rows[i], suc=await resolverSucursal(r.sucursal_nombre,r.sucursal_id);
         const d={nombre:r.nombre_colaborador||'',rut:r.rut||'',cargo:r.cargo||'',sucursal:r.sucursal_nombre||'',fechaRegistro:r.fecha_registro,inicio:r.fecha_inicio,dias:Number(r.dias_corridos),termino:r.fecha_termino||sumarFecha(r.fecha_inicio,Number(r.dias_corridos)-1),retorno:r.fecha_retorno||sumarFecha(r.fecha_inicio,Number(r.dias_corridos)),correoSucursal:suc?.correo_sucursal||r.correo_sucursal||'',correoCopia:suc?.correo_copia||r.correo_copia||'',observacion:r.observacion_administrativa||''};
         if(!rutValido(d.rut)||!d.nombre||!d.sucursal||!d.inicio||!Number.isInteger(d.dias)||d.dias<1)throw new Error('Una de las licencias tiene datos obligatorios incompletos. Revisa los registros.');
@@ -352,6 +353,7 @@
       const url=URL.createObjectURL(blob), link=document.createElement('a');
       link.href=url; link.download='Borradores_Outlook_Licencias_'+isoHoy()+'.zip'; link.style.display='none';
       document.body.appendChild(link); link.click(); link.remove(); setTimeout(()=>URL.revokeObjectURL(url),60000);
+      if(window.actualizarProgresoCorreos)window.actualizarProgresoCorreos(100,'¡ZIP listo!','Se prepararon '+rows.length+' borrador(es) para Outlook.','completado');
       try { const upd=await db().from('envio_licencias_medicas').update({estado_correo:'borrador_solicitado'}).in('id',rows.map(r=>r.id)); if(upd.error)throw upd.error; await cargarLista(); if(window.mostrarToast)window.mostrarToast('ZIP listo con '+rows.length+' archivo(s) .eml. El registro quedó actualizado; los correos no se enviaron.','success',10000); } catch(regErr) { if(window.mostrarToast)window.mostrarToast('El ZIP se descargó, pero no se pudo actualizar el estado del registro: '+(regErr.message||'error de registro'),'warning',10000); }
     } catch(e) { if(window.actualizarProgresoCorreos)window.actualizarProgresoCorreos(100,'No se pudo generar el ZIP',e.message||'Error desconocido','error'); mensaje(e.message||'No se pudo generar el ZIP.'); }
     finally {btn.disabled=false;btn.textContent=texto;actualizarSeleccion();}
