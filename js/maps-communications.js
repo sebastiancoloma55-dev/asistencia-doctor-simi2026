@@ -120,6 +120,7 @@
             await cargarSucursalesDotacion();
             document.getElementById('tabla-config-sucursales').innerHTML=lista.map(x=>`<tr><td class="p-3 font-bold">${escaparHTML(x.nombre)}</td><td class="p-3">${escaparHTML(direccionSucursal(x))}</td><td class="p-3">${escaparHTML(x.horario_apertura||'')}</td><td class="p-3">${escaparHTML(x.horario_cierre||'')}</td><td class="p-3">${escaparHTML(x.correo_sucursal||'')}</td><td class="p-3">${escaparHTML(x.correo_copia||'')}</td></tr>`).join('');
         }
+        window.prepararMapaYConfiguracionSucursales = prepararMapaYConfiguracionSucursales;
         function mostrarRutaSucursales(){const o=document.getElementById('map-origen').value,d=document.getElementById('map-destino').value,m=document.getElementById('map-modo').value;if(!o||!d){mostrarToast('Selecciona origen y destino.','warning');return;}document.getElementById('mapa-sucursales').src=`https://www.google.com/maps?output=embed&saddr=${encodeURIComponent(o)}&daddr=${encodeURIComponent(d)}&dirflg=${m}`;}
         function descargarPlantillaSucursales(){const datos=[{nombre:'Nombre exacto de la sucursal',direccion:'Dirección',comuna:'Comuna',horario_apertura:'09:00',horario_cierre:'19:00',correo_sucursal:'sucursal@empresa.cl',correo_copia:'supervisor@empresa.cl'}],wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(datos);XLSX.utils.book_append_sheet(wb,ws,'Configuracion');XLSX.writeFile(wb,'Plantilla_configuracion_sucursales.xlsx');}
         async function importarConfiguracionSucursales(event){try{const filas=await leerExcel(event.target.files[0]);for(const f of filas){const nombre=texto(obtenerCampo(f,['nombre','Nombre Sucursal','Sucursal']));if(!nombre)continue;const cambios={direccion:texto(obtenerCampo(f,['direccion','Dirección'])),comuna:texto(obtenerCampo(f,['comuna','Comuna'])),horario_apertura:texto(obtenerCampo(f,['horario_apertura','Horario Apertura'])),horario_cierre:texto(obtenerCampo(f,['horario_cierre','Horario Cierre'])),correo_sucursal:texto(obtenerCampo(f,['correo_sucursal','Correo Sucursal'])),correo_copia:texto(obtenerCampo(f,['correo_copia','Correo Copia','CC']))};const {error}=await _supabase.from('sucursales').update(cambios).eq('nombre',nombre);if(error)throw error;}await prepararMapaYConfiguracionSucursales();await registrarActualizacionFuente('config_sucursales',event.target.files?.[0]?.name||'Plantilla de configuración',filas.length,'manual');mostrarToast('Configuración de sucursales actualizada.','success');}catch(e){mostrarToast(e.message,'error');}finally{event.target.value='';}}
@@ -1071,6 +1072,8 @@
             inicializarMapa14(mapa14Sucursales);
             if (window.lucide) lucide.createIcons();
         }
+        window.prepararMapa14 = prepararMapa14;
+        window.mostrarRutaMapa14 = mostrarRutaMapa14;
         async function mostrarRutaMapa14() {
             const selOrigen=document.getElementById('map14-origen'),selDestino=document.getElementById('map14-destino');
             const origen=selOrigen?.value||'',destino=selDestino?.value||'',modo=document.getElementById('map14-modo')?.value||'d';
@@ -1460,4 +1463,3 @@
         }catch(e){state.textContent='No se pudieron generar los reportes.';mostrarToast('Error al generar reportes: '+(e.message||e),'error',12000);}
     }
         function descargarRespuestaIA(){if(!ultimaRespuestaIA)return mostrarToast('Primero genera un análisis.','warning');const {jsPDF}=window.jspdf,doc=new jsPDF(),y0=20;doc.setTextColor(0,82,155);doc.setFontSize(15);doc.text('Reporte de Recursos Humanos',20,y0);doc.setTextColor(0);doc.setFontSize(9);let y=32;doc.splitTextToSize(ultimaRespuestaIA,170).forEach(line=>{if(y>280){doc.addPage();y=20;}doc.text(line,20,y);y+=4.5;});doc.save('Reporte_Gemini_RRHH.pdf');}
-
