@@ -223,20 +223,50 @@
             }
         }
 
+        async function leerAsistenciaPaginada() {
+            // Consultar en páginas pequeñas reduce el costo de cada sentencia bajo RLS.
+            // Solo se solicitan las columnas usadas por el módulo, evitando transferir
+            // campos innecesarios del histórico completo.
+            const columnas = [
+                'id', 'rut', 'nombre', 'sucursal', 'fecha', 'turno',
+                'entrada', 'salida', 'atraso', 'tipo_ausentismo', 'estado',
+                'salida_temprana', 'sin_marca', 'marca_incompleta',
+                'tiene_atraso', 'sin_turno_marcas'
+            ].join(',');
+            const resultado = [];
+            const tamanoPagina = 200;
+            for (let desde = 0; ; desde += tamanoPagina) {
+                const { data, error } = await _supabase
+                    .from('registros_asistencia')
+                    .select(columnas)
+                    .order('fecha', { ascending: false })
+                    .range(desde, desde + tamanoPagina - 1);
+                if (error) throw errorSupabase('No se pudo cargar el detalle de asistencia', error);
+                const pagina = data || [];
+                resultado.push(...pagina);
+                if (pagina.length < tamanoPagina) break;
+            }
+            return resultado;
+        }
+
         async function cargarAsistenciaDesdeNube() {
-            // La lectura de datos y el directorio no dependen entre sí: ejecutarlos juntos
-            // reduce la espera inicial sin alterar filtros ni registros.
-            const [, registros] = await Promise.all([
-                obtenerMapaSupervisoresDirectorio(),
-                leerTablaCompleta('registros_asistencia', 'fecha')
-            ]);
-            datosAsistenciaGlobal = registros;
-
-            asistenciaCargada = true;
-            document.getElementById('kpi-asistencia').innerText =
-                datosAsistenciaGlobal.length;
-
-            renderizarFiltrosAsistencia();
+            const tbody = document.getElementById('tabla-asistencia-body');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-slate-400">Cargando asistencia…</td></tr>';
+            try {
+                const [, registros] = await Promise.all([
+                    obtenerMapaSupervisoresDirectorio(),
+                    leerAsistenciaPaginada()
+                ]);
+                datosAsistenciaGlobal = registros;
+                asistenciaCargada = true;
+                document.getElementById('kpi-asistencia').innerText =
+                    datosAsistenciaGlobal.length;
+                renderizarFiltrosAsistencia();
+            } catch (error) {
+                if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-rose-600">No se pudo cargar la asistencia. Intenta actualizar; si persiste, revisa los permisos y los índices de Supabase.</td></tr>';
+                mostrarToast('No se pudo cargar asistencia: ' + (error?.message || error), 'error', 14000);
+                throw error;
+            }
         }
 
         function renderizarFiltrosAsistencia() {
