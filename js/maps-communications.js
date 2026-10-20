@@ -349,9 +349,9 @@
             // Lecturas paralelas con solo columnas de validación; se conservan todas las filas
             // para detectar RUT con fechas defectuosas y bloquear borradores inseguros.
             const [licencias, vacaciones, permisos] = await Promise.all([
-                leerColumnasTablaCorreo('licencias_medicas', ['id', 'rut', 'tipo_ausencia', 'fecha_inicio', 'fecha_fin']),
-                leerColumnasTablaCorreo('vacaciones_historico', ['id', 'rut', 'estado', 'fecha_inicio', 'fecha_fin']),
-                leerColumnasTablaCorreo('papeletas_permiso', ['id', 'rut', 'fecha_inicio', 'fecha_fin', 'fecha_retorno'])
+                leerColumnasTablaCorreo('licencias_medicas', ['id', 'rut', 'tipo_ausencia', 'fecha_inicio', 'fecha_fin'], desde, hasta),
+                leerColumnasTablaCorreo('vacaciones_historico', ['id', 'rut', 'estado', 'fecha_inicio', 'fecha_fin'], desde, hasta),
+                leerColumnasTablaCorreo('papeletas_permiso', ['id', 'rut', 'fecha_inicio', 'fecha_fin', 'fecha_retorno'], desde, hasta)
             ]);
 
             const periodosPorRut = new Map();
@@ -599,11 +599,20 @@
         }
         const esperarPintadoCorreo = () => new Promise(resolve => setTimeout(resolve, 0));
 
-        async function leerColumnasTablaCorreo(tabla, columnas) {
+        async function leerColumnasTablaCorreo(tabla, columnas, desde, hasta) {
             const resultado = [];
-            const tamano = 1000;
+            const tamano = 500;
             for (let inicio = 0; ; inicio += tamano) {
-                const { data, error } = await _supabase.from(tabla).select(columnas.join(',')).order('id', { ascending: true }).range(inicio, inicio + tamano - 1);
+                // Limitar la lectura a ausencias que se cruzan con el período solicitado.
+                // Los registros con fechas nulas también se incluyen para mantener el bloqueo
+                // preventivo de personas cuya ausencia no puede verificarse con seguridad.
+                let consulta = _supabase.from(tabla)
+                    .select(columnas.join(','))
+                    .or(`fecha_inicio.lte.${hasta},fecha_inicio.is.null`)
+                    .or(`fecha_fin.gte.${desde},fecha_fin.is.null`)
+                    .order('id', { ascending: true })
+                    .range(inicio, inicio + tamano - 1);
+                const { data, error } = await consulta;
                 if (error) throw errorSupabase('No se pudo consultar ' + tabla, error);
                 if (!data?.length) break;
                 resultado.push(...data);
