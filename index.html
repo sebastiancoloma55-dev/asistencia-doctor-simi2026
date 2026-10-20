@@ -3512,6 +3512,34 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       if(window.mostrarToast)mostrarToast('No se pudieron verificar tus permisos. Por seguridad, solo queda habilitado el Dashboard.','error',12000);
     }
   }
+  function mostrarAyudaAccesoModulo(modulo){
+    var old=document.getElementById('simi-acceso-ayuda-modal');if(old)old.remove();
+    var overlay=document.createElement('div');overlay.id='simi-acceso-ayuda-modal';
+    overlay.style.cssText='position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(4,18,32,.58);backdrop-filter:blur(5px)';
+    var card=document.createElement('section');card.setAttribute('role','dialog');card.setAttribute('aria-modal','true');card.setAttribute('aria-labelledby','simi-acceso-ayuda-titulo');
+    card.style.cssText='width:min(440px,100%);border:1px solid var(--simi-ui-line,#dce7f3);border-radius:20px;padding:24px;background:var(--simi-ui-panel,#fff);color:var(--simi-ui-text,#16365c);box-shadow:0 24px 70px rgba(0,0,0,.25)';
+    card.innerHTML='<div style="display:flex;gap:14px;align-items:flex-start"><span style="display:grid;place-items:center;flex:0 0 44px;height:44px;border-radius:14px;background:color-mix(in srgb,var(--simi-ui-accent,#19a8a5) 14%,transparent);color:var(--simi-ui-accent-strong,#087f82);font-size:22px">🔐</span><div style="min-width:0;flex:1"><h2 id="simi-acceso-ayuda-titulo" style="margin:0;font-size:18px;font-weight:850">¿Necesitas acceso a este módulo?</h2><p style="margin:8px 0 0;font-size:13px;line-height:1.6;opacity:.82">Puedes consultar al administrador para revisar el acceso a esta sección.</p></div><button type="button" data-cerrar-acceso aria-label="Cerrar" style="font-size:22px;line-height:1;padding:0 4px;opacity:.65">×</button></div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:22px"><button type="button" data-cerrar-acceso style="padding:10px 14px;border:1px solid var(--simi-ui-line,#dce7f3);border-radius:11px;font-weight:750">Ahora no</button><button type="button" id="simi-acceso-ir-chat" style="padding:10px 15px;border-radius:11px;background:var(--simi-ui-accent,#19a8a5);color:var(--user-accent-contrast,#fff);font-weight:850">Hablar con administración</button></div>';
+    overlay.appendChild(card);document.body.appendChild(overlay);
+    overlay.addEventListener('click',function(e){if(e.target===overlay||e.target.closest('[data-cerrar-acceso]'))overlay.remove();});
+    card.querySelector('#simi-acceso-ir-chat').addEventListener('click',async function(){
+      overlay.remove();
+      if(!hasModulePermission('chat')){
+        window.location.href='mailto:'+adminEmail+'?subject='+encodeURIComponent('Solicitud de acceso al módulo '+String(modulo||'').replace(/[-_]/g,' '))+'&body='+encodeURIComponent('Hola, solicito revisar mi acceso al módulo '+String(modulo||'').replace(/[-_]/g,' ')+'.');
+        return;
+      }
+      if(typeof window.cambiarModulo==='function')await window.cambiarModulo('chat');
+      setTimeout(function(){
+        var search=document.getElementById('chat-buscar-conversacion');
+        if(search){search.value='scoloma';search.dispatchEvent(new Event('input',{bubbles:true}));}
+        var select=document.getElementById('chat-usuarios-nuevos');
+        if(select){
+          var opt=Array.from(select.options).find(function(o){return String(o.value||'').toLowerCase()===adminEmail||String(o.textContent||'').toLowerCase().includes('sebastián coloma')||String(o.textContent||'').toLowerCase().includes('sebastian coloma');});
+          if(opt){opt.selected=true;select.dispatchEvent(new Event('change',{bubbles:true}));}
+        }
+      },350);
+    });
+    var close=card.querySelector('[data-cerrar-acceso]');if(close)close.focus();
+  }
   var originalChange=window.cambiarModulo;
   if(typeof originalChange==='function'){
     window.cambiarModulo=async function(modulo,cargar){
@@ -3527,7 +3555,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
           }
         });
         paintPermissions();
-        if(window.mostrarToast)mostrarToast('Este apartado no está habilitado para tu usuario.','warning');
+        mostrarAyudaAccesoModulo(modulo);
         return;
       }
       var resultado=await originalChange.apply(this,arguments);
@@ -3552,7 +3580,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   }
   var originalRoute=window.mostrarRutaMapa14;
   var mapaRutaLeaflet=null,capaRutaLeaflet=null,marcadoresRutaLeaflet=[];
-  function asegurarMapaLeaflet(){var el=document.getElementById('mapa14-frame');if(!el||!window.L)return null;if(!mapaRutaLeaflet){mapaRutaLeaflet=L.map(el,{scrollWheelZoom:true}).setView([-33.45,-70.66],5);var osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(mapaRutaLeaflet);osm.on('tileerror',function(){if(mapaRutaLeaflet&& !mapaRutaLeaflet._tilesAlternativos){mapaRutaLeaflet._tilesAlternativos=true;try{mapaRutaLeaflet.removeLayer(osm);L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors © CARTO'}).addTo(mapaRutaLeaflet);}catch(e){}}});}setTimeout(function(){if(mapaRutaLeaflet)mapaRutaLeaflet.invalidateSize();},150);return mapaRutaLeaflet;}
+  function asegurarMapaLeaflet(){var el=document.getElementById('mapa14-frame');if(!el||!window.L)return null;if(!mapaRutaLeaflet){mapaRutaLeaflet=L.map(el,{scrollWheelZoom:false, tap:true, dragging:true, touchZoom:true, doubleClickZoom:true, boxZoom:false, keyboard:true}).setView([-33.45,-70.66],5);var osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(mapaRutaLeaflet);osm.on('tileerror',function(){if(mapaRutaLeaflet&& !mapaRutaLeaflet._tilesAlternativos){mapaRutaLeaflet._tilesAlternativos=true;try{mapaRutaLeaflet.removeLayer(osm);L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors © CARTO'}).addTo(mapaRutaLeaflet);}catch(e){}}});}setTimeout(function(){if(mapaRutaLeaflet)mapaRutaLeaflet.invalidateSize();},150);return mapaRutaLeaflet;}
   async function estimateRoute(){
     var a=document.getElementById('map14-origen'),b=document.getElementById('map14-destino'),m=document.getElementById('map14-modo'),summary=document.getElementById('mapa14-resumen');if(!a||!b||!m||!summary||!a.value||!b.value)return;
     var box=document.getElementById('mapa14-estimacion-2026');if(!box){box=document.createElement('div');box.id='mapa14-estimacion-2026';box.className='map-estimate-2026';summary.parentNode.insertAdjacentElement('afterend',box);}
@@ -3612,11 +3640,8 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
       ]);
       await estimateRoute();
       if(status&&status.textContent==='Consultando origen y destino.')status.textContent='Estimación calculada. La ruta vial puede variar.';
-      setTimeout(function(){
-        var target=document.getElementById('mapa14-frame')||document.getElementById('mapa14-resumen');
-        if(target)target.scrollIntoView({behavior:'smooth',block:'center'});
-        if(mapaRutaLeaflet)setTimeout(function(){mapaRutaLeaflet.invalidateSize();},250);
-      },80);
+      // No forzar scrollIntoView: en móviles puede dejar la página atrapada en el contenedor del mapa.
+      setTimeout(function(){if(mapaRutaLeaflet)mapaRutaLeaflet.invalidateSize();},180);
     }catch(e){
       if(box)box.innerHTML='<div><strong>No se pudo calcular la ruta</strong><span>Comprueba las coordenadas de ambas sucursales o abre Google Maps para continuar.</span></div>';
       if(status)status.textContent='No se pudo calcular la ruta. Puedes intentarlo de nuevo.';
@@ -4271,6 +4296,11 @@ main>header button.topbar-logout{color:#e65a69!important}
 #quick-module-bar{background:var(--simi-ui-topbar)!important;border-bottom:1px solid var(--simi-ui-line)!important;padding:7px 16px!important;gap:7px!important}
 #quick-module-bar .quick-module-chip{border:1px solid var(--simi-ui-line)!important;background:var(--simi-ui-panel)!important;color:var(--simi-ui-text)!important;border-radius:10px!important;font-size:10px!important}
 #quick-module-bar .quick-module-chip svg{color:var(--simi-ui-accent)!important}
+/* Mensaje motivacional: contraste accesible en temas claros y oscuros */
+#mensaje-motivacional-del-dia{background:color-mix(in srgb,var(--simi-ui-panel,#fff) 92%,var(--simi-ui-accent,#19a8a5) 8%)!important;border-color:var(--simi-ui-line,#cde6ef)!important;color:var(--simi-ui-text,#16365c)!important}
+#mensaje-motivacional-del-dia #simi-mensaje-motivacional{color:var(--simi-ui-text,#16365c)!important;opacity:1!important;text-shadow:none!important}
+#mensaje-motivacional-del-dia p,#mensaje-motivacional-del-dia span{color:var(--simi-ui-text,#16365c)!important;opacity:1!important}
+#mensaje-motivacional-del-dia .text-teal-700{color:var(--simi-ui-accent-strong,#087f82)!important}
 /* Componentes consistentes para todos los módulos */
 main{background:var(--simi-ui-bg)!important;color:var(--simi-ui-text)!important}
 main section[id^="view-"]{color:var(--simi-ui-text)}
