@@ -8,6 +8,86 @@
 
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0"></script>
+
+<script id="simi-global-data-loader-script-20261020">
+(function(){
+  if(window.__simiGlobalDataLoaderInstalled) return;
+  window.__simiGlobalDataLoaderInstalled = true;
+  var pending = 0, showTimer = null, hideTimer = null, shownAt = 0, element = null;
+  function getModuleName(){
+    var node = document.getElementById('header-title');
+    var value = node && node.textContent ? node.textContent.trim() : '';
+    if(!value){
+      node = document.querySelector('main section[id^="view-"]:not(.hidden) h1, main section[id^="view-"]:not(.hidden) h2');
+      value = node && node.textContent ? node.textContent.trim() : '';
+    }
+    return value || 'tu espacio de trabajo';
+  }
+  function ensureElement(){
+    if(element && element.isConnected) return element;
+    if(!document.body) return null;
+    element = document.createElement('div');
+    element.id = 'simi-global-data-loader';
+    element.setAttribute('role','status');
+    element.setAttribute('aria-live','polite');
+    element.innerHTML = '<div class="simi-loader-row"><div class="simi-loader-mascot"><svg class="simi-loader-spark" viewBox="0 0 48 48" width="34" height="34" aria-hidden="true"><path d="M11 18c0-7 5-11 13-11s13 4 13 11v9c0 8-6 13-13 13S11 35 11 27z" fill="#f5c9a7" stroke="#12385f" stroke-width="1.5"/><path d="M8 18c0-10 7-15 16-15s16 5 16 15l-4 2-3-7-9-2-10 4-2 5z" fill="#fff" stroke="#12385f" stroke-width="1.5"/><path d="M10 17l-4 4 5 2M38 17l4 4-5 2" fill="#fff" stroke="#12385f" stroke-width="1.5" stroke-linejoin="round"/><circle cx="19" cy="23" r="1.5" fill="#12385f"/><circle cx="29" cy="23" r="1.5" fill="#12385f"/><path d="M20 29q4 4 8 0" fill="none" stroke="#9d4d47" stroke-width="1.5" stroke-linecap="round"/><path d="M12 35l-5 8h34l-5-8-6-2-6 5-6-5z" fill="#fff" stroke="#12385f" stroke-width="1.5" stroke-linejoin="round"/><path d="M22 37h4l-2 4z" fill="#19a8a5"/></svg></div><div class="simi-loader-copy"><span class="simi-loader-title">Doctor Simi está cargando datos…</span><span class="simi-loader-subtitle">Un momento, estamos actualizando la información</span></div></div><div class="simi-loader-track"><div class="simi-loader-bar"></div></div>';
+    document.body.appendChild(element);
+    return element;
+  }
+  function show(){
+    var el = ensureElement();
+    if(!el) return;
+    var title = el.querySelector('.simi-loader-title');
+    if(title) title.textContent = 'Cargando datos de ' + getModuleName() + '…';
+    el.classList.add('is-visible');
+    shownAt = Date.now();
+  }
+  function scheduleShow(){
+    clearTimeout(hideTimer);
+    if(showTimer) return;
+    showTimer = setTimeout(function(){
+      showTimer = null;
+      if(pending > 0) show();
+    }, 220);
+  }
+  function scheduleHide(){
+    clearTimeout(showTimer);
+    showTimer = null;
+    if(!element) return;
+    var wait = Math.max(0, 480 - (Date.now() - shownAt));
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function(){
+      if(pending <= 0 && element) element.classList.remove('is-visible');
+    }, wait);
+  }
+  var originalFetch = window.fetch;
+  if(typeof originalFetch === 'function'){
+    window.fetch = function(input, init){
+      var url = '';
+      try { url = typeof input === 'string' ? input : (input && input.url) || ''; } catch(e) {}
+      var isDataRequest = /\/(rest\/v1|storage\/v1|functions\/v1)\//i.test(url);
+      if(isDataRequest){
+        pending++;
+        scheduleShow();
+      }
+      var result;
+      try { result = originalFetch.apply(this, arguments); }
+      catch(error){
+        if(isDataRequest){ pending = Math.max(0,pending-1); if(!pending) scheduleHide(); }
+        throw error;
+      }
+      if(!isDataRequest) return result;
+      return result.finally(function(){
+        pending = Math.max(0,pending-1);
+        if(pending === 0) scheduleHide();
+      });
+    };
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded',ensureElement,{once:true});
+  else ensureElement();
+})();
+</script>
+
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/lucide@0.468.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -1034,6 +1114,24 @@ main>header .topbar-quick-action{display:none!important}
 @media(max-width:900px){main>header{gap:6px!important;padding:8px 10px!important}main>header .topbar-user-email{display:none!important}main>header #topbar-custom-message{max-width:150px!important;min-width:70px!important}}
 @media(max-width:640px){main>header{gap:4px!important;padding:7px 8px!important}main>header #header-title{min-width:58px!important;max-width:25vw!important;font-size:12px!important}main>header .topbar-icon-action,main>header #btn-theme-settings,main>header .topbar-search,main>header #btn-recargar-paginas-global,main>header #btn-cerrar-sesiones-global,main>header #topbar-notification-button,main>header button[onclick*="cerrarSesion()"]{flex-basis:32px!important;width:32px!important;min-width:32px!important;height:32px!important;min-height:32px!important}main>header #topbar-custom-message{max-width:125px!important;min-width:60px!important;padding:7px 6px!important;font-size:10px!important}main>header #btn-modo-cafecito{display:inline-flex!important}}
 </style>
+
+<style id="simi-global-data-loader-20261020">
+#simi-global-data-loader{position:fixed;top:12px;left:50%;transform:translate(-50%,-16px);z-index:20000;width:min(390px,calc(100vw - 24px));padding:10px 14px 11px;border:1px solid rgba(25,168,165,.32);border-radius:16px;background:rgba(255,255,255,.97);box-shadow:0 14px 38px rgba(8,47,85,.18);backdrop-filter:blur(14px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,transform .2s ease,visibility .2s}
+#simi-global-data-loader.is-visible{opacity:1;visibility:visible;transform:translate(-50%,0)}
+#simi-global-data-loader .simi-loader-row{display:flex;align-items:center;gap:10px}
+#simi-global-data-loader .simi-loader-mascot{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(145deg,#e5fbfa,#eff7ff);border:1px solid #c5eeeb}
+#simi-global-data-loader .simi-loader-copy{flex:1;min-width:0}
+#simi-global-data-loader .simi-loader-title{display:block;color:#12385f;font-size:12px;font-weight:850;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#simi-global-data-loader .simi-loader-subtitle{display:block;margin-top:2px;color:#648098;font-size:10px}
+#simi-global-data-loader .simi-loader-track{height:5px;margin-top:9px;overflow:hidden;border-radius:99px;background:#e5f0f6}
+#simi-global-data-loader .simi-loader-bar{height:100%;width:42%;border-radius:99px;background:linear-gradient(90deg,#087f92,#19a8a5,#69ded2);animation:simiDataLoaderSweep 1.15s ease-in-out infinite;transform:translateX(-110%)}
+#simi-global-data-loader .simi-loader-spark{transform-origin:50% 70%;animation:simiDataLoaderWave 1.7s ease-in-out infinite}
+@keyframes simiDataLoaderSweep{0%{transform:translateX(-110%)}100%{transform:translateX(340%)}}
+@keyframes simiDataLoaderWave{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+@media(max-width:520px){#simi-global-data-loader{top:7px;padding:8px 10px;border-radius:13px}#simi-global-data-loader .simi-loader-mascot{width:33px;height:33px;flex-basis:33px}}
+@media(prefers-reduced-motion:reduce){#simi-global-data-loader,#simi-global-data-loader *{animation:none!important;transition:none!important}#simi-global-data-loader .simi-loader-bar{width:100%;transform:none}}
+</style>
+
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
