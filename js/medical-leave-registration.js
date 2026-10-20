@@ -347,7 +347,8 @@
         folder.file(filename+'.eml',eml);
       }
       
-      if(window.actualizarProgresoCorreos)window.actualizarProgresoCorreos(62,'Comprimiendo ZIP','Comprimiendo los documentos seleccionados…');\n      const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}},metadata=>{if(window.actualizarProgresoCorreos)window.actualizarProgresoCorreos(62+Math.round((Number(metadata.percent)||0)*.34),'Comprimiendo ZIP','Compresión real: '+Math.round(Number(metadata.percent)||0)+'%');});
+      if(window.actualizarProgresoCorreos)window.actualizarProgresoCorreos(62,'Comprimiendo ZIP','Comprimiendo los documentos seleccionados…');
+      const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}},metadata=>{if(window.actualizarProgresoCorreos)window.actualizarProgresoCorreos(62+Math.round((Number(metadata.percent)||0)*.34),'Comprimiendo ZIP','Compresión real: '+Math.round(Number(metadata.percent)||0)+'%');});
       const url=URL.createObjectURL(blob), link=document.createElement('a');
       link.href=url; link.download='Borradores_Outlook_Licencias_'+isoHoy()+'.zip'; link.style.display='none';
       document.body.appendChild(link); link.click(); link.remove(); setTimeout(()=>URL.revokeObjectURL(url),60000);
