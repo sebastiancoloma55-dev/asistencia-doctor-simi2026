@@ -3596,7 +3596,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   }
   var originalRoute=window.mostrarRutaMapa14;
   var mapaRutaLeaflet=null,capaRutaLeaflet=null,marcadoresRutaLeaflet=[];
-  function asegurarMapaLeaflet(){var el=document.getElementById('mapa14-frame');if(!el||!window.L)return null;if(!mapaRutaLeaflet){mapaRutaLeaflet=L.map(el,{scrollWheelZoom:false, tap:true, dragging:true, touchZoom:true, doubleClickZoom:true, boxZoom:false, keyboard:true}).setView([-33.45,-70.66],5);var osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(mapaRutaLeaflet);osm.on('tileerror',function(){if(mapaRutaLeaflet&& !mapaRutaLeaflet._tilesAlternativos){mapaRutaLeaflet._tilesAlternativos=true;try{mapaRutaLeaflet.removeLayer(osm);L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors © CARTO'}).addTo(mapaRutaLeaflet);}catch(e){}}});}setTimeout(function(){if(mapaRutaLeaflet)mapaRutaLeaflet.invalidateSize();},150);return mapaRutaLeaflet;}
+  function asegurarMapaLeaflet(){var el=document.getElementById('mapa14-frame');if(!el||!window.L)return null;if(!mapaRutaLeaflet){mapaRutaLeaflet=L.map(el,{scrollWheelZoom:false, tap:true, dragging:false, touchZoom:false, doubleClickZoom:false, boxZoom:false, keyboard:false, zoomAnimation:false, fadeAnimation:false, markerZoomAnimation:false, inertia:false, zoomSnap:0.5}).setView([-33.45,-70.66],5);var osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(mapaRutaLeaflet);osm.on('tileerror',function(){if(mapaRutaLeaflet&& !mapaRutaLeaflet._tilesAlternativos){mapaRutaLeaflet._tilesAlternativos=true;try{mapaRutaLeaflet.removeLayer(osm);L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors © CARTO'}).addTo(mapaRutaLeaflet);}catch(e){}}});}setTimeout(function(){if(mapaRutaLeaflet)mapaRutaLeaflet.invalidateSize();},150);return mapaRutaLeaflet;}
   async function estimateRoute(){
     var a=document.getElementById('map14-origen'),b=document.getElementById('map14-destino'),m=document.getElementById('map14-modo'),summary=document.getElementById('mapa14-resumen');if(!a||!b||!m||!summary||!a.value||!b.value)return;
     var box=document.getElementById('mapa14-estimacion-2026');if(!box){box=document.createElement('div');box.id='mapa14-estimacion-2026';box.className='map-estimate-2026';summary.parentNode.insertAdjacentElement('afterend',box);}
@@ -3610,7 +3610,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
     capaRutaLeaflet=L.polyline(coords,{color:'#009bb5',weight:5,opacity:.9}).addTo(map);
     marcadoresRutaLeaflet.push(L.marker([p1.lat,p1.lon]).addTo(map).bindPopup('Origen: '+(a.selectedOptions[0].dataset.nombre||a.selectedOptions[0].textContent)));
     marcadoresRutaLeaflet.push(L.marker([p2.lat,p2.lon]).addTo(map).bindPopup('Destino: '+(b.selectedOptions[0].dataset.nombre||b.selectedOptions[0].textContent)));
-    map.fitBounds(capaRutaLeaflet.getBounds().pad(.18));setTimeout(()=>map.invalidateSize(),180);if(status)status.textContent=mode==='d'?'Ruta vial estimada dibujada. Para navegación paso a paso, abre Google Maps.':'Puntos ubicados; la línea es orientativa para este modo. Abre Google Maps para ver la ruta real.';
+    var center=[(p1.lat+p2.lat)/2,(p1.lon+p2.lon)/2];var delta=Math.max(Math.abs(p1.lat-p2.lat),Math.abs(p1.lon-p2.lon));var zoom=delta>25?4:delta>12?5:delta>5?6:delta>2?7:delta>0.5?9:12;map.setView(center,zoom,{animate:false});setTimeout(function(){try{map.invalidateSize({pan:false});}catch(_e){}},120);if(status)status.textContent=mode==='d'?'Ruta vial estimada dibujada. Para navegación paso a paso, abre Google Maps.':'Puntos ubicados; la línea es orientativa para este modo. Abre Google Maps para ver la ruta real.';
   }
   async function geocodificarOpcionMapa14(op){
     if(!op)return false;
@@ -4327,7 +4327,7 @@ main>header button.topbar-logout{color:#e65a69!important}
 #simi-acceso-ayuda-modal section p{color:#334155!important;opacity:1!important}
 #simi-acceso-ayuda-modal section button{cursor:pointer}
 #mapa14-frame{touch-action:pan-y;overscroll-behavior:contain}
-#mapa14-frame .leaflet-container{touch-action:pan-x pan-y;overscroll-behavior:contain}
+#mapa14-frame .leaflet-container{touch-action:pan-y!important;overscroll-behavior:auto!important}#mapa14-frame .leaflet-control-zoom{display:none!important}#mapa14-frame .leaflet-pane{pointer-events:auto}
 @media(max-width:700px){#mapa14-frame{min-height:300px}#mapa14-frame iframe{min-height:300px!important}}
 /* Componentes consistentes para todos los módulos */
 main{background:var(--simi-ui-bg)!important;color:var(--simi-ui-text)!important}
