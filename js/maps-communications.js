@@ -1460,4 +1460,8 @@
         }catch(e){state.textContent='No se pudieron generar los reportes.';mostrarToast('Error al generar reportes: '+(e.message||e),'error',12000);}
     }
         function descargarRespuestaIA(){if(!ultimaRespuestaIA)return mostrarToast('Primero genera un análisis.','warning');const {jsPDF}=window.jspdf,doc=new jsPDF(),y0=20;doc.setTextColor(0,82,155);doc.setFontSize(15);doc.text('Reporte de Recursos Humanos',20,y0);doc.setTextColor(0);doc.setFontSize(9);let y=32;doc.splitTextToSize(ultimaRespuestaIA,170).forEach(line=>{if(y>280){doc.addPage();y=20;}doc.text(line,20,y);y+=4.5;});doc.save('Reporte_Gemini_RRHH.pdf');}
-
+// Exponer explícitamente los inicializadores usados por el enrutador de módulos.
+// Evita que una variación de alcance deje los módulos Mapa/Sucursales sin inicialización.
+window.prepararMapa14 = prepararMapa14;
+window.prepararMapaYConfiguracionSucursales = prepararMapaYConfiguracionSucursales;
+window.mostrarRutaMapa14 = mostrarRutaMapa14;
