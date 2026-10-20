@@ -998,6 +998,7 @@
         let mapa14Marcadores = null;
         let mapa14Ruta = null;
         let mapa14Sucursales = [];
+        let mapa14SolicitudRutaActiva = false;
 
         function marcadorFarmaciaMapa14(sucursal, punto) {
             const marker=L.marker([punto.lat,punto.lon]).bindPopup(
@@ -1128,18 +1129,23 @@
             if(!validPoint(p1)||!validPoint(p2)){
                 if(status)status.textContent='El mapa muestra solo las ubicaciones seleccionadas. Falta GPS en una de ellas; usa Google Maps para obtener el recorrido vial.';
                 mostrarToast('Una o ambas sucursales no tienen coordenadas GPS. Se abrirá la ruta en Google Maps.','warning');
-                if(window.lucide)lucide.createIcons();
                 return;
             }
             if(modo!=='d'){
                 if(status)status.textContent='El mapa muestra solo origen y destino. Para obtener el trazado exacto '+(modo==='w'?'a pie':'en transporte público')+', abre Google Maps con el modo seleccionado.';
-                if(window.lucide)lucide.createIcons();
                 return;
             }
+            if(mapa14SolicitudRutaActiva){
+                if(status)status.textContent='Ya se está calculando esta ruta. Espera un momento…';
+                return;
+            }
+            mapa14SolicitudRutaActiva=true;
             if(status)status.textContent='Calculando el trayecto vial por calles y avenidas…';
+            const controladorRuta=new AbortController();
+            const temporizadorRuta=setTimeout(()=>controladorRuta.abort(),10000);
             try{
                 const url='https://router.project-osrm.org/route/v1/driving/'+p1.lon+','+p1.lat+';'+p2.lon+','+p2.lat+'?overview=full&geometries=geojson&steps=true';
-                const response=await fetch(url,{headers:{'Accept':'application/json'}});
+                const response=await fetch(url,{headers:{'Accept':'application/json'},signal:controladorRuta.signal});
                 if(!response.ok)throw new Error('El servidor de rutas respondió '+response.status);
                 const payload=await response.json();
                 if(payload.code!=='Ok'||!payload.routes?.length)throw new Error('No se encontró un recorrido vial para estas coordenadas.');
@@ -1163,9 +1169,12 @@
                 if(mapa14Ruta&&mapa14Leaflet){mapa14Leaflet.removeLayer(mapa14Ruta);mapa14Ruta=null;}
                 if(stats)stats.classList.add('hidden');
                 if(stepsHost){stepsHost.innerHTML='';stepsHost.classList.add('hidden');}
-                if(status)status.textContent='No fue posible calcular las calles en el mapa. Se mantienen visibles solo las farmacias seleccionadas; abre Google Maps para el recorrido exacto. '+(error.message||'');
+                const mensaje=error.name==='AbortError'?'El servidor de rutas tardó más de 10 segundos. Puedes abrir Google Maps para ver el recorrido.':(error.message||'Error de conexión');
+                if(status)status.textContent='No fue posible calcular las calles en el mapa. Se mantienen visibles solo las farmacias seleccionadas; abre Google Maps para el recorrido exacto. '+mensaje;
+            }finally{
+                clearTimeout(temporizadorRuta);
+                mapa14SolicitudRutaActiva=false;
             }
-            if(window.lucide)lucide.createIcons();
         }
 
         async function prepararModuloCoberturas(){const lista=await obtenerSucursalesConfig();document.getElementById('cob-destino').innerHTML='<option value="">Local a cubrir</option>'+lista.map(x=>`<option>${escaparHTML(x.nombre)}</option>`).join('');await Promise.all([cargarResponsablesCobertura(),cargarSolicitudesDotacion()]);await cargarCoberturas();}
