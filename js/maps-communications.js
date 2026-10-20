@@ -649,8 +649,8 @@
                 return;
             }
             const normalizarClaveConfigCorreo = valor => normalizarTextoProteccionCorreo(valor)
-                .replace(/\\s*-\\s*/g, '-')
-                .replace(/\\s+/g, ' ')
+                .replace(/\s*-\\s*/g, '-')
+                .replace(/\s+/g, ' ')
                 .trim();
             const config = new Map(sucursalesConfiguracionGlobal.map(x => [normalizarClaveConfigCorreo(x.nombre), x]));
             const grupos = new Map();
