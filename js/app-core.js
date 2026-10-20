@@ -788,6 +788,16 @@
         // ============================================================
         let secuenciaCambioModulo = 0;
         let ultimaConsultaActualizacionesFuente = 0;
+        let moduloActivoAnterior = null;
+        let navegacionInicializada = false;
+        const cacheNavegacion = new Map();
+        function obtenerElementosNavegacion(nombre) {
+            if (!cacheNavegacion.has(nombre)) cacheNavegacion.set(nombre, {
+                boton: document.getElementById(`btn-${nombre}`),
+                vista: document.getElementById(`view-${nombre}`)
+            });
+            return cacheNavegacion.get(nombre);
+        }
         async function cargarPanelInteligenteOperativo() {
             const estado=document.getElementById('pi-estado');
             const prioridades=document.getElementById('pi-prioridades');
@@ -852,23 +862,30 @@
                 });
             }
             if(perfilActualSistema&&!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para acceder a este apartado.','warning');const primero=modulos.find(nombre=>tienePermisoModulo(nombre));if(primero&&primero!==modulo)return cambiarModulo(primero,cargar);return;}
-            modulos.forEach(nombre => {
-                const boton = document.getElementById(`btn-${nombre}`);
-
+            // En el primer acceso normalizamos todas las vistas; después solo tocamos
+            // el módulo anterior y el solicitado, evitando recorrer todo el DOM en cada clic.
+            const nombresActualizar = new Set([modulo]);
+            if (moduloActivoAnterior) nombresActualizar.add(moduloActivoAnterior);
+            if (!navegacionInicializada) {
+                modulos.forEach(nombre => nombresActualizar.add(nombre));
+                navegacionInicializada = true;
+            }
+            nombresActualizar.forEach(nombre => {
+                const elementos = obtenerElementosNavegacion(nombre);
+                const boton = elementos.boton;
+                const vistaModulo = elementos.vista;
                 if (boton) {
-                    const ocultoPorPermiso = boton.classList.contains('hidden');
+                    const ocultoPorPermiso = boton.classList.contains('hidden') || boton.classList.contains('permission-hidden-2026');
                     boton.className = `menu-btn ui-button flex w-full items-center gap-3 rounded-lg px-3 py-2.5 ${nombre === modulo ? 'active font-semibold text-white' : 'text-slate-300 hover:bg-simiNavyHover hover:text-white'}${ocultoPorPermiso ? ' hidden' : ''}`;
                     if (nombre === modulo) boton.setAttribute('aria-current', 'page');
                     else boton.removeAttribute('aria-current');
                 }
-
-                const vista = document.getElementById(`view-${nombre}`);
-
-                if (vista) {
-                    vista.classList.remove('rrhh-view-enter');
-                    vista.classList.add('hidden');
+                if (vistaModulo) {
+                    vistaModulo.classList.remove('rrhh-view-enter');
+                    vistaModulo.classList.toggle('hidden', nombre !== modulo);
                 }
             });
+            moduloActivoAnterior = modulo;
 
             document
                 .getElementById('view-generic')
@@ -907,7 +924,8 @@
             }
 
             toggleSidebar(false);
-            lucide.createIcons();
+            // Los iconos estáticos ya se inicializaron al cargar la aplicación; no volver a
+            // escanear todos los módulos en cada cambio de vista.
 
             if (!cargar) {
                 return;
