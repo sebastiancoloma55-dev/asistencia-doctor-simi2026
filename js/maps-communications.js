@@ -61,18 +61,58 @@
                 await cargarSolicitudesDotacion();
             }catch(error){console.error('Crear alerta dotación:',error);if(status)status.textContent='No se pudo enviar: '+(error.message||'Error desconocido');mostrarToast('No se pudo guardar la alerta: '+(error.message||''),'error',10000);}
         }
+        async function esPerfilProductividadCobertura(){
+            const {data,error}=await _supabase.auth.getUser();
+            if(error)throw error;
+            const email=String(data?.user?.email||'').trim().toLowerCase();
+            return ['ocabanas@farmaciasdoctorsimi.cl','dcantellano@farmaciasdoctorsimi.cl','cpalacio@farmaciasdoctorsimi.cl'].includes(email);
+        }
+        async function idRolActualCobertura(){
+            const {data,error}=await _supabase.rpc('chat_usuario_actual_id');
+            if(error)throw error;
+            if(data===null||data===undefined)throw new Error('No se pudo identificar el perfil de usuario.');
+            return data;
+        }
         async function cargarSolicitudesDotacion(){
             const host=document.getElementById('tabla-alertas-dotacion');if(!host)return;
             host.innerHTML='<tr><td colspan="6" class="p-4 text-sm text-slate-500">Cargando alertas…</td></tr>';
             const timeout=(ms)=>new Promise((_,reject)=>setTimeout(()=>reject(new Error('La consulta tardó demasiado. Pulsa “Actualizar alertas” para intentarlo otra vez.')),ms));
             try{
-                const result=await Promise.race([
-                    _supabase.from('solicitudes_dotacion').select('*').order('created_at',{ascending:false}).limit(300),
-                    timeout(15000)
-                ]);
-                const {data,error}=result;
-                if(error)throw error;
-                const rows=data||[];
+                let rows=[];
+                if(await esPerfilProductividadCobertura()){
+                    // Consulta en el servidor solo alertas propias y alertas asignadas al usuario.
+                    // No descargar el historial de otros usuarios para luego ocultarlo en el navegador.
+                    const userId=await idRolActualCobertura();
+                    const ownResult=await Promise.race([
+                        _supabase.from('solicitudes_dotacion').select('*').eq('solicitada_por',userId).order('created_at',{ascending:false}).limit(300),
+                        timeout(15000)
+                    ]);
+                    if(ownResult.error)throw ownResult.error;
+                    const assignedResult=await Promise.race([
+                        _supabase.from('solicitud_dotacion_responsables').select('solicitud_id').eq('usuario_rol_id',userId),
+                        timeout(10000)
+                    ]);
+                    if(assignedResult.error)throw assignedResult.error;
+                    const assignedIds=[...new Set((assignedResult.data||[]).map(x=>x.solicitud_id).filter(Boolean))];
+                    let assignedRows=[];
+                    if(assignedIds.length){
+                        const assignedQuery=await Promise.race([
+                            _supabase.from('solicitudes_dotacion').select('*').in('id',assignedIds).order('created_at',{ascending:false}).limit(300),
+                            timeout(15000)
+                        ]);
+                        if(assignedQuery.error)throw assignedQuery.error;
+                        assignedRows=assignedQuery.data||[];
+                    }
+                    rows=[...new Map([...(ownResult.data||[]),...assignedRows].map(x=>[String(x.id),x])).values()]
+                        .sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
+                }else{
+                    const result=await Promise.race([
+                        _supabase.from('solicitudes_dotacion').select('*').order('created_at',{ascending:false}).limit(300),
+                        timeout(15000)
+                    ]);
+                    if(result.error)throw result.error;
+                    rows=result.data||[];
+                }
                 const ids=[...new Set(rows.map(x=>x.solicitada_por).filter(Boolean))];
                 let usuarios=[];
                 if(ids.length){
@@ -1254,7 +1294,12 @@
         }
         async function cargarCoberturas(){
             await cargarSucursalesDotacion();
-            const {data,error}=await _supabase.from('coberturas').select('*').order('fecha_inicio',{ascending:false});
+            let query=_supabase.from('coberturas').select('*').order('fecha_inicio',{ascending:false});
+            if(await esPerfilProductividadCobertura()){
+                const userId=await idRolActualCobertura();
+                query=query.eq('creado_por_rol_id',userId);
+            }
+            const {data,error}=await query;
             if(error)return mostrarToast(error.message,'error');
             datosCoberturasGlobal=data||[];
             document.getElementById('cob-pendientes').innerText=datosCoberturasGlobal.filter(x=>(x.estado_solicitud||'APROBADA')==='PENDIENTE').length;
