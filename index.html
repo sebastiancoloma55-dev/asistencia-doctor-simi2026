@@ -30,7 +30,7 @@
     element.id = 'simi-global-data-loader';
     element.setAttribute('role','status');
     element.setAttribute('aria-live','polite');
-    element.innerHTML = '<div class="simi-loader-row"><div class="simi-loader-mascot"><div class="simi-loader-spark" style="width:34px;height:34px;line-height:0"><svg viewBox="0 0 192 192" width="100%" height="100%" aria-hidden="true"><circle cx="96" cy="96" r="94" fill="#07519a"/><g fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"><path d="M51 57 35 75 24 93M59 50 43 64 34 80M141 57 157 75 168 93M133 50 149 64 158 80" stroke-width="4"/><path d="M57 57Q69 32 87 34Q96 24 105 34Q124 32 136 57Q151 69 151 94Q153 126 130 145Q116 159 96 160Q76 159 62 145Q39 126 41 94Q41 69 57 57Z" stroke-width="4"/><path d="M63 72Q74 62 84 72M108 72Q119 62 129 72" stroke-width="4"/><path d="M66 78Q77 67 88 78L87 91Q76 99 66 90Z M104 78Q115 67 126 78L126 90Q115 99 104 91Z" stroke-width="4"/><path d="M88 84H104" stroke-width="4"/><path d="M91 99Q96 93 101 99Q101 107 96 109Q91 107 91 99Z" fill="#fff" stroke-width="3"/><path d="M91 109Q78 99 65 108Q52 116 48 106Q46 127 66 132Q80 135 91 120Q96 116 101 120Q112 135 126 132Q146 127 144 106Q140 116 127 108Q114 99 101 109" fill="#fff" stroke-width="3"/><path d="M73 137Q96 150 119 137Q113 157 96 157Q79 157 73 137Z" fill="#fff" stroke-width="3"/><path d="M83 143Q96 148 109 143" stroke="#07519a" stroke-width="3"/><path d="M61 46Q70 31 84 34M108 34Q122 31 131 46" stroke-width="5"/></g></svg></div></div><div class="simi-loader-copy"><span class="simi-loader-title">Doctor Simi está cargando datos…</span><span class="simi-loader-subtitle">Un momento, estamos actualizando la información</span></div></div><div class="simi-loader-track"><div class="simi-loader-bar"></div></div>';
+    element.innerHTML = '<div class="simi-loader-row"><img class="simi-loader-mascot-image" src="/doctor-simi-mascot.webp" alt="" aria-hidden="true"><div class="simi-loader-copy"><span class="simi-loader-title">Doctor Simi está cargando datos…</span><span class="simi-loader-subtitle">Un momento, estamos actualizando la información</span></div></div><div class="simi-loader-track"><div class="simi-loader-bar"></div></div>';
     document.body.appendChild(element);
     return element;
   }
@@ -96,7 +96,7 @@
     button.classList.add('has-simi-mascot');
     button.setAttribute('aria-label','Abrir asistente Doctor Simi');
     button.setAttribute('title','Asistente Doctor Simi');
-    button.innerHTML='<div class="simi-assistant-mascot-icon" style="display:block;width:43px;height:43px;line-height:0"><svg viewBox="0 0 192 192" width="100%" height="100%" aria-hidden="true"><circle cx="96" cy="96" r="94" fill="#07519a"/><g fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"><path d="M51 57 35 75 24 93M59 50 43 64 34 80M141 57 157 75 168 93M133 50 149 64 158 80" stroke-width="4"/><path d="M57 57Q69 32 87 34Q96 24 105 34Q124 32 136 57Q151 69 151 94Q153 126 130 145Q116 159 96 160Q76 159 62 145Q39 126 41 94Q41 69 57 57Z" stroke-width="4"/><path d="M63 72Q74 62 84 72M108 72Q119 62 129 72" stroke-width="4"/><path d="M66 78Q77 67 88 78L87 91Q76 99 66 90Z M104 78Q115 67 126 78L126 90Q115 99 104 91Z" stroke-width="4"/><path d="M88 84H104" stroke-width="4"/><path d="M91 99Q96 93 101 99Q101 107 96 109Q91 107 91 99Z" fill="#fff" stroke-width="3"/><path d="M91 109Q78 99 65 108Q52 116 48 106Q46 127 66 132Q80 135 91 120Q96 116 101 120Q112 135 126 132Q146 127 144 106Q140 116 127 108Q114 99 101 109" fill="#fff" stroke-width="3"/><path d="M73 137Q96 150 119 137Q113 157 96 157Q79 157 73 137Z" fill="#fff" stroke-width="3"/><path d="M83 143Q96 148 109 143" stroke="#07519a" stroke-width="3"/><path d="M61 46Q70 31 84 34M108 34Q122 31 131 46" stroke-width="5"/></g></svg></div>';
+    button.innerHTML='<img class="simi-assistant-mascot-icon" src="/doctor-simi-mascot.webp" alt="Doctor Simi">';
   }
   function start(){
     applyMascot();
@@ -1141,7 +1141,7 @@ main>header .topbar-quick-action{display:none!important}
 #simi-global-data-loader{position:fixed;top:12px;left:50%;transform:translate(-50%,-16px);z-index:20000;width:min(390px,calc(100vw - 24px));padding:10px 14px 11px;border:1px solid rgba(25,168,165,.32);border-radius:16px;background:rgba(255,255,255,.97);box-shadow:0 14px 38px rgba(8,47,85,.18);backdrop-filter:blur(14px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,transform .2s ease,visibility .2s}
 #simi-global-data-loader.is-visible{opacity:1;visibility:visible;transform:translate(-50%,0)}
 #simi-global-data-loader .simi-loader-row{display:flex;align-items:center;gap:10px}
-#simi-global-data-loader .simi-loader-mascot{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(145deg,#e5fbfa,#eff7ff);border:1px solid #c5eeeb}
+#simi-global-data-loader .simi-loader-mascot-image{width:42px;height:42px;flex:0 0 42px;object-fit:contain;border-radius:50%;background:#fff;border:1px solid #0b4c98}
 #simi-global-data-loader .simi-loader-copy{flex:1;min-width:0}
 #simi-global-data-loader .simi-loader-title{display:block;color:#12385f;font-size:12px;font-weight:850;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #simi-global-data-loader .simi-loader-subtitle{display:block;margin-top:2px;color:#648098;font-size:10px}
@@ -1152,7 +1152,7 @@ main>header .topbar-quick-action{display:none!important}
 @keyframes simiDataLoaderWave{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
 @media(max-width:520px){#simi-global-data-loader{top:7px;padding:8px 10px;border-radius:13px}#simi-global-data-loader .simi-loader-mascot{width:33px;height:33px;flex-basis:33px}}
 @media(prefers-reduced-motion:reduce){#simi-global-data-loader,#simi-global-data-loader *{animation:none!important;transition:none!important}#simi-global-data-loader .simi-loader-bar{width:100%;transform:none}}
-#simi-context-toggle svg.simi-assistant-mascot-icon{width:43px!important;height:43px!important;min-width:43px!important;min-height:43px!important;stroke-width:1!important}
+#simi-context-toggle img.simi-assistant-mascot-icon{width:43px!important;height:43px!important;min-width:43px!important;min-height:43px!important;object-fit:contain;border-radius:50%;background:#fff}
 #simi-context-toggle.has-simi-mascot{overflow:hidden!important;background:linear-gradient(145deg,#19a8a5,#087f92)!important}
 #simi-context-toggle.has-simi-mascot:hover{filter:brightness(1.06)}
 </style>
