@@ -648,7 +648,11 @@
                 mostrarToast('No se generaron borradores porque no fue posible validar las ausencias. ' + (error.message || error), 'error', 16000);
                 return;
             }
-            const config = new Map(sucursalesConfiguracionGlobal.map(x => [texto(x.nombre).toLowerCase(), x]));
+            const normalizarClaveConfigCorreo = valor => normalizarTextoProteccionCorreo(valor)
+                .replace(/\\s*-\\s*/g, '-')
+                .replace(/\\s+/g, ' ')
+                .trim();
+            const config = new Map(sucursalesConfiguracionGlobal.map(x => [normalizarClaveConfigCorreo(x.nombre), x]));
             const grupos = new Map();
             casosExcluidosCorreoGlobal = [];
             const conteoExclusiones = { vacaciones: 0, permisos: 0, licencias: 0, fecha_no_verificable: 0 };
@@ -657,7 +661,7 @@
                 if (correoIdx % 300 === 0) { actualizarProgresoCorreos(38 + Math.round(34 * correoIdx / Math.max(1, datosAsistenciaGlobal.length)), 'Generando vista previa', 'Analizando asistencia: ' + Math.min(correoIdx + 1, datosAsistenciaGlobal.length).toLocaleString('es-CL') + ' de ' + datosAsistenciaGlobal.length.toLocaleString('es-CL') + ' registros…'); await esperarPintadoCorreo(); }
                 const fechaCaso = normalizarFechaProteccionCorreo(x.fecha);
                 if (!fechaCaso || fechaCaso < desde || fechaCaso > hasta) continue;
-                const cfg = config.get(texto(x.sucursal).toLowerCase()) || {};
+                const cfg = config.get(normalizarClaveConfigCorreo(x.sucursal)) || {};
                 // Los filtros de supervisores y sucursales se combinan como una unión (OR):
                 // incluye las sucursales de los supervisores elegidos MÁS las sucursales
                 // seleccionadas manualmente, aunque pertenezcan a otros supervisores.
@@ -708,7 +712,7 @@
                 ].filter(p => p.casos.length);
                 return particiones.map((particion, indiceParticion) => {
                     const casos = particion.casos;
-                    const configs = [...new Set(casos.map(x => x.sucursal))].map(s => config.get(texto(s).toLowerCase()) || {});
+                    const configs = [...new Set(casos.map(x => x.sucursal))].map(s => config.get(normalizarClaveConfigCorreo(s)) || {});
                     const para = [...new Set(configs.map(x => x.correo_sucursal).filter(Boolean))].join(';');
                     const cc = [...new Set(configs.flatMap(x => texto(x.correo_copia).split(/[;,]/)).filter(Boolean))].join(';');
                     const firma = configs.map(x => x.firma_correo).find(Boolean) || '';
