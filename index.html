@@ -4344,6 +4344,126 @@ main section[id^="view-"] .text-simiTeal,main section[id^="view-"] .text-cyan-70
 @media(max-width:1100px){main>header{padding:8px 12px!important;gap:6px!important}main>header>div{gap:5px!important}main>header .topbar-user-email{display:none!important}main>header #topbar-custom-message{max-width:170px!important}}
 @media(max-width:700px){main>header{min-height:55px!important;padding:7px 8px!important;gap:4px!important}main>header>div{gap:4px!important}main>header #header-title{max-width:88px!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:12px!important}main>header button.topbar-icon-action,main>header button.topbar-quick-action,main>header #topbar-notification-button{width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important;border-radius:10px!important}main>header #topbar-custom-message{display:inline-flex!important;max-width:clamp(76px,23vw,140px)!important;min-height:32px!important;padding:5px 6px!important;font-size:9px!important}main>header #topbar-custom-message-edit-icon{display:none!important}#quick-module-bar{overflow-x:auto!important;flex-wrap:nowrap!important;padding:6px 8px!important}#quick-module-bar .quick-module-chip{flex:0 0 auto!important}#sidebar{width:min(284px,86vw)!important}#login-overlay .nova-v3-auth{border-radius:19px!important}}
 @media(prefers-reduced-motion:reduce){#sidebar *,main>header *,#quick-module-bar *{transition:none!important}}
+
+/* SIMI EXPERIENCE LAYER — visual unificado, carga clara y microinteracciones */
+:root{--simi-motion-fast:160ms;--simi-motion-normal:240ms;--simi-shadow-card:0 8px 24px rgba(10,55,95,.055);--simi-shadow-hover:0 14px 32px rgba(10,55,95,.11)}
+button,[role="button"],a,select,input,textarea{transition:background-color var(--simi-motion-fast) ease,border-color var(--simi-motion-fast) ease,box-shadow var(--simi-motion-fast) ease,transform var(--simi-motion-fast) ease}
+button:not(:disabled):hover,[role="button"]:not([aria-disabled="true"]):hover{filter:brightness(1.025)}
+button:not(:disabled):active,[role="button"]:not([aria-disabled="true"]):active{transform:translateY(1px) scale(.99)}
+main section,main article,.dashboard-card,.stat-card,.metric-card,.report-card,.module-card,.bg-white.rounded-xl,.bg-white.rounded-2xl{transition:box-shadow var(--simi-motion-normal) ease,border-color var(--simi-motion-normal) ease}
+main section:hover,.dashboard-card:hover,.stat-card:hover,.metric-card:hover,.report-card:hover,.module-card:hover{box-shadow:var(--simi-shadow-card)}
+main table{border-collapse:separate;border-spacing:0;overflow:hidden}
+main table thead th{position:sticky;top:0;z-index:2;backdrop-filter:blur(8px)}
+main table tbody tr{transition:background-color var(--simi-motion-fast) ease}
+main table tbody tr:hover{background:color-mix(in srgb,var(--simi-ui-accent,#19a8a5) 5%,transparent)}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid color-mix(in srgb,var(--simi-ui-accent,#19a8a5) 38%,transparent);outline-offset:2px}
+#simi-global-data-loader{position:fixed!important;left:50%!important;top:14px!important;bottom:auto!important;right:auto!important;transform:translate(-50%,-12px)!important;width:min(440px,calc(100vw - 28px))!important;z-index:99990!important;padding:12px 15px!important;border:1px solid #b8e7e5!important;border-radius:17px!important;background:rgba(255,255,255,.97)!important;color:#173b60!important;box-shadow:0 16px 44px rgba(9,57,92,.18)!important;backdrop-filter:blur(16px)!important;opacity:0!important;visibility:hidden!important;transition:opacity .22s ease,transform .22s ease,visibility .22s!important;pointer-events:none!important}
+#simi-global-data-loader.is-visible{opacity:1!important;visibility:visible!important;transform:translate(-50%,0)!important}
+#simi-global-data-loader .simi-loader-row{display:flex!important;align-items:center!important;gap:11px!important}
+#simi-global-data-loader .simi-loader-copy{display:flex!important;flex-direction:column!important;gap:3px!important;min-width:0!important}
+#simi-global-data-loader .simi-loader-title{font-weight:800!important;font-size:13px!important;color:#104776!important}
+#simi-global-data-loader .simi-loader-subtitle{font-size:11px!important;color:#607b94!important}
+#simi-global-data-loader .simi-loader-track{height:4px!important;margin-top:11px!important;overflow:hidden!important;border-radius:99px!important;background:#dcefed!important}
+#simi-global-data-loader .simi-loader-bar{height:100%!important;width:38%!important;border-radius:99px!important;background:linear-gradient(90deg,#19a8a5,#087eaa,#e31837)!important;animation:simi-loader-sweep 1.25s ease-in-out infinite!important}
+@keyframes simi-loader-sweep{0%{transform:translateX(-115%)}100%{transform:translateX(300%)}}
+#simi-context-toggle.has-simi-mascot{overflow:hidden!important;border:2px solid rgba(255,255,255,.94)!important;box-shadow:0 8px 24px rgba(0,70,110,.27)!important;transition:transform .22s ease,box-shadow .22s ease!important}
+#simi-context-toggle.has-simi-mascot:hover{transform:translateY(-3px) rotate(-3deg)!important;box-shadow:0 13px 30px rgba(0,70,110,.32)!important}
+#simi-context-toggle img.simi-assistant-mascot-icon{display:block!important;object-fit:contain!important}
+.simi-surprise-toast{position:fixed;right:22px;bottom:94px;z-index:99995;display:flex;align-items:center;gap:11px;max-width:min(350px,calc(100vw - 28px));padding:12px 16px 12px 12px;border:1px solid #b7e6e4;border-radius:16px;background:rgba(255,255,255,.97);color:#12446c;box-shadow:0 14px 40px rgba(5,52,88,.2);font:600 13px/1.45 system-ui,-apple-system,sans-serif;animation:simi-toast-in .32s cubic-bezier(.2,.8,.2,1) both;backdrop-filter:blur(14px)}
+.simi-surprise-toast img{width:42px;height:42px;object-fit:contain;border-radius:50%;background:#fff;flex:0 0 42px}
+.simi-surprise-toast strong{display:block;font-size:12px;color:#078d91;margin-bottom:2px}
+.simi-surprise-toast button{margin-left:auto;border:0;background:transparent;color:#6c8193;font-size:18px;line-height:1;cursor:pointer;padding:3px}
+@keyframes simi-toast-in{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.simi-celebration-dot{position:fixed;z-index:99994;pointer-events:none;width:7px;height:10px;border-radius:2px;animation:simi-confetti-fall 900ms ease-out forwards}
+@keyframes simi-confetti-fall{from{opacity:1;transform:translateY(-8px) rotate(0)}to{opacity:0;transform:translateY(105px) rotate(240deg)}}
+.simi-empty-helper{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 12px;color:#59758d;font-size:12px;text-align:left}
+.simi-empty-helper img{width:35px;height:35px;object-fit:contain;border-radius:50%;background:#fff;flex:0 0 35px}
+@media(max-width:640px){#simi-global-data-loader{top:8px!important;width:calc(100vw - 16px)!important;padding:10px 12px!important}.simi-surprise-toast{right:12px;bottom:82px}.simi-empty-helper{font-size:11px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
 </style>
+
+<script id="simi-experience-layer-20261020">
+(function(){
+  if(window.__simiExperienceLayerReady) return;
+  window.__simiExperienceLayerReady=true;
+  var mascot='/doctor-simi-mascot.webp';
+  var phrases=[
+    ['¡Buen trabajo!','Un paso más para que todo funcione como reloj.'],
+    ['Pausa Simi ☕','Respira un poquito; yo vigilo el diseño.'],
+    ['Dato curioso','Los pequeños detalles también hacen grandes equipos.'],
+    ['¡Modo eficiente!','Menos vueltas, más tiempo para lo importante.'],
+    ['Un saludo del Doctor Simi','Gracias por cuidar cada detalle de la asistencia.']
+  ];
+  var lastToast=0;
+  function toast(title,message){
+    var now=Date.now();
+    if(now-lastToast<18000) return;
+    lastToast=now;
+    var old=document.querySelector('.simi-surprise-toast');
+    if(old) old.remove();
+    var box=document.createElement('div');
+    box.className='simi-surprise-toast';
+    box.setAttribute('role','status');
+    var img=document.createElement('img');img.src=mascot;img.alt='';
+    var copy=document.createElement('div');
+    var strong=document.createElement('strong');strong.textContent=title;
+    var span=document.createElement('span');span.textContent=message;
+    copy.appendChild(strong);copy.appendChild(span);
+    var close=document.createElement('button');close.type='button';close.setAttribute('aria-label','Cerrar mensaje');close.textContent='×';close.onclick=function(){box.remove();};
+    box.appendChild(img);box.appendChild(copy);box.appendChild(close);document.body.appendChild(box);
+    setTimeout(function(){if(box.isConnected)box.remove();},6500);
+  }
+  function celebrate(){
+    if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    var colors=['#19a8a5','#e31837','#f6deba','#0b4c98','#ffffff'];
+    for(var i=0;i<18;i++){
+      var dot=document.createElement('i');dot.className='simi-celebration-dot';
+      dot.style.left=(42+Math.random()*16)+'vw';dot.style.top=(18+Math.random()*12)+'vh';
+      dot.style.background=colors[i%colors.length];dot.style.animationDelay=(Math.random()*.18)+'s';
+      document.body.appendChild(dot);setTimeout((function(n){return function(){n.remove();};})(dot),1200);
+    }
+  }
+  function init(){
+    var toggle=document.getElementById('simi-context-toggle');
+    if(toggle&&!toggle.dataset.simiSurpriseBound){
+      toggle.dataset.simiSurpriseBound='true';
+      toggle.addEventListener('mouseenter',function(){toggle.title='Doctor Simi te acompaña · Pasa por aquí para un saludo';});
+    }
+    /* Easter egg: cinco clics seguidos en el logo de la marca. No interfiere con la navegación. */
+    var logo=document.querySelector('#sidebar img, aside img, img[alt*="Doctor Simi" i], img[alt*="Simi" i]');
+    if(logo&&!logo.dataset.simiEasterEgg){
+      logo.dataset.simiEasterEgg='true';
+      var clicks=0,timer;
+      logo.style.cursor='pointer';
+      logo.addEventListener('click',function(){
+        clicks++;clearTimeout(timer);timer=setTimeout(function(){clicks=0;},2200);
+        if(clicks>=5){clicks=0;toast('¡Sorpresa desbloqueada! 🎉','¡Encontraste el saludo secreto del Doctor Simi!');celebrate();}
+      });
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+  var observer=new MutationObserver(function(records){
+    init();
+    for(var i=0;i<records.length;i++){
+      var nodes=records[i].addedNodes||[];
+      for(var j=0;j<nodes.length;j++){
+        var n=nodes[j];if(!n||n.nodeType!==1)continue;
+        var txt=(n.innerText||n.textContent||'').trim();
+        if(txt.length>0&&txt.length<180&&/(guardado correctamente|guardado con éxito|cambios guardados|operación exitosa|se guardó correctamente|actualizado correctamente)/i.test(txt)){
+          celebrate();return;
+        }
+      }
+    }
+  });
+  if(document.body)observer.observe(document.body,{childList:true,subtree:true});
+  /* Saludo aleatorio, discreto y no repetido en cada navegación: solo una vez por carga y tras 9 s. */
+  setTimeout(function(){
+    if(document.visibilityState==='hidden')return;
+    if(Math.random()<0.22){var p=phrases[Math.floor(Math.random()*phrases.length)];toast(p[0],p[1]);}
+  },9000);
+})();
+</script>
+
 </body>
 </html>
