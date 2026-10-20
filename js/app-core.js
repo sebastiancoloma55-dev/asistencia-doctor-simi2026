@@ -755,7 +755,28 @@
             const email=String(user?.email||perfil.email||'').trim();
             const nombreVisible=nombre||email.split('@')[0]||'equipo de Asistencia';
             const nameEl=document.getElementById('dashboard-welcome-name');
-            if(nameEl)nameEl.textContent='¡Bienvenido/a, '+nombreVisible+'!';
+            const emojisBienvenida=['👋','✨','🌟','😊','🚀','🎉','🐱','🌈','💙','🙌','☀️','🍀','🦊','🌻','💫','🤗'];
+            if(!window.__emojiBienvenidaSesion)window.__emojiBienvenidaSesion=emojisBienvenida[Math.floor(Math.random()*emojisBienvenida.length)];
+            if(nameEl)nameEl.textContent='¡Bienvenido/a, '+nombreVisible+'! '+window.__emojiBienvenidaSesion;
+            const mensajesMotivacionales=[
+                'Cada pequeño avance cuenta. Sigue adelante: tu trabajo marca la diferencia. 💙',
+                'No tienes que resolverlo todo de una vez; un paso a la vez también es progreso. 🌱',
+                'Tu compromiso de hoy construye los buenos resultados de mañana. 🚀',
+                'Los grandes logros nacen de la constancia en las pequeñas tareas. ✨',
+                'Respira, organiza tus prioridades y confía en lo que sabes hacer. 🌈',
+                'Tu esfuerzo aporta valor, incluso cuando los resultados tardan en verse. 💪',
+                'Una actitud amable y una buena solución pueden cambiarle el día a alguien. 😊',
+                'Avanza a tu ritmo, aprende en el camino y reconoce lo que ya has logrado. 🌟',
+                'Los desafíos también son oportunidades para encontrar una mejor manera. 🧩',
+                'Hoy es una nueva oportunidad para hacer las cosas un poco mejor. ☀️',
+                'Tu trabajo en equipo hace que los objetivos sean más alcanzables. 🤝',
+                'Celebra cada avance: la constancia también merece reconocimiento. 🎉'
+            ];
+            const fechaLocal=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santiago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+            const usuarioId=String(user?.id||email||nombreVisible);
+            let hash=0;for(const ch of usuarioId+'|'+fechaLocal)hash=((hash<<5)-hash+ch.charCodeAt(0))|0;
+            const mensajeMotivacionalEl=document.getElementById('simi-mensaje-motivacional');
+            if(mensajeMotivacionalEl)mensajeMotivacionalEl.textContent=mensajesMotivacionales[Math.abs(hash)%mensajesMotivacionales.length];
             const esAdmin=esAdminPrincipalActual();
             const subtitle=document.getElementById('dashboard-welcome-subtitle');
             if(subtitle)subtitle.textContent=esAdmin?'Tienes acceso de administrador principal a todos los módulos y herramientas del sistema.':'Tu centro de control para asistencia, ausentismo y operaciones.';
