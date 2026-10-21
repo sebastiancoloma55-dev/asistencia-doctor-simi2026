@@ -41,12 +41,12 @@
   async function searchEmployees() {
     const q=String($('ac-buscar')?.value||'').trim();
     if(q.length<2){$('ac-resultados')?.classList.add('hidden');$('ac-busqueda-estado').textContent='Ingresa al menos 2 caracteres.';return;}
-    if(!window._supabase){renderResults([], 'No está disponible la conexión de datos.');return;}
+    if(typeof _supabase === 'undefined'){renderResults([], 'No está disponible la conexión de datos.');return;}
     $('ac-busqueda-estado').textContent='Buscando en la nómina…';
     try {
       const term=q.replace(/[,%_()]/g,' ').trim();
       const safe=term.replace(/\s+/g,' ');
-      const {data,error}=await window._supabase.from('colaboradores').select('*')
+      const {data,error}=await _supabase.from('colaboradores').select('*')
         .or('rut.ilike.%'+safe+'%,nombres.ilike.%'+safe+'%,apellidos.ilike.%'+safe+'%')
         .limit(15);
       if(error) throw error;
@@ -108,6 +108,33 @@
     $('ac-resultados').classList.add('hidden');$('ac-busqueda-estado').textContent='Ingresa al menos 2 caracteres.';
     updatePreview();
   }
+  async function saveAgreement() {
+    if(!updatePreview()){if(window.mostrarToast)window.mostrarToast('Completa los datos y selecciona un colaborador antes de registrar.','warning');return;}
+    try {
+      const {data:sessionData,error:sessionError}=await _supabase.auth.getSession();
+      if(sessionError) throw sessionError;
+      const session=sessionData?.session;
+      if(!session?.user) throw new Error('Inicia sesión para registrar el acuerdo.');
+      const v=readValues();
+      const payload={
+        colaborador_id:String(selectedEmployee.id),
+        nombre:v.nombre,rut:v.rut,cargo:v.cargo||null,
+        fecha_ingreso:employeeHireDate(selectedEmployee)||null,
+        fecha_acuerdo:v['fecha-acuerdo'],
+        fecha_trabajada_desde:v.desde,fecha_trabajada_hasta:v.hasta,
+        dias_compensar:Number(v.dias),fecha_descanso_acordada:v.descanso,
+        notas_internas:$('ac-notas').value.trim()||null,
+        generado_por:session.user.email||''
+      };
+      const {error}=await _supabase.from('acuerdos_compensacion').insert(payload);
+      if(error) throw error;
+      if(window.registrarAuditoria) await window.registrarAuditoria('acuerdos-compensacion','CREA_ACUERDO',v.nombre+' · '+v.rut+' · '+v.dias+' día(s)');
+      if(window.mostrarToast)window.mostrarToast('Acuerdo registrado correctamente. Ahora puedes imprimirlo o guardarlo como PDF.','success',7000);
+    } catch(e) {
+      console.error('Registro de acuerdo de compensación:',e);
+      if(window.mostrarToast)window.mostrarToast('No se pudo registrar. Verifica que la migración de Supabase esté aplicada y que tu usuario tenga permiso. '+(e.message||''),'error',10000);
+    }
+  }
   function printAgreement() {
     if(!updatePreview()){if(window.mostrarToast)window.mostrarToast('Completa los datos y selecciona un colaborador antes de generar el documento.','warning');return;}
     window.print();
@@ -121,7 +148,7 @@
     ['ac-fecha-acuerdo','ac-desde','ac-hasta','ac-dias','ac-descanso'].forEach(id=>$(id).addEventListener('input',updatePreview));
     $('ac-fecha-acuerdo').value=isoToday();
     const style=document.createElement('style');
-    style.textContent='@media print{body *{visibility:hidden!important}#view-acuerdos-compensacion,#view-acuerdos-compensacion *{visibility:visible!important}body{background:#fff!important}body>*,#sidebar,#topbar,#header-title{display:none!important}#view-acuerdos-compensacion{display:block!important;position:absolute!important;inset:0!important;width:100%!important;padding:0!important;margin:0!important;background:#fff!important}#view-acuerdos-compensacion>.module-intro,#view-acuerdos-compensacion>.grid>section:first-child,#view-acuerdos-compensacion>.grid>section>div:first-child{display:none!important}#view-acuerdos-compensacion>.grid{display:block!important}#view-acuerdos-compensacion .ui-card{border:0!important;box-shadow:none!important}#view-acuerdos-compensacion .bg-slate-100{background:#fff!important;padding:0!important}#ac-documento{max-width:none!important;box-shadow:none!important;padding:14mm 16mm!important;margin:0!important;font-family:Arial,sans-serif!important;color:#000!important}@page{size:A4;margin:8mm}}';
+    style.textContent='@media print{body *{visibility:hidden!important}#view-acuerdos-compensacion,#view-acuerdos-compensacion *{visibility:visible!important}body{background:#fff!important} #sidebar{display:none!important}#view-acuerdos-compensacion{display:block!important;position:absolute!important;inset:0!important;width:100%!important;padding:0!important;margin:0!important;background:#fff!important}#view-acuerdos-compensacion>.module-intro,#view-acuerdos-compensacion>.grid>section:first-child,#view-acuerdos-compensacion>.grid>section>div:first-child{display:none!important}#view-acuerdos-compensacion>.grid{display:block!important}#view-acuerdos-compensacion .ui-card{border:0!important;box-shadow:none!important}#view-acuerdos-compensacion .bg-slate-100{background:#fff!important;padding:0!important}#ac-documento{max-width:none!important;box-shadow:none!important;padding:14mm 16mm!important;margin:0!important;font-family:Arial,sans-serif!important;color:#000!important}@page{size:A4;margin:8mm}}';
     document.head.appendChild(style);
     updatePreview();
   }
