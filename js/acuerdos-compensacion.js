@@ -140,6 +140,7 @@
     window.print();
   }
   window.limpiarAcuerdoCompensacion=clearForm;
+  window.registrarAcuerdoCompensacion=saveAgreement;
   window.imprimirAcuerdoCompensacion=printAgreement;
   function init() {
     if(!$('view-acuerdos-compensacion')) return;
