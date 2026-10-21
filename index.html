@@ -915,6 +915,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
   <button id="btn-licencias" class="menu-btn" onclick="cambiarModulo('licencias')"><i data-lucide="file-heart" class="h-4 w-4"></i><span>Licencias y ausentismo</span></button>
   <button id="btn-vacaciones" class="menu-btn" onclick="cambiarModulo('vacaciones')"><i data-lucide="tree-palm" class="h-4 w-4"></i><span>Vacaciones</span></button>
   <button id="btn-papeletas" class="menu-btn" onclick="cambiarModulo('papeletas')"><i data-lucide="file-text" class="h-4 w-4"></i><span>Papeletas y permisos</span></button>
+  <button id="btn-acuerdos-compensacion" class="menu-btn" onclick="cambiarModulo('acuerdos-compensacion')"><i data-lucide="calendar-check-2" class="h-4 w-4"></i><span>Acuerdos de compensación</span><span class="nav-new-mark">NUEVO</span></button>
   <div class="nova-nav-divider" data-nav-group><span>COBERTURAS Y COMUNICACIÓN</span></div>
   <button id="btn-amonestaciones" class="menu-btn" onclick="cambiarModulo('amonestaciones')"><i data-lucide="calendar-check" class="h-4 w-4"></i><span>Coberturas</span></button>
   <button id="btn-traslados" class="menu-btn" onclick="cambiarModulo('traslados')"><i data-lucide="users-round" class="h-4 w-4"></i><span>Traslados de personal</span></button>
@@ -1752,6 +1753,59 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
                 <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4 text-xs font-bold uppercase">Papeletas generadas</div><div class="table-scroll"><table class="w-full min-w-[800px] text-left"><thead class="text-[11px] uppercase text-slate-500"><tr><th class="p-3">Fecha</th><th class="p-3">Colaborador</th><th class="p-3">Tipo</th><th class="p-3">Periodo</th><th class="p-3">Generado por</th><th class="p-3">Acciones</th></tr></thead><tbody id="tabla-papeletas-body" class="divide-y text-xs"><tr><td colspan="6" class="p-8 text-center text-slate-400">Sin registros.</td></tr></tbody></table></div></div>
             </section>
 
+            <!-- ACUERDOS DE COMPENSACIÓN -->
+            <section id="view-acuerdos-compensacion" class="hidden space-y-6 p-4 sm:p-8">
+              <div class="module-intro">
+                <div class="flex flex-wrap items-start justify-between gap-4">
+                  <div class="module-title-with-logo">
+                    <div class="module-logo-mark"><i data-lucide="calendar-check-2" class="h-6 w-6"></i></div>
+                    <div><span class="module-kicker">Gestión documental · RR. HH.</span><h3 class="mt-2 text-2xl font-extrabold text-slate-900">Acuerdos de compensación</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Busca al colaborador en la nómina conectada, completa los días y fechas acordadas, revisa el documento y genera el PDF.</p></div>
+                  </div>
+                  <div class="flex flex-wrap gap-2"><button type="button" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50" onclick="limpiarAcuerdoCompensacion()"><i data-lucide="rotate-ccw" class="mr-1 inline h-4 w-4"></i>Limpiar</button><button type="button" class="corp-button" onclick="imprimirAcuerdoCompensacion()"><i data-lucide="file-down" class="mr-1 inline h-4 w-4"></i>Imprimir / Guardar PDF</button></div>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(320px,390px)_minmax(0,1fr)]">
+                <section class="ui-card overflow-visible">
+                  <div class="border-b border-slate-100 p-5"><h4 class="font-extrabold text-slate-900">Datos del acuerdo</h4><p class="mt-1 text-xs text-slate-500">Los datos del trabajador se completan desde Supabase.</p></div>
+                  <div class="space-y-4 p-5">
+                    <div class="relative"><label for="ac-buscar" class="required-label text-xs font-semibold">Buscar colaborador por nombre o RUT</label><input id="ac-buscar" autocomplete="off" class="form-field mt-1" placeholder="Escribe nombre o RUT…" aria-controls="ac-resultados"><div id="ac-resultados" class="autocomplete-panel hidden"></div><p id="ac-busqueda-estado" class="mt-1 text-xs text-slate-500">Ingresa al menos 2 caracteres.</p></div>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                      <div><label for="ac-nombre" class="text-xs font-semibold">Nombre completo</label><input id="ac-nombre" readonly class="form-field mt-1 bg-slate-50" placeholder="Selecciona un colaborador"></div>
+                      <div><label for="ac-rut" class="text-xs font-semibold">RUT</label><input id="ac-rut" readonly class="form-field mt-1 bg-slate-50" placeholder="—"></div>
+                      <div><label for="ac-cargo" class="text-xs font-semibold">Cargo contractual</label><input id="ac-cargo" readonly class="form-field mt-1 bg-slate-50" placeholder="—"></div>
+                      <div><label for="ac-ingreso" class="text-xs font-semibold">Fecha de ingreso</label><input id="ac-ingreso" readonly class="form-field mt-1 bg-slate-50" placeholder="No registrada"></div>
+                    </div>
+                    <div class="border-t border-slate-100 pt-4"><p class="mb-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">Fechas y compensación</p>
+                      <div><label for="ac-fecha-acuerdo" class="required-label text-xs font-semibold">Fecha del acuerdo</label><input id="ac-fecha-acuerdo" type="date" required class="form-field mt-1"></div>
+                      <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2"><div><label for="ac-desde" class="required-label text-xs font-semibold">Fecha trabajada desde</label><input id="ac-desde" type="date" required class="form-field mt-1"></div><div><label for="ac-hasta" class="required-label text-xs font-semibold">Fecha trabajada hasta</label><input id="ac-hasta" type="date" required class="form-field mt-1"></div><div><label for="ac-dias" class="required-label text-xs font-semibold">Días por compensar</label><input id="ac-dias" type="number" min="1" step="1" value="1" required class="form-field mt-1"></div><div><label for="ac-descanso" class="required-label text-xs font-semibold">Fecha de descanso acordada</label><input id="ac-descanso" type="date" required class="form-field mt-1"></div></div>
+                      <div class="mt-3"><label for="ac-notas" class="text-xs font-semibold">Notas internas (no se imprimen)</label><textarea id="ac-notas" rows="2" class="form-field mt-1" placeholder="Observaciones para RR. HH."></textarea></div>
+                    </div>
+                    <div id="ac-validacion" class="helper-note" role="status">Selecciona al trabajador y completa las fechas para revisar el acuerdo.</div>
+                    <p class="text-xs leading-5 text-slate-500">Antes de emitir el documento, valida los días con los registros de asistencia y turnos. La generación del PDF no reemplaza la revisión de RR. HH.</p>
+                  </div>
+                </section>
+                <section class="ui-card overflow-hidden">
+                  <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 p-4"><div><h4 class="font-extrabold text-slate-900">Vista previa del documento</h4><p class="mt-1 text-xs text-slate-500">Formato A4 · se actualiza al editar los datos</p></div><span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700"><i data-lucide="check-circle-2" class="mr-1 inline h-3.5 w-3.5"></i>Vista previa en vivo</span></div>
+                  <div class="bg-slate-100 p-3 sm:p-6"><article id="ac-documento" class="acuerdo-paper mx-auto max-w-[760px] bg-white p-6 text-black shadow-sm sm:p-10">
+                    <h2 class="mb-6 text-center text-base font-extrabold tracking-wide">ACUERDO DE COMPENSACIÓN</h2>
+                    <p class="mb-3 text-justify text-xs leading-6">En Santiago de Chile, a <span data-ac-out="fecha-acuerdo">[FECHA DEL ACUERDO]</span>, entre Farmacias de Similares Chile S.A. Agencia Chile, RUT 59.111.330-5, representada legalmente para estos efectos por la Srta. KISSY CAROLINA FONSECA FIGUEROA, RUT Nº 14.382.093-9, en adelante “El Empleador”, con domicilio en Camino Lo Echevers Nº 550, Módulos 16, 17 y 18, comuna de Quilicura, Región Metropolitana, por una parte; y por la otra, el trabajador que se individualiza a continuación, ambas partes acuerdan lo siguiente:</p>
+                    <p class="mb-4 text-xs leading-6"><b>Nombre trabajador(a):</b> <span data-ac-out="nombre">[NOMBRE DEL TRABAJADOR]</span><br><b>RUT trabajador(a):</b> <span data-ac-out="rut">[RUT]</span></p>
+                    <h3 class="mb-2 mt-5 text-xs font-extrabold underline">PRIMERO: Antecedentes.</h3>
+                    <p class="mb-3 text-justify text-xs leading-6">El/la trabajador(a) presta servicios en Farmacias de Similares Chile S.A., Agencia Chile desde <span data-ac-out="ingreso">[FECHA DE INGRESO]</span>, bajo el cargo de <b><span data-ac-out="cargo">[CARGO]</span></b>, según su contrato de trabajo.</p>
+                    <p class="mb-3 text-justify text-xs leading-6">El/la trabajador(a) individualizado(a) presta servicios bajo un sistema de turnos rotativos, de lunes a domingo, con los descansos que correspondan conforme a la normativa aplicable.</p>
+                    <table class="my-4 w-full border-collapse text-center text-xs"><thead><tr><th colspan="2" class="border border-slate-400 p-2">FECHA TRABAJADA</th><th rowspan="2" class="border border-slate-400 p-2">DÍAS POR COMPENSAR</th></tr><tr><th class="border border-slate-400 p-2">INICIO</th><th class="border border-slate-400 p-2">TÉRMINO</th></tr></thead><tbody><tr><td data-ac-out="desde" class="border border-slate-400 p-2">[INICIO]</td><td data-ac-out="hasta" class="border border-slate-400 p-2">[TÉRMINO]</td><td data-ac-out="dias" class="border border-slate-400 p-2">1</td></tr><tr><th colspan="2" class="border border-slate-400 p-2 text-right">TOTAL</th><th data-ac-out="dias" class="border border-slate-400 p-2">1</th></tr></tbody></table>
+                    <h3 class="mb-2 mt-5 text-xs font-extrabold underline">SEGUNDO: Compensación.</h3>
+                    <p class="mb-3 text-justify text-xs leading-6">Teniendo presente lo señalado, las partes acuerdan por esta ocasión compensar los días de descanso que el/la trabajador(a) omitió tomar, de acuerdo con las fechas efectivamente trabajadas y la cantidad de <b><span data-ac-out="dias">1</span> día(s)</b>, en adelante “Día(s) Compensatorio(s)”. La fecha de descanso acordada será el <b><span data-ac-out="descanso">[FECHA DE DESCANSO]</span></b>.</p>
+                    <p class="mb-3 text-justify text-xs leading-6">Déjese establecido que los días compensatorios serán considerados días de descanso laboral y no afectarán la remuneración del trabajador, sin perjuicio de las reglas aplicables a su contrato y a la normativa vigente.</p>
+                    <h3 class="mb-2 mt-5 text-xs font-extrabold underline">TERCERO: Entendimiento.</h3><p class="mb-3 text-justify text-xs leading-6">Las partes declaran haber leído el presente acuerdo y comprender su contenido, dejando constancia de que su aplicación debe ser consistente con los registros de asistencia, turnos y la normativa laboral vigente.</p>
+                    <h3 class="mb-2 mt-5 text-xs font-extrabold underline">CUARTO: Ejemplares.</h3><p class="mb-3 text-justify text-xs leading-6">El presente acuerdo se firma en dos ejemplares del mismo tenor, quedando uno en poder de cada parte.</p>
+                    <div class="mt-16 grid grid-cols-2 gap-8 text-center text-[10px] font-bold"><div class="border-t border-black pt-2"><span data-ac-out="nombre">[NOMBRE DEL TRABAJADOR]</span><br>TRABAJADOR(A)<br>RUT: <span data-ac-out="rut">[RUT]</span></div><div class="border-t border-black pt-2">FARMACIAS DE SIMILARES CHILE S.A.<br>EMPLEADOR</div></div>
+                    <p class="mt-8 text-[9px] text-slate-500">Documento generado desde Asistencia Doctor Simi · Requiere revisión y validación de RR. HH.</p>
+                  </article></div>
+                </section>
+              </div>
+            </section>
+
             <!-- CORREOS DE ASISTENCIA -->
             <section id="view-correos" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro">
@@ -2201,6 +2255,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
 <script src="/js/talana-bot.js"></script>
 <script src="/js/workspace.js"></script>
 <script src="/js/module-organization.js"></script>
+<script src="/js/acuerdos-compensacion.js"></script>
 <script src="/js/operational-summary.js"></script>
 
     <!--
@@ -2520,6 +2575,7 @@ body.search-open{overflow:hidden}
 #sidebar #btn-licencias{--nav-accent:#fb7185}
 #sidebar #btn-vacaciones{--nav-accent:#4ade80}
 #sidebar #btn-papeletas{--nav-accent:#c4b5fd}
+#sidebar #btn-acuerdos-compensacion{--nav-accent:#fbbf24}
 #sidebar #btn-correos{--nav-accent:#38bdf8}
 #sidebar #btn-amonestaciones{--nav-accent:#fb923c}
 #sidebar #btn-reportes{--nav-accent:#a5b4fc}
@@ -2909,8 +2965,8 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
   var permissionsReady=false;
   var allowed=new Set(['dashboard']);
-  var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
-  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
+  var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','acuerdos-compensacion','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
+  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','vacaciones','papeletas','acuerdos-compensacion','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
   function permissionName(m){return m;}
   function hasModulePermission(m){
     if(allowed.has(m))return true;
