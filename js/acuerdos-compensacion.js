@@ -291,6 +291,15 @@
         #ac-documento .ac-page-two::after,
         #ac-documento .ac-page-three::after{display:none!important;content:none!important}
         #ac-documento .ac-page-two h3{font-size:9pt!important;margin:2.5mm 0 1mm!important}
+        /* Mantener el cierre y ambas firmas en la segunda hoja; evitar una hoja exclusiva para firmas */
+        #ac-documento .ac-page-two{padding:9mm 14mm 6mm!important;overflow:hidden!important}
+        #ac-documento .ac-page-two .ac-doc-p{font-size:8.8pt!important;line-height:1.22!important;margin-bottom:1.8mm!important}
+        #ac-documento .ac-page-two h3{font-size:9pt!important;margin:2mm 0 1mm!important}
+        #ac-documento .ac-page-two .ac-representation{margin-top:2mm!important}
+        #ac-documento .ac-page-two .ac-signatures{margin-top:2.5mm!important;gap:8mm!important;break-inside:avoid!important;page-break-inside:avoid!important}
+        #ac-documento .ac-page-two .ac-signature-block img{width:27mm!important;height:17mm!important;object-fit:contain!important;margin-bottom:.5mm!important}
+        #ac-documento .ac-page-two .ac-worker-blank{height:17mm!important}
+        #ac-documento .ac-page-two .ac-signature-block strong{font-size:8pt!important;line-height:1.15!important}
       }`;
     document.head.appendChild(style);
     updatePreview();
