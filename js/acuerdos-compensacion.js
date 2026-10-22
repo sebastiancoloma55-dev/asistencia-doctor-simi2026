@@ -52,9 +52,12 @@
     try {
       const term=q.replace(/[,%_()]/g,' ').replace(/\s+/g,' ').trim();
       const safe=term.replace(/[%_]/g,'');
+      const digits=term.replace(/\D/g,'');
+      // Los RUT suelen estar guardados con puntos y guion; los comodines permiten buscar solo por dígitos.
+      const rutPattern=digits.length>=2 ? digits.split('').join('%') : safe;
       const {data,error}=await _supabase.from('colaboradores').select('id,rut,nombres,apellidos,cargo,sucursal,fecha_ingreso,estado')
-        .or('rut.ilike.%'+safe+'%,nombres.ilike.%'+safe+'%,apellidos.ilike.%'+safe+'%')
-        .limit(15);
+        .or('rut.ilike.%'+rutPattern+'%,rut.ilike.%'+safe+'%,nombres.ilike.%'+safe+'%,apellidos.ilike.%'+safe+'%')
+        .limit(50);
       if(error) throw error;
       const rows=(data||[]).filter(c=>!c.estado || !/inactivo|desvinculado|finiquitado/i.test(String(c.estado)));
       renderResults(rows, rows.length ? '' : 'No encontramos colaboradores activos con ese nombre o RUT.');
@@ -149,6 +152,14 @@
   window.limpiarAcuerdoCompensacion=clearForm;
   window.registrarAcuerdoCompensacion=saveAgreement;
   window.imprimirAcuerdoCompensacion=printAgreement;
+  function delegatedSearchInput(event) {
+    if (!event.target || event.target.id !== 'ac-buscar') return;
+    clearTimeout(searchTimer);
+    searchTimer=setTimeout(searchEmployees,180);
+  }
+  function delegatedSearchFocus(event) {
+    if (event.target && event.target.id === 'ac-buscar' && event.target.value.trim().length >= 2) searchEmployees();
+  }
   let initialized = false;
   function init() {
     if(initialized || !$('view-acuerdos-compensacion') || !$('ac-buscar')) return;
@@ -157,12 +168,13 @@
     if(firmaImg){
       fetch('/public/firma-empleador.jpg.b64',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('No se pudo cargar la firma institucional desde /public');return r.text();}).then(data=>{const clean=data.trim();if(clean.length>1000&&/^[A-Za-z0-9+/]+={0,2}$/.test(clean)){firmaImg.src='data:image/jpeg;base64,'+clean;firmaImg.classList.add('ac-signature-loaded');}}).catch(e=>{console.warn('No se pudo cargar la firma institucional:',e);const existing=$('pap-firma-preview');if(existing&&existing.src&&existing.src.startsWith('data:image/'))firmaImg.src=existing.src;});
     }
+    // Delegación en document: el formulario SPA puede reemplazar el input al navegar entre módulos.
+    document.removeEventListener('input', delegatedSearchInput, true);
+    document.addEventListener('input', delegatedSearchInput, true);
+    document.removeEventListener('focusin', delegatedSearchFocus, true);
+    document.addEventListener('focusin', delegatedSearchFocus, true);
     const searchInput=$('ac-buscar');
-    if(searchInput){
-      searchInput.removeAttribute('disabled');
-      searchInput.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(searchEmployees,180);});
-      searchInput.addEventListener('focus',()=>{if(searchInput.value.trim().length>=2)searchEmployees();});
-    }
+    if(searchInput) searchInput.removeAttribute('disabled');
     ['ac-fecha-acuerdo','ac-desde','ac-hasta','ac-dias','ac-descanso'].forEach(id=>{const field=$(id);if(field){field.addEventListener('input',updatePreview);field.addEventListener('change',updatePreview);}});
     const agreementDate=$('ac-fecha-acuerdo');
     if(agreementDate && !agreementDate.value)agreementDate.value=isoToday();
