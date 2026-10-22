@@ -57,7 +57,7 @@
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(configs)); return true; } catch (_) { return false; }
   }
   async function loadCloud() {
-    const client = window._supabase;
+    const client = (typeof _supabase !== 'undefined' ? _supabase : null);
     if (!client || !client.from) throw new Error('La conexión con Supabase todavía no está disponible.');
     const {data,error} = await client.from(TABLE).select('area,correo_para,correo_cc,asunto_plantilla,cuerpo_plantilla,firma,updated_at');
     if (error) throw error;
@@ -85,7 +85,7 @@
     configs[area] = {...payload, updated_at:new Date().toISOString()};
     const localSaved = persistLocal();
     try {
-      const client = window._supabase;
+      const client = (typeof _supabase !== 'undefined' ? _supabase : null);
       if (!client || !client.from) throw new Error('Supabase no está disponible');
       const {data:sessionData} = await client.auth.getUser();
       payload.updated_by = sessionData?.user?.email || null;
