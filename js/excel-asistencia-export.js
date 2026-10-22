@@ -230,10 +230,10 @@
     $('excel-asistencia-descargar-seleccion').disabled=!outputFiles.some(f=>selected.has(f.group));
   }
   function normalizeKey(value) {
-    return String(value || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
   }
   function splitEmails(value) {
-    return String(value || '').split(/[;,]+/).map(x=>x.trim()).filter(x=>/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(x));
+    return String(value || '').split(/[;,]+/).map(x=>x.trim()).filter(x=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x));
   }
   async function resolveRecipients(file, grouping) {
     const client=(typeof _supabase!=='undefined'&&_supabase?.from)?_supabase:window._supabase;
