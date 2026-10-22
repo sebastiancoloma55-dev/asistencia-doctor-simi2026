@@ -28,14 +28,16 @@
   }
   function install() {
     const nav = document.querySelector('#sidebar nav');
-    if (!nav || nav.dataset.simiUnifiedNav === 'true') return;
-    nav.dataset.simiUnifiedNav = 'true';
-    nav.addEventListener('click', function (event) {
-      const button = event.target.closest('.menu-btn');
-      if (!button) return;
-      const id = (button.id || '').replace(/^btn-/, '');
-      if (id) syncActive(id);
-    });
+    if (!nav) return;
+    if (nav.dataset.simiUnifiedNav !== 'true') {
+      nav.dataset.simiUnifiedNav = 'true';
+      nav.addEventListener('click', function (event) {
+        const button = event.target.closest('.menu-btn');
+        if (!button) return;
+        const id = (button.id || '').replace(/^btn-/, '');
+        if (id) syncActive(id);
+      });
+    }
     if (typeof window.cambiarModulo === 'function' && !window.cambiarModulo.__simiUnifiedWrapped) {
       const original = window.cambiarModulo;
       const wrapped = function (moduleId) {
