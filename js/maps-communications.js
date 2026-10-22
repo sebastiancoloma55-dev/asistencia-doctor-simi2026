@@ -598,6 +598,9 @@
             }
         }
         const esperarPintadoCorreo = () => new Promise(resolve => setTimeout(resolve, 0));
+        // API compartida para que Borradores Area reutilice exactamente la misma ventana de progreso.
+        window.__doctorSimiActualizarProgreso = actualizarProgresoCorreos;
+        window.__doctorSimiEsperarPintado = esperarPintadoCorreo;
 
         async function leerColumnasTablaCorreo(tabla, columnas, desde, hasta) {
             const resultado = [];
@@ -741,10 +744,15 @@
             }
         }
         window.prepararBorradoresAsistenciaAreas = async function(areasSeleccionadas, desde, hasta, tiposSeleccionados, minimoAtraso) {
-            if (!puedePrepararCorreosActual()) throw new Error('No tienes autorización para preparar correos.');
-            if (!desde || !hasta || desde > hasta) throw new Error('Selecciona un período válido.');
-            if (!Array.isArray(areasSeleccionadas) || !areasSeleccionadas.length) throw new Error('Selecciona al menos un área.');
+            const progreso = (p,t,d,e) => window.__doctorSimiActualizarProgreso?.(p,t,d,e);
+            const pintar = () => (window.__doctorSimiEsperarPintado ? window.__doctorSimiEsperarPintado() : new Promise(r=>setTimeout(r,0)));
+            progreso(2,'Preparando Borradores Area','Validando período, áreas y tipos de incidencia…'); await pintar();
+            if (!puedePrepararCorreosActual()) { progreso(100,'No se pudo generar la vista previa','Tu sesión no tiene autorización para preparar correos.','error'); throw new Error('No tienes autorización para preparar correos.'); }
+            if (!desde || !hasta || desde > hasta) { progreso(100,'Período inválido','Revisa las fechas seleccionadas.','error'); throw new Error('Selecciona un período válido.'); }
+            if (!Array.isArray(areasSeleccionadas) || !areasSeleccionadas.length) { progreso(100,'Faltan áreas','Selecciona al menos un área.','error'); throw new Error('Selecciona al menos un área.'); }
+            progreso(7,'Preparando Borradores Area','Cargando los registros de asistencia del período…'); await pintar();
             if (!asistenciaCargada) await cargarAsistenciaDesdeNube();
+            progreso(14,'Preparando Borradores Area','Asistencia disponible. Consultando configuración de correos…'); await pintar();
             const areas = areasSeleccionadas.map(x => String(x).trim()).filter(Boolean);
             const norm = v => normalizarTextoProteccionCorreo(v).replace(/\s*-\s*/g,'-').replace(/\s+/g,' ').trim();
             const configLocalKey = 'doctor-simi-configuracion-correos-areas-v1';
@@ -757,6 +765,8 @@
                     if (!error && Array.isArray(data)) data.forEach(x=>{if(x.area)configAreas[x.area]={...(configAreas[x.area]||{}),...x};});
                 }
             } catch (_) {}
+            // La configuración puede venir con diferencias de mayúsculas/espacios; normalizar evita perder destinatarios.
+            const configNorm = new Map(Object.entries(configAreas).map(([k,v])=>[norm(k),v]));
             const areasNorm = new Map(areas.map(a=>[norm(a),a]));
             const porRut = new Map();
             try {
@@ -773,15 +783,19 @@
                     });
                 }
             } catch (e) { throw new Error('No se pudo consultar el directorio para identificar el área de cada colaborador: '+(e.message||e)); }
+            progreso(24,'Preparando Borradores Area','Asociando colaboradores con sus áreas…'); await pintar();
             const directArea = suc => areasNorm.get(norm(suc)) || null;
             let proteccion;
             try { proteccion=await cargarProteccionAusenciasCorreos(desde,hasta,{forceFresh:true}); }
             catch(e){throw new Error('No se generaron borradores porque no fue posible verificar licencias, vacaciones y permisos: '+(e.message||e));}
+            progreso(32,'Preparando Borradores Area','Verificando licencias médicas, vacaciones y permisos…'); await pintar();
             const grupos=new Map(), noMapeados=new Set(), excluidos=[];
             const types=new Set(tiposSeleccionados||['SIN_MARCAS','OTRAS_INCIDENCIAS']);
             const conteo={SIN_MARCAS:0,OTRAS_INCIDENCIAS:0};
+            let revisados=0;
             for(let i=0;i<datosAsistenciaGlobal.length;i++){
                 const x=datosAsistenciaGlobal[i];
+                if(i%250===0){progreso(42+Math.round(35*i/Math.max(1,datosAsistenciaGlobal.length)),'Analizando asistencia',Math.min(i+1,datosAsistenciaGlobal.length).toLocaleString('es-CL')+' de '+datosAsistenciaGlobal.length.toLocaleString('es-CL')+' registros revisados…');await pintar();}
                 const fecha=normalizarFechaProteccionCorreo(x.fecha);
                 if(!fecha||fecha<desde||fecha>hasta)continue;
                 const rut=normalizarRutProteccionCorreo(x.rut);
@@ -807,9 +821,13 @@
                 if(detalles.some(d=>/no registra marcas durante la jornada/i.test(d)))conteo.SIN_MARCAS++;
                 if(detalles.some(d=>!/no registra marcas durante la jornada/i.test(d)))conteo.OTRAS_INCIDENCIAS++;
             }
+            progreso(80,'Preparando correos por área','Agrupando incidencias y verificando destinatarios…'); await pintar();
             const drafts=[];
+            let gruposProcesados=0;
             for(const {area,casos} of grupos.values()){
-                const cfg=configAreas[area]||{};
+                const cfg=configNorm.get(norm(area))||{};
+                gruposProcesados++;
+                progreso(80+Math.round(15*gruposProcesados/Math.max(1,grupos.size)),'Preparando correos por área','Preparando '+gruposProcesados+' de '+grupos.size+': '+area); await pintar();
                 const para=String(cfg.correo_para||'').trim(), cc=String(cfg.correo_cc||'').trim();
                 if(!para)continue;
                 const etiqueta='INCIDENCIAS DE ASISTENCIA';
@@ -820,21 +838,35 @@
                 const asunto=(asuntoBase&&asuntoBase!=='Comunicación interna – '+area?asuntoBase+' · ':'')+'Importancia alta - '+etiqueta+' - '+area+' - '+desde+' a '+hasta;
                 drafts.push({id:'area-'+norm(area).replace(/[^a-z0-9]+/g,'-'),tipoCorreo:'INCIDENCIAS',nombre,para,cc,asunto,cuerpo:crearCuerpoCorreo(grupo,casos,desde,hasta),cuerpoHtml:crearCuerpoCorreoHTML(grupo,casos,desde,hasta),cantidad:casos.length,proteccionAusenciasVerificada:true,periodoDesde:desde,periodoHasta:hasta,grupoCorreo:grupo,casosDetalle:casos.map(x=>({fecha:x.fecha,rut:x.rut,nombre:x.nombre,sucursal:x.sucursal,area:x.area,detalles:x.detalles,turno:x.turno,turno_asignado:x.turno_asignado,jornada:x.jornada,horario:x.horario,entrada:x.entrada,salida:x.salida}))});
             }
-            if(!drafts.length)throw new Error('No se encontraron incidencias para las áreas seleccionadas o faltan destinatarios configurados. Revisa el período, la asociación de colaboradores a áreas y la configuración de correos.');
+            if(!drafts.length) {
+                window.__doctorSimiAreaAttendanceDrafts=[];
+                progreso(100,'No se generaron borradores','No hubo incidencias que cumplieran los filtros o faltan destinatarios. Revisa el período, las áreas, los tipos seleccionados y la configuración de correos.','error');
+                throw new Error('No se encontraron incidencias para las áreas seleccionadas o faltan destinatarios configurados. Revisa el período, la asociación de colaboradores a áreas y la configuración de correos.');
+            }
             window.__doctorSimiAreaAttendanceDrafts=drafts;
             const total=drafts.reduce((n,b)=>n+b.cantidad,0);
-            return {borradores:drafts.length,casos:total,sinMarcas:conteo.SIN_MARCAS,otras:conteo.OTRAS_INCIDENCIAS,excluidos:excluidos.length,sinArea:noMapeados.size,areasSinCorreo:areas.filter(a=>!String((configAreas[a]||{}).correo_para||'').trim()),detalle:drafts.map(b=>({id:b.id,nombre:b.nombre,para:b.para,cc:b.cc,asunto:b.asunto,cantidad:b.cantidad,tipoCorreo:b.tipoCorreo,cuerpo:b.cuerpo,cuerpoHtml:b.cuerpoHtml,casosDetalle:b.casosDetalle,grupoCorreo:b.grupoCorreo,periodoDesde:b.periodoDesde,periodoHasta:b.periodoHasta}))};
+            const areasConCorreo=new Set(drafts.map(b=>norm(b.nombre.split(' · ')[0])));
+            const areasSinCorreo=areas.filter(a=>!String((configNorm.get(norm(a))||{}).correo_para||'').trim());
+            progreso(100,'Vista previa de Borradores Area lista',drafts.length+' correos por área y '+total+' casos preparados. Todavía no se ha descargado el ZIP.','completado');
+            return {borradores:drafts.length,casos:total,sinMarcas:conteo.SIN_MARCAS,otras:conteo.OTRAS_INCIDENCIAS,excluidos:excluidos.length,sinArea:noMapeados.size,areasSinCorreo,detalle:drafts.map(b=>({id:b.id,nombre:b.nombre,para:b.para,cc:b.cc,asunto:b.asunto,cantidad:b.cantidad,tipoCorreo:b.tipoCorreo,cuerpo:b.cuerpo,cuerpoHtml:b.cuerpoHtml,casosDetalle:b.casosDetalle,grupoCorreo:b.grupoCorreo,periodoDesde:b.periodoDesde,periodoHasta:b.periodoHasta}))};
         };
         window.descargarBorradoresAsistenciaAreas = async function(idsSeleccionados) {
+            const progreso = (p,t,d,e) => window.__doctorSimiActualizarProgreso?.(p,t,d,e);
+            const pintar = () => (window.__doctorSimiEsperarPintado ? window.__doctorSimiEsperarPintado() : new Promise(r=>setTimeout(r,0)));
+            progreso(2,'Generando ZIP de Borradores Area','Validando selección y preparando archivos EML…'); await pintar();
             const todos=window.__doctorSimiAreaAttendanceDrafts||[];
             const seleccion=new Set(Array.isArray(idsSeleccionados)?idsSeleccionados:[]);
             const elegidos=todos.filter(b=>seleccion.has(b.id));
             if(!elegidos.length)throw new Error('Selecciona uno o más borradores en la vista previa.');
             if(!window.JSZip)throw new Error('No se cargó JSZip. Recarga la aplicación e inténtalo nuevamente.');
             const desde=elegidos.map(b=>b.periodoDesde).sort()[0],hasta=elegidos.map(b=>b.periodoHasta).sort().slice(-1)[0];
+            progreso(12,'Generando ZIP de Borradores Area','Revalidando licencias, vacaciones y permisos antes de crear los correos…'); await pintar();
             const proteccion=await cargarProteccionAusenciasCorreos(desde,hasta,{forceFresh:true});
             const list=[],excluidos=[];
+            let correoActual=0;
             for(const b of elegidos){
+                correoActual++;
+                progreso(22+Math.round(48*correoActual/Math.max(1,elegidos.length)),'Revalidando correos para el ZIP','Correo '+correoActual+' de '+elegidos.length+': '+b.nombre); await pintar();
                 const casos=[];
                 for(const caso of (b.casosDetalle||[])){
                     const fecha=normalizarFechaProteccionCorreo(caso.fecha);
@@ -852,9 +884,12 @@
             const zip=new JSZip(),folder=zip.folder('Borradores_Asistencia_Areas');
             list.forEach((b,i)=>{const slug=String(b.nombre||'Correo_'+(i+1)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').slice(0,70)||'Correo_'+(i+1);folder.file(String(i+1).padStart(3,'0')+'_'+slug+'.eml',crearEmlOutlook(b));});
             zip.file('LEEME.txt','BORRADORES DE ASISTENCIA POR ÁREA\nPeríodo: '+desde+' al '+hasta+'\nCorreos incluidos: '+list.length+'\nCasos incluidos tras revalidación: '+list.reduce((n,b)=>n+b.cantidad,0)+'\nCasos excluidos en la revalidación final: '+excluidos.length+'\n\nLos archivos EML son borradores. Revise destinatarios y contenido en Outlook; no se envían automáticamente.');
-            const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+            progreso(74,'Comprimiendo archivos ZIP','Creando '+list.length+' archivos EML y el resumen LEEME.txt…'); await pintar();
+            const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'},meta=>progreso(74+Math.round(22*(meta.percent||0)/100),'Comprimiendo archivos ZIP',Math.round(meta.percent||0)+'% de compresión completada…')),url=URL.createObjectURL(blob),a=document.createElement('a');
             a.href=url;a.download='Borradores_Asistencia_Areas_'+desde+'_a_'+hasta+'.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
-            return {correos:list.length,casos:list.reduce((n,b)=>n+b.cantidad,0),excluidos:excluidos.length};
+            const resumenZip={correos:list.length,casos:list.reduce((n,b)=>n+b.cantidad,0),excluidos:excluidos.length};
+            progreso(100,'ZIP descargado correctamente',resumenZip.correos+' correos y '+resumenZip.casos+' casos incluidos.','completado');
+            return resumenZip;
         };
         function renderizarBorradoresMasivos() {
             const cont = document.getElementById('lista-borradores');
