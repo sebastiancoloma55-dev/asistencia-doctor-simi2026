@@ -80,42 +80,24 @@ grant select on public.configuracion_correos_areas to authenticated;
 grant insert, update on public.configuracion_correos_areas to authenticated;
 
 insert into public.configuracion_correos_areas (area, correo_para, correo_cc, asunto_plantilla, cuerpo_plantilla, firma)
-values
-('ADMINISTRACION','','','Comunicación interna – ADMINISTRACION','Estimados/as de ADMINISTRACION:
-
-Junto con saludar, comparto la siguiente información para su revisión y gestión:
-
-[Escribe aquí el detalle de la comunicación]
-
-Quedo atento/a a sus comentarios.
-
-Saludos cordiales,
-Farmacias de Similares Chile S.A.','Saludos cordiales,
-Farmacias de Similares Chile S.A.'),
-('APERTURAS Y REMODELACIONES','','','Comunicación interna – APERTURAS Y REMODELACIONES','',''),
-('ARRIENDOS Y PATENTES','','','Comunicación interna – ARRIENDOS Y PATENTES','',''),
-('AUDITORIA INTERNA','','','Comunicación interna – AUDITORIA INTERNA','',''),
-('BOTARGUEROS','','','Comunicación interna – BOTARGUEROS','',''),
-('CD CONCEPCION','','','Comunicación interna – CD CONCEPCION','',''),
-('CENTRAL','','','Comunicación interna – CENTRAL','',''),
-('CEPIP Y CAMPAÑAS','','','Comunicación interna – CEPIP Y CAMPAÑAS','',''),
-('COMPRAS','','','Comunicación interna – COMPRAS','',''),
-('CONTABILIDAD','','','Comunicación interna – CONTABILIDAD','',''),
-('CONTRALORIA','','','Comunicación interna – CONTRALORIA','',''),
-('DIRECCION TECNICA','','','Comunicación interna – DIRECCION TECNICA','',''),
-('DISEÑO GRAFICO','','','Comunicación interna – DISEÑO GRAFICO','',''),
-('DISTRIBUCION','','','Comunicación interna – DISTRIBUCION','',''),
-('FRANQUICIAS','','','Comunicación interna – FRANQUICIAS','',''),
-('INSUMOS','','','Comunicación interna – INSUMOS','',''),
-('MANTENCION','','','Comunicación interna – MANTENCION','',''),
-('OPERACIONES','','','Comunicación interna – OPERACIONES','',''),
-('PREVENCION DE RIESGOS','','','Comunicación interna – PREVENCION DE RIESGOS','',''),
-('RECURSOS HUMANOS','','','Comunicación interna – RECURSOS HUMANOS','',''),
-('SIMI - SAE','','','Comunicación interna – SIMI - SAE','',''),
-('TECNOLOGIA','','','Comunicación interna – TECNOLOGIA','',''),
-('TRANSPORTES','','','Comunicación interna – TRANSPORTES','',''),
-('VENTAS','','','Comunicación interna – VENTAS','',''),
-('VISITADORES MEDICOS','','','Comunicación interna – VISITADORES MEDICOS','','')
+select
+  area,
+  '',
+  '',
+  'Comunicación interna – ' || area,
+  'Estimados/as de ' || area || ':' || chr(10) || chr(10) ||
+  'Junto con saludar, comparto la siguiente información para su revisión y gestión:' || chr(10) || chr(10) ||
+  '[Escribe aquí el detalle de la comunicación]' || chr(10) || chr(10) ||
+  'Quedo atento/a a sus comentarios.' || chr(10) || chr(10) ||
+  '{FIRMA}',
+  'Saludos cordiales,' || chr(10) || 'Farmacias de Similares Chile S.A.'
+from unnest(array[
+  'ADMINISTRACION','APERTURAS Y REMODELACIONES','ARRIENDOS Y PATENTES','AUDITORIA INTERNA',
+  'BOTARGUEROS','CD CONCEPCION','CENTRAL','CEPIP Y CAMPAÑAS','COMPRAS','CONTABILIDAD',
+  'CONTRALORIA','DIRECCION TECNICA','DISEÑO GRAFICO','DISTRIBUCION','FRANQUICIAS',
+  'INSUMOS','MANTENCION','OPERACIONES','PREVENCION DE RIESGOS','RECURSOS HUMANOS',
+  'SIMI - SAE','TECNOLOGIA','TRANSPORTES','VENTAS','VISITADORES MEDICOS'
+]) as areas(area)
 on conflict (area) do nothing;
 
 create or replace function public.actualizar_configuracion_correos_areas_updated_at()
