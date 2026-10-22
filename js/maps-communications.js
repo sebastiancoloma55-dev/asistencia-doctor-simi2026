@@ -218,14 +218,14 @@
             if(window.actualizarContadoresSelectores2026)window.actualizarContadoresSelectores2026();
         }
         function crearCuerpoCorreo(grupo, casos, desde, hasta) {
-            const nombreGrupo = grupo.tipo === 'SUPERVISOR' ? 'sucursales a cargo de ' + grupo.nombre : 'sucursal ' + grupo.nombre;
+            const nombreGrupo = grupo.tipo === 'SUPERVISOR' ? 'sucursales a cargo de ' + grupo.nombre : grupo.tipo === 'AREA' ? 'área ' + grupo.nombre : 'sucursal ' + grupo.nombre;
             const filas = casos.map((x, i) => (i + 1) + '. ' + x.fecha + ' | ' + x.rut + ' | ' + x.nombre + ' | ' + x.sucursal + '\n   ' + (x.detalles || []).join('\n   ')).join('\n\n');
             const firma = texto(grupo.firma) || 'Saludos cordiales,\nDepartamento de Recursos Humanos\nFarmacias de Similares Chile S.A.\nRUT: 59.111.330-5';
             return 'Estimados/as equipo de ' + nombreGrupo.toUpperCase() + ':\n\nJunto con saludar, esperamos que se encuentren muy bien.\n\nEste correo tiene como objetivo orientar el cumplimiento de la jornada y el correcto registro de asistencia de su equipo. En la revisión preventiva de asistencia se identificaron registros que requieren revisión para el período ' + desde + ' al ' + hasta + ':\n\n' + filas + '\n\nPara regularizar cada caso, agradeceremos confirmar si corresponde a asistencia normal (olvido de marcar), permiso autorizado o inasistencia justificada/no justificada, indicando el motivo y adjuntando el respaldo cuando corresponda.\n\n' + firma;
         }
         function crearCuerpoCorreoHTML(grupo, casos, desde, hasta) {
             const e = v => escaparHTML(texto(v) || '—');
-            const nombreGrupo = grupo.tipo === 'SUPERVISOR' ? 'sucursales a cargo de ' + grupo.nombre : 'sucursal ' + grupo.nombre;
+            const nombreGrupo = grupo.tipo === 'SUPERVISOR' ? 'sucursales a cargo de ' + grupo.nombre : grupo.tipo === 'AREA' ? 'área ' + grupo.nombre : 'sucursal ' + grupo.nombre;
             const estadoCaso = x => { const d=(x.detalles||[]).join(' ').toLowerCase(); if(d.includes('no registra marcas'))return 'Inexistente'; if(d.includes('sin turno'))return 'Sin turno'; if(d.includes('salida anticipada'))return 'Salida anticipada'; if(d.includes('atraso'))return 'Atraso'; return 'Revisar'; };
             const filas = casos.map(x => {
                 const turno=x.turno||x.turno_asignado||x.jornada||x.horario||'—';
@@ -740,6 +740,100 @@
                 actualizarProgresoCorreos(100, 'Vista previa finalizada', 'No se encontraron casos que cumplan los filtros.', 'completado');
             }
         }
+        window.prepararBorradoresAsistenciaAreas = async function(areasSeleccionadas, desde, hasta, tiposSeleccionados, minimoAtraso) {
+            if (!puedePrepararCorreosActual()) throw new Error('No tienes autorización para preparar correos.');
+            if (!desde || !hasta || desde > hasta) throw new Error('Selecciona un período válido.');
+            if (!Array.isArray(areasSeleccionadas) || !areasSeleccionadas.length) throw new Error('Selecciona al menos un área.');
+            if (!asistenciaCargada) await cargarAsistenciaDesdeNube();
+            const areas = areasSeleccionadas.map(x => String(x).trim()).filter(Boolean);
+            const norm = v => normalizarTextoProteccionCorreo(v).replace(/\s*-\s*/g,'-').replace(/\s+/g,' ').trim();
+            const configLocalKey = 'doctor-simi-configuracion-correos-areas-v1';
+            let configAreas = {};
+            try { configAreas = JSON.parse(localStorage.getItem(configLocalKey) || '{}') || {}; } catch (_) {}
+            try {
+                const c = typeof _supabase !== 'undefined' ? _supabase : window._supabase;
+                if (c?.from) {
+                    const {data,error}=await c.from('configuracion_correos_areas').select('area,correo_para,correo_cc,asunto_plantilla,cuerpo_plantilla,firma');
+                    if (!error && Array.isArray(data)) data.forEach(x=>{if(x.area)configAreas[x.area]={...(configAreas[x.area]||{}),...x};});
+                }
+            } catch (_) {}
+            const areasNorm = new Map(areas.map(a=>[norm(a),a]));
+            const porRut = new Map();
+            try {
+                const c = typeof _supabase !== 'undefined' ? _supabase : window._supabase;
+                if(c?.from){
+                    const {data,error}=await c.from('colaboradores').select('*').limit(10000);
+                    if(error) throw error;
+                    (data||[]).forEach(p=>{
+                        const rut=normalizarRutProteccionCorreo(p.rut||p.RUT||'');
+                        if(!rut)return;
+                        const candidatos=[p.area,p.area_nombre,p.departamento,p.departamento_nombre,p.unidad,p.unidad_nombre,p.centro_costo,p.centro_costo_nombre,p.sucursal].filter(Boolean);
+                        const area=candidatos.map(x=>areasNorm.get(norm(x))).find(Boolean);
+                        if(area)porRut.set(rut,{area,persona:p});
+                    });
+                }
+            } catch (e) { throw new Error('No se pudo consultar el directorio para identificar el área de cada colaborador: '+(e.message||e)); }
+            const directArea = suc => areasNorm.get(norm(suc)) || null;
+            let proteccion;
+            try { proteccion=await cargarProteccionAusenciasCorreos(desde,hasta,{forceFresh:true}); }
+            catch(e){throw new Error('No se generaron borradores porque no fue posible verificar licencias, vacaciones y permisos: '+(e.message||e));}
+            const grupos=new Map(), noMapeados=new Set(), excluidos=[];
+            const types=new Set(tiposSeleccionados||['SIN_MARCAS','OTRAS_INCIDENCIAS']);
+            const conteo={SIN_MARCAS:0,OTRAS_INCIDENCIAS:0};
+            for(let i=0;i<datosAsistenciaGlobal.length;i++){
+                const x=datosAsistenciaGlobal[i];
+                const fecha=normalizarFechaProteccionCorreo(x.fecha);
+                if(!fecha||fecha<desde||fecha>hasta)continue;
+                const rut=normalizarRutProteccionCorreo(x.rut);
+                const persona=porRut.get(rut);
+                const area=persona?.area||directArea(x.sucursal);
+                if(!area){noMapeados.add(rut||String(x.nombre||x.sucursal||'registro sin identificador'));continue;}
+                if(!areas.includes(area))continue;
+                const detalles=[];
+                if(types.has('OTRAS_INCIDENCIAS')&&x.tiene_atraso&&minutosAtraso(x.atraso)>=Number(minimoAtraso||0))detalles.push('Atraso: '+x.atraso+'. Favor indicar motivo.');
+                if(types.has('OTRAS_INCIDENCIAS')&&x.salida_temprana&&x.salida_temprana!=='-')detalles.push('Salida anticipada: '+x.salida_temprana+'. Favor indicar motivo.');
+                if(types.has('OTRAS_INCIDENCIAS')&&x.sin_turno_marcas)detalles.push('Presenta marcas sin turno asignado. Favor aclarar la jornada realizada.');
+                const tipoAus=normalizarTextoProteccionCorreo(x.tipo_ausentismo||'');
+                const soloEtiqueta=/^(sin marcas?|inexistente|inexistentes|no registra marcas?)$/.test(tipoAus);
+                if(types.has('SIN_MARCAS')&&x.sin_marca&&(!tipoAus||soloEtiqueta))detalles.push('No registra marcas durante la jornada. Favor confirmar asistencia o justificar inasistencia.');
+                if(!detalles.length)continue;
+                const exclusion=buscarExclusionAusenciaCorreo(x,fecha,proteccion);
+                if(exclusion){excluidos.push({rut,nombre:x.nombre||'',fecha,categoria:exclusion.categoria,mensaje:exclusion.mensaje});continue;}
+                const tipo=detalles.some(d=>/no registra marcas durante la jornada/i.test(d))?'SIN_MARCAS':'OTRAS_INCIDENCIAS';
+                const key=area+'||'+tipo;
+                if(!grupos.has(key))grupos.set(key,{area,tipo,casos:[]});
+                const p=persona?.persona||{};
+                grupos.get(key).casos.push({...x,fecha,detalles,area,rut:rut||x.rut,nombre:x.nombre||[p.nombres,p.apellidos].filter(Boolean).join(' ')||'',turno:x.turno||x.turno_asignado||x.jornada||x.horario||''});
+            }
+            const drafts=[];
+            for(const {area,tipo,casos} of grupos.values()){
+                const cfg=configAreas[area]||{};
+                const para=String(cfg.correo_para||'').trim(), cc=String(cfg.correo_cc||'').trim();
+                if(!para)continue;
+                const etiqueta=tipo==='SIN_MARCAS'?'SOLO INEXISTENTES SIN MARCAS':'OTRAS INCIDENCIAS DE ASISTENCIA';
+                const nombre=area+' · '+etiqueta;
+                const firma=String(cfg.firma||'').trim()||'Saludos cordiales,\nDepartamento de Recursos Humanos\nFarmacias de Similares Chile S.A.\nRUT: 59.111.330-5';
+                const grupo={tipo:'AREA',nombre:area,firma};
+                const asuntoBase=String(cfg.asunto_plantilla||'').trim();
+                const asunto=(asuntoBase&&asuntoBase!=='Comunicación interna – '+area?asuntoBase+' · ':'')+'Importancia alta - '+etiqueta+' - '+area+' - '+desde+' a '+hasta;
+                drafts.push({id:'area-'+norm(area).replace(/[^a-z0-9]+/g,'-')+'-'+tipo.toLowerCase(),tipoCorreo:tipo,nombre,para,cc,asunto,cuerpo:crearCuerpoCorreo(grupo,casos,desde,hasta),cuerpoHtml:crearCuerpoCorreoHTML(grupo,casos,desde,hasta),cantidad:casos.length,proteccionAusenciasVerificada:true,periodoDesde:desde,periodoHasta:hasta,grupoCorreo:grupo,casosDetalle:casos.map(x=>({fecha:x.fecha,rut:x.rut,nombre:x.nombre,sucursal:x.sucursal,area:x.area,detalles:x.detalles,turno:x.turno,turno_asignado:x.turno_asignado,jornada:x.jornada,horario:x.horario,entrada:x.entrada,salida:x.salida}))});
+                conteo[tipo]+=casos.length;
+            }
+            if(!drafts.length)throw new Error('No se encontraron incidencias para las áreas seleccionadas o faltan destinatarios configurados. Revisa el período, la asociación de colaboradores a áreas y la configuración de correos.');
+            if(!window.JSZip)throw new Error('No se cargó JSZip. Recarga la aplicación e inténtalo nuevamente.');
+            const zip=new JSZip(),folder=zip.folder('Borradores_Asistencia_Areas');
+            for(let i=0;i<drafts.length;i++){
+                const b=drafts[i],slug=String(b.nombre).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').slice(0,70)||('Area_'+(i+1));
+                folder.file(String(i+1).padStart(3,'0')+'_'+slug+'.eml',crearEmlOutlook(b));
+            }
+            const total=drafts.reduce((n,b)=>n+b.cantidad,0);
+            zip.file('LEEME.txt','BORRADORES DE ASISTENCIA POR ÁREA\nPeríodo: '+desde+' al '+hasta+'\nCorreos incluidos: '+drafts.length+'\nCasos incluidos: '+total+'\nSin marcas: '+conteo.SIN_MARCAS+'\nOtras incidencias: '+conteo.OTRAS_INCIDENCIAS+'\nCasos excluidos por licencias, permisos o vacaciones: '+excluidos.length+'\nRegistros sin área identificable: '+noMapeados.size+'\n\nLos archivos EML son borradores. Revise destinatarios y contenido en Outlook; no se envían automáticamente.\nLos casos excluidos por ausencias no se incluyen en los correos.');
+            const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+            const url=URL.createObjectURL(blob),a=document.createElement('a');
+            a.href=url;a.download='Borradores_Asistencia_Areas_'+desde+'_a_'+hasta+'.zip';
+            document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+            return {borradores:drafts.length,casos:total,sinMarcas:conteo.SIN_MARCAS,otras:conteo.OTRAS_INCIDENCIAS,excluidos:excluidos.length,sinArea:noMapeados.size,areasSinCorreo:areas.filter(a=>!String((configAreas[a]||{}).correo_para||'').trim())};
+        };
         function renderizarBorradoresMasivos() {
             const cont = document.getElementById('lista-borradores');
             const resumen=document.getElementById('correo-resumen-resultados');
