@@ -687,6 +687,7 @@
               const {error:eventError}=await _supabase.from('tareas_eventos').insert(eventos);
               if(eventError)console.error('No se pudieron registrar todos los eventos de creación:',eventError);
               event.target.reset();
+              cerrarFormularioTarea();
               document.querySelectorAll('input[name="tarea-responsable-multiple"]').forEach(x=>x.checked=false);
               const buscador=document.getElementById('tarea-responsable-buscar');if(buscador)buscador.value='';
               filtrarResponsablesTarea();actualizarConteoResponsablesTarea();
@@ -723,6 +724,14 @@ function cambiarVistaTareas(vista){
  document.querySelectorAll('.task-workspace-tab').forEach(b=>b.classList.toggle('active',b.dataset.taskView===vistaTareasActiva));
  renderizarTareas();
 }
+function cerrarFormularioTarea(){
+ const form=document.getElementById('form-tarea');
+ const overlay=document.getElementById('task-modal-overlay');
+ if(form){form.classList.add('hidden');form.style.display='none';form.removeAttribute('aria-modal');}
+ if(overlay){overlay.classList.remove('is-open');if(form&&form.parentElement===overlay){const view=document.getElementById('view-tareas');const hidden=view?.querySelector('.td-hidden-functional');if(hidden)hidden.before(form);else view?.appendChild(form);}}
+ document.body.classList.remove('task-modal-open');
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('task-modal-overlay')?.classList.contains('is-open'))cerrarFormularioTarea();});
 function abrirFormularioTarea(frecuencia){
  const form=document.getElementById('form-tarea');
  if(!form)return;
@@ -730,14 +739,36 @@ function abrirFormularioTarea(frecuencia){
    mostrarToast('Tu perfil no tiene permiso para crear y asignar tareas. Solicita al administrador que habilite la asignación.','warning',9000);
    return;
  }
- // Abrir como modal centrado; no mover el formulario dentro del encabezado
- // (ese contenedor recorta el contenido y deja visible solo el título).
+ // Montar el formulario directamente en document.body evita que los contenedores
+ // con transform/overflow del dashboard lo recorten o lo dejen detrás del fondo.
  document.getElementById('td-new-menu')?.classList.add('hidden');
  cambiarVistaTareas('CREAR');
+ let overlay=document.getElementById('task-modal-overlay');
+ if(!overlay){
+   overlay=document.createElement('div');
+   overlay.id='task-modal-overlay';
+   overlay.className='task-modal-overlay';
+   overlay.setAttribute('role','presentation');
+   overlay.addEventListener('mousedown',e=>{if(e.target===overlay)cerrarFormularioTarea();});
+   document.body.appendChild(overlay);
+ }
+ if(form.parentElement!==overlay)overlay.appendChild(form);
  form.classList.remove('hidden');
- form.style.display='block';
+ form.style.display='grid';
  form.setAttribute('aria-modal','true');
  form.setAttribute('role','dialog');
+ form.setAttribute('aria-label','Creación y asignación de tarea');
+ let close=form.querySelector('.task-modal-close');
+ if(!close){
+   close=document.createElement('button');
+   close.type='button';close.className='task-modal-close';
+   close.setAttribute('aria-label','Cerrar formulario');
+   close.innerHTML='&times;';
+   close.addEventListener('click',cerrarFormularioTarea);
+   form.prepend(close);
+ }
+ overlay.classList.add('is-open');
+ document.body.classList.add('task-modal-open');
  const select=document.getElementById('tarea-recurrencia');
  if(select&&frecuencia)select.value=frecuencia;
  const title=document.getElementById('tarea-titulo');
