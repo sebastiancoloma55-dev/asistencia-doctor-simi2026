@@ -9,7 +9,7 @@
   ];
   const TABLE = 'configuracion_correos_areas';
   const STORAGE_KEY = 'doctor-simi-configuracion-correos-areas-v1';
-  const DEFAULT_BODY = 'Estimados/as de {AREA}:\\n\\nJunto con saludar, comparto la siguiente información para su revisión y gestión:\\n\\n[Escribe aquí el detalle de la comunicación]\\n\\nQuedo atento/a a sus comentarios.\\n\\n{FIRMA}';
+  const DEFAULT_BODY = 'Estimados/as de {AREA}:\n\nJunto con saludar, comparto la siguiente información para su revisión y gestión:\n\n[Escribe aquí el detalle de la comunicación]\n\nQuedo atento/a a sus comentarios.\n\n{FIRMA}';
   let configs = {};
   let cloudReady = false;
   let selectedArea = AREAS[0];
@@ -17,7 +17,7 @@
   const text = value => String(value == null ? '' : value).trim();
   const escapeHtml = value => text(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function blank(area) {
-    return { area, correo_para:'', correo_cc:'', asunto_plantilla:'Comunicación interna – ' + area, cuerpo_plantilla:DEFAULT_BODY.replaceAll('{AREA}',area).replaceAll('{FIRMA}','Saludos cordiales,\\nFarmacias de Similares Chile S.A.'), firma:'Saludos cordiales,\\nFarmacias de Similares Chile S.A.' };
+    return { area, correo_para:'', correo_cc:'', asunto_plantilla:'Comunicación interna – ' + area, cuerpo_plantilla:DEFAULT_BODY.replaceAll('{AREA}',area).replaceAll('{FIRMA}','Saludos cordiales,\nFarmacias de Similares Chile S.A.'), firma:'Saludos cordiales,\nFarmacias de Similares Chile S.A.' };
   }
   function readLocal() {
     try {
@@ -50,7 +50,7 @@
     if ($('area-mail-draft-to')) $('area-mail-draft-to').value = c.correo_para || '';
     if ($('area-mail-draft-cc')) $('area-mail-draft-cc').value = c.correo_cc || '';
     if ($('area-mail-draft-subject')) $('area-mail-draft-subject').value = (c.asunto_plantilla || ('Comunicación interna – ' + selectedArea)).replaceAll('{AREA}',selectedArea);
-    const body = (c.cuerpo_plantilla || blank(selectedArea).cuerpo_plantilla).replaceAll('{AREA}',selectedArea).replaceAll('{FIRMA}',c.firma || 'Saludos cordiales,\\nFarmacias de Similares Chile S.A.');
+    const body = (c.cuerpo_plantilla || blank(selectedArea).cuerpo_plantilla).replaceAll('{AREA}',selectedArea).replaceAll('{FIRMA}',c.firma || 'Saludos cordiales,\nFarmacias de Similares Chile S.A.');
     if ($('area-mail-draft-body')) $('area-mail-draft-body').value = body;
   }
   function persistLocal() {
@@ -115,7 +115,7 @@
     if (cc) params.push('cc=' + encodeURIComponent(cc.replaceAll(';',',')));
     if (subject) params.push('subject=' + encodeURIComponent(subject));
     if (body) params.push('body=' + encodeURIComponent(body));
-    const url = 'mailto:' + encodeURIComponent(list(to).join(',')) + (params.length ? '?' + params.join('&') : '');
+    const url = 'mailto:' + list(to).join(',') + (params.length ? '?' + params.join('&') : '');
     window.location.href = url;
     status('Borrador preparado para ' + area + '. Revísalo en tu aplicación de correo; no se envía automáticamente.',false);
   }
@@ -140,7 +140,7 @@
     panel.innerHTML = '<div class="mb-4 flex flex-wrap items-start justify-between gap-3"><div><span class="module-kicker">CASA MATRIZ Y CENTRAL</span><h3 class="mt-2 text-lg font-extrabold text-slate-900">Borrador de correo por área</h3><p class="mt-1 max-w-3xl text-sm text-slate-600">Usa destinatarios guardados para el área seleccionada. Este flujo es independiente de las incidencias de sucursales y nunca envía el correo automáticamente.</p></div><span class="rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-800">Comunicación interna</span></div><div class="grid grid-cols-1 gap-4 md:grid-cols-2"><label class="text-xs font-bold text-slate-600">Área<select id="area-mail-draft-area" class="form-field mt-1"></select></label><label class="text-xs font-bold text-slate-600">Para<input id="area-mail-draft-to" class="form-field mt-1" readonly></label><label class="text-xs font-bold text-slate-600 md:col-span-2">CC<input id="area-mail-draft-cc" class="form-field mt-1" readonly></label><label class="text-xs font-bold text-slate-600 md:col-span-2">Asunto<input id="area-mail-draft-subject" class="form-field mt-1"></label><label class="text-xs font-bold text-slate-600 md:col-span-2">Mensaje<textarea id="area-mail-draft-body" class="form-field mt-1" rows="8"></textarea></label></div><div class="mt-4 flex flex-wrap gap-2"><button id="area-mail-open-draft" type="button" class="corp-button"><i data-lucide="mail" class="mr-1 inline h-4 w-4"></i>Abrir borrador en correo</button><button id="area-mail-refresh" type="button" class="corp-button-dark">Recargar destinatarios guardados</button><button id="area-mail-copy" type="button" class="rounded-lg border px-4 py-2 text-sm font-bold">Copiar mensaje</button></div><p data-area-mail-status aria-live="polite" class="mt-2 text-xs text-slate-500">Cargando configuración guardada…</p>';
     const intro = section.querySelector('.module-intro');
     if (intro && intro.nextSibling) section.insertBefore(panel,intro.nextSibling); else section.prepend(panel);
-    $('area-mail-draft-area').addEventListener('change',()=>{selectedArea=$('area-mail-draft-area').value; $('area-mail-config-area').value=selectedArea;draftForm();});
+    $('area-mail-draft-area').addEventListener('change',()=>{selectedArea=$('area-mail-draft-area').value; $('area-mail-config-area').value=selectedArea;configForm();draftForm();});
     $('area-mail-open-draft').addEventListener('click',openDraft);
     $('area-mail-refresh').addEventListener('click',async()=>{try{await loadCloud();renderSelects();configForm();draftForm();status('Configuración recargada desde Supabase.',false);}catch(e){readLocal();renderSelects();configForm();draftForm();status('No se pudo consultar Supabase; se muestran los datos guardados en este navegador. '+(e?.message||''),true);}});
     $('area-mail-copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('area-mail-draft-body').value);status('Mensaje copiado al portapapeles.',false);}catch(_){$('area-mail-draft-body').select();document.execCommand('copy');status('Mensaje seleccionado/copied. Puedes pegarlo en tu correo.',false);}});
