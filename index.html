@@ -1157,6 +1157,21 @@ main>header .topbar-quick-action{display:none!important}
 #simi-context-toggle.has-simi-mascot:hover{filter:brightness(1.06)}
 </style>
 
+
+<style id="fix-single-sidebar-active-20261022">
+/* El hover de módulos no seleccionados debe ser discreto y no parecer un segundo módulo activo. */
+#sidebar .menu-btn:hover:not(.active):not([aria-current="page"]){
+  background:rgba(255,255,255,.075)!important;
+  border-color:rgba(255,255,255,.10)!important;
+  box-shadow:none!important;
+  transform:none!important;
+}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{
+  background:linear-gradient(110deg,var(--nav-accent,#069fb4),color-mix(in srgb,var(--nav-accent,#069fb4) 74%,#07529c))!important;
+  border-color:color-mix(in srgb,var(--nav-accent,#069fb4) 68%,white)!important;
+  box-shadow:0 7px 18px color-mix(in srgb,var(--nav-accent,#069fb4) 23%,transparent),inset 0 1px rgba(255,255,255,.18)!important;
+}
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -2898,7 +2913,7 @@ main>header .topbar-quick-action{display:none!important}
 <script src="/js/workflows.js?v=permisos-envio-licencias-141026"></script>
 <script src="/js/maps-communications.js?v=area-attendance-preview-list-20261022c"></script>
 <script src="/js/area-email-config.js?v=area-attendance-preview-list-fix-20261022d"></script>
-<script src="/js/memes-rrhh.js?v=memes-rrhh-20261022a"></script>
+<script src="/js/memes-rrhh.js?v=memes-rrhh-20261022b"></script>
 <script src="/js/cat-download-progress.js?v=cat-progress-20261020a"></script>
 <script src="/js/medical-leave-registration.js?v=cat-progress-restore-20261020a"></script>
 <script src="/js/people-directory.js?v=20261018d"></script>
