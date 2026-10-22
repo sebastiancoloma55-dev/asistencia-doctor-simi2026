@@ -219,11 +219,70 @@
       const title=document.createElement('p');title.className='truncate text-sm font-bold text-slate-800';title.textContent=f.group;
       const sub=document.createElement('p');sub.className='mt-1 text-xs text-slate-500';sub.textContent=f.count+' registros · '+f.name;
       info.append(title,sub);
-      const btn=document.createElement('button');btn.type='button';btn.className='corp-button';btn.textContent='Descargar Excel';btn.addEventListener('click',()=>downloadOne(f));
-      row.append(info,btn);container.appendChild(row);
+      const actions=document.createElement('div');actions.className='flex flex-wrap gap-2';
+      const btn=document.createElement('button');btn.type='button';btn.className='rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700';btn.textContent='Descargar Excel';btn.addEventListener('click',()=>downloadOne(f));
+      const mailBtn=document.createElement('button');mailBtn.type='button';mailBtn.className='corp-button';mailBtn.textContent='Preparar correo';mailBtn.title='Descarga el Excel y abre un borrador dirigido al contacto configurado';
+      mailBtn.addEventListener('click',()=>prepareEmail(f,grouping,mailBtn));
+      actions.append(btn,mailBtn);row.append(info,actions);container.appendChild(row);
     });
     $('excel-asistencia-descargar-zip').disabled=!outputFiles.some(f=>selected.has(f.group));
     $('excel-asistencia-descargar-seleccion').disabled=!outputFiles.some(f=>selected.has(f.group));
+  }
+  function normalizeKey(value) {
+    return String(value || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  }
+  function splitEmails(value) {
+    return String(value || '').split(/[;,]+/).map(x=>x.trim()).filter(x=>/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(x));
+  }
+  async function resolveRecipients(file, grouping) {
+    const key=grouping==='SUCURSAL'?'sucursal':'area';
+    let to='',cc='',subject='Reporte de asistencia · '+file.group;
+    let body='Estimados/as:\\n\\nJunto con saludar, adjunto el reporte de asistencia correspondiente a '+file.group+'.\\n\\nAgradeceré revisar la información y gestionar las regularizaciones que correspondan.\\n\\nSaludos.';
+    if(grouping==='SUCURSAL') {
+      const client=(typeof _supabase!=='undefined'&&_supabase?.from)?_supabase:window._supabase;
+      if(client?.from) {
+        const {data,error}=await client.from('sucursales').select('nombre,correo_sucursal,correo_copia');
+        if(error) throw error;
+        const row=(data||[]).find(x=>normalizeKey(x.nombre)===normalizeKey(file.group));
+        if(row){to=row.correo_sucursal||'';cc=row.correo_copia||'';}
+      }
+    } else {
+      const client=(typeof _supabase!=='undefined'&&_supabase?.from)?_supabase:window._supabase;
+      let row=null;
+      if(client?.from) {
+        const {data,error}=await client.from('configuracion_correos_areas').select('area,correo_para,correo_cc,asunto_plantilla,cuerpo_plantilla,firma');
+        if(!error) row=(data||[]).find(x=>normalizeKey(x.area)===normalizeKey(file.group))||null;
+      }
+      if(!row) {
+        try { const local=JSON.parse(localStorage.getItem('doctor-simi-configuracion-correos-areas-v1')||'{}'); row=Object.values(local).find(x=>normalizeKey(x.area)===normalizeKey(file.group))||local[file.group]||null; } catch(_) {}
+      }
+      if(row) {
+        to=row.correo_para||'';cc=row.correo_cc||'';
+        subject=String(row.asunto_plantilla||subject).replace(/\\[AREA\\]/gi,file.group).replace(/\\{AREA\\}/gi,file.group);
+        body=String(row.cuerpo_plantilla||body).replace(/\\[AREA\\]/gi,file.group).replace(/\\{AREA\\}/gi,file.group);
+        if(row.firma) body+='\\n\\n'+row.firma;
+      }
+    }
+    return {to:splitEmails(to),cc:splitEmails(cc),subject,body};
+  }
+  async function prepareEmail(file, grouping, button) {
+    button.disabled=true;const old=button.textContent;button.textContent='Preparando…';
+    try {
+      const recipients=await resolveRecipients(file,grouping);
+      if(!recipients.to.length) {
+        showStatus('No hay destinatario configurado para '+file.group+'. Configura el correo en '+(grouping==='SUCURSAL'?'Correos de sucursales':'Configuración de correos por área')+' y vuelve a intentarlo.','error');
+        return;
+      }
+      downloadOne(file);
+      const query=[];
+      if(recipients.cc.length) query.push('cc='+encodeURIComponent(recipients.cc.join(',')));
+      query.push('subject='+encodeURIComponent(recipients.subject),'body='+encodeURIComponent(recipients.body+'\\n\\nArchivo adjunto: '+file.name));
+      const mailto='mailto:'+encodeURIComponent(recipients.to.join(',')).replace(/%2C/gi,',')+'?'+query.join('&');
+      window.location.href=mailto;
+      showStatus('Se descargó '+file.name+' y se abrió un borrador para '+file.group+'. Adjunta el Excel descargado antes de enviar el correo.','ok');
+    } catch(err) {
+      showStatus('No se pudo preparar el correo para '+file.group+': '+(err.message||String(err)),'error');
+    } finally {button.disabled=false;button.textContent=old;}
   }
   function downloadOne(file) {
     const blob=new Blob([file.data],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
