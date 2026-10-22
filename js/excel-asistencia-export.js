@@ -237,56 +237,32 @@
   }
   async function resolveRecipients(file, grouping) {
     const client=(typeof _supabase!=='undefined'&&_supabase?.from)?_supabase:window._supabase;
-    let to='',cc='',subject='Reporte de asistencia · '+file.group;
-    let body='Estimados/as:\n\nJunto con saludar, adjunto el reporte de asistencia correspondiente a '+file.group+'.\n\nAgradeceré revisar la información y gestionar las regularizaciones que correspondan.\n\nSaludos.';
-    let branchLookupFailed=false;
+    let to='',cc='',signature='',subject='',body='';
+    const reportDate=new Date().toLocaleDateString('es-CL',{year:'numeric',month:'2-digit',day:'2-digit'});
+    subject='Reporte diario asistencia — '+file.group+' — '+reportDate+' — V2';
+    body='Estimados/as:\\n\\nJunto con saludar, por medio del presente correo se comparte el reporte diario de asistencia.\\n\\nEl archivo adjunto contiene la información de asistencia correspondiente al grupo '+file.group+', para su revisión y gestión de las regularizaciones que correspondan.\\n\\nEste envío forma parte del proceso de control de asistencia y mejora continua.\\n\\nSaludos cordiales,';
     if(client?.from) {
-      try {
-        const {data,error}=await client.from('sucursales').select('nombre,correo_sucursal,correo_copia');
-        if(error) throw error;
-        const branches=data||[];
-        const branchNames=new Set((file.branches||[]).map(normalizeKey));
-        const matched=branches.filter(x=>
-          normalizeKey(x.nombre)===normalizeKey(file.group) ||
-          (grouping==='SUCURSAL' && normalizeKey(x.nombre)===normalizeKey(file.group)) ||
-          (grouping!=='SUCURSAL' && branchNames.has(normalizeKey(x.nombre)))
-        );
-        to=[...new Set(matched.flatMap(x=>splitEmails(x.correo_sucursal||'')))].join('; ');
-        cc=[...new Set(matched.flatMap(x=>splitEmails(x.correo_copia||'')))].join('; ');
-      } catch(err) {
-        branchLookupFailed=true;
-        console.warn('[Exportador Excel] No se pudo consultar Correos de sucursales; se probará la configuración alternativa.',err);
-      }
+      const {data,error}=await client.from('sucursales').select('nombre,correo_sucursal,correo_copia,firma_correo');
+      if(error) throw error;
+      const branches=data||[];
+      const branchNames=new Set((file.branches||[]).map(normalizeKey));
+      const matched=branches.filter(x=>normalizeKey(x.nombre)===normalizeKey(file.group)||(grouping!=='SUCURSAL'&&branchNames.has(normalizeKey(x.nombre))));
+      to=[...new Set(matched.flatMap(x=>splitEmails(x.correo_sucursal||'')))].join('; ');
+      cc=[...new Set(matched.flatMap(x=>splitEmails(x.correo_copia||'')))].join('; ');
+      signature=[...new Set(matched.map(x=>String(x.firma_correo||'').trim()).filter(Boolean))].join('\\n\\n');
     }
-    if(!splitEmails(to).length && client?.from) {
-      try {
-        const {data,error}=await client.from('configuracion_correos_areas').select('area,correo_para,correo_cc,asunto_plantilla,cuerpo_plantilla,firma');
-        if(!error) {
-          const row=(data||[]).find(x=>normalizeKey(x.area)===normalizeKey(file.group));
-          if(row) {
-            to=row.correo_para||'';cc=row.correo_cc||'';
-            subject=String(row.asunto_plantilla||subject).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group);
-            body=String(row.cuerpo_plantilla||body).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group);
-            if(row.firma) body+='\n\n'+row.firma;
-          }
-        }
-      } catch(err) {
-        console.warn('[Exportador Excel] No se pudo consultar configuración alternativa de áreas.',err);
-      }
-    }
-    if(!splitEmails(to).length) {
-      try {
-        const local=JSON.parse(localStorage.getItem('doctor-simi-configuracion-correos-areas-v1')||'{}');
-        const row=Object.values(local).find(x=>normalizeKey(x.area)===normalizeKey(file.group))||local[file.group];
+    if(!splitEmails(to).length&&grouping!=='SUCURSAL'&&client?.from) {
+      const {data,error}=await client.from('configuracion_correos_areas').select('area,correo_para,correo_cc,asunto_plantilla,cuerpo_plantilla,firma');
+      if(!error) {
+        const row=(data||[]).find(x=>normalizeKey(x.area)===normalizeKey(file.group));
         if(row) {
-          to=row.correo_para||'';cc=row.correo_cc||'';
+          to=row.correo_para||'';cc=row.correo_cc||'';signature=row.firma||signature;
           subject=String(row.asunto_plantilla||subject).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group);
-          body=String(row.cuerpo_plantilla||body).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group);
-          if(row.firma) body+='\n\n'+row.firma;
+          body=String(row.cuerpo_plantilla||body).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group).replace(/\{FIRMA\}/gi,'');
         }
-      } catch(_) {}
+      }
     }
-    return {to:splitEmails(to),cc:splitEmails(cc),subject,body,branchLookupFailed};
+    return {to:splitEmails(to),cc:splitEmails(cc),subject,body,signature};
   }
   async function prepareEmail(file, grouping, button) {
     button.disabled=true;const old=button.textContent;button.textContent='Preparando…';
@@ -326,32 +302,61 @@
     let binary='';for(const b of bytes)binary+=String.fromCharCode(b);
     return '=?UTF-8?B?'+btoa(binary)+'?=';
   }
+  function htmlEscape(value) {
+    return String(value==null?'':value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function htmlBody(file, recipients) {
+    const area=htmlEscape(file.group),subject=htmlEscape(recipients.subject);
+    const body=String(recipients.body||'').replace(/\\n/g,'\n').trim();
+    const paragraphs=body.split(/\n\s*\n/).map(p=>'<p style="margin:0 0 14px;line-height:1.65;color:#24364b;font-size:14px;">'+htmlEscape(p).replace(/\n/g,'<br>')+'</p>').join('');
+    const signature=String(recipients.signature||'').trim();
+    const sigHtml=signature?signature.split(/\r?\n/).map(line=>htmlEscape(line)).join('<br>'):'Área de Asistencia y Ausentismo<br>Departamento de Recursos Humanos<br>Farmacias de Similares Chile S.A.';
+    const date=new Date().toLocaleDateString('es-CL',{year:'numeric',month:'long',day:'2-digit'});
+    return '<!doctype html><html lang="es"><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#eef3f8;font-family:Arial,Helvetica,sans-serif;color:#24364b;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef3f8;padding:24px 10px;"><tr><td align="center"><table role="presentation" width="700" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:700px;background:#fff;border:1px solid #d9e3ef;border-radius:10px;overflow:hidden;"><tr><td style="background:#0b3768;padding:22px 28px;border-bottom:5px solid #19a8a5;"><div style="color:#fff;font-size:19px;font-weight:700;">DOCTOR SIMI <span style="font-size:12px;font-weight:400;color:#d8edf8;">| RECURSOS HUMANOS</span></div><div style="padding-top:8px;color:#bce8ec;font-size:11px;letter-spacing:1.4px;font-weight:700;">CONTROL DE ASISTENCIA · ENVÍO AUTOMÁTICO PREPARADO</div></td></tr><tr><td style="padding:28px 28px 12px;"><div style="font-size:11px;letter-spacing:1.2px;font-weight:700;color:#168f96;margin-bottom:8px;">REPORTE DIARIO</div><h1 style="font-size:22px;line-height:1.3;color:#0b3768;margin:0 0 16px;">'+subject+'</h1><p style="font-size:13px;color:#60738a;margin:0;">Estimados/as de <strong style="color:#0b3768;">'+area+'</strong>:</p></td></tr><tr><td style="padding:8px 28px 18px;">'+paragraphs+'</td></tr><tr><td style="padding:0 28px 22px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border:1px solid #cfdae7;"><tr><td colspan="2" style="background:#eaf3fb;color:#0b3768;font-size:12px;font-weight:700;padding:12px 14px;border-bottom:1px solid #cfdae7;">RESUMEN DEL REPORTE</td></tr><tr><td width="30%" style="padding:11px 14px;background:#f7fafd;border-bottom:1px solid #e1e8f0;color:#50647b;font-size:12px;font-weight:700;">Área / sucursal</td><td style="padding:11px 14px;border-bottom:1px solid #e1e8f0;color:#24364b;font-size:13px;">'+area+'</td></tr><tr><td style="padding:11px 14px;background:#f7fafd;color:#50647b;font-size:12px;font-weight:700;">Fecha de emisión</td><td style="padding:11px 14px;color:#24364b;font-size:13px;">'+htmlEscape(date)+'</td></tr></table></td></tr><tr><td style="padding:0 28px 26px;"><p style="margin:0;color:#24364b;font-size:14px;line-height:1.6;">Saludos cordiales,</p><p style="margin:10px 0 0;color:#24364b;font-size:13px;line-height:1.6;">'+sigHtml+'</p></td></tr><tr><td style="background:#f3f7fb;border-top:1px solid #d9e3ef;padding:14px 28px;color:#6b7e92;font-size:10px;line-height:1.5;">Mensaje preparado desde Asistencia Doctor Simi · Recursos Humanos.<br>Revise los destinatarios y el archivo adjunto antes de enviar.</td></tr></table></td></tr></table></body></html>';
+  }
   function createEml(file, recipients) {
     const boundary='----=_DoctorSimi_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9);
+    const altBoundary=boundary+'_alt';
+    const filename=String(file.name||'Reporte_Asistencia.xlsx').replace(/["\\]/g,'_');
+    const subject='=?UTF-8?B?'+btoa(unescape(encodeURIComponent(recipients.subject)))+'?=';
+    const html=htmlBody(file,recipients);
+    const plain=String(recipients.body||'').replace(/\\n/g,'\n')+'\\n\\nÁrea / sucursal: '+file.group+'\\nArchivo adjunto: '+filename;
     const lines=[
       'To: '+recipients.to.join(', '),
       ...(recipients.cc.length?['Cc: '+recipients.cc.join(', ')]:[]),
-      'Subject: '+mimeHeader(recipients.subject),
+      'Subject: '+subject,
       'MIME-Version: 1.0',
+      'X-Unsent: 1',
       'Content-Type: multipart/mixed; boundary="'+boundary+'"',
       '',
       '--'+boundary,
+      'Content-Type: multipart/alternative; boundary="'+altBoundary+'"',
+      '',
+      '--'+altBoundary,
       'Content-Type: text/plain; charset=UTF-8',
       'Content-Transfer-Encoding: base64',
       '',
-      btoa(unescape(encodeURIComponent(recipients.body))),
+      btoa(unescape(encodeURIComponent(plain))),
+      '',
+      '--'+altBoundary,
+      'Content-Type: text/html; charset=UTF-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      btoa(unescape(encodeURIComponent(html))),
+      '',
+      '--'+altBoundary+'--',
       '',
       '--'+boundary,
-      'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; name="'+file.name.replace(/["\\\\]/g,'_')+'"',
+      'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; name="'+filename+'"',
       'Content-Transfer-Encoding: base64',
-      'Content-Disposition: attachment; filename="'+file.name.replace(/["\\\\]/g,'_')+'"',
+      'Content-Disposition: attachment; filename="'+filename+'"',
       '',
       base64Bytes(file.data),
       '',
       '--'+boundary+'--',
       ''
     ];
-    return lines.join('\\r\\n');
+    return lines.join('\r\n');
   }
   async function downloadEmailZip() {
     const button=$('excel-asistencia-zip-correos');
