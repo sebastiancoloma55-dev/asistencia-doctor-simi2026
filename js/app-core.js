@@ -1111,6 +1111,11 @@
         }
         window.cargarPanelInteligenteOperativo=cargarPanelInteligenteOperativo;
         async function cambiarModulo(modulo, cargar = true) {
+            // Garantiza un único módulo activo, incluso si algún botón quedó fuera de la lista central.
+            document.querySelectorAll('#sidebar .menu-btn').forEach(boton => {
+                boton.classList.remove('active');
+                boton.removeAttribute('aria-current');
+            });
             const secuenciaActual = ++secuenciaCambioModulo;
             // No repetir una consulta a Supabase por cada clic de navegación.
             if (window.cargarActualizacionesFuentes && Date.now() - ultimaConsultaActualizacionesFuente > 30000) {
