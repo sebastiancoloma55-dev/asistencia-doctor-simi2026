@@ -163,35 +163,64 @@
     el.textContent=text; el.className='mt-3 rounded-xl border p-3 text-sm '+(type==='error'?'border-red-200 bg-red-50 text-red-800':type==='ok'?'border-emerald-200 bg-emerald-50 text-emerald-800':'border-blue-200 bg-blue-50 text-blue-900');
     el.classList.remove('hidden');
   }
+  function updateCatProgress(percent,title,detail,state) {
+    if(typeof window.actualizarProgresoCorreos==='function') {
+      window.actualizarProgresoCorreos(percent,title,detail,state);
+    }
+  }
+  function yieldToUI() {
+    return new Promise(resolve=>setTimeout(resolve,0));
+  }
   function processFile() {
     const file=$('excel-asistencia-file').files[0];
     if (!file) {showStatus('Selecciona primero un archivo Excel (.xlsx o .xls).','error');return;}
     if (!window.XLSX || !window.JSZip) {showStatus('No se cargaron las librerías de Excel o ZIP. Recarga la página e inténtalo nuevamente.','error');return;}
-    const button=$('excel-asistencia-procesar'); button.disabled=true; button.textContent='Procesando archivo…';
-    warnings=[]; outputFiles=[]; $('excel-asistencia-resultados').replaceChildren();
+    const button=$('excel-asistencia-procesar');
+    button.disabled=true;button.textContent='Procesando archivo…';
+    warnings=[];outputFiles=[];$('excel-asistencia-resultados').replaceChildren();
+    updateCatProgress(3,'Procesando reporte de asistencia','El gatito está leyendo el archivo de Talana. Por favor, espera.','procesando');
     const reader=new FileReader();
-    reader.onerror=()=>{button.disabled=false;button.textContent='Procesar reporte';showStatus('No se pudo leer el archivo seleccionado.','error');};
-    reader.onload=()=>{
+    reader.onerror=()=>{
+      button.disabled=false;button.textContent='Procesar reporte';
+      showStatus('No se pudo leer el archivo seleccionado.','error');
+      updateCatProgress(100,'No se pudo leer el archivo','Intenta seleccionar nuevamente el Excel y vuelve a procesarlo.','error');
+    };
+    reader.onload=async()=>{
       try {
+        updateCatProgress(12,'Leyendo archivo Excel','Revisando hojas y encabezados del reporte.','procesando');
+        await yieldToUI();
         const wb=XLSX.read(reader.result,{type:'array',cellDates:true});
-        const sheetName=wb.SheetNames[0], ws=wb.Sheets[sheetName];
-        if (!ws) throw new Error('El archivo no contiene una hoja legible.');
+        const sheetName=wb.SheetNames[0],ws=wb.Sheets[sheetName];
+        if(!ws)throw new Error('El archivo no contiene una hoja legible.');
         const raw=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
-        if (!raw.length) throw new Error('La hoja seleccionada no contiene registros.');
+        if(!raw.length)throw new Error('La hoja seleccionada no contiene registros.');
         const headers=Object.keys(raw[0]).map(norm);
         const required=['rut','nombre','fecha'];
         const absent=required.filter(k=>!headers.includes(k));
-        if (absent.length) throw new Error('No se reconocen las columnas obligatorias: '+absent.join(', ')+'. Verifica que subiste el reporte avanzado de asistencia.');
-        sourceRows=raw.map((r,i)=>transform(r,i+2));
+        if(absent.length)throw new Error('No se reconocen las columnas obligatorias: '+absent.join(', ')+'. Verifica que subiste el reporte avanzado de asistencia.');
+        sourceRows=[];
+        const chunkSize=100;
+        for(let i=0;i<raw.length;i+=chunkSize) {
+          const end=Math.min(i+chunkSize,raw.length);
+          for(let j=i;j<end;j++)sourceRows.push(transform(raw[j],j+2));
+          const pct=15+Math.round((end/raw.length)*45);
+          updateCatProgress(pct,'Analizando marcaciones','Procesando '+end+' de '+raw.length+' registros de asistencia.','procesando');
+          await yieldToUI();
+        }
+        updateCatProgress(64,'Agrupando resultados','Separando los registros por área o sucursal.','procesando');
+        await yieldToUI();
         const grouping=$('excel-asistencia-agrupar').value;
         const key=grouping==='SUCURSAL'?'__groupBranch':'__groupCost';
         const groups=[...new Set(sourceRows.map(r=>r[key]||'SIN DATOS'))].sort((a,b)=>a.localeCompare(b,'es'));
         renderGroups(groups);
-        const selected=new Set(groups);
-        groups.forEach(group=>{
+        outputFiles=[];
+        for(let i=0;i<groups.length;i++) {
+          const group=groups[i];
           const rows=sourceRows.filter(r=>(r[key]||'SIN DATOS')===group);
           outputFiles.push(makeWorkbook(rows,grouping,group));
-        });
+          updateCatProgress(65+Math.round(((i+1)/groups.length)*27),'Generando archivos Excel','Preparando grupo '+(i+1)+' de '+groups.length+': '+group,'procesando');
+          if(i%2===1)await yieldToUI();
+        }
         const valid=sourceRows.filter(r=>r.RUT&&r.Nombre&&r.Fecha).length;
         $('excel-asistencia-kpi-registros').textContent=String(sourceRows.length);
         $('excel-asistencia-kpi-grupos').textContent=String(groups.length);
@@ -204,8 +233,13 @@
           $('excel-asistencia-alertas').textContent=warnings.slice(0,30).join('\n')+(warnings.length>30?'\n… y '+(warnings.length-30)+' alertas más.':'');
         } else $('excel-asistencia-alertas').classList.add('hidden');
         showStatus('Procesamiento completado. Se prepararon '+groups.length+' archivos con '+sourceRows.length+' registros. Revisa los resultados antes de descargar.','ok');
-      } catch(err) {showStatus(err.message||'Ocurrió un error al procesar el Excel.','error');}
-      finally {button.disabled=false;button.textContent='Procesar reporte';}
+        updateCatProgress(100,'¡Reporte procesado!','Se prepararon '+groups.length+' archivos con '+sourceRows.length+' registros. Ya puedes revisar y descargar los resultados.','completado');
+      } catch(err) {
+        showStatus(err.message||'Ocurrió un error al procesar el Excel.','error');
+        updateCatProgress(100,'No se pudo procesar el reporte',err.message||'Ocurrió un error al procesar el Excel.','error');
+      } finally {
+        button.disabled=false;button.textContent='Procesar reporte';
+      }
     };
     reader.readAsArrayBuffer(file);
   }
