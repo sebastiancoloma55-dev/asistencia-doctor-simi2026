@@ -339,7 +339,8 @@
   function htmlEscape(value) {
     return String(value==null?'':value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
-  function base64Text(value) { const encoded=btoa(unescape(encodeURIComponent(String(value||'')))); const lines=[]; for(let i=0;i<encoded.length;i+=76) lines.push(encoded.slice(i,i+76)); return lines.join('\\r\\n'); }\n  function htmlBody(file, recipients) {
+  function base64Text(value) { const encoded=btoa(unescape(encodeURIComponent(String(value||'')))); const lines=[]; for(let i=0;i<encoded.length;i+=76) lines.push(encoded.slice(i,i+76)); return lines.join('\r\n'); }
+  function htmlBody(file, recipients) {
     const area=htmlEscape(file.group),subject=htmlEscape(recipients.subject);
     const body=String(recipients.body||'').replace(/\\n/g,'\n').trim();
     const paragraphs=body.split(/\n\s*\n/).map(p=>'<p style="margin:0 0 14px;line-height:1.65;color:#24364b;font-size:14px;">'+htmlEscape(p).replace(/\n/g,'<br>')+'</p>').join('');
