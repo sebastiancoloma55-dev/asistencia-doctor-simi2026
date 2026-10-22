@@ -4647,7 +4647,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
       alert('El acuerdo debe contener sus 3 páginas. Se detectaron ' + pages.length + '. Revisa la plantilla antes de imprimir.');
       return;
     }
-    const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=1000,height=800');
+    const printWindow = window.open('', '_blank', 'width=1000,height=800');
     if (!printWindow) {
       alert('El navegador bloqueó la ventana de impresión. Permite las ventanas emergentes para este sitio e inténtalo nuevamente.');
       return;
