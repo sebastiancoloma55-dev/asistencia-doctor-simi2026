@@ -238,7 +238,7 @@
   async function resolveRecipients(file, grouping) {
     const client=(typeof _supabase!=='undefined'&&_supabase?.from)?_supabase:window._supabase;
     let to='',cc='',signature='',subject='',body='';
-    const reportDate=new Date().toLocaleDateString('es-CL',{year:'numeric',month:'2-digit',day:'2-digit'});
+    const reportDate=new Date().toISOString().slice(0,10);
     subject='Reporte diario asistencia — '+file.group+' — '+reportDate+' — V2';
     body='Estimados/as:\\n\\nJunto con saludar, por medio del presente correo se comparte el reporte diario de asistencia.\\n\\nEl archivo adjunto contiene la información de asistencia correspondiente al grupo '+file.group+', para su revisión y gestión de las regularizaciones que correspondan.\\n\\nEste envío forma parte del proceso de control de asistencia y mejora continua.\\n\\nSaludos cordiales,';
     if(client?.from) {
@@ -305,12 +305,12 @@
   function htmlEscape(value) {
     return String(value==null?'':value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
-  function htmlBody(file, recipients) {
+  function base64Text(value) { const encoded=btoa(unescape(encodeURIComponent(String(value||'')))); const lines=[]; for(let i=0;i<encoded.length;i+=76) lines.push(encoded.slice(i,i+76)); return lines.join('\\r\\n'); }\n  function htmlBody(file, recipients) {
     const area=htmlEscape(file.group),subject=htmlEscape(recipients.subject);
     const body=String(recipients.body||'').replace(/\\n/g,'\n').trim();
     const paragraphs=body.split(/\n\s*\n/).map(p=>'<p style="margin:0 0 14px;line-height:1.65;color:#24364b;font-size:14px;">'+htmlEscape(p).replace(/\n/g,'<br>')+'</p>').join('');
     const signature=String(recipients.signature||'').trim();
-    const sigHtml=signature?signature.split(/\r?\n/).map(line=>htmlEscape(line)).join('<br>'):'Área de Asistencia y Ausentismo<br>Departamento de Recursos Humanos<br>Farmacias de Similares Chile S.A.';
+    const sigHtml=signature?signature.split(/\r?\n/).map(line=>htmlEscape(line)).join('<br>'):'Sebastián Andrés Coloma Consuegra<br>Encargado del Área de Asistencia y Turno<br>Camino Lo Echevers 550, Módulos 16, 17 y 18, Quilicura, Santiago<br>+56 9 4805 5037 | 3021<br>scoloma@farmaciasdoctorsimi.cl';
     const date=new Date().toLocaleDateString('es-CL',{year:'numeric',month:'long',day:'2-digit'});
     return '<!doctype html><html lang="es"><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#eef3f8;font-family:Arial,Helvetica,sans-serif;color:#24364b;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef3f8;padding:24px 10px;"><tr><td align="center"><table role="presentation" width="700" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:700px;background:#fff;border:1px solid #d9e3ef;border-radius:10px;overflow:hidden;"><tr><td style="background:#0b3768;padding:22px 28px;border-bottom:5px solid #19a8a5;"><div style="color:#fff;font-size:19px;font-weight:700;">DOCTOR SIMI <span style="font-size:12px;font-weight:400;color:#d8edf8;">| RECURSOS HUMANOS</span></div><div style="padding-top:8px;color:#bce8ec;font-size:11px;letter-spacing:1.4px;font-weight:700;">CONTROL DE ASISTENCIA · ENVÍO AUTOMÁTICO PREPARADO</div></td></tr><tr><td style="padding:28px 28px 12px;"><div style="font-size:11px;letter-spacing:1.2px;font-weight:700;color:#168f96;margin-bottom:8px;">REPORTE DIARIO</div><h1 style="font-size:22px;line-height:1.3;color:#0b3768;margin:0 0 16px;">'+subject+'</h1><p style="font-size:13px;color:#60738a;margin:0;">Estimados/as de <strong style="color:#0b3768;">'+area+'</strong>:</p></td></tr><tr><td style="padding:8px 28px 18px;">'+paragraphs+'</td></tr><tr><td style="padding:0 28px 22px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border:1px solid #cfdae7;"><tr><td colspan="2" style="background:#eaf3fb;color:#0b3768;font-size:12px;font-weight:700;padding:12px 14px;border-bottom:1px solid #cfdae7;">RESUMEN DEL REPORTE</td></tr><tr><td width="30%" style="padding:11px 14px;background:#f7fafd;border-bottom:1px solid #e1e8f0;color:#50647b;font-size:12px;font-weight:700;">Área / sucursal</td><td style="padding:11px 14px;border-bottom:1px solid #e1e8f0;color:#24364b;font-size:13px;">'+area+'</td></tr><tr><td style="padding:11px 14px;background:#f7fafd;color:#50647b;font-size:12px;font-weight:700;">Fecha de emisión</td><td style="padding:11px 14px;color:#24364b;font-size:13px;">'+htmlEscape(date)+'</td></tr></table></td></tr><tr><td style="padding:0 28px 26px;"><p style="margin:0;color:#24364b;font-size:14px;line-height:1.6;">Saludos cordiales,</p><p style="margin:10px 0 0;color:#24364b;font-size:13px;line-height:1.6;">'+sigHtml+'</p></td></tr><tr><td style="background:#f3f7fb;border-top:1px solid #d9e3ef;padding:14px 28px;color:#6b7e92;font-size:10px;line-height:1.5;">Mensaje preparado desde Asistencia Doctor Simi · Recursos Humanos.<br>Revise los destinatarios y el archivo adjunto antes de enviar.</td></tr></table></td></tr></table></body></html>';
   }
@@ -336,13 +336,13 @@
       'Content-Type: text/plain; charset=UTF-8',
       'Content-Transfer-Encoding: base64',
       '',
-      btoa(unescape(encodeURIComponent(plain))),
+      base64Text(plain),
       '',
       '--'+altBoundary,
       'Content-Type: text/html; charset=UTF-8',
       'Content-Transfer-Encoding: base64',
       '',
-      btoa(unescape(encodeURIComponent(html))),
+      base64Text(html),
       '',
       '--'+altBoundary+'--',
       '',
