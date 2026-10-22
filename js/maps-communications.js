@@ -799,25 +799,26 @@
                 if(!detalles.length)continue;
                 const exclusion=buscarExclusionAusenciaCorreo(x,fecha,proteccion);
                 if(exclusion){excluidos.push({rut,nombre:x.nombre||'',fecha,categoria:exclusion.categoria,mensaje:exclusion.mensaje});continue;}
-                const tipo=detalles.some(d=>/no registra marcas durante la jornada/i.test(d))?'SIN_MARCAS':'OTRAS_INCIDENCIAS';
-                const key=area+'||'+tipo;
-                if(!grupos.has(key))grupos.set(key,{area,tipo,casos:[]});
+                // Un único grupo y un único correo por área, aunque tenga ambos tipos de incidencias.
+                const key=area;
+                if(!grupos.has(key))grupos.set(key,{area,casos:[]});
                 const p=persona?.persona||{};
                 grupos.get(key).casos.push({...x,fecha,detalles,area,rut:rut||x.rut,nombre:x.nombre||[p.nombres,p.apellidos].filter(Boolean).join(' ')||'',turno:x.turno||x.turno_asignado||x.jornada||x.horario||''});
+                if(detalles.some(d=>/no registra marcas durante la jornada/i.test(d)))conteo.SIN_MARCAS++;
+                if(detalles.some(d=>!/no registra marcas durante la jornada/i.test(d)))conteo.OTRAS_INCIDENCIAS++;
             }
             const drafts=[];
-            for(const {area,tipo,casos} of grupos.values()){
+            for(const {area,casos} of grupos.values()){
                 const cfg=configAreas[area]||{};
                 const para=String(cfg.correo_para||'').trim(), cc=String(cfg.correo_cc||'').trim();
                 if(!para)continue;
-                const etiqueta=tipo==='SIN_MARCAS'?'SOLO INEXISTENTES SIN MARCAS':'OTRAS INCIDENCIAS DE ASISTENCIA';
+                const etiqueta='INCIDENCIAS DE ASISTENCIA';
                 const nombre=area+' · '+etiqueta;
                 const firma=String(cfg.firma||'').trim()||'Saludos cordiales,\nDepartamento de Recursos Humanos\nFarmacias de Similares Chile S.A.\nRUT: 59.111.330-5';
                 const grupo={tipo:'AREA',nombre:area,firma};
                 const asuntoBase=String(cfg.asunto_plantilla||'').trim();
                 const asunto=(asuntoBase&&asuntoBase!=='Comunicación interna – '+area?asuntoBase+' · ':'')+'Importancia alta - '+etiqueta+' - '+area+' - '+desde+' a '+hasta;
-                drafts.push({id:'area-'+norm(area).replace(/[^a-z0-9]+/g,'-')+'-'+tipo.toLowerCase(),tipoCorreo:tipo,nombre,para,cc,asunto,cuerpo:crearCuerpoCorreo(grupo,casos,desde,hasta),cuerpoHtml:crearCuerpoCorreoHTML(grupo,casos,desde,hasta),cantidad:casos.length,proteccionAusenciasVerificada:true,periodoDesde:desde,periodoHasta:hasta,grupoCorreo:grupo,casosDetalle:casos.map(x=>({fecha:x.fecha,rut:x.rut,nombre:x.nombre,sucursal:x.sucursal,area:x.area,detalles:x.detalles,turno:x.turno,turno_asignado:x.turno_asignado,jornada:x.jornada,horario:x.horario,entrada:x.entrada,salida:x.salida}))});
-                conteo[tipo]+=casos.length;
+                drafts.push({id:'area-'+norm(area).replace(/[^a-z0-9]+/g,'-'),tipoCorreo:'INCIDENCIAS',nombre,para,cc,asunto,cuerpo:crearCuerpoCorreo(grupo,casos,desde,hasta),cuerpoHtml:crearCuerpoCorreoHTML(grupo,casos,desde,hasta),cantidad:casos.length,proteccionAusenciasVerificada:true,periodoDesde:desde,periodoHasta:hasta,grupoCorreo:grupo,casosDetalle:casos.map(x=>({fecha:x.fecha,rut:x.rut,nombre:x.nombre,sucursal:x.sucursal,area:x.area,detalles:x.detalles,turno:x.turno,turno_asignado:x.turno_asignado,jornada:x.jornada,horario:x.horario,entrada:x.entrada,salida:x.salida}))});
             }
             if(!drafts.length)throw new Error('No se encontraron incidencias para las áreas seleccionadas o faltan destinatarios configurados. Revisa el período, la asociación de colaboradores a áreas y la configuración de correos.');
             window.__doctorSimiAreaAttendanceDrafts=drafts;
