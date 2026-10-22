@@ -1,0 +1,139 @@
+/* SIMI Unified Experience 2026
+   Shared layout and interaction polish. Uses the user's theme tokens; does not define palette values. */
+:root {
+  --ux-radius: 16px;
+  --ux-radius-sm: 11px;
+  --ux-gap: clamp(12px, 1.5vw, 22px);
+  --ux-panel-shadow: 0 5px 20px rgba(0,0,0,.045);
+  --ux-panel-shadow-hover: 0 10px 28px rgba(0,0,0,.075);
+  --ux-focus-ring: color-mix(in srgb, var(--user-accent, var(--simi-teal, currentColor)) 24%, transparent);
+}
+html { scroll-padding-top: 84px; }
+body { min-width: 320px; }
+button, input, select, textarea { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
+textarea:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--user-accent, var(--simi-teal, currentColor));
+  outline-offset: 2px;
+}
+#sidebar {
+  flex-shrink: 0;
+  isolation: isolate;
+}
+#sidebar nav { scrollbar-width: thin; overscroll-behavior: contain; }
+#sidebar .menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  margin: 3px 0;
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: var(--ux-radius-sm);
+  line-height: 1.3;
+  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+#sidebar .menu-btn > span:first-of-type { flex: 1; min-width: 0; }
+#sidebar .menu-btn svg { flex: 0 0 auto; }
+#sidebar .menu-btn.active,
+#sidebar .menu-btn[aria-current="page"],
+#sidebar .menu-btn[data-active="true"] {
+  box-shadow: inset 3px 0 0 var(--user-accent, var(--simi-teal, currentColor));
+  border-color: color-mix(in srgb, var(--user-accent, currentColor) 22%, transparent);
+}
+#sidebar .menu-btn:not(.active):not([aria-current="page"]):not([data-active="true"]) {
+  box-shadow: none;
+}
+#quick-module-bar {
+  gap: 8px;
+  min-height: 52px;
+  padding: 9px clamp(12px, 2vw, 26px);
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+#quick-module-bar .quick-module-chip {
+  flex: 0 0 auto;
+  min-height: 34px;
+  border-radius: 999px;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+#quick-module-bar .quick-module-chip:hover { transform: translateY(-1px); }
+#header-title { line-height: 1.25; overflow-wrap: anywhere; }
+header[role="banner"], .nova-v3-topbar {
+  min-height: 64px;
+  gap: 12px;
+}
+#app-main, .nova-v3-main { min-width: 0; }
+#app-main > section, main > section[id^="view-"], section[id^="view-"] {
+  min-width: 0;
+}
+section[id^="view-"] { scroll-margin-top: 78px; }
+section[id^="view-"] > :first-child { margin-top: 0; }
+.module-title-card, .module-title, .section-title { overflow-wrap: anywhere; }
+.module-title-card { margin-bottom: clamp(14px, 2vw, 24px); }
+.ui-card, .space-panel, .space-compose-card, .space-activity-card, .td-panel,
+.task-template-panel, .theme-settings-card, .usr-role-summary-card,
+.dashboard-ops-summary, .dashboard-quick-link, .module-title-card,
+[class*="module-card"], [class*="section-card"] {
+  min-width: 0;
+  border-radius: var(--ux-radius);
+  box-shadow: var(--ux-panel-shadow);
+  transition: box-shadow .18s ease, border-color .18s ease;
+}
+.ui-card:hover, .space-panel:hover, .space-activity-card:hover,
+.dashboard-quick-link:hover { box-shadow: var(--ux-panel-shadow-hover); }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+select, textarea {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+  border-radius: var(--ux-radius-sm);
+}
+input[type="checkbox"], input[type="radio"] { accent-color: var(--user-accent, var(--simi-teal, auto)); }
+textarea { min-height: 92px; resize: vertical; }
+label { line-height: 1.45; }
+button:disabled { cursor: not-allowed; opacity: .62; }
+button:not(:disabled) { cursor: pointer; }
+table { width: 100%; }
+th, td { vertical-align: middle; overflow-wrap: anywhere; }
+thead th { position: sticky; top: 0; z-index: 1; }
+.table-scroll, .task-table-scroll, .td-table-wrap {
+  max-width: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+[role="status"], [aria-live="polite"], [aria-live="assertive"] { overflow-wrap: anywhere; }
+.toast-container, #toast-container { z-index: 11000; }
+.global-search-panel, .autocomplete-panel, [role="dialog"] {
+  max-width: min(96vw, 960px);
+}
+img, svg, canvas, video { max-width: 100%; }
+img { height: auto; }
+pre, code { overflow-wrap: anywhere; }
+hr { opacity: .8; }
+@media (min-width: 1280px) {
+  section[id^="view-"] { padding-left: clamp(20px, 2.2vw, 36px); padding-right: clamp(20px, 2.2vw, 36px); }
+}
+@media (max-width: 1023px) {
+  #quick-module-bar { padding-left: 12px; padding-right: 12px; }
+  #header-title { font-size: clamp(15px, 2.2vw, 20px); }
+  .table-scroll, .task-table-scroll, .td-table-wrap { overflow-x: auto; }
+}
+@media (max-width: 640px) {
+  #header-title { max-width: 48vw; }
+  header[role="banner"], .nova-v3-topbar { min-height: 56px; }
+  section[id^="view-"] { padding: 12px !important; }
+  .ui-card, .space-panel, .space-compose-card, .space-activity-card, .td-panel,
+  .task-template-panel, .theme-settings-card, .module-title-card { border-radius: 12px; }
+  button, .ui-button, .corp-button, .corp-button-dark { min-height: 40px; }
+  table { min-width: 640px; }
+  .dashboard-welcome, .dashboard-welcome-compact { padding: 18px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; scroll-behavior: auto !important; }
+}

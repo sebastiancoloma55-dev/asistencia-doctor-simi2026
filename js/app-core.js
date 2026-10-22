@@ -1121,6 +1121,11 @@
                 });
             }
             if(perfilActualSistema&&!tienePermisoModulo(modulo)){mostrarToast('No tienes permiso para acceder a este apartado.','warning');const primero=modulos.find(nombre=>tienePermisoModulo(nombre));if(primero&&primero!==modulo)return cambiarModulo(primero,cargar);return;}
+            // Garantiza un único módulo activo, incluso si algún botón quedó fuera de la lista central.
+            document.querySelectorAll('#sidebar .menu-btn').forEach(boton => {
+                boton.classList.remove('active');
+                boton.removeAttribute('aria-current');
+            });
             modulos.forEach(nombre => {
                 const boton = document.getElementById(`btn-${nombre}`);
 

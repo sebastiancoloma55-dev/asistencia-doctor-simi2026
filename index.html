@@ -910,6 +910,7 @@ section[id^="view-"] table tbody tr:hover{background:#f5fbfc}
     <link rel="stylesheet" href="/css/modulos-referencia-exacta.css?v=20261018c">
     <link rel="stylesheet" href="/css/modulos-referencia-integral.css?v=20261018e">
     <link rel="stylesheet" href="/css/simi-design-system-2026.css?v=20261019a">
+    <link rel="stylesheet" href="/css/simi-unified-experience.css?v=20261022a">
 
 <style id="simi-sidebar-assistant-refinement-20261018">
 /* Navegación lateral renovada: jerarquía clara, legible y consistente con Doctor Simi */
@@ -1157,6 +1158,21 @@ main>header .topbar-quick-action{display:none!important}
 #simi-context-toggle.has-simi-mascot:hover{filter:brightness(1.06)}
 </style>
 
+
+<style id="fix-single-sidebar-active-20261022">
+/* El hover de módulos no seleccionados debe ser discreto y no parecer un segundo módulo activo. */
+#sidebar .menu-btn:hover:not(.active):not([aria-current="page"]){
+  background:rgba(255,255,255,.075)!important;
+  border-color:rgba(255,255,255,.10)!important;
+  box-shadow:none!important;
+  transform:none!important;
+}
+#sidebar .menu-btn.active,#sidebar .menu-btn[aria-current="page"]{
+  background:linear-gradient(110deg,var(--nav-accent,#069fb4),color-mix(in srgb,var(--nav-accent,#069fb4) 74%,#07529c))!important;
+  border-color:color-mix(in srgb,var(--nav-accent,#069fb4) 68%,white)!important;
+  box-shadow:0 7px 18px color-mix(in srgb,var(--nav-accent,#069fb4) 23%,transparent),inset 0 1px rgba(255,255,255,.18)!important;
+}
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
@@ -1284,11 +1300,15 @@ main>header .topbar-quick-action{display:none!important}
   <button id="btn-envio_licencias" class="menu-btn" onclick="cambiarModulo('envio_licencias')"><i data-lucide="mail-plus" class="h-4 w-4"></i><span>Envío de licencias médicas</span></button>
   <button id="btn-vacaciones" class="menu-btn" onclick="cambiarModulo('vacaciones')"><i data-lucide="tree-palm" class="h-4 w-4"></i><span>Vacaciones</span></button>
   <button id="btn-papeletas" class="menu-btn" onclick="cambiarModulo('papeletas')"><i data-lucide="file-text" class="h-4 w-4"></i><span>Papeletas y permisos</span></button>
+  <button id="btn-acuerdos-compensacion" class="menu-btn" onclick="cambiarModulo('acuerdos-compensacion')"><i data-lucide="calendar-check-2" class="h-4 w-4"></i><span>Acuerdos de compensación</span></button>
   <div class="nova-nav-divider" data-nav-group><span>COBERTURAS Y COMUNICACIÓN</span></div>
   <button id="btn-amonestaciones" class="menu-btn" onclick="cambiarModulo('amonestaciones')"><i data-lucide="calendar-check" class="h-4 w-4"></i><span>Coberturas</span></button>
   <button id="btn-traslados" class="menu-btn" onclick="cambiarModulo('traslados')"><i data-lucide="users-round" class="h-4 w-4"></i><span>Traslados de personal</span></button>
   <button id="btn-correos" class="menu-btn" onclick="cambiarModulo('correos')"><i data-lucide="mail" class="h-4 w-4"></i><span>Borradores de correo</span></button>
   <button id="btn-configcorreos" class="menu-btn" onclick="cambiarModulo('configcorreos')"><i data-lucide="mail-check" class="h-4 w-4"></i><span>Correos de sucursales</span></button>
+  <button id="btn-correosareas" class="menu-btn" onclick="cambiarModulo('correosareas')"><i data-lucide="send" class="h-4 w-4"></i><span>Borradores Area</span></button>
+  <button id="btn-configcorreosareas" class="menu-btn" onclick="cambiarModulo('configcorreosareas')"><i data-lucide="users-round" class="h-4 w-4"></i><span>Configuración de correos por área</span></button>
+  <button id="btn-memes" class="menu-btn" onclick="cambiarModulo('memes')"><i data-lucide="laugh" class="h-4 w-4"></i><span>Memes RR. HH.</span></button>
   <button id="btn-chat" class="menu-btn" onclick="cambiarModulo('chat')"><i data-lucide="messages-square" class="h-4 w-4"></i><span>Chat interno</span></button>
   <div class="nova-nav-divider" data-nav-group><span>ANÁLISIS Y CONTROL</span></div>
   <button id="btn-reportes" class="menu-btn" onclick="cambiarModulo('reportes')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Reportes</span></button>
@@ -1648,7 +1668,7 @@ main>header .topbar-quick-action{display:none!important}
                     <div class="space-panel-heading"><div><span class="space-section-kicker">SEGUIMIENTO OPERATIVO</span><h3>Bitácora de gestión</h3><p>Registra incidencias, decisiones, reuniones y seguimientos. Estos registros son de solo lectura después de crearlos.</p></div><span id="rrhh-bitacora-count" class="space-count-chip">Cargando registros…</span></div>
                     <form class="space-log-compose" onsubmit="guardarRegistroBitacoraRRHH(event)">
                         <div class="space-log-compose-heading"><span class="space-compose-icon"><i data-lucide="notebook-tabs"></i></span><div><b>Registrar una gestión</b><small>Un registro claro facilita retomar el caso y rendir cuentas.</small></div></div>
-                        <div class="space-log-fields"><div><label for="rrhh-log-titulo">Asunto</label><input id="rrhh-log-titulo" class="form-field" maxlength="180" required placeholder="Ej. Se solicita confirmación de marcaciones"></div><div><label for="rrhh-log-categoria">Tipo de gestión</label><select id="rrhh-log-categoria" class="form-field"><option>Gestión</option><option>Incidencia</option><option>Seguimiento</option><option>Decisión</option><option>Reunión</option><option>Cobertura</option><option>Asistencia</option><option>Licencias</option><option>Otro</option></select></div><div><label for="rrhh-log-modulo">Módulo relacionado</label><select id="rrhh-log-modulo" class="form-field"><option value="general">Gestión general</option><option value="colaboradores">Colaboradores</option><option value="sucursales">Sucursales</option><option value="asistencia">Asistencia</option><option value="licencias">Licencias</option><option value="vacaciones">Vacaciones</option><option value="papeletas">Papeletas</option><option value="amonestaciones">Coberturas</option><option value="correos">Borradores de correo</option><option value="reportes">Reportes</option><option value="usuarios">Usuarios y roles</option><option value="tareas">Tareas diarias</option><option value="traslados">Traslados</option><option value="espacio">Mi espacio</option></select></div><div><label for="rrhh-log-sucursal">Sucursal relacionada (opcional)</label><input id="rrhh-log-sucursal" class="form-field" maxlength="180" placeholder="Nombre de sucursal"></div><div><label for="rrhh-log-fecha">Fecha y hora de la gestión</label><input id="rrhh-log-fecha" type="datetime-local" class="form-field"></div><div><label for="rrhh-log-visibilidad">Visibilidad</label><select id="rrhh-log-visibilidad" class="form-field"><option value="PERSONAL">Solo yo · privada</option><option value="COMPARTIDA">Equipo autorizado · compartida</option></select></div><div class="space-log-detail-field"><label for="rrhh-log-detalle">Detalle y resultado</label><textarea id="rrhh-log-detalle" class="form-field" rows="3" maxlength="16000" required placeholder="Qué pasó, qué se hizo, qué falta y cuál es el siguiente paso…"></textarea></div></div>
+                        <div class="space-log-fields"><div><label for="rrhh-log-titulo">Asunto</label><input id="rrhh-log-titulo" class="form-field" maxlength="180" required placeholder="Ej. Se solicita confirmación de marcaciones"></div><div><label for="rrhh-log-categoria">Tipo de gestión</label><select id="rrhh-log-categoria" class="form-field"><option>Gestión</option><option>Incidencia</option><option>Seguimiento</option><option>Decisión</option><option>Reunión</option><option>Cobertura</option><option>Asistencia</option><option>Licencias</option><option>Otro</option></select></div><div><label for="rrhh-log-modulo">Módulo relacionado</label><select id="rrhh-log-modulo" class="form-field"><option value="general">Gestión general</option><option value="colaboradores">Colaboradores</option><option value="sucursales">Sucursales</option><option value="asistencia">Asistencia</option><option value="licencias">Licencias</option><option value="vacaciones">Vacaciones</option><option value="papeletas">Papeletas</option><option value="amonestaciones">Coberturas</option><option value="correos">Borradores de correo</option><option value="correosareas">Borradores Area</option><option value="configcorreosareas">Configuración de correos por área</option><option value="reportes">Reportes</option><option value="usuarios">Usuarios y roles</option><option value="tareas">Tareas diarias</option><option value="traslados">Traslados</option><option value="espacio">Mi espacio</option></select></div><div><label for="rrhh-log-sucursal">Sucursal relacionada (opcional)</label><input id="rrhh-log-sucursal" class="form-field" maxlength="180" placeholder="Nombre de sucursal"></div><div><label for="rrhh-log-fecha">Fecha y hora de la gestión</label><input id="rrhh-log-fecha" type="datetime-local" class="form-field"></div><div><label for="rrhh-log-visibilidad">Visibilidad</label><select id="rrhh-log-visibilidad" class="form-field"><option value="PERSONAL">Solo yo · privada</option><option value="COMPARTIDA">Equipo autorizado · compartida</option></select></div><div class="space-log-detail-field"><label for="rrhh-log-detalle">Detalle y resultado</label><textarea id="rrhh-log-detalle" class="form-field" rows="3" maxlength="16000" required placeholder="Qué pasó, qué se hizo, qué falta y cuál es el siguiente paso…"></textarea></div></div>
                         <div class="space-log-form-bottom"><span><i data-lucide="shield-check"></i> Registro cronológico protegido</span><button type="submit" class="space-create-button"><i data-lucide="plus"></i> Guardar en bitácora <i data-lucide="arrow-up-right"></i></button></div>
                     </form>
                     <div class="space-log-history-head"><div><h4>Historial reciente</h4><p>Más recientes primero · hasta 350 registros visibles.</p></div><div class="space-note-search"><i data-lucide="search"></i><input id="rrhh-bitacora-buscar" type="search" placeholder="Buscar por asunto, sucursal o detalle…"></div></div>
@@ -2169,6 +2189,70 @@ main>header .topbar-quick-action{display:none!important}
                 <div class="ui-card overflow-hidden"><div class="border-b bg-slate-50 p-4 text-xs font-bold uppercase">Papeletas generadas</div><div class="table-scroll"><table class="w-full min-w-[800px] text-left"><thead class="text-[11px] uppercase text-slate-500"><tr><th class="p-3">Fecha</th><th class="p-3">Colaborador</th><th class="p-3">Tipo</th><th class="p-3">Periodo</th><th class="p-3">Generado por</th><th class="p-3">Acciones</th></tr></thead><tbody id="tabla-papeletas-body" class="divide-y text-xs"><tr><td colspan="6" class="p-8 text-center text-slate-400">Sin registros.</td></tr></tbody></table></div></div>
             </section>
 
+            <!-- ACUERDOS DE COMPENSACIÓN -->
+            <section id="view-acuerdos-compensacion" class="hidden space-y-6 p-4 sm:p-8">
+              <div class="module-intro">
+                <div class="flex flex-wrap items-start justify-between gap-4">
+                  <div class="module-title-with-logo">
+                    <div class="module-logo-mark"><i data-lucide="calendar-check-2" class="h-6 w-6"></i></div>
+                    <div><span class="module-kicker">Gestión documental · RR. HH.</span><h3 class="mt-2 text-2xl font-extrabold text-slate-900">Acuerdos de compensación</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Documento basado en la plantilla de compensación proporcionada. Revisa los datos antes de imprimir o guardar el PDF para enviar a sucursal.</p></div>
+                  </div>
+                  <div class="flex flex-wrap gap-2"><button type="button" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50" onclick="limpiarAcuerdoCompensacion()"><i data-lucide="rotate-ccw" class="mr-1 inline h-4 w-4"></i>Limpiar</button><button type="button" class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-800 hover:bg-emerald-100" onclick="registrarAcuerdoCompensacion()"><i data-lucide="save" class="mr-1 inline h-4 w-4"></i>Registrar acuerdo</button><button type="button" class="corp-button" onclick="imprimirAcuerdoCompensacion()"><i data-lucide="file-down" class="mr-1 inline h-4 w-4"></i>Imprimir / Guardar PDF</button></div>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(320px,390px)_minmax(0,1fr)]">
+                <section class="ui-card overflow-visible">
+                  <div class="border-b border-slate-100 p-5"><h4 class="font-extrabold text-slate-900">Datos del acuerdo</h4><p class="mt-1 text-xs text-slate-500">Los datos del trabajador se completan desde Supabase.</p></div>
+                  <div class="space-y-4 p-5">
+                    <div class="relative"><label for="ac-buscar" class="required-label text-xs font-semibold">Buscar colaborador por nombre o RUT</label><input id="ac-buscar" autocomplete="off" class="form-field mt-1" placeholder="Escribe nombre o RUT…" aria-controls="ac-resultados"><div id="ac-resultados" class="autocomplete-panel hidden"></div><p id="ac-busqueda-estado" class="mt-1 text-xs text-slate-500">Ingresa al menos 2 caracteres.</p></div>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                      <div><label for="ac-nombre" class="text-xs font-semibold">Nombre completo</label><input id="ac-nombre" readonly class="form-field mt-1 bg-slate-50" placeholder="Selecciona un colaborador"></div>
+                      <div><label for="ac-rut" class="text-xs font-semibold">RUT</label><input id="ac-rut" readonly class="form-field mt-1 bg-slate-50" placeholder="—"></div>
+                      <div><label for="ac-cargo" class="text-xs font-semibold">Cargo contractual</label><input id="ac-cargo" readonly class="form-field mt-1 bg-slate-50" placeholder="—"></div>
+                      <div><label for="ac-ingreso" class="text-xs font-semibold">Fecha de ingreso</label><input id="ac-ingreso" readonly class="form-field mt-1 bg-slate-50" placeholder="No registrada"></div>
+                    </div>
+                    <div class="border-t border-slate-100 pt-4"><p class="mb-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">Fechas y compensación</p>
+                      <div><label for="ac-fecha-acuerdo" class="required-label text-xs font-semibold">Fecha del acuerdo</label><input id="ac-fecha-acuerdo" type="date" required class="form-field mt-1"></div>
+                      <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2"><div><label for="ac-desde" class="required-label text-xs font-semibold">Fecha trabajada desde</label><input id="ac-desde" type="date" required class="form-field mt-1"></div><div><label for="ac-hasta" class="required-label text-xs font-semibold">Fecha trabajada hasta</label><input id="ac-hasta" type="date" required class="form-field mt-1"></div><div><label for="ac-dias" class="required-label text-xs font-semibold">Días por compensar</label><input id="ac-dias" type="number" min="1" step="1" value="1" required class="form-field mt-1"></div><div><label for="ac-descanso" class="required-label text-xs font-semibold">Fecha de descanso acordada</label><input id="ac-descanso" type="date" required class="form-field mt-1"></div></div>
+                      <div class="mt-3"><label for="ac-notas" class="text-xs font-semibold">Notas internas (no se imprimen)</label><textarea id="ac-notas" rows="2" class="form-field mt-1" placeholder="Observaciones para RR. HH."></textarea></div>
+                    </div>
+                    <div id="ac-validacion" class="helper-note" role="status">Selecciona al trabajador y completa las fechas para revisar el acuerdo.</div>
+                    <p class="text-xs leading-5 text-slate-500">Antes de emitir el documento, valida los días con los registros de asistencia y turnos. Revisa las tres páginas antes de enviarlo a sucursal.</p>
+                  </div>
+                </section>
+                <section class="ui-card overflow-hidden">
+                  <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 p-4"><div><h4 class="font-extrabold text-slate-900">Vista previa del documento</h4><p class="mt-1 text-xs text-slate-500">Plantilla tamaño carta de tres páginas · texto legal basado en el Word adjunto</p></div><span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700"><i data-lucide="check-circle-2" class="mr-1 inline h-3.5 w-3.5"></i>Vista previa en vivo</span></div>
+                  <div class="bg-slate-100 p-3 sm:p-6"><article id="ac-documento" class="acuerdo-paper mx-auto bg-white text-black shadow-sm">
+                    <div class="ac-page ac-page-one">
+                      <div class="ac-doc-header"><img src="/doctor-simi-logo.jpg" alt="Logo Doctor Simi" class="ac-doc-logo"><h2>ACUERDO DE COMPENSACIÓN</h2></div>
+                      <p class="ac-doc-p">En Santiago de Chile, a <span data-ac-out="fecha-acuerdo">[FECHA DEL ACUERDO]</span>, entre Farmacias de Similares Chile S.A. Agencia Chile, Rut 59.111.330-5, representada legalmente para estos efectos por la Srta. KISSY CAROLINA FONSECA FIGUEROA, RUT Nº 14.382.093-9; en adelante “El Empleador”, ambos con domicilio en Camino Lo Echevers Nº 550, Módulos 16, 17 y 18 de la comuna de Quilicura, región Metropolitana, por una parte; y por la otra, el trabajador que a continuación se individualiza; ambos, han convenido lo siguiente:</p>
+                      <table class="ac-identification"><tbody><tr><td>Nombre Trabajador(a):</td><td data-ac-out="nombre">[NOMBRE DEL TRABAJADOR]</td></tr><tr><td>Rut Trabajador(a):</td><td data-ac-out="rut">[RUT]</td></tr></tbody></table>
+                      <h3>PRIMERO: Antecedentes.</h3>
+                      <p class="ac-doc-p">Que, el/la trabajador(a), presta servicios en Farmacias de Similares Chile S.A., Agencia Chile desde <span data-ac-out="ingreso">[FECHA DE INGRESO]</span> bajo el cargo de <b data-ac-out="cargo">[CARGO]</b> en el Contrato de Trabajo.</p>
+                      <p class="ac-doc-p">Que, el/la trabajador/a <span data-ac-out="nombre">[NOMBRE DEL TRABAJADOR]</span>, RUT <span data-ac-out="rut">[RUT]</span>, precedentemente individualizado (el Trabajador), presta servicios bajo un sistema de turnos rotativos (de lunes a domingo) con los correspondientes descansos previstos en la ley laboral.</p>
+                      <table class="ac-worked-table"><thead><tr><th colspan="2">FECHA TRABAJADA</th><th rowspan="2">CANTIDAD DÍAS POR COMPENSAR</th></tr><tr><th>INICIO</th><th>FIN</th></tr></thead><tbody><tr><td data-ac-out="desde">[INICIO]</td><td data-ac-out="hasta">[TÉRMINO]</td><td data-ac-out="tabla-dias">1 ([FECHA DE DESCANSO])</td></tr><tr><th colspan="2" class="ac-total-label">TOTAL</th><th data-ac-out="dias">1</th></tr></tbody></table>
+                      <h3>SEGUNDO: Compensación.</h3>
+                      <p class="ac-doc-p">Teniendo presente la circunstancia señalada, según se ha indicado, y con el objeto de que el Trabajador haga un uso efectivo del descanso que por ley le corresponde, por este acto, el trabajador declara que ello no la ha generado un desmerito a su persona, no obstante ello, las partes acuerdan por esta única ocasión compensar los días libres que el/la trabajador(a) omitió tomar en descanso; esto, de acuerdo con las fechas efectivamente trabajadas, y que corresponden-según recuadro- a la cantidad de <span data-ac-out="dias">1</span> día(s), en adelante “Día(s) Compensatorio(s)”.</p>
+                    </div>
+                    <div class="ac-page ac-page-two">
+                      <p class="ac-doc-p">Déjese expresamente establecido que los Días compensatorios serán considerados como días de descanso laboral y no afectarán la remuneración del Empleado, teniendo una promediación del día para efectos de la remuneración variable a la que pueda tener derecho el Trabajador de acuerdo con lo indicado en el Contrato de Trabajo.</p>
+                      <h3>TERCERO: Entendimiento.</h3>
+                      <p class="ac-doc-p">Por medio de la presente ambas partes acuerdan que este acuerdo es una compensación adecuada y justa por los días trabajados en exceso y que el Trabajador no tendrá derecho a reclamar ninguna otra compensación adicional por este concepto. Entendiéndose que con esta compensación el Empleador ha enmendado el error relativo a la distribución de turnos.</p>
+                      <h3>CUARTO: Vigencia.</h3>
+                      <p class="ac-doc-p">La vigencia del presente documento será de 30 días posteriores a su fecha de firma. Por lo cual, el presente acuerdo no se entenderá comprendido en el Contrato de Trabajo debido a que la finalidad del presente acuerdo es subsanar y compensar un hecho puntual ocurrido y no una situación sostenida en el tiempo.</p>
+                      <h3>QUINTO: Ejemplares.</h3>
+                      <p class="ac-doc-p">En expresa conformidad con lo precedentemente estipulado, las partes firman el presente acuerdo en dos ejemplares de igual tenor y fecha, quedando uno en poder de la empresa y otro en poder del trabajador.</p>
+                      <p class="ac-doc-p ac-representation">En representación firma por poder Don(a) KISSY CAROLINA FONSECA FIGUEROA, RUT Nº14.382.093-9</p>
+                      <div class="ac-signatures">
+                        <div class="ac-signature-block"><img id="ac-firma-img" src="" alt="Firma institucional del empleador"><div class="ac-signature-line"></div><strong>FARMACIAS DE SIMILARES CHILE S.A.</strong><strong>RUT 59.111.330-5</strong></div>
+                        <div class="ac-signature-block ac-worker-signature"><div class="ac-worker-blank"></div><div class="ac-signature-line"></div><strong data-ac-out="nombre">[NOMBRE DEL TRABAJADOR]</strong><strong>RUT: <span data-ac-out="rut">[RUT]</span></strong></div>
+                      </div>
+                    </div>
+                  </article></div>
+                </section>
+              </div>
+            </section>
+
             <!-- CORREOS DE ASISTENCIA -->
             <section id="view-correos" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro">
@@ -2424,6 +2508,28 @@ main>header .topbar-quick-action{display:none!important}
             function filtrarGuiasAyuda(){const input=document.getElementById('ayuda-buscar'),q=(input?.value||'').trim().toLocaleLowerCase('es-CL');const cards=[...document.querySelectorAll('#ayuda-lista [data-guia]')];let visible=0;cards.forEach(card=>{const show=(card.dataset.search||card.textContent).toLocaleLowerCase('es-CL').includes(q);card.classList.toggle('hidden',!show);if(show)visible++;});const count=document.getElementById('ayuda-contador');if(count)count.textContent=visible+' guía(s)';document.getElementById('ayuda-vacio')?.classList.toggle('hidden',visible!==0);}
             function filtrarCategoriaAyuda(categoria){const input=document.getElementById('ayuda-buscar');if(input)input.value=categoria;filtrarGuiasAyuda();}
             </script>
+
+            <!-- CORREOS MASIVOS POR ÁREA (MÓDULO INDEPENDIENTE) -->
+            <section id="view-correosareas" class="hidden space-y-6 p-4 sm:p-8">
+              <div class="module-intro">
+                <div class="module-title-with-logo"><span class="module-logo-mark"><i data-lucide="send" class="h-5 w-5"></i></span><div><span class="module-kicker">CASA MATRIZ Y CENTRAL</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Borradores Area</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Selecciona una o varias áreas para preparar un correo por destinatario. Descarga todos los borradores juntos en un ZIP, como en el módulo de sucursales. No se envía nada automáticamente.</p></div></div>
+              </div>
+              <div id="area-mail-draft-panel"></div>
+            </section>
+
+            <!-- CONFIGURACIÓN DE CORREOS POR ÁREA (MÓDULO INDEPENDIENTE) -->
+            <section id="view-configcorreosareas" class="hidden space-y-6 p-4 sm:p-8">
+              <div class="module-intro">
+                <div class="module-title-with-logo"><span class="module-logo-mark"><i data-lucide="users-round" class="h-5 w-5"></i></span><div><span class="module-kicker">CASA MATRIZ Y CENTRAL</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Configuración de correos por área</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Registra los destinatarios una sola vez por área. Esta configuración no modifica los correos de sucursales.</p></div></div>
+              </div>
+              <div id="area-mail-config-panel"></div>
+            </section>
+
+            <!-- MEMES RR. HH. · MÓDULO INDEPENDIENTE -->
+            <section id="view-memes" class="hidden space-y-6 p-4 sm:p-8">
+              <div class="module-intro"><div class="module-title-with-logo"><span class="module-logo-mark"><i data-lucide="laugh" class="h-5 w-5"></i></span><div><span class="module-kicker">CULTURA Y BUEN HUMOR</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Memes RR. HH.</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Publica memes internos para compartir con el equipo. Las publicaciones quedan guardadas en el sistema y no se mezclan con los módulos de correo.</p></div></div></div>
+              <div id="memes-rrhh-app" class="ui-card p-5"></div>
+            </section>
 
             <!-- CONFIGURACIÓN DE CORREOS -->
             <section id="view-configcorreos" class="hidden space-y-6 p-4 sm:p-8">
@@ -2806,7 +2912,10 @@ main>header .topbar-quick-action{display:none!important}
 <script src="/js/freshness-dashboard.js?v=ultima-carga-por-modulo-151026"></script>
 <script src="/js/attendance-leave.js"></script>
 <script src="/js/workflows.js?v=permisos-envio-licencias-141026"></script>
-<script src="/js/maps-communications.js?v=map-route-freeze-cat-progress-20261020b"></script>
+<script src="/js/maps-communications.js?v=area-matching-diagnostics-20261022g"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="/js/area-email-config.js?v=area-excel-import-template-20261022g"></script>
+<script src="/js/memes-rrhh.js?v=memes-admin-controls-20261022c"></script>
 <script src="/js/cat-download-progress.js?v=cat-progress-20261020a"></script>
 <script src="/js/medical-leave-registration.js?v=cat-progress-restore-20261020a"></script>
 <script src="/js/people-directory.js?v=20261018d"></script>
@@ -2815,6 +2924,7 @@ main>header .topbar-quick-action{display:none!important}
 <script src="/js/talana-bot.js"></script>
 <script src="/js/workspace.js"></script>
 <script src="/js/module-organization.js"></script>
+<script src="/js/acuerdos-compensacion.js?v=20261022-signature"></script>
 <script src="/js/operational-summary.js"></script>
 
     <!--
@@ -2920,7 +3030,7 @@ main>header{min-height:68px;padding:12px 26px!important;background:rgba(255,255,
 .topbar-quick-action:hover{transform:translateY(-1px);box-shadow:0 9px 22px rgba(8,104,232,.24)}
 .topbar-divider{height:26px;width:1px;background:#dce5f0}
 .topbar-user-email{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px!important;color:#415273!important}
-#view-dashboard,#view-colaboradores,#view-sucursales,#view-asistencia,#view-licencias,#view-vacaciones,#view-papeletas,#view-correos,#view-amonestaciones,#view-reportes,#view-usuarios,#view-auditoria,#view-configcorreos,#view-mapas,#view-tareas,#view-chat,#view-traslados{padding:26px!important}
+#view-dashboard,#view-colaboradores,#view-sucursales,#view-asistencia,#view-licencias,#view-vacaciones,#view-papeletas,#view-acuerdos-compensacion,#view-correos,#view-amonestaciones,#view-reportes,#view-usuarios,#view-auditoria,#view-configcorreos,#view-mapas,#view-tareas,#view-chat,#view-traslados{padding:26px!important}
 .ui-card{border:1px solid var(--nova-line)!important;border-radius:var(--nova-radius)!important;background:rgba(255,255,255,.96);box-shadow:var(--nova-shadow)!important;transition:box-shadow .2s ease,border-color .2s ease,transform .2s ease}
 .ui-card:focus-within{border-color:#b9d5fa!important;box-shadow:0 12px 30px rgba(17,48,92,.09)!important}
 .module-intro{position:relative;overflow:hidden;border:1px solid #d7e6f7!important;border-radius:22px!important;padding:24px!important;background:linear-gradient(118deg,#fff 0%,#f0f7ff 58%,#eefbfc 100%)!important;box-shadow:0 8px 24px rgba(17,48,92,.045)}
@@ -3134,6 +3244,7 @@ body.search-open{overflow:hidden}
 #sidebar #btn-licencias{--nav-accent:#fb7185}
 #sidebar #btn-vacaciones{--nav-accent:#4ade80}
 #sidebar #btn-papeletas{--nav-accent:#c4b5fd}
+#sidebar #btn-acuerdos-compensacion{--nav-accent:#fbbf24}
 #sidebar #btn-correos{--nav-accent:#38bdf8}
 #sidebar #btn-amonestaciones{--nav-accent:#fb923c}
 #sidebar #btn-reportes{--nav-accent:#a5b4fc}
@@ -3522,8 +3633,8 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   window.actualizarContadoresSelectores2026=updateSelectorCounts;
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
   var allowed=new Set(['dashboard']);
-  var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','ayuda'];
-  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados'];
+  var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','acuerdos-compensacion','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','correosareas','configcorreosareas','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','ayuda'];
+  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','acuerdos-compensacion','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','correosareas','configcorreosareas','memes','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','ayuda'];
   function permissionName(m){return m;}
   function hasModulePermission(m){
     if(m==='ayuda')return true;
@@ -4462,6 +4573,104 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
     if(document.visibilityState==='hidden')return;
     if(Math.random()<0.22){var p=phrases[Math.floor(Math.random()*phrases.length)];toast(p[0],p[1]);}
   },9000);
+})();
+</script>
+
+<script src="/js/simi-unified-experience.js?v=20261022a"></script>
+
+<!-- ACUERDO_PRINT_LAYOUT_FIX_V1: páginas A4 separadas y salida de impresión fiable -->
+<style id="acuerdo-print-layout-fix">
+  #ac-documento .ac-page {
+    display: block;
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 297mm;
+    padding: 17mm 18mm;
+    margin: 0 auto 16px;
+    background: #fff;
+    color: #111827;
+    overflow-wrap: anywhere;
+  }
+  #ac-documento .ac-doc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  #ac-documento .ac-doc-logo { width: 76px; height: 76px; object-fit: contain; }
+  #ac-documento .ac-doc-header h2 { flex: 1; text-align: center; font-weight: 800; font-size: 16pt; }
+  #ac-documento .ac-doc-p { font-size: 10.5pt; line-height: 1.55; text-align: justify; margin: 0 0 12px; }
+  #ac-documento .ac-page h3 { font-size: 11pt; font-weight: 800; margin: 14px 0 7px; text-decoration: underline; }
+  #ac-documento .ac-page table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9.5pt; }
+  #ac-documento .ac-page th, #ac-documento .ac-page td { border: 1px solid #b8c4d1; padding: 8px; vertical-align: top; }
+  #ac-documento .ac-identification td { border: 0; border-bottom: 1px solid #d5dde6; padding: 8px 5px; }
+  @media print {
+    @page { size: A4 portrait; margin: 0; }
+    html, body { width: 210mm !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+    body * { visibility: hidden !important; }
+    #ac-documento, #ac-documento * { visibility: visible !important; }
+    #ac-documento {
+      display: block !important; width: 210mm !important; max-width: none !important;
+      margin: 0 !important; padding: 0 !important; box-shadow: none !important;
+      background: #fff !important;
+    }
+    #ac-documento .ac-page {
+      display: block !important; width: 210mm !important; height: 297mm !important;
+      min-height: 297mm !important; max-height: 297mm !important;
+      padding: 17mm 18mm !important; margin: 0 !important;
+      box-sizing: border-box !important; overflow: hidden !important;
+      break-inside: avoid !important; page-break-inside: avoid !important;
+      break-after: page !important; page-break-after: always !important;
+    }
+    #ac-documento .ac-page:last-child { break-after: auto !important; page-break-after: auto !important; }
+    #ac-documento .ac-doc-p { font-size: 10pt !important; line-height: 1.45 !important; margin-bottom: 9px !important; }
+    #ac-documento .ac-page h3 { font-size: 10.5pt !important; margin: 10px 0 5px !important; }
+    #ac-documento .ac-page table { font-size: 9pt !important; margin: 8px 0 !important; }
+    #ac-documento .ac-page th, #ac-documento .ac-page td { padding: 6px !important; }
+    #ac-documento .ac-doc-logo { width: 68px !important; height: 68px !important; }
+    #ac-documento .ac-doc-header { margin-bottom: 16px !important; }
+    #ac-documento img { max-width: 100% !important; }
+  }
+</style>
+<script>
+(function () {
+  window.imprimirAcuerdoCompensacion = function () {
+    const source = document.getElementById('ac-documento');
+    if (!source) {
+      alert('No se encontró la vista previa del acuerdo. Recarga el módulo e inténtalo nuevamente.');
+      return;
+    }
+    const pages = Array.from(source.querySelectorAll('.ac-page'));
+    if (pages.length !== 3) {
+      alert('El acuerdo debe contener sus 3 páginas. Se detectaron ' + pages.length + '. Revisa la plantilla antes de imprimir.');
+      return;
+    }
+    const printWindow = window.open('', '_blank', 'width=1000,height=800');
+    if (!printWindow) {
+      alert('El navegador bloqueó la ventana de impresión. Permite las ventanas emergentes para este sitio e inténtalo nuevamente.');
+      return;
+    }
+    const logoBase = window.location.origin + '/';
+    const html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Acuerdo de compensación</title>' +
+      '<style>' +
+      '@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;width:210mm;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+      '.ac-page{display:block;width:210mm;height:297mm;min-height:297mm;max-height:297mm;padding:17mm 18mm;margin:0;overflow:hidden;break-inside:avoid;page-break-inside:avoid;break-after:page;page-break-after:always}' +
+      '.ac-page:last-child{break-after:auto;page-break-after:auto}.ac-doc-header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px}.ac-doc-logo{width:68px;height:68px;object-fit:contain}.ac-doc-header h2{flex:1;text-align:center;font-size:16pt;font-weight:800;margin:0}.ac-doc-p{font-size:10pt;line-height:1.45;text-align:justify;margin:0 0 9px}.ac-page h3{font-size:10.5pt;font-weight:800;margin:10px 0 5px;text-decoration:underline}.ac-page table{width:100%;border-collapse:collapse;margin:8px 0;font-size:9pt}.ac-page th,.ac-page td{border:1px solid #b8c4d1;padding:6px;vertical-align:top}.ac-identification td{border:0;border-bottom:1px solid #d5dde6;padding:8px 5px}' +
+      '@media screen{body{margin:18px auto;width:210mm;box-shadow:0 0 8px #9ca3af}.ac-page{border-bottom:1px solid #ddd}}' +
+      '</style></head><body>' + pages.map(p => {
+        const clone = p.cloneNode(true);
+        clone.querySelectorAll('img').forEach(img => {
+          const src = img.getAttribute('src');
+          if (src && !/^https?:|^data:/i.test(src)) img.setAttribute('src', new URL(src, logoBase).href);
+        });
+        return clone.outerHTML;
+      }).join('') + '<script>window.addEventListener("load",function(){const imgs=Array.from(document.images);Promise.all(imgs.map(i=>i.complete?Promise.resolve():new Promise(r=>{i.onload=r;i.onerror=r}))).then(()=>setTimeout(()=>{window.focus();window.print();},350));});<\/script></body></html>';
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
 })();
 </script>
 
