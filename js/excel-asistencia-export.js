@@ -147,7 +147,7 @@
     styleWorkbook(ws, clean);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, safeName(groupName).slice(0,31) || 'Asistencia');
-    return {name:'Asistencia_' + (groupType==='SUCURSAL'?'Sucursal':'Area') + '_' + safeName(groupName) + '.xlsx', data:XLSX.write(wb,{bookType:'xlsx',type:'array',cellStyles:true}), count:rows.length, group:groupName};
+    return {name:'Asistencia_' + (groupType==='SUCURSAL'?'Sucursal':'Area') + '_' + safeName(groupName) + '.xlsx', data:XLSX.write(wb,{bookType:'xlsx',type:'array',cellStyles:true}), count:rows.length, group:groupName, branches:[...new Set(rows.map(r=>String(r.__groupBranch||'').trim()).filter(Boolean))]};
   }
   function selectedGroups() {
     return Array.from($('excel-asistencia-grupos').selectedOptions).map(o=>o.value);
@@ -236,19 +236,24 @@
     return String(value || '').split(/[;,]+/).map(x=>x.trim()).filter(x=>/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(x));
   }
   async function resolveRecipients(file, grouping) {
-    const key=grouping==='SUCURSAL'?'sucursal':'area';
+    const client=(typeof _supabase!=='undefined'&&_supabase?.from)?_supabase:window._supabase;
     let to='',cc='',subject='Reporte de asistencia · '+file.group;
-    let body='Estimados/as:\\n\\nJunto con saludar, adjunto el reporte de asistencia correspondiente a '+file.group+'.\\n\\nAgradeceré revisar la información y gestionar las regularizaciones que correspondan.\\n\\nSaludos.';
-    if(grouping==='SUCURSAL') {
-      const client=(typeof _supabase!=='undefined'&&_supabase?.from)?_supabase:window._supabase;
-      if(client?.from) {
-        const {data,error}=await client.from('sucursales').select('nombre,correo_sucursal,correo_copia');
-        if(error) throw error;
-        const row=(data||[]).find(x=>normalizeKey(x.nombre)===normalizeKey(file.group));
-        if(row){to=row.correo_sucursal||'';cc=row.correo_copia||'';}
+    let body='Estimados/as:\n\nJunto con saludar, adjunto el reporte de asistencia correspondiente a '+file.group+'.\n\nAgradeceré revisar la información y gestionar las regularizaciones que correspondan.\n\nSaludos.';
+    if(client?.from) {
+      const {data,error}=await client.from('sucursales').select('nombre,correo_sucursal,correo_copia');
+      if(error) throw error;
+      const branches=data||[];
+      let matched=[];
+      if(grouping==='SUCURSAL') {
+        matched=branches.filter(x=>normalizeKey(x.nombre)===normalizeKey(file.group));
+      } else {
+        const branchNames=new Set((file.branches||[]).map(normalizeKey));
+        matched=branches.filter(x=>branchNames.has(normalizeKey(x.nombre)));
       }
-    } else {
-      const client=(typeof _supabase!=='undefined'&&_supabase?.from)?_supabase:window._supabase;
+      to=[...new Set(matched.flatMap(x=>splitEmails(x.correo_sucursal||'')))].join('; ');
+      cc=[...new Set(matched.flatMap(x=>splitEmails(x.correo_copia||'')))].join('; ');
+    }
+    if(grouping!=='SUCURSAL'&&!splitEmails(to).length) {
       let row=null;
       if(client?.from) {
         const {data,error}=await client.from('configuracion_correos_areas').select('area,correo_para,correo_cc,asunto_plantilla,cuerpo_plantilla,firma');
@@ -259,9 +264,9 @@
       }
       if(row) {
         to=row.correo_para||'';cc=row.correo_cc||'';
-        subject=String(row.asunto_plantilla||subject).replace(/\\[AREA\\]/gi,file.group).replace(/\\{AREA\\}/gi,file.group);
-        body=String(row.cuerpo_plantilla||body).replace(/\\[AREA\\]/gi,file.group).replace(/\\{AREA\\}/gi,file.group);
-        if(row.firma) body+='\\n\\n'+row.firma;
+        subject=String(row.asunto_plantilla||subject).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group);
+        body=String(row.cuerpo_plantilla||body).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group);
+        if(row.firma) body+='\n\n'+row.firma;
       }
     }
     return {to:splitEmails(to),cc:splitEmails(cc),subject,body};
