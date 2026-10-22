@@ -792,25 +792,31 @@
             const grupos=new Map(), noMapeados=new Set(), excluidos=[];
             const types=new Set(tiposSeleccionados||['SIN_MARCAS','OTRAS_INCIDENCIAS']);
             const conteo={SIN_MARCAS:0,OTRAS_INCIDENCIAS:0};
-            let revisados=0;
+            let revisados=0, registrosPeriodo=0, areasNoSeleccionadas=0, filasSinIncidencia=0;
             for(let i=0;i<datosAsistenciaGlobal.length;i++){
                 const x=datosAsistenciaGlobal[i];
                 if(i%250===0){progreso(42+Math.round(35*i/Math.max(1,datosAsistenciaGlobal.length)),'Analizando asistencia',Math.min(i+1,datosAsistenciaGlobal.length).toLocaleString('es-CL')+' de '+datosAsistenciaGlobal.length.toLocaleString('es-CL')+' registros revisados…');await pintar();}
                 const fecha=normalizarFechaProteccionCorreo(x.fecha);
                 if(!fecha||fecha<desde||fecha>hasta)continue;
+                registrosPeriodo++;
                 const rut=normalizarRutProteccionCorreo(x.rut);
                 const persona=porRut.get(rut);
-                const area=persona?.area||directArea(x.sucursal);
+                // La exportación de asistencia puede guardar el área en sucursal o en unidad organizacional.
+                // Comparar todos los campos contra las áreas seleccionadas evita perder casos reales.
+                const candidatosArea=[persona?.area,x.area,x.area_nombre,x.departamento,x.departamento_nombre,x.unidad_organizacional,x.centro_costo,x.sucursal].filter(Boolean);
+                const area=candidatosArea.map(v=>areasNorm.get(norm(v))).find(Boolean)||directArea(x.sucursal);
                 if(!area){noMapeados.add(rut||String(x.nombre||x.sucursal||'registro sin identificador'));continue;}
-                if(!areas.includes(area))continue;
+                if(!areasNorm.has(norm(area))){areasNoSeleccionadas++;continue;}
                 const detalles=[];
                 if(types.has('OTRAS_INCIDENCIAS')&&x.tiene_atraso&&minutosAtraso(x.atraso)>=Number(minimoAtraso||0))detalles.push('Atraso: '+x.atraso+'. Favor indicar motivo.');
                 if(types.has('OTRAS_INCIDENCIAS')&&x.salida_temprana&&x.salida_temprana!=='-')detalles.push('Salida anticipada: '+x.salida_temprana+'. Favor indicar motivo.');
                 if(types.has('OTRAS_INCIDENCIAS')&&x.sin_turno_marcas)detalles.push('Presenta marcas sin turno asignado. Favor aclarar la jornada realizada.');
                 const tipoAus=normalizarTextoProteccionCorreo(x.tipo_ausentismo||'');
                 const soloEtiqueta=/^(sin marcas?|inexistente|inexistentes|no registra marcas?)$/.test(tipoAus);
-                if(types.has('SIN_MARCAS')&&x.sin_marca&&(!tipoAus||soloEtiqueta))detalles.push('No registra marcas durante la jornada. Favor confirmar asistencia o justificar inasistencia.');
-                if(!detalles.length)continue;
+                const estadoAsistencia=normalizarTextoProteccionCorreo(x.estado||'');
+                const esSinMarca=Boolean(x.sin_marca)||/^(inexistente|sin marcas?|no registra marcas?)$/.test(estadoAsistencia);
+                if(types.has('SIN_MARCAS')&&esSinMarca&&(!tipoAus||soloEtiqueta||Boolean(x.sin_marca)))detalles.push('No registra marcas durante la jornada. Favor confirmar asistencia o justificar inasistencia.');
+                if(!detalles.length){filasSinIncidencia++;continue;}
                 const exclusion=buscarExclusionAusenciaCorreo(x,fecha,proteccion);
                 if(exclusion){excluidos.push({rut,nombre:x.nombre||'',fecha,categoria:exclusion.categoria,mensaje:exclusion.mensaje});continue;}
                 // Un único grupo y un único correo por área, aunque tenga ambos tipos de incidencias.
@@ -840,8 +846,16 @@
             }
             if(!drafts.length) {
                 window.__doctorSimiAreaAttendanceDrafts=[];
-                progreso(100,'No se generaron borradores','No hubo incidencias que cumplieran los filtros o faltan destinatarios. Revisa el período, las áreas, los tipos seleccionados y la configuración de correos.','error');
-                throw new Error('No se encontraron incidencias para las áreas seleccionadas o faltan destinatarios configurados. Revisa el período, la asociación de colaboradores a áreas y la configuración de correos.');
+                const areasConCasos=[...grupos.keys()];
+                const areasSinDestinatario=areasConCasos.filter(a=>!String((configNorm.get(norm(a))||{}).correo_para||'').trim());
+                let diagnostico;
+                if(areasConCasos.length){
+                    diagnostico='Se encontraron incidencias, pero faltan destinatarios configurados para: '+(areasSinDestinatario.length?areasSinDestinatario.join(', '):areasConCasos.join(', '))+'. Configura el correo de cada área y vuelve a generar.';
+                }else{
+                    diagnostico='No se encontraron casos con los filtros seleccionados. Registros dentro del período: '+registrosPeriodo+'. Sin área reconocida: '+noMapeados.size+'. Áreas fuera de la selección: '+areasNoSeleccionadas+'. Sin incidencia coincidente: '+filasSinIncidencia+'. Casos excluidos por licencias, vacaciones o permisos: '+excluidos.length+'. Revisa las áreas y los tipos de incidencia.';
+                }
+                progreso(100,'No se generaron borradores',diagnostico,'error');
+                throw new Error(diagnostico);
             }
             window.__doctorSimiAreaAttendanceDrafts=drafts;
             const total=drafts.reduce((n,b)=>n+b.cantidad,0);
