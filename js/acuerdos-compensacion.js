@@ -232,6 +232,10 @@
       #ac-documento .ac-page-three .ac-signatures{margin-top:18mm;gap:14mm;align-items:end}
       #ac-documento .ac-page-three .ac-signature-block img{width:48mm;height:38mm;object-fit:contain}
       #ac-documento .ac-page-three .ac-worker-blank{height:38mm}
+      #ac-documento .ac-page-one::after,#ac-documento .ac-page-two::after,#ac-documento .ac-page-three::after{position:absolute;left:18mm;right:18mm;bottom:7mm;padding-top:2mm;border-top:1px solid #dbe4ee;font-size:8pt;line-height:1.2;color:#64748b;letter-spacing:.25px;text-align:right}
+      #ac-documento .ac-page-one::after{content:"ACUERDO DE COMPENSACIÓN · PÁGINA 1 DE 3"}
+      #ac-documento .ac-page-two::after{content:"ACUERDO DE COMPENSACIÓN · PÁGINA 2 DE 3"}
+      #ac-documento .ac-page-three::after{content:"ACUERDO DE COMPENSACIÓN · PÁGINA 3 DE 3"}
       @media(max-width:900px){
         #ac-documento{width:100%;max-width:100%}
         #ac-documento .ac-page{width:100%;height:auto;min-height:0;padding:28px 24px;margin:0 auto 16px;overflow:visible}
