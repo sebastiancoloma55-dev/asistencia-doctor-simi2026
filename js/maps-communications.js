@@ -218,29 +218,24 @@
             if(window.actualizarContadoresSelectores2026)window.actualizarContadoresSelectores2026();
         }
         function crearCuerpoCorreo(grupo, casos, desde, hasta) {
-            const nombreGrupo = grupo.tipo === 'SUPERVISOR' ? 'sucursales a cargo de ' + grupo.nombre : grupo.tipo === 'AREA' ? 'área ' + grupo.nombre : 'sucursal ' + grupo.nombre;
-            const filas = casos.map((x, i) => (i + 1) + '. ' + x.fecha + ' | ' + x.rut + ' | ' + x.nombre + ' | ' + x.sucursal + '\n   ' + (x.detalles || []).join('\n   ')).join('\n\n');
-            const firma = texto(grupo.firma) || 'Saludos cordiales,\nDepartamento de Recursos Humanos\nFarmacias de Similares Chile S.A.\nRUT: 59.111.330-5';
-            return 'Estimados/as equipo de ' + nombreGrupo.toUpperCase() + ':\n\nJunto con saludar, esperamos que se encuentren muy bien.\n\nEste correo tiene como objetivo orientar el cumplimiento de la jornada y el correcto registro de asistencia de su equipo. En la revisión preventiva de asistencia se identificaron registros que requieren revisión para el período ' + desde + ' al ' + hasta + ':\n\n' + filas + '\n\nPara regularizar cada caso, agradeceremos confirmar si corresponde a asistencia normal (olvido de marcar), permiso autorizado o inasistencia justificada/no justificada, indicando el motivo y adjuntando el respaldo cuando corresponda.\n\n' + firma;
+            const filas=casos.map(x=>[x.fecha,((x.detalles||[]).join(' ').toLowerCase().includes('no registra marcas')?'Inexistente':((x.detalles||[]).join(' ')||'Revisar')),x.rut,x.nombre,x.sucursal,x.turno||x.turno_asignado||x.jornada||x.horario||'—',x.entrada||'—',x.salida||'—'].join(' | ')).join('\\n');
+            const firma=texto(grupo.firma)||'Saavedra Miranda Javiera Paz\\nAsistente de Recursos Humanos\\nRecursos Humanos\\nFarmacias Doctor Simi';
+            return 'Estimados(as):\\n\\nJunto con saludar, el presente correo tiene como objetivo apoyar la revisión y regularización del registro de asistencia.\\n\\nEn la revisión realizada, se identifican registros de asistencia que no cuentan con marcas asociadas. Por este motivo, agradeceremos puedan revisar la situación e informarnos si el colaborador efectivamente asistió a su jornada laboral. En caso de no haber concurrido, solicitamos nos lo indiquen a la brevedad para poder ingresarlo al sistema de Talana.\\n\\nAgradeceremos su respuesta dentro de un plazo ideal de 24 horas. En caso de fin de semana o feriado, el plazo corresponderá al día hábil siguiente.\\n\\nEn caso de que este requerimiento deba ser derivado a otro encargado o responsable, agradeceré nos lo informen a la brevedad, ya sea respondiendo este correo o a través de los canales internos correspondientes.\\n\\nFecha | Estado | Rut | Nombre | Sucursal | Turno | Entrada | Salida\\n'+filas+'\\n\\n'+firma;
         }
         function crearCuerpoCorreoHTML(grupo, casos, desde, hasta) {
-            const e = v => escaparHTML(texto(v) || '—');
-            const nombreGrupo = grupo.tipo === 'SUPERVISOR' ? 'sucursales a cargo de ' + grupo.nombre : grupo.tipo === 'AREA' ? 'área ' + grupo.nombre : 'sucursal ' + grupo.nombre;
-            const estadoCaso = x => { const d=(x.detalles||[]).join(' ').toLowerCase(); if(d.includes('no registra marcas'))return 'Inexistente'; if(d.includes('sin turno'))return 'Sin turno'; if(d.includes('salida anticipada'))return 'Salida anticipada'; if(d.includes('atraso'))return 'Atraso'; return 'Revisar'; };
-            const filas = casos.map(x => {
-                const turno=x.turno||x.turno_asignado||x.jornada||x.horario||'—';
-                const entrada=x.entrada&&x.entrada!=='-'?x.entrada:'—'; const salida=x.salida&&x.salida!=='-'?x.salida:'—';
-                const celdas=[e(x.fecha),e(estadoCaso(x)),e(x.rut),e(x.nombre),e(x.sucursal),e(turno),e(entrada),e(salida)];
-                return '<tr>'+celdas.map(v=>'<td style="padding:9px 8px;border:1px solid #c7d8ef;background:#eaf3ff;font-size:12px;">'+v+'</td>').join('')+'</tr><tr><td colspan="8" style="padding:8px 10px;border:1px solid #c7d8ef;background:#fff;font-size:12px;color:#26364b;"><b>Gestión solicitada:</b> '+e((x.detalles||[]).join(' '))+'</td></tr>';
-            }).join('');
-            const firmaConfigurada=texto(grupo.firma); const firma=firmaConfigurada?e(firmaConfigurada).replace(/\r?\n/g,'<br>'):'Saludos cordiales,<br><b>Departamento de Recursos Humanos</b><br>Farmacias de Similares Chile S.A.<br>RUT: 59.111.330-5';
-            const headers=['Fecha','Estado','RUT','Nombre','Sucursal','Turno','Entrada','Salida'].map(t=>'<th style="padding:10px 8px;background:#1554a6;color:#fff;border:1px solid #8eb1e6;text-align:left;font-size:12px;">'+t+'</th>').join('');
-            return '<div style="background:#f3f5f8;font-family:Arial,Helvetica,sans-serif;color:#202b3c;"><div style="padding:20px;background:#fff;border:1px solid #d5dfeb;">'+
-                '<p>Estimados/as equipo de <b>'+e(nombreGrupo).toUpperCase()+'</b>:</p><p>Junto con saludar, esperamos que se encuentren muy bien.</p>'+
-                '<p style="line-height:1.55;">Este correo tiene como objetivo orientar el cumplimiento de la jornada y el correcto registro de asistencia. En la revisión preventiva se identificaron registros que requieren aclaración, correspondientes al período <b>'+e(desde)+' al '+e(hasta)+'</b>. Para su gestión, dejamos el detalle a continuación:</p>'+
-                '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;border:1px solid #9bb9e3;font-family:Arial,Helvetica,sans-serif;"><thead><tr>'+headers+'</tr></thead><tbody>'+filas+'</tbody></table>'+
-                '<p style="margin-top:16px;">Para regularizar cada caso, agradeceremos confirmar si corresponde a:</p><ul style="line-height:1.6;"><li>Asistencia normal (olvido de marcar).</li><li>Permiso autorizado.</li><li>Inasistencia justificada o no justificada (indicar motivo).</li></ul>'+
-                '<p>Agradecemos su colaboración y respuesta para mantener los registros de asistencia actualizados.</p><p>'+firma+'</p></div></div>';
+            const e=v=>escaparHTML(texto(v)||'—');
+            const estadoCaso=x=>{const d=(x.detalles||[]).join(' ').toLowerCase();if(d.includes('no registra marcas'))return 'Inexistente';if(d.includes('sin turno'))return 'Sin turno';if(d.includes('salida anticipada'))return 'Salida anticipada';if(d.includes('atraso'))return 'Atraso';return 'Revisar';};
+            const filas=casos.map(x=>{const turno=x.turno||x.turno_asignado||x.jornada||x.horario||'—';const entrada=x.entrada&&x.entrada!=='-'?x.entrada:'—';const salida=x.salida&&x.salida!=='-'?x.salida:'—';const cells=[e(x.fecha),e(estadoCaso(x)),e(x.rut),e(x.nombre),e(x.sucursal),e(turno),e(entrada),e(salida)];return '<tr>'+cells.map(v=>'<td style="padding:9px 8px;border:1px solid #c7d8ef;background:#fff;font-size:12px;color:#202b3c;">'+v+'</td>').join('')+'</tr>';}).join('');
+            const firmaConfigurada=texto(grupo.firma);const firma=firmaConfigurada?e(firmaConfigurada).replace(/\\r?\\n/g,'<br>'):'<b>Saavedra Miranda Javiera Paz</b><br>Asistente de Recursos Humanos<br>Recursos Humanos<br>Farmacias Doctor Simi';
+            const headers=['Fecha','Estado','Rut','Nombre','Sucursal','Turno','Entrada','Salida'].map(t=>'<th style="padding:10px 8px;background:#1554a6;color:#fff;border:1px solid #8eb1e6;text-align:left;font-size:12px;">'+t+'</th>').join('');
+            return '<div style="font-family:Arial,Helvetica,sans-serif;color:#202b3c;background:#fff;font-size:14px;line-height:1.55;">'+
+                '<p>Estimados(as):</p>'+
+                '<p>Junto con saludar, el presente correo tiene como objetivo apoyar la revisión y regularización del registro de asistencia.</p>'+
+                '<p>En la revisión realizada, se identifican registros de asistencia que no cuentan con marcas asociadas. Por este motivo, agradeceremos puedan revisar la situación e informarnos si el colaborador efectivamente asistió a su jornada laboral. En caso de no haber concurrido, solicitamos nos lo indiquen a la brevedad para poder ingresarlo al sistema de Talana.</p>'+
+                '<p>Agradeceremos su respuesta dentro de un plazo ideal de 24 horas. En caso de fin de semana o feriado, el plazo corresponderá al día hábil siguiente.</p>'+
+                '<p>En caso de que este requerimiento deba ser derivado a otro encargado o responsable, agradeceré nos lo informen a la brevedad, ya sea respondiendo este correo o a través de los canales internos correspondientes.</p>'+
+                '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;border:1px solid #9bb9e3;font-family:Arial,Helvetica,sans-serif;margin-top:16px;"><thead><tr>'+headers+'</tr></thead><tbody>'+filas+'</tbody></table>'+
+                '<p style="margin-top:22px;">Saludos cordiales,<br>'+firma+'</p></div>';
         }
         async function guardarLoteBorradoresNube(desde,hasta,agrupar,filtroSuc,filtroSup,minimo) {
             const {data:sesion,error:errSesion}=await _supabase.auth.getUser();
@@ -841,7 +836,7 @@
                 const firma=String(cfg.firma||'').trim()||'Saludos cordiales,\nDepartamento de Recursos Humanos\nFarmacias de Similares Chile S.A.\nRUT: 59.111.330-5';
                 const grupo={tipo:'AREA',nombre:area,firma};
                 const asuntoBase=String(cfg.asunto_plantilla||'').trim();
-                const asunto=(asuntoBase&&asuntoBase!=='Comunicación interna – '+area?asuntoBase+' · ':'')+'Importancia alta - '+etiqueta+' - '+area+' - '+desde+' a '+hasta;
+                const soloSinMarcas=casos.every(x=>(x.detalles||[]).join(' ').toLowerCase().includes('no registra marcas'));const asunto=(soloSinMarcas?'Regularización de asistencia (Registros Inexistentes)':'Importancia alta - '+etiqueta)+' - '+area+' - '+desde+' a '+hasta;
                 drafts.push({id:'area-'+norm(area).replace(/[^a-z0-9]+/g,'-'),tipoCorreo:'INCIDENCIAS',nombre,para,cc,asunto,cuerpo:crearCuerpoCorreo(grupo,casos,desde,hasta),cuerpoHtml:crearCuerpoCorreoHTML(grupo,casos,desde,hasta),cantidad:casos.length,proteccionAusenciasVerificada:true,periodoDesde:desde,periodoHasta:hasta,grupoCorreo:grupo,casosDetalle:casos.map(x=>({fecha:x.fecha,rut:x.rut,nombre:x.nombre,sucursal:x.sucursal,area:x.area,detalles:x.detalles,turno:x.turno,turno_asignado:x.turno_asignado,jornada:x.jornada,horario:x.horario,entrada:x.entrada,salida:x.salida}))});
             }
             if(!drafts.length) {
