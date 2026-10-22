@@ -294,7 +294,10 @@
     let binary='';
     const chunk=0x8000;
     for(let i=0;i<bytes.length;i+=chunk) binary+=String.fromCharCode(...bytes.subarray(i,Math.min(i+chunk,bytes.length)));
-    return btoa(binary).replace(/.{1,76}/g,'  async function downloadZip() {\\r\\n').trim();
+    const encoded=btoa(binary);
+    const lines=[];
+    for(let i=0;i<encoded.length;i+=76) lines.push(encoded.slice(i,i+76));
+    return lines.join('\r\n');
   }
   function mimeHeader(value) {
     const bytes=new TextEncoder().encode(String(value||''));
