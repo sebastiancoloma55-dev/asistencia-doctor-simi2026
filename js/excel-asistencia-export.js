@@ -102,7 +102,7 @@
     const lunchSeconds = lunchStart != null && lunchEnd != null ? Math.max(0, lunchEnd - lunchStart) : null;
     const lunchOver = lunchSeconds == null ? '' : Math.max(0, Math.floor((lunchSeconds - 1800) / 60));
     const lunchLabel = lunchSeconds == null ? 'Sin marcación de colación' :
-      (lunchOver > 0 ? 'Exceso colación ' + durationText(Math.max(0, lunchSeconds - 1800)) : 'Marcó colación');
+      (lunchOver > 0 ? 'Exceso colación ' + durationText(lunchOver * 60) : 'Marcó colación');
     return {
       'Fecha': date, 'RUT': rut, 'Nombre': name, 'Centro de Costo': cost || branch,
       'Entrada prog.': timeText(entryPlannedRaw), 'Entrada real': timeText(entryActualRaw),
