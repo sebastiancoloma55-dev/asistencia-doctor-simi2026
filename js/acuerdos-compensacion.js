@@ -302,58 +302,69 @@
         #ac-documento .ac-page-two .ac-signature-block strong{font-size:8pt!important;line-height:1.15!important}
       }`;
     style.textContent += `
-      /* Formato uniforme: ambas hojas carta del mismo tamaño y tipografía legible */
+      /* Vista previa uniforme; la impresión usa flujo natural para impedir páginas en blanco */
+      #ac-documento{box-sizing:border-box;width:215.9mm;max-width:215.9mm;margin:0 auto;font-family:Arial,Helvetica,sans-serif;color:#111}
       #ac-documento .ac-page,
       #ac-documento .ac-page-one,
       #ac-documento .ac-page-two{
-        box-sizing:border-box!important;
-        width:215.9mm!important;
-        height:279mm!important;
-        min-height:279mm!important;
-        max-height:279mm!important;
-        padding:12mm 14mm 9mm!important;
-        margin:0 auto 14px!important;
-        overflow:hidden!important;
-        background:#fff!important;
-        font-size:9pt!important;
-        line-height:1.28!important;
+        box-sizing:border-box!important;width:215.9mm!important;height:279mm!important;min-height:279mm!important;max-height:279mm!important;
+        padding:12mm 14mm 9mm!important;margin:0 auto 14px!important;overflow:hidden!important;background:#fff!important;
+        font-size:9pt!important;line-height:1.28!important
       }
       #ac-documento .ac-page-one .ac-doc-header{min-height:21mm!important;margin-bottom:3mm!important}
       #ac-documento .ac-page-one .ac-doc-p,
       #ac-documento .ac-page-two .ac-doc-p{font-size:9pt!important;line-height:1.28!important;margin:0 0 2.2mm!important}
       #ac-documento .ac-page-one h3,
       #ac-documento .ac-page-two h3{font-size:9.2pt!important;line-height:1.15!important;margin:2.5mm 0 1.2mm!important}
+      #ac-documento .ac-identification{margin:2mm 0!important}
+      #ac-documento .ac-identification td{padding:1mm!important}
       #ac-documento .ac-worked-table{font-size:8.2pt!important;margin:2mm 0 3mm!important}
+      #ac-documento .ac-worked-table th,#ac-documento .ac-worked-table td{padding:1.2mm!important}
       #ac-documento .ac-page-two .ac-representation{margin-top:2mm!important}
-      #ac-documento .ac-page-two .ac-signatures{
-        display:grid!important;grid-template-columns:1fr 1fr!important;
-        gap:8mm!important;margin:4mm 0 0!important;align-items:end!important;
-        break-inside:avoid!important;page-break-inside:avoid!important
-      }
+      #ac-documento .ac-page-two .ac-signatures{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8mm!important;margin:4mm 0 0!important;align-items:end!important;break-inside:avoid!important;page-break-inside:avoid!important}
       #ac-documento .ac-page-two .ac-signature-block{min-width:0!important;break-inside:avoid!important;page-break-inside:avoid!important}
       #ac-documento .ac-page-two .ac-signature-block img{width:27mm!important;height:17mm!important;object-fit:contain!important;margin:0 auto .5mm!important}
       #ac-documento .ac-page-two .ac-worker-blank{height:17mm!important}
       #ac-documento .ac-page-two .ac-signature-block strong{font-size:8pt!important;line-height:1.15!important}
-      #ac-documento .ac-page-one::after,
-      #ac-documento .ac-page-two::after,
-      #ac-documento .ac-page-three::after{display:none!important;content:none!important}
+      #ac-documento .ac-page-one::after,#ac-documento .ac-page-two::after,#ac-documento .ac-page-three::after{display:none!important;content:none!important}
       @media(max-width:900px){
-        #ac-documento .ac-page,
-        #ac-documento .ac-page-one,
-        #ac-documento .ac-page-two{width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;padding:28px 24px!important;overflow:visible!important}
+        #ac-documento{width:100%;max-width:100%}
+        #ac-documento .ac-page,#ac-documento .ac-page-one,#ac-documento .ac-page-two{width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;padding:28px 24px!important;margin:0 auto 16px!important;overflow:visible!important}
       }
       @media print{
         @page{size:letter;margin:0}
-        #ac-documento .ac-page,
-        #ac-documento .ac-page-one,
-        #ac-documento .ac-page-two{
-          width:215.9mm!important;height:279mm!important;min-height:279mm!important;max-height:279mm!important;
-          margin:0!important;padding:12mm 14mm 9mm!important;overflow:hidden!important;
-          break-after:page!important;page-break-after:always!important
+        html,body{width:215.9mm!important;margin:0!important;padding:0!important;background:#fff!important}
+        body *{visibility:hidden!important}
+        #view-acuerdos-compensacion,#view-acuerdos-compensacion *{visibility:visible!important}
+        #sidebar,#topbar,.module-intro,#view-acuerdos-compensacion>.grid>section:first-child{display:none!important}
+        #view-acuerdos-compensacion{display:block!important;position:absolute!important;left:0!important;top:0!important;width:215.9mm!important;margin:0!important;padding:0!important;background:#fff!important}
+        #view-acuerdos-compensacion>.grid{display:block!important;margin:0!important;padding:0!important}
+        #view-acuerdos-compensacion .ui-card{border:0!important;box-shadow:none!important}
+        #view-acuerdos-compensacion .bg-slate-100{background:#fff!important;padding:0!important}
+        #ac-documento{display:block!important;width:215.9mm!important;max-width:215.9mm!important;margin:0!important;padding:0!important;box-shadow:none!important}
+        #ac-documento .ac-page,#ac-documento .ac-page-one,#ac-documento .ac-page-two{
+          display:block!important;box-sizing:border-box!important;width:215.9mm!important;height:auto!important;min-height:0!important;max-height:none!important;
+          margin:0!important;padding:8mm 13mm 6mm!important;overflow:visible!important;box-shadow:none!important;
+          break-inside:avoid!important;page-break-inside:avoid!important;break-after:auto!important;page-break-after:auto!important
         }
-        #ac-documento .ac-page-two{break-after:auto!important;page-break-after:auto!important}
-        #ac-documento .ac-page-two .ac-signatures{break-inside:avoid!important;page-break-inside:avoid!important}
-      }`;
+        #ac-documento .ac-page-one{break-after:page!important;page-break-after:always!important}
+        #ac-documento .ac-page-two{break-before:avoid!important;page-break-before:avoid!important;break-after:auto!important;page-break-after:auto!important}
+        #ac-documento .ac-doc-header{min-height:17mm!important;margin-bottom:3mm!important;padding-top:0!important}
+        #ac-documento .ac-doc-logo{width:20mm!important;height:20mm!important;left:0!important;top:0!important}
+        #ac-documento .ac-doc-header h2{font-size:13pt!important}
+        #ac-documento .ac-doc-p,#ac-documento .ac-page-two .ac-doc-p{font-size:8.8pt!important;line-height:1.22!important;margin:0 0 1.8mm!important}
+        #ac-documento .ac-page h3{font-size:9pt!important;line-height:1.15!important;margin:2mm 0 1mm!important}
+        #ac-documento .ac-identification{margin:2mm 0!important}
+        #ac-documento .ac-identification td{padding:.8mm!important;font-size:8.8pt!important}
+        #ac-documento .ac-worked-table{margin:2mm 0!important;font-size:8pt!important}
+        #ac-documento .ac-worked-table th,#ac-documento .ac-worked-table td{padding:1mm!important}
+        #ac-documento .ac-representation,#ac-documento .ac-page-two .ac-representation{margin-top:2mm!important}
+        #ac-documento .ac-signatures,#ac-documento .ac-page-two .ac-signatures{margin-top:3mm!important;gap:8mm!important;break-inside:avoid!important;page-break-inside:avoid!important}
+        #ac-documento .ac-signature-block img,#ac-documento .ac-page-two .ac-signature-block img{width:26mm!important;height:16mm!important;object-fit:contain!important}
+        #ac-documento .ac-worker-blank,#ac-documento .ac-page-two .ac-worker-blank{height:16mm!important}
+        #ac-documento .ac-signature-block strong{font-size:8pt!important;line-height:1.15!important}
+        #ac-documento .ac-page-one::after,#ac-documento .ac-page-two::after,#ac-documento .ac-page-three::after{display:none!important;content:none!important}
+      }
 
     document.head.appendChild(style);
     updatePreview();
