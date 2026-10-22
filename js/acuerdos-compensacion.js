@@ -301,6 +301,22 @@
         #ac-documento .ac-page-two .ac-worker-blank{height:17mm!important}
         #ac-documento .ac-page-two .ac-signature-block strong{font-size:8pt!important;line-height:1.15!important}
       }`;
+    style.textContent += `
+      /* Corrección final: reducir la segunda hoja para que las firmas no salten a una tercera */
+      #ac-documento .ac-page-two{box-sizing:border-box!important;height:279mm!important;min-height:279mm!important;padding:7mm 13mm 5mm!important;overflow:hidden!important;break-after:auto!important;page-break-after:auto!important}
+      #ac-documento .ac-page-two h3{font-size:8.2pt!important;line-height:1.12!important;margin:1.3mm 0 .7mm!important}
+      #ac-documento .ac-page-two .ac-doc-p{font-size:7.6pt!important;line-height:1.13!important;margin:0 0 1.1mm!important}
+      #ac-documento .ac-page-two .ac-representation{margin-top:1mm!important}
+      #ac-documento .ac-page-two .ac-signatures{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8mm!important;margin-top:1.5mm!important;align-items:end!important;break-inside:avoid!important;page-break-inside:avoid!important}
+      #ac-documento .ac-page-two .ac-signature-block{gap:.5mm!important;font-size:7pt!important;break-inside:avoid!important;page-break-inside:avoid!important}
+      #ac-documento .ac-page-two .ac-signature-block img{width:24mm!important;height:12mm!important;object-fit:contain!important;margin:0 auto!important}
+      #ac-documento .ac-page-two .ac-worker-blank{height:12mm!important}
+      #ac-documento .ac-page-two .ac-signature-line{margin-bottom:.5mm!important}
+      #ac-documento .ac-page-two .ac-signature-block strong{font-size:7pt!important;line-height:1.1!important}
+      @media print{
+        #ac-documento .ac-page-two{height:279mm!important;min-height:279mm!important;overflow:hidden!important;break-after:auto!important;page-break-after:auto!important;padding:7mm 13mm 5mm!important}
+        #ac-documento .ac-page-two .ac-signatures{break-inside:avoid!important;page-break-inside:avoid!important}
+      }`;
     document.head.appendChild(style);
     updatePreview();
   }
