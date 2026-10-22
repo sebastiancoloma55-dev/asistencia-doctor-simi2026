@@ -44,24 +44,65 @@
     panel.classList.remove('hidden');
     status.textContent=message||rows.length+' coincidencia(s). Selecciona al colaborador correcto.';
   }
+  let employeeCache = null;
+  let employeeLoadPromise = null;
+  const normalizeSearch = value => String(value ?? '').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().trim();
+  const normalizeRut = value => String(value ?? '').toUpperCase().replace(/[^0-9K]/g,'');
+  async function loadEmployeesOnce() {
+    if (employeeCache) return employeeCache;
+    if (employeeLoadPromise) return employeeLoadPromise;
+    employeeLoadPromise = (async () => {
+      const all = [];
+      const pageSize = 1000;
+      for (let from = 0; from < 10000; from += pageSize) {
+        const { data, error } = await _supabase.from('colaboradores')
+          .select('id,rut,nombres,apellidos,cargo,sucursal,fecha_ingreso,estado')
+          .order('nombres', { ascending: true })
+          .range(from, from + pageSize - 1);
+        if (error) throw error;
+        const page = data || [];
+        all.push(...page);
+        if (page.length < pageSize) break;
+      }
+      employeeCache = all;
+      return all;
+    })().catch(error => { employeeLoadPromise = null; throw error; });
+    return employeeLoadPromise;
+  }
   async function searchEmployees() {
-    const q=String($('ac-buscar')?.value||'').trim();
-    if(q.length<2){$('ac-resultados')?.classList.add('hidden');$('ac-busqueda-estado').textContent='Ingresa al menos 2 caracteres.';return;}
-    if(typeof _supabase === 'undefined'){renderResults([], 'No está disponible la conexión de datos.');return;}
-    $('ac-busqueda-estado').textContent='Buscando en la nómina…';
+    const input = $('ac-buscar');
+    const q = String(input?.value || '').trim();
+    const panel = $('ac-resultados');
+    const status = $('ac-busqueda-estado');
+    if (!input || !panel || !status) return;
+    if (q.length < 2) {
+      panel.classList.add('hidden');
+      panel.replaceChildren();
+      status.textContent = 'Ingresa al menos 2 caracteres.';
+      return;
+    }
+    if (typeof _supabase === 'undefined' || !_supabase) {
+      renderResults([], 'No está disponible la conexión de datos. Recarga la página e inicia sesión nuevamente.');
+      return;
+    }
+    status.textContent = employeeCache ? 'Filtrando nómina…' : 'Cargando nómina y buscando…';
     try {
-      const term=q.replace(/[,%_()]/g,' ').trim();
-      const safe=term.replace(/\s+/g,' ');
-      const {data,error}=await _supabase.from('colaboradores').select('*')
-        .or('rut.ilike.%'+safe+'%,nombres.ilike.%'+safe+'%,apellidos.ilike.%'+safe+'%')
-        .limit(15);
-      if(error) throw error;
-      const rows=(data||[]).filter(c=>!c.estado || !/inactivo|desvinculado|finiquitado/i.test(String(c.estado)));
+      const all = await loadEmployeesOnce();
+      // Si el usuario siguió escribiendo mientras cargaba, no mostrar resultados obsoletos.
+      if (String(input.value || '').trim() !== q) return;
+      const needle = normalizeSearch(q);
+      const rutNeedle = normalizeRut(q);
+      const rows = all.filter(c => {
+        if (c.estado && /inactivo|desvinculado|finiquitado/i.test(String(c.estado))) return false;
+        const name = normalizeSearch([c.nombres, c.apellidos, c.nombre_completo, c.nombre].filter(Boolean).join(' '));
+        const rut = normalizeRut(c.rut || c.RUT);
+        return name.includes(needle) || (rutNeedle.length >= 2 && rut.includes(rutNeedle));
+      }).slice(0, 20);
       renderResults(rows, rows.length ? '' : 'No encontramos colaboradores activos con ese nombre o RUT.');
-    } catch(e) {
-      console.error('Búsqueda de acuerdos:',e);
-      renderResults([], 'No se pudo consultar la nómina. Revisa tu sesión y los permisos de acceso.');
-      if(window.mostrarToast) window.mostrarToast('No se pudo buscar el colaborador: '+(e.message||e),'warning',8000);
+    } catch (e) {
+      console.error('Búsqueda de acuerdos:', e);
+      renderResults([], 'No se pudo consultar la nómina. Verifica tu sesión y los permisos de lectura de colaboradores.');
+      if (window.mostrarToast) window.mostrarToast('Error al buscar colaborador: ' + (e.message || e), 'error', 8000);
     }
   }
   function selectEmployee(c) {
@@ -155,8 +196,21 @@
     if(firmaImg){
       fetch('/public/firma-empleador.jpg.b64',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('No se pudo cargar la firma institucional desde /public');return r.text();}).then(data=>{const clean=data.trim();if(clean.length>1000&&/^[A-Za-z0-9+/]+={0,2}$/.test(clean)){firmaImg.src='data:image/jpeg;base64,'+clean;firmaImg.classList.add('ac-signature-loaded');}}).catch(e=>{console.warn('No se pudo cargar la firma institucional:',e);const existing=$('pap-firma-preview');if(existing&&existing.src&&existing.src.startsWith('data:image/'))firmaImg.src=existing.src;});
     }
-    $('ac-buscar').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(searchEmployees,260);});
-    $('ac-buscar').addEventListener('focus',()=>{if($('ac-buscar').value.trim().length>=2)searchEmployees();});
+    const searchInput = $('ac-buscar');
+    if (!searchInput) return;
+    if (searchInput.dataset.acSearchBound !== 'true') {
+      searchInput.dataset.acSearchBound = 'true';
+      searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(searchEmployees, 180);
+      });
+      searchInput.addEventListener('focus', () => {
+        if (searchInput.value.trim().length >= 2) searchEmployees();
+      });
+      searchInput.addEventListener('keydown', event => {
+        if (event.key === 'Escape') $('ac-resultados')?.classList.add('hidden');
+      });
+    }
     ['ac-fecha-acuerdo','ac-desde','ac-hasta','ac-dias','ac-descanso'].forEach(id=>$(id).addEventListener('input',updatePreview));
     $('ac-fecha-acuerdo').value=isoToday();
     const style=document.createElement('style');
