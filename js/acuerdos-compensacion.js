@@ -9,7 +9,13 @@
   function formatDate(value) {
     if (!value) return '';
     const d = new Date(String(value).length === 10 ? value + 'T12:00:00' : value);
-    return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString('es-CL',{timeZone:'America/Santiago',day:'2-digit',month:'long',year:'numeric'});
+    if (Number.isNaN(d.getTime())) return String(value);
+    return d.toLocaleDateString('es-CL',{timeZone:'America/Santiago',day:'2-digit',month:'long',year:'numeric'}).replace(/ de ([a-záéíóúñ])/g,(_,m)=>' de '+m.toUpperCase());
+  }
+  function formatShortDate(value) {
+    if (!value) return '[FECHA DE DESCANSO]';
+    const d=new Date(String(value).length===10?value+'T12:00:00':value);
+    return Number.isNaN(d.getTime())?String(value):d.toLocaleDateString('es-CL',{timeZone:'America/Santiago',day:'2-digit',month:'2-digit',year:'numeric'}).replaceAll('/','-');
   }
   function isoToday() {
     const d = new Date();
@@ -86,12 +92,13 @@
     const values=readValues();
     dateFields.forEach(key=>{
       const val=values[key];
-      const output=(key==='fecha-acuerdo'||key==='desde'||key==='hasta'||key==='descanso'||key==='ingreso')?formatDate(val):val;
+      const output=(key==='fecha-acuerdo'||key==='ingreso')?formatDate(val):(key==='desde'||key==='hasta'||key==='descanso')?formatShortDate(val):val;
       document.querySelectorAll('[data-ac-out="'+key+'"]').forEach(el=>el.textContent=output||({
         'fecha-acuerdo':'[FECHA DEL ACUERDO]',desde:'[INICIO]',hasta:'[TÉRMINO]',descanso:'[FECHA DE DESCANSO]',
         nombre:'[NOMBRE DEL TRABAJADOR]',rut:'[RUT]',cargo:'[CARGO]',ingreso:'[FECHA DE INGRESO]',dias:'1'
       }[key]||''));
     });
+    document.querySelectorAll('[data-ac-out="tabla-dias"]').forEach(el=>el.textContent=(values.dias||'1')+' ('+formatShortDate(values.descanso)+')');
     const valid=$('ac-validacion');
     const ok=selectedEmployee && values.desde && values.hasta && values.descanso && values['fecha-acuerdo'] &&
       values.hasta>=values.desde && Number(values.dias)>=1 && Number.isInteger(Number(values.dias));
@@ -145,13 +152,15 @@
   function init() {
     if(!$('view-acuerdos-compensacion')) return;
     const firmaImg=$('ac-firma-img');
-    try { if(firmaImg && typeof firmaPapeletaDataUrl !== 'undefined' && firmaPapeletaDataUrl) { firmaImg.src=firmaPapeletaDataUrl; firmaImg.style.display='block'; } } catch(e) { console.warn('No se pudo cargar la firma institucional precargada:',e); }
+    if(firmaImg){
+      fetch('/firma-empleador.jpg.b64',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('No se pudo cargar la firma institucional');return r.text();}).then(data=>{const clean=data.trim();if(clean.length>1000&&/^[A-Za-z0-9+/]+={0,2}$/.test(clean)){firmaImg.src='data:image/jpeg;base64,'+clean;firmaImg.classList.add('ac-signature-loaded');}}).catch(e=>{console.warn('No se pudo cargar la firma institucional:',e);const existing=$('pap-firma-preview');if(existing&&existing.src&&existing.src.startsWith('data:image/'))firmaImg.src=existing.src;});
+    }
     $('ac-buscar').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(searchEmployees,260);});
     $('ac-buscar').addEventListener('focus',()=>{if($('ac-buscar').value.trim().length>=2)searchEmployees();});
     ['ac-fecha-acuerdo','ac-desde','ac-hasta','ac-dias','ac-descanso'].forEach(id=>$(id).addEventListener('input',updatePreview));
     $('ac-fecha-acuerdo').value=isoToday();
     const style=document.createElement('style');
-    style.textContent='@media print{body *{visibility:hidden!important}#view-acuerdos-compensacion,#view-acuerdos-compensacion *{visibility:visible!important}body{background:#fff!important} #sidebar{display:none!important}#view-acuerdos-compensacion{display:block!important;position:absolute!important;inset:0!important;width:100%!important;padding:0!important;margin:0!important;background:#fff!important}#view-acuerdos-compensacion>.module-intro,#view-acuerdos-compensacion>.grid>section:first-child,#view-acuerdos-compensacion>.grid>section>div:first-child{display:none!important}#view-acuerdos-compensacion>.grid{display:block!important}#view-acuerdos-compensacion .ui-card{border:0!important;box-shadow:none!important}#view-acuerdos-compensacion .bg-slate-100{background:#fff!important;padding:0!important}#ac-documento{max-width:none!important;box-shadow:none!important;padding:14mm 16mm!important;margin:0!important;font-family:Arial,sans-serif!important;color:#000!important}@page{size:A4;margin:8mm}}';
+    style.textContent='.acuerdo-paper{width:100%;max-width:210mm;font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff}.ac-page{box-sizing:border-box;width:210mm;min-height:297mm;padding:18mm 20mm;margin:0 auto 14px;background:#fff;box-shadow:0 2px 12px rgba(15,23,42,.12);font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;line-height:1.52;color:#111}.ac-doc-header{position:relative;min-height:24mm;margin-bottom:8mm;text-align:center}.ac-doc-logo{position:absolute;left:0;top:0;width:24mm;height:24mm;object-fit:contain}.ac-doc-header h2{margin:0;padding-top:5mm;font-size:15pt;font-weight:700;letter-spacing:.2px}.ac-doc-p{text-align:justify;margin:0 0 5mm;line-height:1.62;font-size:10.5pt}.ac-page h3{font-size:10.5pt;font-weight:700;text-decoration:underline;margin:5mm 0 2mm}.ac-identification{width:100%;border-collapse:collapse;margin:7mm 0}.ac-identification td{padding:2mm 1mm;font-size:10.5pt}.ac-identification td:first-child{width:45%}.ac-worked-table{width:100%;border-collapse:collapse;margin:6mm 0;font-size:9.5pt;text-align:center}.ac-worked-table th,.ac-worked-table td{border:1px solid #444;padding:2.8mm 2mm}.ac-worked-table th{font-weight:700}.ac-worked-table .ac-total-label{text-align:right}.ac-representation{margin-top:9mm}.ac-signatures{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin-top:13mm;align-items:end;text-align:center;font-size:9pt}.ac-signature-block{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1.5mm}.ac-signature-block img{display:block;width:42mm;height:38mm;object-fit:contain;object-position:center bottom;margin:0 auto 1mm}.ac-signature-line{width:100%;border-top:1px solid #111;margin-bottom:1.5mm}.ac-signature-block strong{display:block;font-size:9pt;line-height:1.3}.ac-worker-blank{height:38mm;width:100%}.ac-page-three{min-height:297mm}.ac-final-rut{font-size:10.5pt;margin:0}.@media(max-width:900px){.ac-page{width:100%;min-height:0;padding:24px 20px;margin-bottom:12px}.ac-doc-logo{width:54px;height:54px}.ac-doc-header{min-height:64px}.ac-doc-header h2{font-size:14px;padding-top:12px}.ac-doc-p{font-size:10px}.ac-signatures{gap:18px}.ac-signature-block img{width:110px;height:100px}.ac-worker-blank{height:100px}}@media print{ @page{size:A4;margin:0}body *{visibility:hidden!important}#view-acuerdos-compensacion,#view-acuerdos-compensacion *{visibility:visible!important}body{background:#fff!important}#sidebar{display:none!important}#view-acuerdos-compensacion{display:block!important;position:absolute!important;inset:0!important;width:100%!important;padding:0!important;margin:0!important;background:#fff!important}#view-acuerdos-compensacion>.module-intro,#view-acuerdos-compensacion>.grid>section:first-child,#view-acuerdos-compensacion>.grid>section>div:first-child{display:none!important}#view-acuerdos-compensacion>.grid{display:block!important}#view-acuerdos-compensacion .ui-card{border:0!important;box-shadow:none!important}#view-acuerdos-compensacion .bg-slate-100{background:#fff!important;padding:0!important}#ac-documento{max-width:none!important;width:210mm!important;margin:0!important;padding:0!important;box-shadow:none!important;font-family:Arial,sans-serif!important;color:#000!important}#ac-documento .ac-page{width:210mm!important;height:297mm!important;min-height:297mm!important;margin:0!important;padding:18mm 20mm!important;box-shadow:none!important;overflow:hidden!important;break-after:page!important;page-break-after:always!important}#ac-documento .ac-page:last-child{break-after:auto!important;page-break-after:auto!important}.ac-signature-block img{width:42mm!important;height:38mm!important}}';
     document.head.appendChild(style);
     updatePreview();
   }
