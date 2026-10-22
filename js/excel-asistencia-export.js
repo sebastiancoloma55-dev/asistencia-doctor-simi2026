@@ -239,37 +239,54 @@
     const client=(typeof _supabase!=='undefined'&&_supabase?.from)?_supabase:window._supabase;
     let to='',cc='',subject='Reporte de asistencia · '+file.group;
     let body='Estimados/as:\n\nJunto con saludar, adjunto el reporte de asistencia correspondiente a '+file.group+'.\n\nAgradeceré revisar la información y gestionar las regularizaciones que correspondan.\n\nSaludos.';
+    let branchLookupFailed=false;
     if(client?.from) {
-      const {data,error}=await client.from('sucursales').select('nombre,correo_sucursal,correo_copia');
-      if(error) throw error;
-      const branches=data||[];
-      let matched=[];
-      if(grouping==='SUCURSAL') {
-        matched=branches.filter(x=>normalizeKey(x.nombre)===normalizeKey(file.group));
-      } else {
+      try {
+        const {data,error}=await client.from('sucursales').select('nombre,correo_sucursal,correo_copia');
+        if(error) throw error;
+        const branches=data||[];
         const branchNames=new Set((file.branches||[]).map(normalizeKey));
-        matched=branches.filter(x=>branchNames.has(normalizeKey(x.nombre)));
+        const matched=branches.filter(x=>
+          normalizeKey(x.nombre)===normalizeKey(file.group) ||
+          (grouping==='SUCURSAL' && normalizeKey(x.nombre)===normalizeKey(file.group)) ||
+          (grouping!=='SUCURSAL' && branchNames.has(normalizeKey(x.nombre)))
+        );
+        to=[...new Set(matched.flatMap(x=>splitEmails(x.correo_sucursal||'')))].join('; ');
+        cc=[...new Set(matched.flatMap(x=>splitEmails(x.correo_copia||'')))].join('; ');
+      } catch(err) {
+        branchLookupFailed=true;
+        console.warn('[Exportador Excel] No se pudo consultar Correos de sucursales; se probará la configuración alternativa.',err);
       }
-      to=[...new Set(matched.flatMap(x=>splitEmails(x.correo_sucursal||'')))].join('; ');
-      cc=[...new Set(matched.flatMap(x=>splitEmails(x.correo_copia||'')))].join('; ');
     }
-    if(grouping!=='SUCURSAL'&&!splitEmails(to).length) {
-      let row=null;
-      if(client?.from) {
+    if(!splitEmails(to).length && client?.from) {
+      try {
         const {data,error}=await client.from('configuracion_correos_areas').select('area,correo_para,correo_cc,asunto_plantilla,cuerpo_plantilla,firma');
-        if(!error) row=(data||[]).find(x=>normalizeKey(x.area)===normalizeKey(file.group))||null;
-      }
-      if(!row) {
-        try { const local=JSON.parse(localStorage.getItem('doctor-simi-configuracion-correos-areas-v1')||'{}'); row=Object.values(local).find(x=>normalizeKey(x.area)===normalizeKey(file.group))||local[file.group]||null; } catch(_) {}
-      }
-      if(row) {
-        to=row.correo_para||'';cc=row.correo_cc||'';
-        subject=String(row.asunto_plantilla||subject).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group);
-        body=String(row.cuerpo_plantilla||body).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group);
-        if(row.firma) body+='\n\n'+row.firma;
+        if(!error) {
+          const row=(data||[]).find(x=>normalizeKey(x.area)===normalizeKey(file.group));
+          if(row) {
+            to=row.correo_para||'';cc=row.correo_cc||'';
+            subject=String(row.asunto_plantilla||subject).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group);
+            body=String(row.cuerpo_plantilla||body).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group);
+            if(row.firma) body+='\n\n'+row.firma;
+          }
+        }
+      } catch(err) {
+        console.warn('[Exportador Excel] No se pudo consultar configuración alternativa de áreas.',err);
       }
     }
-    return {to:splitEmails(to),cc:splitEmails(cc),subject,body};
+    if(!splitEmails(to).length) {
+      try {
+        const local=JSON.parse(localStorage.getItem('doctor-simi-configuracion-correos-areas-v1')||'{}');
+        const row=Object.values(local).find(x=>normalizeKey(x.area)===normalizeKey(file.group))||local[file.group];
+        if(row) {
+          to=row.correo_para||'';cc=row.correo_cc||'';
+          subject=String(row.asunto_plantilla||subject).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group);
+          body=String(row.cuerpo_plantilla||body).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group);
+          if(row.firma) body+='\n\n'+row.firma;
+        }
+      } catch(_) {}
+    }
+    return {to:splitEmails(to),cc:splitEmails(cc),subject,body,branchLookupFailed};
   }
   async function prepareEmail(file, grouping, button) {
     button.disabled=true;const old=button.textContent;button.textContent='Preparando…';
