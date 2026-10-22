@@ -820,19 +820,40 @@
                 conteo[tipo]+=casos.length;
             }
             if(!drafts.length)throw new Error('No se encontraron incidencias para las áreas seleccionadas o faltan destinatarios configurados. Revisa el período, la asociación de colaboradores a áreas y la configuración de correos.');
-            if(!window.JSZip)throw new Error('No se cargó JSZip. Recarga la aplicación e inténtalo nuevamente.');
-            const zip=new JSZip(),folder=zip.folder('Borradores_Asistencia_Areas');
-            for(let i=0;i<drafts.length;i++){
-                const b=drafts[i],slug=String(b.nombre).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').slice(0,70)||('Area_'+(i+1));
-                folder.file(String(i+1).padStart(3,'0')+'_'+slug+'.eml',crearEmlOutlook(b));
-            }
+            window.__doctorSimiAreaAttendanceDrafts=drafts;
             const total=drafts.reduce((n,b)=>n+b.cantidad,0);
-            zip.file('LEEME.txt','BORRADORES DE ASISTENCIA POR ÁREA\nPeríodo: '+desde+' al '+hasta+'\nCorreos incluidos: '+drafts.length+'\nCasos incluidos: '+total+'\nSin marcas: '+conteo.SIN_MARCAS+'\nOtras incidencias: '+conteo.OTRAS_INCIDENCIAS+'\nCasos excluidos por licencias, permisos o vacaciones: '+excluidos.length+'\nRegistros sin área identificable: '+noMapeados.size+'\n\nLos archivos EML son borradores. Revise destinatarios y contenido en Outlook; no se envían automáticamente.\nLos casos excluidos por ausencias no se incluyen en los correos.');
-            const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
-            const url=URL.createObjectURL(blob),a=document.createElement('a');
-            a.href=url;a.download='Borradores_Asistencia_Areas_'+desde+'_a_'+hasta+'.zip';
-            document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
-            return {borradores:drafts.length,casos:total,sinMarcas:conteo.SIN_MARCAS,otras:conteo.OTRAS_INCIDENCIAS,excluidos:excluidos.length,sinArea:noMapeados.size,areasSinCorreo:areas.filter(a=>!String((configAreas[a]||{}).correo_para||'').trim())};
+            return {borradores:drafts.length,casos:total,sinMarcas:conteo.SIN_MARCAS,otras:conteo.OTRAS_INCIDENCIAS,excluidos:excluidos.length,sinArea:noMapeados.size,areasSinCorreo:areas.filter(a=>!String((configAreas[a]||{}).correo_para||'').trim()),detalle:drafts.map(b=>({id:b.id,nombre:b.nombre,para:b.para,cc:b.cc,asunto:b.asunto,cantidad:b.cantidad,tipoCorreo:b.tipoCorreo,cuerpo:b.cuerpo,cuerpoHtml:b.cuerpoHtml,casosDetalle:b.casosDetalle,grupoCorreo:b.grupoCorreo,periodoDesde:b.periodoDesde,periodoHasta:b.periodoHasta}))};
+        };
+        window.descargarBorradoresAsistenciaAreas = async function(idsSeleccionados) {
+            const todos=window.__doctorSimiAreaAttendanceDrafts||[];
+            const seleccion=new Set(Array.isArray(idsSeleccionados)?idsSeleccionados:[]);
+            const elegidos=todos.filter(b=>seleccion.has(b.id));
+            if(!elegidos.length)throw new Error('Selecciona uno o más borradores en la vista previa.');
+            if(!window.JSZip)throw new Error('No se cargó JSZip. Recarga la aplicación e inténtalo nuevamente.');
+            const desde=elegidos.map(b=>b.periodoDesde).sort()[0],hasta=elegidos.map(b=>b.periodoHasta).sort().slice(-1)[0];
+            const proteccion=await cargarProteccionAusenciasCorreos(desde,hasta,{forceFresh:true});
+            const list=[],excluidos=[];
+            for(const b of elegidos){
+                const casos=[];
+                for(const caso of (b.casosDetalle||[])){
+                    const fecha=normalizarFechaProteccionCorreo(caso.fecha);
+                    const exclusion=!fecha?{categoria:'fecha_no_verificable',mensaje:'Fecha no verificable'}:buscarExclusionAusenciaCorreo(caso,fecha,proteccion);
+                    if(exclusion){excluidos.push({rut:caso.rut,nombre:caso.nombre,fecha,categoria:exclusion.categoria});continue;}
+                    casos.push({...caso,fecha});
+                }
+                if(!casos.length)continue;
+                const nuevo={...b,casosDetalle:casos,cantidad:casos.length};
+                nuevo.cuerpo=crearCuerpoCorreo(nuevo.grupoCorreo,casos,nuevo.periodoDesde,nuevo.periodoHasta);
+                nuevo.cuerpoHtml=crearCuerpoCorreoHTML(nuevo.grupoCorreo,casos,nuevo.periodoDesde,nuevo.periodoHasta);
+                list.push(nuevo);
+            }
+            if(!list.length)throw new Error('La revalidación de licencias, permisos y vacaciones excluyó todos los casos seleccionados.');
+            const zip=new JSZip(),folder=zip.folder('Borradores_Asistencia_Areas');
+            list.forEach((b,i)=>{const slug=String(b.nombre||'Correo_'+(i+1)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').slice(0,70)||'Correo_'+(i+1);folder.file(String(i+1).padStart(3,'0')+'_'+slug+'.eml',crearEmlOutlook(b));});
+            zip.file('LEEME.txt','BORRADORES DE ASISTENCIA POR ÁREA\nPeríodo: '+desde+' al '+hasta+'\nCorreos incluidos: '+list.length+'\nCasos incluidos tras revalidación: '+list.reduce((n,b)=>n+b.cantidad,0)+'\nCasos excluidos en la revalidación final: '+excluidos.length+'\n\nLos archivos EML son borradores. Revise destinatarios y contenido en Outlook; no se envían automáticamente.');
+            const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+            a.href=url;a.download='Borradores_Asistencia_Areas_'+desde+'_a_'+hasta+'.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+            return {correos:list.length,casos:list.reduce((n,b)=>n+b.cantidad,0),excluidos:excluidos.length};
         };
         function renderizarBorradoresMasivos() {
             const cont = document.getElementById('lista-borradores');
