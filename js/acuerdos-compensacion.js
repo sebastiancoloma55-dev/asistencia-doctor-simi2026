@@ -149,8 +149,10 @@
   window.limpiarAcuerdoCompensacion=clearForm;
   window.registrarAcuerdoCompensacion=saveAgreement;
   window.imprimirAcuerdoCompensacion=printAgreement;
+  let initialized = false;
   function init() {
-    if(!$('view-acuerdos-compensacion')) return;
+    if(initialized || !$('view-acuerdos-compensacion')) return;
+    initialized = true;
     const firmaImg=$('ac-firma-img');
     if(firmaImg){
       fetch('/public/firma-empleador.jpg.b64',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('No se pudo cargar la firma institucional desde /public');return r.text();}).then(data=>{const clean=data.trim();if(clean.length>1000&&/^[A-Za-z0-9+/]+={0,2}$/.test(clean)){firmaImg.src='data:image/jpeg;base64,'+clean;firmaImg.classList.add('ac-signature-loaded');}}).catch(e=>{console.warn('No se pudo cargar la firma institucional:',e);const existing=$('pap-firma-preview');if(existing&&existing.src&&existing.src.startsWith('data:image/'))firmaImg.src=existing.src;});
@@ -164,5 +166,19 @@
     document.head.appendChild(style);
     updatePreview();
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+  function boot() {
+    init();
+    if (initialized || !document.body || window.__acCompensacionObserver) return;
+    window.__acCompensacionObserver = new MutationObserver(() => {
+      if (!initialized && $('view-acuerdos-compensacion')) {
+        init();
+        if (initialized) {
+          window.__acCompensacionObserver.disconnect();
+          window.__acCompensacionObserver = null;
+        }
+      }
+    });
+    window.__acCompensacionObserver.observe(document.body, { childList: true, subtree: true });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
