@@ -1292,6 +1292,7 @@ main>header .topbar-quick-action{display:none!important}
   <button id="btn-configcorreos" class="menu-btn" onclick="cambiarModulo('configcorreos')"><i data-lucide="mail-check" class="h-4 w-4"></i><span>Correos de sucursales</span></button>
   <button id="btn-correosareas" class="menu-btn" onclick="cambiarModulo('correosareas')"><i data-lucide="send" class="h-4 w-4"></i><span>Borradores Area</span></button>
   <button id="btn-configcorreosareas" class="menu-btn" onclick="cambiarModulo('configcorreosareas')"><i data-lucide="users-round" class="h-4 w-4"></i><span>Configuración de correos por área</span></button>
+  <button id="btn-memes" class="menu-btn" onclick="cambiarModulo('memes')"><i data-lucide="laugh" class="h-4 w-4"></i><span>Memes RR. HH.</span></button>
   <button id="btn-chat" class="menu-btn" onclick="cambiarModulo('chat')"><i data-lucide="messages-square" class="h-4 w-4"></i><span>Chat interno</span></button>
   <div class="nova-nav-divider" data-nav-group><span>ANÁLISIS Y CONTROL</span></div>
   <button id="btn-reportes" class="menu-btn" onclick="cambiarModulo('reportes')"><i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i><span>Reportes</span></button>
@@ -2508,6 +2509,12 @@ main>header .topbar-quick-action{display:none!important}
               <div id="area-mail-config-panel"></div>
             </section>
 
+            <!-- MEMES RR. HH. · MÓDULO INDEPENDIENTE -->
+            <section id="view-memes" class="hidden space-y-6 p-4 sm:p-8">
+              <div class="module-intro"><div class="module-title-with-logo"><span class="module-logo-mark"><i data-lucide="laugh" class="h-5 w-5"></i></span><div><span class="module-kicker">CULTURA Y BUEN HUMOR</span><h3 class="mt-3 text-xl font-extrabold text-slate-900">Memes RR. HH.</h3><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Publica memes internos para compartir con el equipo. Las publicaciones quedan guardadas en el sistema y no se mezclan con los módulos de correo.</p></div></div></div>
+              <div id="memes-rrhh-app" class="ui-card p-5"></div>
+            </section>
+
             <!-- CONFIGURACIÓN DE CORREOS -->
             <section id="view-configcorreos" class="hidden space-y-6 p-4 sm:p-8">
                 <div class="module-intro">
@@ -2890,7 +2897,8 @@ main>header .topbar-quick-action{display:none!important}
 <script src="/js/attendance-leave.js"></script>
 <script src="/js/workflows.js?v=permisos-envio-licencias-141026"></script>
 <script src="/js/maps-communications.js?v=area-attendance-preview-list-20261022c"></script>
-<script src="/js/area-email-config.js?v=area-attendance-preview-list-20261022c"></script>
+<script src="/js/area-email-config.js?v=area-attendance-preview-list-fix-20261022d"></script>
+<script src="/js/memes-rrhh.js?v=memes-rrhh-20261022a"></script>
 <script src="/js/cat-download-progress.js?v=cat-progress-20261020a"></script>
 <script src="/js/medical-leave-registration.js?v=cat-progress-restore-20261020a"></script>
 <script src="/js/people-directory.js?v=20261018d"></script>
@@ -3609,7 +3617,7 @@ main.flex.min-w-0.flex-1.flex-col.overflow-y-auto>header>div:last-child{min-widt
   var adminEmail='scoloma@farmaciasdoctorsimi.cl';
   var allowed=new Set(['dashboard']);
   var moduleNames=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','acuerdos-compensacion','correos','amonestaciones','reportes','usuarios','auditoria','configcorreos','correosareas','configcorreosareas','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','ayuda'];
-  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','acuerdos-compensacion','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','correosareas','configcorreosareas','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','ayuda'];
+  var allModulePermissions=['dashboard','espacio','colaboradores','sucursales','asistencia','licencias','envio_licencias','vacaciones','papeletas','acuerdos-compensacion','correos','amonestaciones','coberturas','reportes','usuarios','auditoria','configcorreos','correosareas','configcorreosareas','memes','mapas','tareas','operaciones','calidad','notificaciones','integraciones','chat','traslados','ayuda'];
   function permissionName(m){return m;}
   function hasModulePermission(m){
     if(m==='ayuda')return true;
