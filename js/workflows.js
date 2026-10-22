@@ -730,17 +730,18 @@ function abrirFormularioTarea(frecuencia){
    mostrarToast('Tu perfil no tiene permiso para crear y asignar tareas. Solicita al administrador que habilite la asignación.','warning',9000);
    return;
  }
- // Mantener el formulario junto al encabezado para que no quede fuera de la vista
- // después de abrir "Nueva tarea", especialmente en paneles con scroll propio.
- const header=document.querySelector('#view-tareas .td-heading');
- if(header&&form.previousElementSibling!==header)header.insertAdjacentElement('afterend',form);
+ // Abrir como modal centrado; no mover el formulario dentro del encabezado
+ // (ese contenedor recorta el contenido y deja visible solo el título).
+ document.getElementById('td-new-menu')?.classList.add('hidden');
+ cambiarVistaTareas('CREAR');
  form.classList.remove('hidden');
  form.style.display='block';
+ form.setAttribute('aria-modal','true');
+ form.setAttribute('role','dialog');
  const select=document.getElementById('tarea-recurrencia');
  if(select&&frecuencia)select.value=frecuencia;
  const title=document.getElementById('tarea-titulo');
- if(title)title.focus({preventScroll:true});
- requestAnimationFrame(()=>form.scrollIntoView({behavior:'auto',block:'start'}));
+ requestAnimationFrame(()=>{if(title)title.focus({preventScroll:true});});
  mostrarToast(frecuencia&&frecuencia!=='NINGUNA'?'Selecciona la frecuencia, completa los datos y asigna responsables.':'Completa los datos y selecciona responsables para la tarea.','info',7000);
 }
 function renderizarTareas(){
