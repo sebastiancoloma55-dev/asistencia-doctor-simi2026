@@ -253,14 +253,44 @@
         #view-acuerdos-compensacion .ui-card{border:0!important;box-shadow:none!important}
         #view-acuerdos-compensacion .bg-slate-100{background:#fff!important;padding:0!important}
         #ac-documento{display:block!important;width:215.9mm!important;max-width:215.9mm!important;margin:0!important;padding:0!important;box-shadow:none!important}
-        #ac-documento .ac-page{display:block!important;width:215.9mm!important;height:279mm!important;min-height:279mm!important;margin:0!important;padding:16mm 18mm!important;overflow:hidden!important;box-shadow:none!important;break-inside:avoid!important;page-break-inside:avoid!important;break-after:page!important;page-break-after:always!important}
-        #ac-documento .ac-page-three{display:block!important;padding-top:24mm!important}
-        #ac-documento .ac-page:last-child{break-after:auto!important;page-break-after:auto!important}
-        #ac-documento .ac-page-two .ac-doc-p{font-size:10.2pt!important;line-height:1.48!important;margin-bottom:4mm!important}
-        #ac-documento .ac-page-two h3{font-size:10.5pt!important;margin:4mm 0 2mm!important}
-        #ac-documento .ac-page-three .ac-signatures{margin-top:18mm!important}
-        #ac-documento .ac-page-three .ac-signature-block img{width:48mm!important;height:38mm!important;object-fit:contain!important}
-        #ac-documento .ac-page-three .ac-worker-blank{height:38mm!important}
+        /* Impresión compacta: el acuerdo fluye en el mínimo de hojas posible */
+        #view-acuerdos-compensacion .breadcrumb,
+        #view-acuerdos-compensacion .breadcrumbs,
+        #view-acuerdos-compensacion nav[aria-label="breadcrumb"],
+        #view-acuerdos-compensacion .module-breadcrumb{display:none!important}
+        #view-acuerdos-compensacion{position:absolute!important;left:0!important;top:0!important}
+        #view-acuerdos-compensacion>.grid{display:block!important;break-before:avoid!important;page-break-before:avoid!important}
+        #view-acuerdos-compensacion>.grid>section{display:block!important;width:100%!important;max-width:none!important}
+        #view-acuerdos-compensacion>.grid>section:last-child{display:block!important}
+        #ac-documento{width:100%!important;max-width:100%!important;margin:0!important;padding:0!important}
+        #ac-documento .ac-page,
+        #ac-documento .ac-page-one,
+        #ac-documento .ac-page-two,
+        #ac-documento .ac-page-three{display:block!important;box-sizing:border-box!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:5mm 12mm 3mm!important;overflow:visible!important;box-shadow:none!important;break-inside:auto!important;page-break-inside:auto!important;break-after:auto!important;page-break-after:auto!important}
+        #ac-documento .ac-doc-header{min-height:15mm!important;margin-bottom:3mm!important;padding-top:0!important}
+        #ac-documento .ac-doc-logo{width:18mm!important;height:18mm!important;left:0!important;top:0!important}
+        #ac-documento .ac-doc-header h2{font-size:13pt!important}
+        #ac-documento .ac-doc-p,
+        #ac-documento .ac-page-two .ac-doc-p,
+        #ac-documento .ac-page-three .ac-doc-p{font-size:9pt!important;line-height:1.25!important;margin-bottom:2mm!important}
+        #ac-documento .ac-page h3{font-size:9pt!important;margin:2.5mm 0 1mm!important}
+        #ac-documento .ac-identification{margin:2mm 0!important}
+        #ac-documento .ac-identification td{padding:1mm!important;font-size:9pt!important}
+        #ac-documento .ac-worked-table{margin:2mm 0!important;font-size:8pt!important}
+        #ac-documento .ac-worked-table th,
+        #ac-documento .ac-worked-table td{padding:1.2mm!important}
+        #ac-documento .ac-representation,
+        #ac-documento .ac-page-three .ac-representation{margin-top:3mm!important}
+        #ac-documento .ac-signatures,
+        #ac-documento .ac-page-three .ac-signatures{margin-top:4mm!important;gap:8mm!important}
+        #ac-documento .ac-signature-block img,
+        #ac-documento .ac-page-three .ac-signature-block img{width:30mm!important;height:20mm!important;object-fit:contain!important}
+        #ac-documento .ac-worker-blank,
+        #ac-documento .ac-page-three .ac-worker-blank{height:15mm!important}
+        #ac-documento .ac-page-one::after,
+        #ac-documento .ac-page-two::after,
+        #ac-documento .ac-page-three::after{display:none!important;content:none!important}
+        #ac-documento .ac-page-two h3{font-size:9pt!important;margin:2.5mm 0 1mm!important}
       }`;
     document.head.appendChild(style);
     updatePreview();
