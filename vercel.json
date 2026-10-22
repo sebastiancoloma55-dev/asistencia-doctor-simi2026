@@ -1,1 +1,1 @@
-{"crons":[{"path":"/api/cron-alertas","schedule":"0 12 * * *"}]}
+{"outputDirectory":".","crons":[{"path":"/api/cron-alertas","schedule":"0 12 * * *"}]}
