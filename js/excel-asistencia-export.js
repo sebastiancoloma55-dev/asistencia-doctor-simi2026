@@ -226,6 +226,7 @@
       actions.append(btn,mailBtn);row.append(info,actions);container.appendChild(row);
     });
     $('excel-asistencia-descargar-zip').disabled=!outputFiles.some(f=>selected.has(f.group));
+    $('excel-asistencia-zip-correos').disabled=!outputFiles.some(f=>selected.has(f.group));
     $('excel-asistencia-descargar-seleccion').disabled=!outputFiles.some(f=>selected.has(f.group));
   }
   function normalizeKey(value) {
@@ -288,6 +289,69 @@
     const blob=new Blob([file.data],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
+  function base64Bytes(value) {
+    const bytes=value instanceof Uint8Array?value:new Uint8Array(value);
+    let binary='';
+    const chunk=0x8000;
+    for(let i=0;i<bytes.length;i+=chunk) binary+=String.fromCharCode(...bytes.subarray(i,Math.min(i+chunk,bytes.length)));
+    return btoa(binary).replace(/.{1,76}/g,'  async function downloadZip() {\\r\\n').trim();
+  }
+  function mimeHeader(value) {
+    const bytes=new TextEncoder().encode(String(value||''));
+    let binary='';for(const b of bytes)binary+=String.fromCharCode(b);
+    return '=?UTF-8?B?'+btoa(binary)+'?=';
+  }
+  function createEml(file, recipients) {
+    const boundary='----=_DoctorSimi_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9);
+    const lines=[
+      'To: '+recipients.to.join(', '),
+      ...(recipients.cc.length?['Cc: '+recipients.cc.join(', ')]:[]),
+      'Subject: '+mimeHeader(recipients.subject),
+      'MIME-Version: 1.0',
+      'Content-Type: multipart/mixed; boundary="'+boundary+'"',
+      '',
+      '--'+boundary,
+      'Content-Type: text/plain; charset=UTF-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      btoa(unescape(encodeURIComponent(recipients.body))),
+      '',
+      '--'+boundary,
+      'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; name="'+file.name.replace(/["\\\\]/g,'_')+'"',
+      'Content-Transfer-Encoding: base64',
+      'Content-Disposition: attachment; filename="'+file.name.replace(/["\\\\]/g,'_')+'"',
+      '',
+      base64Bytes(file.data),
+      '',
+      '--'+boundary+'--',
+      ''
+    ];
+    return lines.join('\\r\\n');
+  }
+  async function downloadEmailZip() {
+    const button=$('excel-asistencia-zip-correos');
+    button.disabled=true;const old=button.textContent;button.textContent='Preparando ZIP…';
+    try {
+      const selected=new Set(selectedGroups());const files=outputFiles.filter(f=>selected.has(f.group));
+      if(!files.length){showStatus('Selecciona al menos un área o sucursal.','error');return;}
+      const grouping=$('excel-asistencia-agrupar').value;
+      const zip=new JSZip();const mailFolder=zip.folder('Correos_listos_para_abrir');const excelFolder=zip.folder('Excel_por_area_o_sucursal');
+      const missing=[];
+      for(const file of files) {
+        excelFolder.file(file.name,file.data);
+        try {
+          const recipients=await resolveRecipients(file,grouping);
+          if(!recipients.to.length){missing.push(file.group);continue;}
+          mailFolder.file(file.name.replace(/\\.xlsx?$/i,'')+'.eml',createEml(file,recipients));
+        } catch(err) {missing.push(file.group+' (error al consultar destinatario)');}
+      }
+      const blob=await zip.generateAsync({type:'blob'});
+      const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Reportes_Asistencia_y_Correos_'+new Date().toISOString().slice(0,10)+'.zip';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+      if(missing.length) showStatus('ZIP creado con los Excel seleccionados. No se generó borrador para: '+missing.join(', ')+'. Configura sus destinatarios y vuelve a generar el ZIP.','error');
+      else showStatus('ZIP creado con '+files.length+' Excel y '+files.length+' correos .eml con el archivo correspondiente adjunto. Abre cada .eml con Outlook para revisar y enviar.','ok');
+    } catch(err) {showStatus('No se pudo generar el ZIP de correos: '+(err.message||String(err)),'error');}
+    finally {button.disabled=false;button.textContent=old;}
+  }
   async function downloadZip() {
     const selected=new Set(selectedGroups());const files=outputFiles.filter(f=>selected.has(f.group));
     if(!files.length){showStatus('Selecciona al menos un área o sucursal para descargar.','error');return;}
@@ -312,6 +376,7 @@
     $('excel-asistencia-agrupar').addEventListener('change',()=>{if(sourceRows.length)processCurrentGrouping();});
     $('excel-asistencia-grupos').addEventListener('change',renderOutputList);
     $('excel-asistencia-descargar-zip').addEventListener('click',downloadZip);
+    $('excel-asistencia-zip-correos').addEventListener('click',downloadEmailZip);
     $('excel-asistencia-descargar-seleccion').addEventListener('click',downloadSelectedIndividually);
     $('excel-asistencia-limpiar').addEventListener('click',reset);
   });
