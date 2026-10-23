@@ -1349,13 +1349,6 @@ main>header .topbar-quick-action{display:none!important}
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <button type="button" class="topbar-quick-action hidden sm:inline-flex" title="Nueva tarea rápida" aria-label="Nueva tarea rápida" onclick="cambiarModulo('tareas');setTimeout(()=>document.getElementById('tarea-titulo')?.focus(),250)">
-                        <i data-lucide="plus" class="h-4 w-4"></i><span>Nueva tarea rápida</span>
-                    </button>
-                    <button type="button" id="topbar-quick-note" class="topbar-quick-action hidden sm:inline-flex" title="Nueva nota rápida" aria-label="Nueva nota rápida" onclick="cambiarModulo('espacio');setTimeout(()=>document.getElementById('rrhh-nota-titulo')?.focus(),250)"><i data-lucide="sticky-note" class="h-4 w-4"></i><span>Nueva nota rápida</span></button>
-                    <button type="button" id="topbar-notification-button" class="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-100 bg-gradient-to-br from-white to-indigo-50 text-indigo-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" onclick="cambiarModulo('notificaciones');setTimeout(()=>cargarCentroNotificaciones(),150)" aria-label="Abrir notificaciones" title="Notificaciones">
-                        <i data-lucide="bell-ring" class="h-5 w-5"></i><span id="topbar-notif-count" class="absolute -right-1 -top-1 hidden min-w-[18px] rounded-full bg-rose-600 px-1 text-center text-[10px] font-black leading-[18px] text-white">0</span>
-                    </button>
                     <button type="button" id="topbar-custom-message" class="hidden sm:inline-flex items-center gap-2 rounded-lg border border-cyan-100 bg-cyan-50 px-2.5 py-2 text-xs font-extrabold text-cyan-800 transition hover:border-cyan-300 hover:bg-cyan-100" aria-label="Mensaje personalizable junto a las notificaciones" title="Mensaje junto a las notificaciones" onclick="editarMensajeTopbar()"><span id="topbar-custom-message-text">Chúpala meando</span><i id="topbar-custom-message-edit-icon" data-lucide="pencil" class="h-3 w-3 opacity-60"></i></button>
                     <button type="button" id="btn-modo-cafecito" class="topbar-icon-action coffee-icon-action" onclick="toggleModoCafecito()" title="Activar modo cafecito" aria-label="Activar modo cafecito"><span aria-hidden="true">☕</span><span id="modo-cafecito-label">Cafecito</span></button>
                     <button type="button" class="topbar-search topbar-icon-action" onclick="abrirBuscadorGlobal()" aria-label="Buscar módulos, Ctrl K" title="Buscar módulos (Ctrl+K)">
