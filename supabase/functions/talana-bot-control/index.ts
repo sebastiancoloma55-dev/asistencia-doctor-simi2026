@@ -17,7 +17,7 @@ Deno.serve(async(req:Request)=>{if(req.method==="OPTIONS")return new Response("o
 try{const b=await req.json(),a=String(b.action||"");const botActions=new Set(["bot_config","bot_claim_manual","bot_start","bot_upload","bot_import","bot_finish","bot_generate_recurring_tasks"]);if(botActions.has(a)){if(!isBot(req))return json({error:"Unauthorized bot"},401);}else if(!await isAdmin(req))return json({error:"Acceso reservado a la administración principal"},403);
 if(a==="admin_get"){const [{data:config,error:ce},{data:runs,error:re},{data:files,error:fe}]=await Promise.all([admin.from("talana_bot_config").select("*").eq("id",1).single(),admin.from("talana_bot_runs").select("*").order("started_at",{ascending:false}).limit(30),admin.from("talana_bot_files").select("*").order("uploaded_at",{ascending:false}).limit(30)]);if(ce||re||fe)return json({error:ce?.message||re?.message||fe?.message},500);return json({config,runs,files});}
 if(a==="admin_update"){const enabled=Boolean(b.enabled),interval=Number(b.interval_minutes),mode=String(b.run_mode||"both");if(interval!==60)return json({error:"La programación en nube está configurada una vez por hora, entre las 08:00 y las 17:00 de Chile, de lunes a viernes salvo feriados."},400);if(!["both","manual","automatic"].includes(mode))return json({error:"Modo inválido"},400);const {data,error}=await admin.from("talana_bot_config").update({enabled,interval_minutes:interval,run_mode:mode,updated_at:new Date().toISOString(),updated_by:adminEmail}).eq("id",1).select("*").single();if(error)return json({error:error.message},500);return json({config:data});}
-if(a==="admin_manual_run"){const {data:c,error:ce}=await admin.from("talana_bot_config").select("run_mode").eq("id",1).single();if(ce)return json({error:ce.message},500);if(c.run_mode==="automatic")return json({error:"El modo actual no permite ejecuciones manuales"},409);if(!githubActionsToken)return json({error:"Falta configurar el secreto GITHUB_ACTIONS_TOKEN en Supabase Edge Functions. No se creó ninguna ejecución."},503);const {data:run,error}=await admin.from("talana_bot_runs").insert({trigger_type:"manual",status:"queued",requested_by:adminEmail}).select("*").single();if(error)return json({error:error.message},500);try{const dispatch=await fetch(`https://api.github.com/repos/${githubRepo}/actions/workflows/${githubWorkflow}/dispatches`,{method:"POST",headers:{"Accept":"application/vnd.github+json","Authorization":`Bearer ${githubActionsToken}`,"X-GitHub-Api-Version":"2022-11-28","Content-Type":"application/json"},body:JSON.stringify({ref:"main",inputs:{mode:"full_import",confirm_write:"CONFIRMO_IMPORTACION"}})});if(!dispatch.ok){const detail=(await dispatch.text()).slice(0,500);throw new Error(`GitHub Actions respondió HTTP ${dispatch.status}: ${detail}`);}return json({run,message:"Ejecución manual enviada a GitHub Actions. El panel actualizará su estado cuando el ejecutor la reclame y termine."},202);}catch(dispatchError){const message=dispatchError instanceof Error?dispatchError.message:"No se pudo iniciar GitHub Actions.";await admin.from("talana_bot_runs").update({status:"failed",finished_at:new Date().toISOString(),error_summary:message.slice(0,4000)}).eq("id",run.id).eq("status","queued");return json({error:message,run_id:run.id},502);}}
+if(a==="admin_manual_run"){const {data:c,error:ce}=await admin.from("talana_bot_config").select("run_mode").eq("id",1).single();if(ce)return json({error:ce.message},500);if(c.run_mode==="automatic")return json({error:"El modo actual no permite ejecuciones manuales"},409);if(!githubActionsToken)return json({error:"Falta configurar el secreto GITHUB_ACTIONS_TOKEN en Supabase Edge Functions. No se creó ninguna ejecución."},503);const {data:run,error}=await admin.from("talana_bot_runs").insert({trigger_type:"manual",status:"queued",requested_by:adminEmail}).select("*").single();if(error)return json({error:error.message},500);try{const dispatch=await fetch(`https://api.github.com/repos/${githubRepo}/actions/workflows/${githubWorkflow}/dispatches`,{method:"POST",headers:{"Accept":"application/vnd.github+json","Authorization":`Bearer ${githubActionsToken}`,"X-GitHub-Api-Version":"2022-11-28","Content-Type":"application/json"},body:JSON.stringify({ref:"feat/exportador-asistencia-desde-usuarios-roles-20261022",inputs:{mode:"full_import",confirm_write:"CONFIRMO_IMPORTACION"}})});if(!dispatch.ok){const detail=(await dispatch.text()).slice(0,500);throw new Error(`GitHub Actions respondió HTTP ${dispatch.status}: ${detail}`);}return json({run,message:"Ejecución manual enviada a GitHub Actions. El panel actualizará su estado cuando el ejecutor la reclame y termine."},202);}catch(dispatchError){const message=dispatchError instanceof Error?dispatchError.message:"No se pudo iniciar GitHub Actions.";await admin.from("talana_bot_runs").update({status:"failed",finished_at:new Date().toISOString(),error_summary:message.slice(0,4000)}).eq("id",run.id).eq("status","queued");return json({error:message,run_id:run.id},502);}}
 if(a==="admin_download"){const id=String(b.file_id||"");const {data:f,error}=await admin.from("talana_bot_files").select("storage_path,file_name").eq("id",id).single();if(error||!f)return json({error:"Archivo no encontrado"},404);const {data:s,error:se}=await admin.storage.from("talana-reportes").createSignedUrl(f.storage_path,120);if(se)return json({error:se.message},500);return json({url:s.signedUrl,file_name:f.file_name});}
 if(a==="bot_generate_recurring_tasks"){const {data,error}=await admin.rpc("generar_tareas_recurrentes");if(error)return json({error:error.message},500);return json({created:Number(data||0)});}
 if(a==="bot_config"){const [{data:config,error:ce},{data:pending,error:pe}]=await Promise.all([admin.from("talana_bot_config").select("enabled,interval_minutes,run_mode,report_types").eq("id",1).single(),admin.from("talana_bot_runs").select("id,trigger_type,started_at").eq("status","queued").eq("trigger_type","manual").order("started_at").limit(1)]);if(ce||pe)return json({error:ce?.message||pe?.message},500);return json({config,pending_manual_run:pending?.[0]||null,server_time:new Date().toISOString()});}
@@ -119,7 +119,12 @@ if(a==="bot_import"){
     const lk=legacyKey(old);if(lk){const list=legacyCandidates.get(lk)||[];list.push(old);legacyCandidates.set(lk,list);}
    }
   }
-  const seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
+  const seenIncoming=new Set<string>(), pending:any[]=[];
+  // Una fila entrante puede coincidir por clave histórica incompleta con el mismo
+  // registro existente que otra fila. No enviar dos veces el mismo id en un upsert:
+  // PostgreSQL rechaza ese lote completo con "cannot affect row a second time".
+  // En caso de ambigüedad, apartar todas las filas que colisionan para revisión.
+  const pendingUpdateById=new Map<string,any>(), conflictedUpdateIds=new Set<string>();
   for(const row of valid){
    const k=keyOf(row);
    if(!k){failed++;errors.push(table+" RUT "+row.rut+": clave natural incompleta; fila rechazada para no generar duplicados.");continue;}
@@ -131,9 +136,24 @@ if(a==="bot_import"){
     if(candidates.length===1)old=candidates[0];
     else if(candidates.length>1){failed++;errors.push(table+" RUT "+row.rut+": hay "+candidates.length+" registros históricos que coinciden por clave base; se requiere revisión manual y no se insertó.");continue;}
    }
-   if(old){pendingUpdates.push({id:old.id,row,old});}
-   else pending.push(row);
+   if(old){
+    const oldId=String(old.id);
+    if(conflictedUpdateIds.has(oldId)){
+     failed++;
+     errors.push(table+" RUT "+row.rut+": varias filas entrantes coinciden con el mismo registro histórico (id "+oldId+"); fila apartada para revisión.");
+     continue;
+    }
+    if(pendingUpdateById.has(oldId)){
+     pendingUpdateById.delete(oldId);
+     conflictedUpdateIds.add(oldId);
+     failed+=2;
+     errors.push(table+" RUT "+row.rut+": dos claves entrantes apuntan al mismo registro histórico (id "+oldId+"); ambas filas apartadas para evitar actualizar el registro dos veces.");
+     continue;
+    }
+    pendingUpdateById.set(oldId,{id:old.id,row,old});
+   }else pending.push(row);
   }
+  const pendingUpdates=[...pendingUpdateById.values()];
   if(dryRun){
    const diagnostics:any={missing_key_fields:missingKeyFieldCounts};
    if(attendanceFallback){
