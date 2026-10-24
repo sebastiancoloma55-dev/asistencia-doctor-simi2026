@@ -1,0 +1,443 @@
+/* Exportador de reportes de asistencia por área/centro de costo o sucursal.
+ * Procesamiento local en el navegador: no se suben archivos a Supabase ni a terceros.
+ */
+(function () {
+  'use strict';
+  const COLUMNS = [
+    'Fecha', 'RUT', 'Nombre', 'Centro de Costo', 'Entrada prog.', 'Entrada real',
+    'Llegada temp. cal.', 'Salida prog.', 'Salida real', 'Salida tardía cal.',
+    'Colación salida', 'Colación entrada', 'Colación', 'Atrasos (min)',
+    'Salida anticipada (min)', 'Exceso colación (min)', 'Horas extra (min)'
+  ];
+  const $ = id => document.getElementById(id);
+  let sourceRows = [];
+  let outputFiles = [];
+  let warnings = [];
+
+  function norm(value) {
+    return String(value == null ? '' : value).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+  function get(row, names) {
+    const keys = Object.keys(row);
+    for (const name of names) {
+      const found = keys.find(k => norm(k) === norm(name));
+      if (found != null && row[found] !== '' && row[found] != null) return row[found];
+    }
+    return '';
+  }
+  function dateText(value) {
+    if (value instanceof Date && !isNaN(value)) return value.toISOString().slice(0, 10);
+    if (typeof value === 'number' && window.XLSX && XLSX.SSF) {
+      const d = XLSX.SSF.parse_date_code(value);
+      if (d && d.y) return [d.y, String(d.m).padStart(2,'0'), String(d.d).padStart(2,'0')].join('-');
+    }
+    const s = String(value == null ? '' : value).trim();
+    const iso = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    if (iso) return iso[1] + '-' + iso[2].padStart(2,'0') + '-' + iso[3].padStart(2,'0');
+    const dmy = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (dmy) return dmy[3] + '-' + dmy[2].padStart(2,'0') + '-' + dmy[1].padStart(2,'0');
+    return s;
+  }
+  function seconds(value) {
+    if (value == null || value === '') return null;
+    if (value instanceof Date && !isNaN(value)) return value.getHours()*3600 + value.getMinutes()*60 + value.getSeconds();
+    if (typeof value === 'number' && isFinite(value)) {
+      if (value >= 0 && value < 1) return Math.round(value * 86400);
+      if (value >= 1 && value < 2) return Math.round((value % 1) * 86400);
+    }
+    const s = String(value).trim();
+    const m = s.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (m) return Number(m[1])*3600 + Number(m[2])*60 + Number(m[3] || 0);
+    return null;
+  }
+  function timeText(value) {
+    const n = seconds(value);
+    if (n == null) return '';
+    const h = Math.floor(n / 3600), m = Math.floor((n % 3600) / 60), s = n % 60;
+    return [h,m,s].map(v => String(v).padStart(2,'0')).join(':');
+  }
+  function durationText(total) {
+    total = Math.max(0, Math.floor(total || 0));
+    const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60;
+    return [h,m,s].map(v => String(v).padStart(2,'0')).join(':');
+  }
+  function deltaDescription(actual, planned, earlyLabel, lateLabel) {
+    if (actual == null || planned == null) return 'Sin marcación';
+    const diff = actual - planned;
+    if (diff > 0) return lateLabel + ' por ' + durationText(diff);
+    if (diff < 0) return earlyLabel + ' por ' + durationText(-diff);
+    return 'En horario';
+  }
+  function minutesLate(actual, planned) {
+    return actual == null || planned == null ? '' : Math.max(0, Math.floor((actual - planned) / 60));
+  }
+  function minutesEarly(actual, planned) {
+    return actual == null || planned == null ? '' : Math.max(0, Math.floor((planned - actual) / 60));
+  }
+  function minutesOvertime(actual, planned) {
+    return actual == null || planned == null ? '' : Math.max(0, Math.ceil((actual - planned) / 60));
+  }
+  function transform(row, rowNumber) {
+    const date = dateText(get(row, ['Fecha','Día']));
+    const rut = String(get(row, ['Rut','RUT'])).trim();
+    const name = String(get(row, ['Nombre','Colaborador'])).trim();
+    const branch = String(get(row, ['Sucursal','Local'])).trim();
+    const cost = String(get(row, ['Centro de costo','Centro de Costo','Área','Area'])).trim();
+    const entryPlannedRaw = get(row, ['Entrada turno','Entrada programada','Entrada prog.']);
+    const entryActualRaw = get(row, ['Entrada real']);
+    const exitPlannedRaw = get(row, ['Salida turno','Salida programada','Salida prog.']);
+    const exitActualRaw = get(row, ['Salida real']);
+    const lunchStartRaw = get(row, ['Entrada colación real','Colación salida','Salida colación']);
+    const lunchEndRaw = get(row, ['Salida colación real','Colación entrada','Entrada colación']);
+    const entryPlanned = seconds(entryPlannedRaw), entryActual = seconds(entryActualRaw);
+    const exitPlanned = seconds(exitPlannedRaw), exitActual = seconds(exitActualRaw);
+    const lunchStart = seconds(lunchStartRaw), lunchEnd = seconds(lunchEndRaw);
+    const missing = [];
+    if (!date) missing.push('fecha');
+    if (!rut) missing.push('RUT');
+    if (!name) missing.push('nombre');
+    if (!entryPlannedRaw && !exitPlannedRaw) missing.push('horario programado');
+    if (missing.length) warnings.push('Fila ' + rowNumber + ': faltan ' + missing.join(', ') + '.');
+    const lunchSeconds = lunchStart != null && lunchEnd != null ? Math.max(0, lunchEnd - lunchStart) : null;
+    const lunchOver = lunchSeconds == null ? '' : Math.max(0, Math.floor((lunchSeconds - 1800) / 60));
+    const lunchLabel = lunchSeconds == null ? 'Sin marcación de colación' :
+      (lunchOver > 0 ? 'Exceso colación ' + durationText(lunchOver * 60) : 'Marcó colación');
+    return {
+      'Fecha': date, 'RUT': rut, 'Nombre': name, 'Centro de Costo': cost || branch,
+      'Entrada prog.': timeText(entryPlannedRaw), 'Entrada real': timeText(entryActualRaw),
+      'Llegada temp. cal.': deltaDescription(entryActual, entryPlanned, 'Entrada anticipada', 'Llegó tarde'),
+      'Salida prog.': timeText(exitPlannedRaw), 'Salida real': timeText(exitActualRaw),
+      'Salida tardía cal.': deltaDescription(exitActual, exitPlanned, 'Salida anticipada', 'Salida tarde'),
+      'Colación salida': timeText(lunchStartRaw), 'Colación entrada': timeText(lunchEndRaw),
+      'Colación': lunchLabel,
+      'Atrasos (min)': minutesLate(entryActual, entryPlanned),
+      'Salida anticipada (min)': minutesEarly(exitActual, exitPlanned),
+      'Exceso colación (min)': lunchOver,
+      'Horas extra (min)': minutesOvertime(exitActual, exitPlanned),
+      __groupBranch: branch || 'SIN SUCURSAL', __groupCost: cost || 'SIN ÁREA'
+    };
+  }
+  function safeName(s) {
+    return String(s || 'SIN DATOS').replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim().slice(0,100) || 'SIN DATOS';
+  }
+  function styleWorkbook(ws, rows) {
+    if (!ws['!ref']) return;
+    ws['!cols'] = [12,16,30,24,13,13,31,13,13,30,14,14,27,14,20,20,17].map(w => ({wch:w}));
+    ws['!autofilter'] = {ref: ws['!ref']};
+    ws['!freeze'] = {xSplit:0,ySplit:1,topLeftCell:'A2',activePane:'bottomLeft',state:'frozen'};
+    const header = 'A1:Q1';
+    for (let c=0;c<COLUMNS.length;c++) {
+      const cell = ws[XLSX.utils.encode_cell({r:0,c})];
+      if (cell) cell.s = {font:{bold:true,color:{rgb:'FFFFFF'},name:'Arial',sz:10},fill:{patternType:'solid',fgColor:{rgb:'00529B'}},alignment:{vertical:'center',horizontal:'center',wrapText:true},border:{bottom:{style:'medium',color:{rgb:'0097B2'}}}};
+    }
+    ws['!rows'] = [{hpt:34}];
+    for (let r=1;r<rows.length+1;r++) {
+      for (let c=0;c<COLUMNS.length;c++) {
+        const cell=ws[XLSX.utils.encode_cell({r,c})];
+        if (cell) cell.s={font:{name:'Arial',sz:10,color:{rgb:'1F2937'}},alignment:{vertical:'center',wrapText:true},border:{bottom:{style:'hair',color:{rgb:'DCE5EE'}}},fill:r%2===0?{patternType:'solid',fgColor:{rgb:'F4F8FB'}}:{patternType:'solid',fgColor:{rgb:'FFFFFF'}}};
+      }
+    }
+  }
+  function makeWorkbook(rows, groupType, groupName) {
+    const clean = rows.map(row => {
+      const obj={}; COLUMNS.forEach(c=>obj[c]=row[c] == null ? '' : row[c]); return obj;
+    });
+    const ws = XLSX.utils.json_to_sheet(clean, {header:COLUMNS});
+    styleWorkbook(ws, clean);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, safeName(groupName).slice(0,31) || 'Asistencia');
+    return {name:'Asistencia_' + (groupType==='SUCURSAL'?'Sucursal':'Area') + '_' + safeName(groupName) + '.xlsx', data:XLSX.write(wb,{bookType:'xlsx',type:'array',cellStyles:true}), count:rows.length, group:groupName, branches:[...new Set(rows.map(r=>String(r.__groupBranch||'').trim()).filter(Boolean))]};
+  }
+  function selectedGroups() {
+    return Array.from($('excel-asistencia-grupos').selectedOptions).map(o=>o.value);
+  }
+  function renderGroups(groups) {
+    const select=$('excel-asistencia-grupos');
+    select.replaceChildren();
+    groups.forEach(g=>{const o=document.createElement('option');o.value=g;o.textContent=g;select.appendChild(o);});
+    Array.from(select.options).forEach(o=>o.selected=true);
+  }
+  function showStatus(text, type) {
+    const el=$('excel-asistencia-status');
+    el.textContent=text; el.className='mt-3 rounded-xl border p-3 text-sm '+(type==='error'?'border-red-200 bg-red-50 text-red-800':type==='ok'?'border-emerald-200 bg-emerald-50 text-emerald-800':'border-blue-200 bg-blue-50 text-blue-900');
+    el.classList.remove('hidden');
+  }
+  function updateCatProgress(percent,title,detail,state) {
+    if(typeof window.actualizarProgresoCorreos==='function') {
+      window.actualizarProgresoCorreos(percent,title,detail,state);
+    }
+  }
+  function yieldToUI() {
+    return new Promise(resolve=>setTimeout(resolve,0));
+  }
+  function processFile() {
+    const file=$('excel-asistencia-file').files[0];
+    if (!file) {showStatus('Selecciona primero un archivo Excel (.xlsx o .xls).','error');return;}
+    if (!window.XLSX || !window.JSZip) {showStatus('No se cargaron las librerías de Excel o ZIP. Recarga la página e inténtalo nuevamente.','error');return;}
+    const button=$('excel-asistencia-procesar');
+    button.disabled=true;button.textContent='Procesando archivo…';
+    warnings=[];outputFiles=[];$('excel-asistencia-resultados').replaceChildren();
+    updateCatProgress(3,'Procesando reporte de asistencia','El gatito está leyendo el archivo de Talana. Por favor, espera.','procesando');
+    const reader=new FileReader();
+    reader.onerror=()=>{
+      button.disabled=false;button.textContent='Procesar reporte';
+      showStatus('No se pudo leer el archivo seleccionado.','error');
+      updateCatProgress(100,'No se pudo leer el archivo','Intenta seleccionar nuevamente el Excel y vuelve a procesarlo.','error');
+    };
+    reader.onload=async()=>{
+      try {
+        updateCatProgress(12,'Leyendo archivo Excel','Revisando hojas y encabezados del reporte.','procesando');
+        await yieldToUI();
+        const wb=XLSX.read(reader.result,{type:'array',cellDates:true});
+        const sheetName=wb.SheetNames[0],ws=wb.Sheets[sheetName];
+        if(!ws)throw new Error('El archivo no contiene una hoja legible.');
+        const raw=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
+        if(!raw.length)throw new Error('La hoja seleccionada no contiene registros.');
+        const headers=Object.keys(raw[0]).map(norm);
+        const required=['rut','nombre','fecha'];
+        const absent=required.filter(k=>!headers.includes(k));
+        if(absent.length)throw new Error('No se reconocen las columnas obligatorias: '+absent.join(', ')+'. Verifica que subiste el reporte avanzado de asistencia.');
+        sourceRows=[];
+        const chunkSize=100;
+        for(let i=0;i<raw.length;i+=chunkSize) {
+          const end=Math.min(i+chunkSize,raw.length);
+          for(let j=i;j<end;j++)sourceRows.push(transform(raw[j],j+2));
+          const pct=15+Math.round((end/raw.length)*45);
+          updateCatProgress(pct,'Analizando marcaciones','Procesando '+end+' de '+raw.length+' registros de asistencia.','procesando');
+          await yieldToUI();
+        }
+        updateCatProgress(64,'Agrupando resultados','Separando los registros por área o sucursal.','procesando');
+        await yieldToUI();
+        const grouping=$('excel-asistencia-agrupar').value;
+        const key=grouping==='SUCURSAL'?'__groupBranch':'__groupCost';
+        const groups=[...new Set(sourceRows.map(r=>r[key]||'SIN DATOS'))].sort((a,b)=>a.localeCompare(b,'es'));
+        renderGroups(groups);
+        outputFiles=[];
+        for(let i=0;i<groups.length;i++) {
+          const group=groups[i];
+          const rows=sourceRows.filter(r=>(r[key]||'SIN DATOS')===group);
+          outputFiles.push(makeWorkbook(rows,grouping,group));
+          updateCatProgress(65+Math.round(((i+1)/groups.length)*27),'Generando archivos Excel','Preparando grupo '+(i+1)+' de '+groups.length+': '+group,'procesando');
+          if(i%2===1)await yieldToUI();
+        }
+        const valid=sourceRows.filter(r=>r.RUT&&r.Nombre&&r.Fecha).length;
+        $('excel-asistencia-kpi-registros').textContent=String(sourceRows.length);
+        $('excel-asistencia-kpi-grupos').textContent=String(groups.length);
+        $('excel-asistencia-kpi-validos').textContent=String(valid);
+        $('excel-asistencia-kpi-alertas').textContent=String(warnings.length);
+        $('excel-asistencia-resumen').classList.remove('hidden');
+        renderOutputList();
+        if(warnings.length) {
+          $('excel-asistencia-alertas').classList.remove('hidden');
+          $('excel-asistencia-alertas').textContent=warnings.slice(0,30).join('\n')+(warnings.length>30?'\n… y '+(warnings.length-30)+' alertas más.':'');
+        } else $('excel-asistencia-alertas').classList.add('hidden');
+        showStatus('Procesamiento completado. Se prepararon '+groups.length+' archivos con '+sourceRows.length+' registros. Revisa los resultados antes de descargar.','ok');
+        updateCatProgress(100,'¡Reporte procesado!','Se prepararon '+groups.length+' archivos con '+sourceRows.length+' registros. Ya puedes revisar y descargar los resultados.','completado');
+      } catch(err) {
+        showStatus(err.message||'Ocurrió un error al procesar el Excel.','error');
+        updateCatProgress(100,'No se pudo procesar el reporte',err.message||'Ocurrió un error al procesar el Excel.','error');
+      } finally {
+        button.disabled=false;button.textContent='Procesar reporte';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  function renderOutputList() {
+    const container=$('excel-asistencia-resultados');container.replaceChildren();
+    const grouping=$('excel-asistencia-agrupar').value;
+    const selected=new Set(selectedGroups());
+    outputFiles.filter(f=>selected.has(f.group)).forEach(f=>{
+      const row=document.createElement('div');row.className='flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-3 last:border-0';
+      const info=document.createElement('div');info.className='min-w-0';
+      const title=document.createElement('p');title.className='truncate text-sm font-bold text-slate-800';title.textContent=f.group;
+      const sub=document.createElement('p');sub.className='mt-1 text-xs text-slate-500';sub.textContent=f.count+' registros · '+f.name;
+      info.append(title,sub);
+      const actions=document.createElement('div');actions.className='flex flex-wrap gap-2';
+      const btn=document.createElement('button');btn.type='button';btn.className='rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700';btn.textContent='Descargar Excel';btn.addEventListener('click',()=>downloadOne(f));
+      const mailBtn=document.createElement('button');mailBtn.type='button';mailBtn.className='corp-button';mailBtn.textContent='Preparar correo';mailBtn.title='Descarga el Excel y abre un borrador dirigido al contacto configurado';
+      mailBtn.addEventListener('click',()=>prepareEmail(f,grouping,mailBtn));
+      actions.append(btn,mailBtn);row.append(info,actions);container.appendChild(row);
+    });
+    $('excel-asistencia-descargar-zip').disabled=!outputFiles.some(f=>selected.has(f.group));
+    $('excel-asistencia-zip-correos').disabled=!outputFiles.some(f=>selected.has(f.group));
+    $('excel-asistencia-descargar-seleccion').disabled=!outputFiles.some(f=>selected.has(f.group));
+  }
+  function normalizeKey(value) {
+    return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  }
+  function splitEmails(value) {
+    return String(value || '').split(/[;,]+/).map(x=>x.trim()).filter(x=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x));
+  }
+  async function resolveRecipients(file, grouping) {
+    const client=(typeof _supabase!=='undefined'&&_supabase?.from)?_supabase:window._supabase;
+    let to='',cc='',signature='',subject='',body='';
+    const reportDate=new Date().toISOString().slice(0,10);
+    subject='Reporte diario asistencia — '+file.group+' — '+reportDate+' — V2';
+    body='Estimados/as:\\n\\nJunto con saludar, por medio del presente correo se comparte el reporte diario de asistencia.\\n\\nEl archivo adjunto contiene la información de asistencia correspondiente al grupo '+file.group+', para su revisión y gestión de las regularizaciones que correspondan.\\n\\nEste envío forma parte del proceso de control de asistencia y mejora continua.\\n\\nSaludos cordiales,';
+    if(client?.from) {
+      const {data,error}=await client.from('sucursales').select('nombre,correo_sucursal,correo_copia,firma_correo');
+      if(error) throw error;
+      const branches=data||[];
+      const branchNames=new Set((file.branches||[]).map(normalizeKey));
+      const matched=branches.filter(x=>normalizeKey(x.nombre)===normalizeKey(file.group)||(grouping!=='SUCURSAL'&&branchNames.has(normalizeKey(x.nombre))));
+      to=[...new Set(matched.flatMap(x=>splitEmails(x.correo_sucursal||'')))].join('; ');
+      cc=[...new Set(matched.flatMap(x=>splitEmails(x.correo_copia||'')))].join('; ');
+      signature=[...new Set(matched.map(x=>String(x.firma_correo||'').trim()).filter(Boolean))].join('\\n\\n');
+    }
+    if(!splitEmails(to).length&&grouping!=='SUCURSAL'&&client?.from) {
+      const {data,error}=await client.from('configuracion_correos_areas').select('area,correo_para,correo_cc,asunto_plantilla,cuerpo_plantilla,firma');
+      if(!error) {
+        const row=(data||[]).find(x=>normalizeKey(x.area)===normalizeKey(file.group));
+        if(row) {
+          to=row.correo_para||'';cc=row.correo_cc||'';signature=row.firma||signature;
+          subject=String(row.asunto_plantilla||subject).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group);
+          body=String(row.cuerpo_plantilla||body).replace(/\[AREA\]/gi,file.group).replace(/\{AREA\}/gi,file.group).replace(/\{FIRMA\}/gi,'');
+        }
+      }
+    }
+    return {to:splitEmails(to),cc:splitEmails(cc),subject,body,signature};
+  }
+  async function prepareEmail(file, grouping, button) {
+    button.disabled=true;const old=button.textContent;button.textContent='Preparando…';
+    try {
+      const recipients=await resolveRecipients(file,grouping);
+      if(!recipients.to.length) {
+        showStatus('No hay destinatario configurado para '+file.group+'. Configura el correo en '+(grouping==='SUCURSAL'?'Correos de sucursales':'Configuración de correos por área')+' y vuelve a intentarlo.','error');
+        return;
+      }
+      downloadOne(file);
+      const query=[];
+      if(recipients.cc.length) query.push('cc='+encodeURIComponent(recipients.cc.join(',')));
+      query.push('subject='+encodeURIComponent(recipients.subject),'body='+encodeURIComponent(recipients.body+'\\n\\nArchivo adjunto: '+file.name));
+      const mailto='mailto:'+encodeURIComponent(recipients.to.join(',')).replace(/%2C/gi,',')+'?'+query.join('&');
+      window.location.href=mailto;
+      showStatus('Se descargó '+file.name+' y se abrió un borrador para '+file.group+'. Adjunta el Excel descargado antes de enviar el correo.','ok');
+    } catch(err) {
+      showStatus('No se pudo preparar el correo para '+file.group+': '+(err.message||String(err)),'error');
+    } finally {button.disabled=false;button.textContent=old;}
+  }
+  function downloadOne(file) {
+    const blob=new Blob([file.data],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  function base64Bytes(value) {
+    const bytes=value instanceof Uint8Array?value:new Uint8Array(value);
+    let binary='';
+    const chunk=0x8000;
+    for(let i=0;i<bytes.length;i+=chunk) binary+=String.fromCharCode(...bytes.subarray(i,Math.min(i+chunk,bytes.length)));
+    const encoded=btoa(binary);
+    const lines=[];
+    for(let i=0;i<encoded.length;i+=76) lines.push(encoded.slice(i,i+76));
+    return lines.join('\r\n');
+  }
+  function mimeHeader(value) {
+    const bytes=new TextEncoder().encode(String(value||''));
+    let binary='';for(const b of bytes)binary+=String.fromCharCode(b);
+    return '=?UTF-8?B?'+btoa(binary)+'?=';
+  }
+  function htmlEscape(value) {
+    return String(value==null?'':value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function base64Text(value) { const encoded=btoa(unescape(encodeURIComponent(String(value||'')))); const lines=[]; for(let i=0;i<encoded.length;i+=76) lines.push(encoded.slice(i,i+76)); return lines.join('\r\n'); }
+  function htmlBody(file, recipients) {
+    const area=htmlEscape(file.group),subject=htmlEscape(recipients.subject);
+    let body=String(recipients.body||'').replace(/\\n/g,'\n').replace(/\r\n/g,'\n').trim();
+    body=body.replace(/^\s*Estimados\/as\s*[:,]?\s*(?:\n+)?/i,'');
+    const paragraphs=body.split(/\n\s*\n/).map(p=>'<p style="margin:0 0 14px;line-height:1.65;color:#24364b;font-size:14px;">'+htmlEscape(p).replace(/\n/g,'<br>')+'</p>').join('');
+    const date=new Date().toLocaleDateString('es-CL',{year:'numeric',month:'long',day:'2-digit'});
+    return '<!doctype html><html lang="es"><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#eef3f8;font-family:Arial,Helvetica,sans-serif;color:#24364b;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eef3f8;padding:24px 10px;"><tr><td align="center"><table role="presentation" width="700" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:700px;background:#fff;border:1px solid #d9e3ef;border-radius:10px;overflow:hidden;"><tr><td style="background:#0b3768;padding:22px 28px;border-bottom:5px solid #19a8a5;"><div style="color:#fff;font-size:19px;font-weight:700;">DOCTOR SIMI <span style="font-size:12px;font-weight:400;color:#d8edf8;">| RECURSOS HUMANOS</span></div><div style="padding-top:8px;color:#bce8ec;font-size:11px;letter-spacing:1.4px;font-weight:700;">CONTROL DE ASISTENCIA · REPORTE DIARIO</div></td></tr><tr><td style="padding:28px 28px 12px;"><div style="font-size:11px;letter-spacing:1.2px;font-weight:700;color:#168f96;margin-bottom:8px;">REPORTE DE ASISTENCIA</div><h1 style="font-size:22px;line-height:1.3;color:#0b3768;margin:0 0 16px;">'+subject+'</h1><p style="font-size:14px;color:#24364b;margin:0 0 14px;">Estimados/as:</p></td></tr><tr><td style="padding:0 28px 18px;">'+paragraphs+'</td></tr><tr><td style="padding:0 28px 22px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border:1px solid #cfdae7;"><tr><td colspan="2" style="background:#eaf3fb;color:#0b3768;font-size:12px;font-weight:700;padding:12px 14px;border-bottom:1px solid #cfdae7;">RESUMEN DEL REPORTE</td></tr><tr><td width="30%" style="padding:11px 14px;background:#f7fafd;border-bottom:1px solid #e1e8f0;color:#50647b;font-size:12px;font-weight:700;">Área / sucursal</td><td style="padding:11px 14px;border-bottom:1px solid #e1e8f0;color:#24364b;font-size:13px;">'+area+'</td></tr><tr><td style="padding:11px 14px;background:#f7fafd;color:#50647b;font-size:12px;font-weight:700;">Fecha de emisión</td><td style="padding:11px 14px;color:#24364b;font-size:13px;">'+htmlEscape(date)+'</td></tr></table></td></tr><tr><td style="padding:0 28px 26px;"><p style="margin:0;color:#24364b;font-size:14px;line-height:1.6;">Saludos cordiales,</p></td></tr><tr><td style="background:#f3f7fb;border-top:1px solid #d9e3ef;padding:14px 28px;color:#6b7e92;font-size:10px;line-height:1.5;">Mensaje preparado desde Asistencia Doctor Simi · Recursos Humanos.<br>Revise los destinatarios y el archivo Excel adjunto antes de enviar.</td></tr></table></td></tr></table></body></html>';
+  }
+  function createEml(file, recipients) {
+    const boundary='----=_DoctorSimi_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9);
+    const filename=String(file.name||'Reporte_Asistencia.xlsx').replace(/["\\]/g,'_');
+    const subject=mimeHeader(recipients.subject);
+    const html=htmlBody(file,recipients);
+    const lines=[
+      'To: '+recipients.to.join(', '),
+      ...(recipients.cc.length?['Cc: '+recipients.cc.join(', ')]:[]),
+      'Subject: '+subject,
+      'MIME-Version: 1.0',
+      'X-Unsent: 1',
+      'Content-Type: multipart/mixed; boundary="'+boundary+'"',
+      '',
+      '--'+boundary,
+      'Content-Type: text/html; charset=UTF-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      base64Text(html),
+      '',
+      '--'+boundary,
+      'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; name="'+filename+'"',
+      'Content-Transfer-Encoding: base64',
+      'Content-Disposition: attachment; filename="'+filename+'"',
+      '',
+      base64Bytes(file.data),
+      '',
+      '--'+boundary+'--',
+      ''
+    ];
+    return lines.join('\r\n');
+  }
+  async function downloadEmailZip() {
+    const button=$('excel-asistencia-zip-correos');
+    button.disabled=true;const old=button.textContent;button.textContent='Preparando ZIP…';
+    try {
+      const selected=new Set(selectedGroups());const files=outputFiles.filter(f=>selected.has(f.group));
+      if(!files.length){showStatus('Selecciona al menos un área o sucursal.','error');return;}
+      const grouping=$('excel-asistencia-agrupar').value;
+      const zip=new JSZip();const mailFolder=zip.folder('Correos_listos_para_abrir');const excelFolder=zip.folder('Excel_por_area_o_sucursal');
+      const missing=[];
+      for(const file of files) {
+        excelFolder.file(file.name,file.data);
+        try {
+          const recipients=await resolveRecipients(file,grouping);
+          if(!recipients.to.length){missing.push(file.group);continue;}
+          mailFolder.file(file.name.replace(/\\.xlsx?$/i,'')+'.eml',createEml(file,recipients));
+        } catch(err) {missing.push(file.group+' (error al consultar destinatario)');}
+      }
+      const blob=await zip.generateAsync({type:'blob'});
+      const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Reportes_Asistencia_y_Correos_'+new Date().toISOString().slice(0,10)+'.zip';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+      if(missing.length) showStatus('ZIP creado con los Excel seleccionados. No se generó borrador para: '+missing.join(', ')+'. Configura sus destinatarios y vuelve a generar el ZIP.','error');
+      else showStatus('ZIP creado con '+files.length+' Excel y '+files.length+' correos .eml con el archivo correspondiente adjunto. Abre cada .eml con Outlook para revisar y enviar.','ok');
+    } catch(err) {showStatus('No se pudo generar el ZIP de correos: '+(err.message||String(err)),'error');}
+    finally {button.disabled=false;button.textContent=old;}
+  }
+  async function downloadZip() {
+    const selected=new Set(selectedGroups());const files=outputFiles.filter(f=>selected.has(f.group));
+    if(!files.length){showStatus('Selecciona al menos un área o sucursal para descargar.','error');return;}
+    const zip=new JSZip();files.forEach(f=>zip.file(f.name,f.data));
+    const blob=await zip.generateAsync({type:'blob'});
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Reportes_Asistencia_'+new Date().toISOString().slice(0,10)+'.zip';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  function downloadSelectedIndividually() {
+    const selected=new Set(selectedGroups());const files=outputFiles.filter(f=>selected.has(f.group));
+    if(!files.length){showStatus('Selecciona al menos un área o sucursal para descargar.','error');return;}
+    files.forEach((f,i)=>setTimeout(()=>downloadOne(f),i*250));
+  }
+  function reset() {
+    sourceRows=[];outputFiles=[];warnings=[];
+    $('excel-asistencia-resultados').replaceChildren();$('excel-asistencia-resumen').classList.add('hidden');
+    $('excel-asistencia-alertas').classList.add('hidden');$('excel-asistencia-status').classList.add('hidden');
+    $('excel-asistencia-file').value='';$('excel-asistencia-grupos').replaceChildren();
+  }
+  document.addEventListener('DOMContentLoaded',()=>{
+    if(!$('view-excelasistencia')) return;
+    $('excel-asistencia-procesar').addEventListener('click',processFile);
+    $('excel-asistencia-agrupar').addEventListener('change',()=>{if(sourceRows.length)processCurrentGrouping();});
+    $('excel-asistencia-grupos').addEventListener('change',renderOutputList);
+    $('excel-asistencia-descargar-zip').addEventListener('click',downloadZip);
+    $('excel-asistencia-zip-correos').addEventListener('click',downloadEmailZip);
+    $('excel-asistencia-descargar-seleccion').addEventListener('click',downloadSelectedIndividually);
+    $('excel-asistencia-limpiar').addEventListener('click',reset);
+  });
+  function processCurrentGrouping() {
+    const grouping=$('excel-asistencia-agrupar').value;
+    const key=grouping==='SUCURSAL'?'__groupBranch':'__groupCost';
+    const groups=[...new Set(sourceRows.map(r=>r[key]||'SIN DATOS'))].sort((a,b)=>a.localeCompare(b,'es'));
+    outputFiles=groups.map(group=>makeWorkbook(sourceRows.filter(r=>(r[key]||'SIN DATOS')===group),grouping,group));
+    renderGroups(groups);renderOutputList();
+    $('excel-asistencia-kpi-grupos').textContent=String(groups.length);
+    showStatus('Agrupación actualizada. Se prepararon '+groups.length+' archivos.','ok');
+  }
+})();

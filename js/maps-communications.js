@@ -624,6 +624,7 @@
             const desde = document.getElementById('correo-desde').value;
             const hasta = document.getElementById('correo-hasta').value;
             const minimo = Number(document.getElementById('correo-min-atraso').value) || 0;
+            const minimoSalidaTemprana = Number(document.getElementById('correo-min-salida-temprana').value) || 0;
             if (!desde || !hasta) return mostrarToast('Selecciona el período desde y hasta.', 'warning');
             if (desde > hasta) return mostrarToast('La fecha Desde no puede ser posterior a Hasta.', 'warning');
             const filtroSuc = valoresSeleccionados('correo-sucursales');
@@ -673,7 +674,7 @@
                 }
                 const detalles = [];
                 if (document.getElementById('correo-t-atraso').checked && x.tiene_atraso && minutosAtraso(x.atraso) >= minimo) detalles.push(`Atraso: ${x.atraso}. Favor indicar motivo.`);
-                if (document.getElementById('correo-t-temprana').checked && x.salida_temprana && x.salida_temprana !== '-') detalles.push(`Salida anticipada: ${x.salida_temprana}. Favor indicar motivo.`);
+                if (document.getElementById('correo-t-temprana').checked && x.salida_temprana && x.salida_temprana !== '-' && minutosAtraso(x.salida_temprana) >= minimoSalidaTemprana) detalles.push(`Salida anticipada: ${x.salida_temprana}. Favor indicar motivo.`);
                 if (document.getElementById('correo-t-sinturno').checked && x.sin_turno_marcas) detalles.push('Presenta marcas sin turno asignado. Favor aclarar la jornada realizada.');
                 const tipoAusentismoSinMarca = normalizarTextoProteccionCorreo(x.tipo_ausentismo || '');
                 const tipoEsSoloEtiquetaSinMarca = /^(sin marcas?|inexistente|inexistentes|no registra marcas?)$/.test(tipoAusentismoSinMarca);
