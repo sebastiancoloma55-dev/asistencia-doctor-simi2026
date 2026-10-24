@@ -45,8 +45,10 @@ jobs:
   validate-python:
     runs-on: ubuntu-latest
     steps:
-      - name: Descargar código
+      - name: Descargar código de la rama oficial
         uses: actions/checkout@v4
+        with:
+          ref: feat/exportador-asistencia-desde-usuarios-roles-20261022
       - name: Preparar Python
         uses: actions/setup-python@v5
         with:
@@ -81,8 +83,10 @@ jobs:
           fi
           echo "Confirmación explícita recibida; se verificará además que el bot esté habilitado en Supabase."
 
-      - name: Descargar código
+      - name: Descargar código de la rama oficial
         uses: actions/checkout@v4
+        with:
+          ref: feat/exportador-asistencia-desde-usuarios-roles-20261022
 
       - name: Preparar Python
         uses: actions/setup-python@v5
