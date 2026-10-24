@@ -1,7 +1,8 @@
 {
   "type": "module",
   "dependencies": {
-    "@supabase/supabase-js": "^2.57.0"
+    "@supabase/supabase-js": "^2.57.0",
+    "@vercel/speed-insights": "^1.1.0"
   },
   "scripts": {
     "check": "node scripts/validate-structure.mjs && node scripts/validate-security.mjs"
