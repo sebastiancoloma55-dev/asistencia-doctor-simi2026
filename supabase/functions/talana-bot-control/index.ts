@@ -119,7 +119,12 @@ if(a==="bot_import"){
     const lk=legacyKey(old);if(lk){const list=legacyCandidates.get(lk)||[];list.push(old);legacyCandidates.set(lk,list);}
    }
   }
-  const seenIncoming=new Set<string>(), pending:any[]=[], pendingUpdates:any[]=[];
+  const seenIncoming=new Set<string>(), pending:any[]=[];
+  // Una fila entrante puede coincidir por clave histórica incompleta con el mismo
+  // registro existente que otra fila. No enviar dos veces el mismo id en un upsert:
+  // PostgreSQL rechaza ese lote completo con "cannot affect row a second time".
+  // En caso de ambigüedad, apartar todas las filas que colisionan para revisión.
+  const pendingUpdateById=new Map<string,any>(), conflictedUpdateIds=new Set<string>();
   for(const row of valid){
    const k=keyOf(row);
    if(!k){failed++;errors.push(table+" RUT "+row.rut+": clave natural incompleta; fila rechazada para no generar duplicados.");continue;}
@@ -131,9 +136,24 @@ if(a==="bot_import"){
     if(candidates.length===1)old=candidates[0];
     else if(candidates.length>1){failed++;errors.push(table+" RUT "+row.rut+": hay "+candidates.length+" registros históricos que coinciden por clave base; se requiere revisión manual y no se insertó.");continue;}
    }
-   if(old){pendingUpdates.push({id:old.id,row,old});}
-   else pending.push(row);
+   if(old){
+    const oldId=String(old.id);
+    if(conflictedUpdateIds.has(oldId)){
+     failed++;
+     errors.push(table+" RUT "+row.rut+": varias filas entrantes coinciden con el mismo registro histórico (id "+oldId+"); fila apartada para revisión.");
+     continue;
+    }
+    if(pendingUpdateById.has(oldId)){
+     pendingUpdateById.delete(oldId);
+     conflictedUpdateIds.add(oldId);
+     failed+=2;
+     errors.push(table+" RUT "+row.rut+": dos claves entrantes apuntan al mismo registro histórico (id "+oldId+"); ambas filas apartadas para evitar actualizar el registro dos veces.");
+     continue;
+    }
+    pendingUpdateById.set(oldId,{id:old.id,row,old});
+   }else pending.push(row);
   }
+  const pendingUpdates=[...pendingUpdateById.values()];
   if(dryRun){
    const diagnostics:any={missing_key_fields:missingKeyFieldCounts};
    if(attendanceFallback){
