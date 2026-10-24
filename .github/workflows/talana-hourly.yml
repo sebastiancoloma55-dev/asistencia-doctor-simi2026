@@ -45,8 +45,11 @@ jobs:
   validate-python:
     runs-on: ubuntu-latest
     steps:
-      - name: Descargar código
+      - name: Descargar código del mismo commit que se valida
         uses: actions/checkout@v4
+        with:
+          # En PR usa el commit propuesto; en ejecución manual/programada, el commit del evento.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Preparar Python
         uses: actions/setup-python@v5
         with:
@@ -81,8 +84,11 @@ jobs:
           fi
           echo "Confirmación explícita recibida; se verificará además que el bot esté habilitado en Supabase."
 
-      - name: Descargar código
+      - name: Descargar código del mismo commit que se valida
         uses: actions/checkout@v4
+        with:
+          # En PR usa el commit propuesto; en ejecución manual/programada, el commit del evento.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Preparar Python
         uses: actions/setup-python@v5
