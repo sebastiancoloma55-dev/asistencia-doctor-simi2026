@@ -102,14 +102,20 @@ def main():
                 if report_type == "reporte_jornadas_asistencia":
                     LOG.info("DIAGNÓSTICO DE FECHAS ASISTENCIA: %s", json.dumps((result.get("diagnostics") or {}).get("attendance", {}), ensure_ascii=False, sort_keys=True))
                 if int(result.get("failed", 0) or 0):
-                    errors.append(f"{title}: {result.get('failed')} fila(s) rechazadas durante la previsualización.")
+                    sample = "; ".join(map(str, result.get("errors", [])[:10]))
+                    LOG.warning(
+                        "PREVISUALIZACIÓN CON FILAS APARTADAS: %s rechazadas=%s; muestra de motivos: %s",
+                        title, result.get("failed"), sample or "el importador no devolvió detalle",
+                    )
             except Exception as exc:
                 errors.append(f"{title}: no se pudo previsualizar: {exc}")
                 LOG.exception("Falló la previsualización de %s", title)
         LOG.info("PREVISUALIZACIÓN FINALIZADA: reportes=%s/4 altas_estimadas=%s actualizaciones_estimadas=%s duplicadas=%s rechazadas=%s errores=%s. No se escribieron datos de negocio.",
                  previewed, planned["planned_inserted"], planned["planned_updated"], planned["skipped"], planned["failed"], len(errors))
-        if previewed != 4 or errors or planned["failed"]:
+        if previewed != 4 or errors:
             raise SystemExit(1)
+        if planned["failed"]:
+            LOG.warning("La previsualización terminó sin escrituras, pero dejó %s fila(s) apartadas para revisión; revisa los motivos detallados anteriores antes de autorizar una importación real.", planned["failed"])
         return
     if args.validate_only:
         user = os.getenv("TALANA_USER", "").strip()
