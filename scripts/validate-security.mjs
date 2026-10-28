@@ -50,8 +50,8 @@ if (html.includes('supabase-js@2"')) fail('Supabase JS debe estar fijado a una v
 if (html.includes('https://cdn.tailwindcss.com"')) fail('Tailwind CDN debe estar fijado a una versión concreta.');
 if (!/leaflet\.js[^>]*integrity="sha256-/.test(html)) fail('Leaflet JS debe incluir Subresource Integrity (SRI).');
 if (!/leaflet\.css[^>]*integrity="sha256-/.test(html)) fail('Leaflet CSS debe incluir Subresource Integrity (SRI).');
-const externalScripts = [...html.matchAll(/<script\\b[^>]*src=["']https?:\\/\\/[^"']+["'][^>]*>/gi)].map(match => match[0]);
-const externalScriptsWithoutSri = externalScripts.filter(tag => !/\\bintegrity=["']sha(256|384|512)-/.test(tag));
+const externalScripts = html.split('<script').slice(1).map(part => part.split('>')[0] + '>').filter(tag => tag.includes('src="https://') || tag.includes("src='https://"));
+const externalScriptsWithoutSri = externalScripts.filter(tag => !tag.includes('integrity="sha') && !tag.includes("integrity='sha"));
 if (externalScriptsWithoutSri.length) {
   console.warn('SECURITY FOLLOW-UP REQUIRED: ' + externalScriptsWithoutSri.length + ' scripts de terceros aún no tienen SRI. No considerar cerrado el hallazgo SRI.');
 }
