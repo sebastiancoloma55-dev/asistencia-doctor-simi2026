@@ -12,7 +12,8 @@ if (headers.get('x-content-type-options') !== 'nosniff') fail('X-Content-Type-Op
 if (headers.get('x-frame-options') !== 'DENY') fail('X-Frame-Options debe ser DENY.');
 if (!headers.has('content-security-policy')) fail('Falta Content-Security-Policy.');
 if (!String(headers.get('content-security-policy') || '').includes("default-src 'self'")) fail('CSP debe restringir por defecto al mismo origen.');
-if (headers.get('access-control-allow-origin') !== 'https://asistencia-doctor-simi2026.vercel.app') fail('CORS no debe permitir cualquier origen.');
+if ([...headers.keys()].includes('access-control-allow-origin')) fail('No publicar CORS global para la SPA; configurar CORS únicamente en una API que lo necesite.');
+if (JSON.stringify(vercel).includes('"Access-Control-Allow-Origin": "*"')) fail('No se permite CORS con comodín.');
 const rootRule = (vercel.headers || []).find(rule => rule.source === '/');
 if (!rootRule?.headers?.some(h => h.key.toLowerCase() === 'cache-control' && /private, no-store/i.test(h.value))) {
   fail('La ruta raíz debe impedir el almacenamiento compartido mediante Cache-Control private, no-store.');
