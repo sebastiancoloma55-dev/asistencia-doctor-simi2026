@@ -12,6 +12,11 @@ if (headers.get('x-content-type-options') !== 'nosniff') fail('X-Content-Type-Op
 if (headers.get('x-frame-options') !== 'DENY') fail('X-Frame-Options debe ser DENY.');
 if (!headers.has('content-security-policy')) fail('Falta Content-Security-Policy.');
 if (!String(headers.get('content-security-policy') || '').includes("default-src 'self'")) fail('CSP debe restringir por defecto al mismo origen.');
+const csp = String(headers.get('content-security-policy') || '');
+if (/script-src[^;]*https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)(?:\s|;)/i.test(csp)) fail('CSP debe restringir CDN a paquetes y versiones concretos, no al host completo.');
+if (/connect-src[^;]*https:\/\/\*\.supabase\.co/i.test(csp)) fail('CSP debe restringir Supabase al proyecto requerido, no a cualquier subdominio.');
+if (!csp.includes('object-src \'none\'') || !csp.includes('frame-ancestors \'none\'')) fail('CSP debe bloquear objetos y framing.');
+
 if ([...headers.keys()].includes('access-control-allow-origin')) fail('No publicar CORS global para la SPA; configurar CORS únicamente en una API que lo necesite.');
 if (JSON.stringify(vercel).includes('"Access-Control-Allow-Origin": "*"')) fail('No se permite CORS con comodín.');
 const rootRule = (vercel.headers || []).find(rule => rule.source === '/');
