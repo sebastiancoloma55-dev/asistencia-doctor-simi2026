@@ -50,6 +50,14 @@ if (html.includes('supabase-js@2"')) fail('Supabase JS debe estar fijado a una v
 if (html.includes('https://cdn.tailwindcss.com"')) fail('Tailwind CDN debe estar fijado a una versión concreta.');
 if (!/leaflet\.js[^>]*integrity="sha256-/.test(html)) fail('Leaflet JS debe incluir Subresource Integrity (SRI).');
 if (!/leaflet\.css[^>]*integrity="sha256-/.test(html)) fail('Leaflet CSS debe incluir Subresource Integrity (SRI).');
+const externalScripts = [...html.matchAll(/<script\\b[^>]*src=["']https?:\\/\\/[^"']+["'][^>]*>/gi)].map(match => match[0]);
+const externalScriptsWithoutSri = externalScripts.filter(tag => !/\\bintegrity=["']sha(256|384|512)-/.test(tag));
+if (externalScriptsWithoutSri.length) {
+  console.warn('SECURITY FOLLOW-UP REQUIRED: ' + externalScriptsWithoutSri.length + ' scripts de terceros aún no tienen SRI. No considerar cerrado el hallazgo SRI.');
+}
+if (/script-src[^;]*'unsafe-inline'/i.test(csp) || /script-src[^;]*'unsafe-eval'/i.test(csp)) {
+  console.warn('SECURITY FOLLOW-UP REQUIRED: CSP aún permite unsafe-inline/unsafe-eval; retirar después de migrar scripts y handlers inline.');
+}
 
 const serverAuth = read('../lib/server-auth.js');
 for (const marker of ['auth.getUser(token)', 'profile.activo !== true', 'permissions.includes(permission)']) {
