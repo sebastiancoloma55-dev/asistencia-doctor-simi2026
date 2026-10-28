@@ -51,9 +51,13 @@ if (html.includes('https://cdn.tailwindcss.com"')) fail('Tailwind CDN debe estar
 if (!/leaflet\.js[^>]*integrity="sha256-/.test(html)) fail('Leaflet JS debe incluir Subresource Integrity (SRI).');
 if (!/leaflet\.css[^>]*integrity="sha256-/.test(html)) fail('Leaflet CSS debe incluir Subresource Integrity (SRI).');
 const externalScripts = html.split('<script').slice(1).map(part => part.split('>')[0] + '>').filter(tag => tag.includes('src="https://') || tag.includes("src='https://"));
-const externalScriptsWithoutSri = externalScripts.filter(tag => !tag.includes('integrity="sha') && !tag.includes("integrity='sha"));
+const externalScriptsWithoutSri = externalScripts.filter(tag => !/integrity=["']sha384-[A-Za-z0-9+/=]+["']/i.test(tag));
 if (externalScriptsWithoutSri.length) {
-  console.warn('SECURITY FOLLOW-UP REQUIRED: ' + externalScriptsWithoutSri.length + ' scripts de terceros aún no tienen SRI. No considerar cerrado el hallazgo SRI.');
+  fail('Todos los scripts externos deben incluir un hash SRI SHA-384 generado durante el build; faltan en ' + externalScriptsWithoutSri.length + ' etiqueta(s).');
+}
+const externalScriptsWithoutCors = externalScripts.filter(tag => !/crossorigin=["']anonymous["']/i.test(tag));
+if (externalScriptsWithoutCors.length) {
+  fail('Todos los scripts externos protegidos con SRI deben incluir crossorigin="anonymous"; faltan en ' + externalScriptsWithoutCors.length + ' etiqueta(s).');
 }
 if (/script-src[^;]*'unsafe-inline'/i.test(csp) || /script-src[^;]*'unsafe-eval'/i.test(csp)) {
   console.warn('SECURITY FOLLOW-UP REQUIRED: CSP aún permite unsafe-inline/unsafe-eval; retirar después de migrar scripts y handlers inline.');
