@@ -4387,22 +4387,37 @@ setTimeout(maybeShowMascot,45000);
 <script src="/js/cafecito-presencia.js?v=20261019"></script>
 <script id="login-submit-failsafe">
 (function(){
- function showLoginInitError(){
+ function linkLoginSafely(){
   const form=document.getElementById('form-login');
-  if(!form||form.dataset.loginSubmitBound==='true')return;
-  form.dataset.loginSubmitBound='true';
+  if(!form)return;
+  // Reutiliza el controlador real de Supabase cuando está disponible.
+  if(typeof window.iniciarSesion==='function'){
+   if(form.dataset.loginSubmitBound==='true')return;
+   form.dataset.loginSubmitBound='true';
+   form.addEventListener('submit',window.iniciarSesion);
+   console.info('[Asistencia Doctor Simi] Formulario enlazado mediante recuperación segura.');
+   return;
+  }
+  // No marcar loginSubmitBound: app-core debe poder enlazarlo si termina de cargar después.
+  if(form.dataset.loginFallbackBound==='true')return;
+  form.dataset.loginFallbackBound='true';
   form.addEventListener('submit',function(event){
+   if(typeof window.iniciarSesion==='function'){
+    event.preventDefault();
+    window.iniciarSesion(event);
+    return;
+   }
    event.preventDefault();
    const box=document.getElementById('login-error');
    if(box){
-    box.textContent='No se pudo iniciar el módulo de acceso. Recarga con Ctrl + F5. Si continúa, informa a Soporte RR. HH. indicando que el formulario no quedó enlazado.';
+    box.textContent='El módulo de autenticación aún no está disponible. Recarga con Ctrl + F5. Si persiste, Soporte RR. HH. debe revisar la carga de app-core.js.';
     box.classList.remove('hidden');
    }
-   console.error('[Asistencia Doctor Simi] El controlador de autenticación no quedó enlazado.');
+   console.error('[Asistencia Doctor Simi] El controlador de autenticación no está disponible; se bloquea el acceso por seguridad.');
   });
  }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showLoginInitError,{once:true});
- else showLoginInitError();
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',linkLoginSafely,{once:true});
+ else linkLoginSafely();
 })();
 </script>
 
