@@ -48,7 +48,7 @@ const html = read('../index.html');
 if (html.includes('lucide@latest')) fail('Lucide debe estar fijado a una versión concreta.');
 if (html.includes('supabase-js@2"')) fail('Supabase JS debe estar fijado a una versión concreta.');
 if (html.includes('https://cdn.tailwindcss.com"')) fail('Tailwind CDN debe estar fijado a una versión concreta.');
-if (!/leaflet\.js[^>]*integrity="sha256-/.test(html)) fail('Leaflet JS debe incluir Subresource Integrity (SRI).');
+if (!/leaflet\.js[^>]*integrity="sha(?:256|384)-/.test(html)) fail('Leaflet JS debe incluir Subresource Integrity (SRI).');
 if (!/leaflet\.css[^>]*integrity="sha256-/.test(html)) fail('Leaflet CSS debe incluir Subresource Integrity (SRI).');
 const externalScripts = html.split('<script').slice(1).map(part => part.split('>')[0] + '>').filter(tag => tag.includes('src="https://') || tag.includes("src='https://"));
 const externalScriptsWithoutSri = externalScripts.filter(tag => !/integrity=["']sha384-[A-Za-z0-9+/=]+["']/i.test(tag));
