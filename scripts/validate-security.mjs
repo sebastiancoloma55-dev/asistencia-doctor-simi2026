@@ -10,6 +10,17 @@ for (const key of ['x-content-type-options', 'x-frame-options', 'referrer-policy
 }
 if (headers.get('x-content-type-options') !== 'nosniff') fail('X-Content-Type-Options debe ser nosniff.');
 if (headers.get('x-frame-options') !== 'DENY') fail('X-Frame-Options debe ser DENY.');
+if (!headers.has('content-security-policy')) fail('Falta Content-Security-Policy.');
+if (!String(headers.get('content-security-policy') || '').includes("default-src 'self'")) fail('CSP debe restringir por defecto al mismo origen.');
+if (headers.get('access-control-allow-origin') !== 'https://asistencia-doctor-simi2026.vercel.app') fail('CORS no debe permitir cualquier origen.');
+const rootRule = (vercel.headers || []).find(rule => rule.source === '/');
+if (!rootRule?.headers?.some(h => h.key.toLowerCase() === 'cache-control' && /private, no-store/i.test(h.value))) {
+  fail('La ruta raíz debe impedir el almacenamiento compartido mediante Cache-Control private, no-store.');
+}
+const apiRule = (vercel.headers || []).find(rule => rule.source === '/api/(.*)');
+if (!apiRule?.headers?.some(h => h.key.toLowerCase() === 'cache-control' && /private, no-store/i.test(h.value))) {
+  fail('Las API deben impedir el almacenamiento compartido mediante Cache-Control private, no-store.');
+}
 
 const migration = read('../supabase/migrations/20261019090000_owasp_rls_policy_hardening.sql');
 for (const marker of [
@@ -31,6 +42,8 @@ const html = read('../index.html');
 if (html.includes('lucide@latest')) fail('Lucide debe estar fijado a una versión concreta.');
 if (html.includes('supabase-js@2"')) fail('Supabase JS debe estar fijado a una versión concreta.');
 if (html.includes('https://cdn.tailwindcss.com"')) fail('Tailwind CDN debe estar fijado a una versión concreta.');
+if (!/leaflet\.js[^>]*integrity="sha256-/.test(html)) fail('Leaflet JS debe incluir Subresource Integrity (SRI).');
+if (!/leaflet\.css[^>]*integrity="sha256-/.test(html)) fail('Leaflet CSS debe incluir Subresource Integrity (SRI).');
 
 const serverAuth = read('../lib/server-auth.js');
 for (const marker of ['auth.getUser(token)', 'profile.activo !== true', 'permissions.includes(permission)']) {
