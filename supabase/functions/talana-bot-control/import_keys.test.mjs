@@ -19,10 +19,10 @@ test("absence identity distinguishes separate creation timestamps", () => {
   assert.notEqual(importStableKey("ausentismos_historico", first), importStableKey("ausentismos_historico", second));
 });
 
-test("vacation identity distinguishes separate request timestamps", () => {
+test("vacation identity overwrites the same request when request timestamp changes", () => {
   const first = { rut: "12.345.678-5", fecha_inicio: "2026-11-02", tipo_vacaciones: "vacaciones", fecha_solicitud: "2026-10-01 08:00:00" };
   const second = { ...first, fecha_solicitud: "01/10/2026 - 09:00:00" };
-  assert.notEqual(importStableKey("solicitudes_vacaciones_historicas", first), importStableKey("solicitudes_vacaciones_historicas", second));
+  assert.equal(importStableKey("solicitudes_vacaciones_historicas", first), importStableKey("solicitudes_vacaciones_historicas", second));
 });
 
 test("vacation identity is stable when the end date changes", () => {
@@ -54,8 +54,14 @@ test("normalizes accents in natural-key text fields", () => {
   assert.equal(importStableKey("ausentismos_historico", a), importStableKey("ausentismos_historico", b));
 });
 
-test("attendance distinguishes entry and exit marks on the same date", () => {
+test("attendance identity overwrites the same employee-day when marks change", () => {
   const entry = { rut: "11131144-7", fecha: "02/10/2026", entrada: "07:32:14", salida: null };
   const exit = { rut: "11131144-7", fecha: "2026-10-02", entrada: null, salida: "22:36:04" };
-  assert.notEqual(importStableKey("reporte_jornadas_asistencia", entry), importStableKey("reporte_jornadas_asistencia", exit));
+  assert.equal(importStableKey("reporte_jornadas_asistencia", entry), importStableKey("reporte_jornadas_asistencia", exit));
+});
+
+
+test("vacation and attendance keys intentionally omit mutable fields", () => {
+  assert.deepEqual(importKeyFields("solicitudes_vacaciones_historicas"), ["rut", "fecha_inicio", "tipo_vacaciones"]);
+  assert.deepEqual(importKeyFields("reporte_jornadas_asistencia"), ["rut", "fecha"]);
 });
