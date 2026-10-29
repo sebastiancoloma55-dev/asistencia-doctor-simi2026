@@ -1276,6 +1276,111 @@ main>header .topbar-quick-action{display:none!important}
       })();
     </script>
 
+
+    <style id="simi-glassy-corporate-v5">
+      :root {
+        --simi-glass-navy:#0B3B70; --simi-glass-blue:#145DA0; --simi-glass-teal:#19A8A5;
+        --simi-glass-yellow:#F6C84C; --simi-glass-ink:#183653; --simi-glass-muted:#65788e;
+        --simi-glass-line:rgba(169,194,220,.48); --simi-glass-surface:rgba(255,255,255,.88);
+        --simi-glass-shadow:0 8px 28px rgba(22,67,112,.075);
+      }
+      body { background:linear-gradient(135deg,#f7faff 0%,#eef5fc 48%,#f8fbff 100%) !important; color:var(--simi-glass-ink); }
+      #sidebar { background:linear-gradient(180deg,#0b3b70 0%,#082f5c 100%) !important; box-shadow:8px 0 28px rgba(8,47,92,.12); border-right:1px solid rgba(255,255,255,.12); }
+      #sidebar > div:first-child { background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.12) !important; backdrop-filter:blur(14px); }
+      #sidebar .menu-btn { border-radius:11px !important; margin:2px 8px; width:calc(100% - 16px); transition:background .18s ease,transform .18s ease,box-shadow .18s ease; }
+      #sidebar .menu-btn:hover { background:rgba(255,255,255,.11) !important; transform:translateX(2px); }
+      #sidebar .menu-btn.active, #sidebar .menu-btn[aria-current="page"] { background:linear-gradient(100deg,rgba(25,168,165,.32),rgba(25,168,165,.12)) !important; box-shadow:inset 3px 0 0 var(--simi-glass-yellow); }
+      #sidebar .nova-nav-divider { opacity:.86; letter-spacing:.12em; }
+      #header-title { color:var(--simi-glass-ink) !important; letter-spacing:-.025em; }
+      header { background:rgba(255,255,255,.82) !important; border-bottom:1px solid var(--simi-glass-line) !important; backdrop-filter:blur(18px) saturate(135%); box-shadow:0 4px 18px rgba(22,67,112,.035); }
+      #quick-module-bar { background:rgba(255,255,255,.56); backdrop-filter:blur(12px); }
+      #view-dashboard { max-width:1600px; margin-inline:auto; }
+      #view-dashboard > section, main section[id^="view-"] > section,
+      main section[id^="view-"] .rounded-xl, main section[id^="view-"] .rounded-2xl {
+        scroll-margin-top:88px;
+      }
+      #view-dashboard .dashboard-welcome-compact { border:1px solid rgba(255,255,255,.78); border-radius:22px; box-shadow:var(--simi-glass-shadow); overflow:hidden; }
+      #view-dashboard .dashboard-welcome-compact-visual { border-radius:0 18px 18px 0; overflow:hidden; }
+      #view-dashboard .dashboard-welcome-compact-copy { position:relative; z-index:1; }
+      main section[id^="view-"] .bg-white,
+      main section[id^="view-"] .bg-white\/90,
+      main section[id^="view-"] .bg-slate-50,
+      main section[id^="view-"] .bg-slate-100 {
+        border-color:var(--simi-glass-line) !important;
+      }
+      main section[id^="view-"] .shadow-sm,
+      main section[id^="view-"] .shadow-md {
+        box-shadow:var(--simi-glass-shadow) !important;
+      }
+      main section[id^="view-"] .rounded-xl,
+      main section[id^="view-"] .rounded-2xl {
+        border-radius:16px;
+      }
+      main section[id^="view-"] button:not(.menu-btn) {
+        transition:transform .16s ease,box-shadow .16s ease,filter .16s ease;
+      }
+      main section[id^="view-"] button:not(:disabled):hover { filter:brightness(1.015); }
+      main section[id^="view-"] button:not(:disabled):active { transform:translateY(1px); }
+      main section[id^="view-"] input:not([type=checkbox]):not([type=radio]),
+      main section[id^="view-"] select,
+      main section[id^="view-"] textarea {
+        border-color:#d5e1ee; border-radius:10px; background:rgba(255,255,255,.92);
+        min-height:40px; transition:border-color .16s ease,box-shadow .16s ease;
+      }
+      main section[id^="view-"] input:focus,
+      main section[id^="view-"] select:focus,
+      main section[id^="view-"] textarea:focus {
+        border-color:var(--simi-glass-teal) !important;
+        box-shadow:0 0 0 3px rgba(25,168,165,.13) !important; outline:none;
+      }
+      main section[id^="view-"] table { border-collapse:separate; border-spacing:0; }
+      main section[id^="view-"] table thead th {
+        background:#edf4fb; color:#365775; font-size:11px; font-weight:800;
+        letter-spacing:.045em; text-transform:uppercase; border-bottom:1px solid #dbe7f3;
+      }
+      main section[id^="view-"] table tbody tr { transition:background .14s ease; }
+      main section[id^="view-"] table tbody tr:hover { background:rgba(224,240,250,.48); }
+      #simi-global-data-loader {
+        background:rgba(255,255,255,.9) !important; border:1px solid rgba(169,194,220,.58);
+        box-shadow:0 14px 40px rgba(8,47,92,.13) !important; backdrop-filter:blur(20px) saturate(145%);
+        border-radius:16px !important;
+      }
+      .simi-skeleton { min-height:1em; border-radius:8px; background:#e7edf5 !important; }
+      .simi-skeleton::after { background:linear-gradient(90deg,transparent,rgba(255,255,255,.88),transparent); }
+      .simi-skeleton-line { border-radius:999px; }
+      .simi-state { border-radius:15px; box-shadow:0 5px 18px rgba(22,67,112,.045); }
+      .simi-state__title { color:var(--simi-glass-ink); }
+      .simi-state__message { color:var(--simi-glass-muted); }
+      #toast-container > * { backdrop-filter:blur(16px); box-shadow:0 10px 30px rgba(8,47,92,.15); border-radius:14px; }
+      @media (min-width:768px) {
+        main section[id^="view-"] .grid > * { min-width:0; }
+      }
+      @media (max-width:767px) {
+        body { overflow:hidden; }
+        body > .flex.h-screen.overflow-hidden { height:100dvh !important; min-height:0; }
+        #sidebar { position:fixed !important; z-index:1000; inset:0 auto 0 0; height:100dvh !important;
+          width:min(84vw,320px) !important; max-width:320px; transform:translateX(-105%);
+          transition:transform .24s ease; box-shadow:18px 0 48px rgba(5,31,61,.28); }
+        #sidebar.mobile-open, #sidebar.is-open, #sidebar:not(.sidebar-collapsed)[data-mobile-open="true"] { transform:translateX(0); }
+        #sidebar-backdrop { position:fixed; inset:0; z-index:999; background:rgba(7,30,55,.38); backdrop-filter:blur(3px); }
+        body.simi-sidebar-open #sidebar { transform:translateX(0); }
+        body.simi-sidebar-open::after { content:""; position:fixed; inset:0; z-index:998; background:rgba(7,30,55,.34); backdrop-filter:blur(2px); }
+        #sidebar .menu-btn { min-height:42px; }
+        #view-dashboard { padding:14px !important; }
+        #view-dashboard .dashboard-welcome-compact { display:flex; flex-direction:column; gap:12px; }
+        #view-dashboard .dashboard-welcome-compact-visual { width:100%; max-height:170px; border-radius:14px; }
+        #view-dashboard .dashboard-welcome-compact-image { max-height:170px; width:100%; object-fit:cover; }
+        main section[id^="view-"] { min-width:0; max-width:100vw; }
+        main section[id^="view-"] .grid { grid-template-columns:minmax(0,1fr) !important; }
+        main section[id^="view-"] .overflow-x-auto { max-width:100%; }
+        main section[id^="view-"] table { min-width:640px; }
+        #simi-global-data-loader { left:12px !important; right:12px !important; top:70px !important; width:auto !important; max-width:none !important; }
+      }
+      @media (prefers-reduced-motion:reduce) {
+        *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+      }
+    </style>
+
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
