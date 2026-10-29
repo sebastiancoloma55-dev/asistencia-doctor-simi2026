@@ -88,8 +88,8 @@ class TalanaBotCloud:
    for row in rows:
     rut=row.get("rut")
     if rut is not None and str(rut).strip(): attendance_employee_ids.add(re.sub(r"[^0-9Kk]","",str(rut)).upper())
-  for offset in range(0,len(rows),100):
-   batch=rows[offset:offset+100]
+  batches=[(0,[])] if not rows else [(offset,rows[offset:offset+100]) for offset in range(0,len(rows),100)]
+  for offset,batch in batches:
    result=self.call("bot_import",run_id=run_id,report_type=report_type,file_name=p.name,rows=batch,parse_errors=parse_errors if offset==0 else [],final_batch=(offset+len(batch)>=len(rows)),dry_run=dry_run)
    keys=("planned_inserted","planned_updated","skipped","failed") if dry_run else ("inserted","updated","skipped","failed")
    for key in keys:
