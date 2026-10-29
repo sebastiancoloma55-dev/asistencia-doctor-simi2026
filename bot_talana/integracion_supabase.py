@@ -3,42 +3,50 @@ import base64, hashlib, json, mimetypes, os
 from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 
-def filter_current_month_licenses(rows, today=None):
- """Keep only absences created from the first day of the current Chilean month."""
+def filter_current_week_licenses(rows, today=None):
+ """Keep absences created from Monday of the current Chilean week onward.
+
+ Prefer fecha_creacion, as the report is historic by creation date. If that
+ value is missing or invalid, fall back to fecha_inicio. Rows with neither
+ usable date are excluded to avoid importing records outside the window.
+ """
  today = today or datetime.now(ZoneInfo("America/Santiago")).date()
- month_start = date(today.year, today.month, 1)
+ week_start = today - timedelta(days=today.weekday())
  included, excluded_old, excluded_missing_date = [], 0, 0
- for row in rows:
-  raw = row.get("fecha_creacion")
-  parsed = None
+
+ def parse_day(raw):
   if isinstance(raw, datetime):
-   parsed = raw.date()
-  elif isinstance(raw, date):
-   parsed = raw
-  elif raw is not None and str(raw).strip():
-   value = str(raw).strip()
-   try:
-    parsed = date.fromisoformat(value[:10])
-   except ValueError:
-    for fmt in ("%d/%m/%Y", "%d-%m-%Y"):
-     try:
-      parsed = datetime.strptime(value[:10], fmt).date()
-      break
-     except ValueError:
-      pass
+   return raw.date()
+  if isinstance(raw, date):
+   return raw
+  if raw is None or not str(raw).strip():
+   return None
+  value = str(raw).strip()
+  try:
+   return date.fromisoformat(value[:10])
+  except ValueError:
+   for fmt in ("%d/%m/%Y", "%d-%m-%Y"):
+    try:
+     return datetime.strptime(value[:10], fmt).date()
+    except ValueError:
+     pass
+  return None
+
+ for row in rows:
+  parsed = parse_day(row.get("fecha_creacion")) or parse_day(row.get("fecha_inicio"))
   if parsed is None:
    excluded_missing_date += 1
-  elif parsed < month_start:
+  elif parsed < week_start:
    excluded_old += 1
   else:
    included.append(row)
- return included, {"month_start": month_start.isoformat(), "received": len(rows),
-  "included": len(included), "excluded_before_month": excluded_old,
-  "excluded_missing_creation_date": excluded_missing_date}
+ return included, {"week_start": week_start.isoformat(), "date_field": "fecha_creacion (fallback fecha_inicio)",
+  "received": len(rows), "included": len(included), "excluded_before_week": excluded_old,
+  "excluded_missing_dates": excluded_missing_date}
 class TalanaBotCloud:
  def __init__(self):
   self.url=os.getenv("TALANA_BOT_URL","").rstrip("/"); self.secret=os.getenv("TALANA_BOT_SECRET","")
@@ -64,14 +72,14 @@ class TalanaBotCloud:
   from importador_reportes import parse_report
   p=Path(path)
   rows,parse_errors,metadata=parse_report(p,report_type)
-  monthly_filter={"applied":False}
+  weekly_filter={"applied":False}
   if report_type=="ausentismos_historico":
-   rows,monthly_filter=filter_current_month_licenses(rows)
-   monthly_filter["applied"]=True
+   rows,weekly_filter=filter_current_week_licenses(rows)
+   weekly_filter["applied"]=True
    if not rows:
     import logging
-    logging.getLogger("talana-cloud").warning("Filtro mensual de licencias: no hay filas con fecha_creacion desde %s; se omite la importación.",monthly_filter["month_start"])
-  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"planned_inserted":0,"planned_updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True,"diagnostics":{"monthly_license_filter":monthly_filter,"missing_key_fields":{},"incoming_rows_merged":int(metadata.get("rows_deduplicated",0) or 0),"ambiguous_legacy_rows_merged":0,"blocked_ambiguous_legacy_rows":0,"planned_duplicate_rows_removed":0,"existing_duplicate_rows_detected":0,"duplicate_rows_removed":0,"attendance":{"incoming_by_date":{},"planned_new_by_date":{}}}}
+    logging.getLogger("talana-cloud").warning("Filtro semanal de ausentismos: no hay filas desde %s; se omite la importación.",weekly_filter["week_start"])
+  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"planned_inserted":0,"planned_updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True,"diagnostics":{"weekly_absence_filter":weekly_filter,"missing_key_fields":{},"incoming_rows_merged":int(metadata.get("rows_deduplicated",0) or 0),"ambiguous_legacy_rows_merged":0,"blocked_ambiguous_legacy_rows":0,"planned_duplicate_rows_removed":0,"existing_duplicate_rows_detected":0,"duplicate_rows_removed":0,"attendance":{"incoming_by_date":{},"planned_new_by_date":{}}}}
   # Count XLSX rows consolidated before batching as skipped source duplicates.
   totals["skipped"] += int(metadata.get("rows_deduplicated",0) or 0)
   attendance_employee_ids=set()
