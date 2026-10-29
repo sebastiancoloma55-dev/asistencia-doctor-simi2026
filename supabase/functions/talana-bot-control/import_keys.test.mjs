@@ -4,6 +4,8 @@ import {
   importStableKey,
   importKeyFields,
   normalizeImportRut,
+  chileMondayISO,
+  parseDateISO,
 } from "./import_keys.js";
 
 test("ausentismo identity is stable when the end date changes", () => {
@@ -64,4 +66,12 @@ test("attendance identity overwrites the same employee-day when marks change", (
 test("vacation and attendance keys intentionally omit mutable fields", () => {
   assert.deepEqual(importKeyFields("solicitudes_vacaciones_historicas"), ["rut", "fecha_inicio", "tipo_vacaciones"]);
   assert.deepEqual(importKeyFields("reporte_jornadas_asistencia"), ["rut", "fecha"]);
+});
+
+test("weekly absence filter starts on Monday in Chile and advances each week", () => {
+  assert.equal(chileMondayISO(new Date("2026-10-29T12:00:00Z")), "2026-10-26");
+  assert.equal(chileMondayISO(new Date("2026-11-04T12:00:00Z")), "2026-11-02");
+  assert.equal(parseDateISO("26/10/2026"), "2026-10-26");
+  assert.equal(parseDateISO("2026-10-26 09:30:00"), "2026-10-26");
+  assert.equal(parseDateISO(""), null);
 });
