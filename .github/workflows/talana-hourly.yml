@@ -84,7 +84,7 @@ jobs:
       - name: Descargar código de la rama autorizada
         uses: actions/checkout@v4
         with:
-          ref: feat/coberturas-responsables-multiselect
+          ref: ${{ github.ref }}
 
       - name: Preparar Python
         uses: actions/setup-python@v5
