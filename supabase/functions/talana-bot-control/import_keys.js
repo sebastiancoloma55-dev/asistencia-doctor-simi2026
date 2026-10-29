@@ -73,9 +73,9 @@ export function importStableKey(reportType, row) {
 /** Parse Talana date values consistently without relying on the runner's locale. */
 export function parseDateISO(value) {
   const text = String(value ?? "").trim();
-  let match = text.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})/);
+  let match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   if (match) return match[1] + "-" + match[2].padStart(2, "0") + "-" + match[3].padStart(2, "0");
-  match = text.match(/^(\\d{1,2})[\\/-](\\d{1,2})[\\/-](\\d{4})/);
+  match = text.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
   if (match) return match[3] + "-" + match[2].padStart(2, "0") + "-" + match[1].padStart(2, "0");
   return null;
 }
