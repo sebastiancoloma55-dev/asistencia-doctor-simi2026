@@ -22,9 +22,9 @@ function chileMondayISO(){
 }
 function parseDateISO(value:unknown):string|null{
  const text=String(value??"").trim();
- let m=text.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})/);
+ let m=text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
  if(m)return m[1]+"-"+m[2].padStart(2,"0")+"-"+m[3].padStart(2,"0");
- m=text.match(/^(\\d{1,2})[\\/-](\\d{1,2})[\\/-](\\d{4})/);
+ m=text.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
  if(m)return m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0");
  return null;
 }
