@@ -244,6 +244,12 @@ def main():
                     imported.get("inserted", 0), imported.get("updated", 0),
                     imported.get("skipped", 0), imported.get("failed", 0),
                 )
+                diagnostics = imported.get("diagnostics") or {}
+                if report_type == "ausentismos_historico":
+                    LOG.info(
+                        "FILTRO SEMANAL AUSENTISMOS: %s",
+                        json.dumps(diagnostics.get("weekly_absence_filter") or {}, ensure_ascii=False, sort_keys=True),
+                    )
                 if int(imported.get("failed", 0)) > 0:
                     diagnostics = imported.get("diagnostics") or {}
                     if diagnostics:
