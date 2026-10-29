@@ -4,6 +4,8 @@ import {
   importStableKey,
   importKeyFields,
   normalizeImportRut,
+  chileMondayISO,
+  parseDateISO,
 } from "./import_keys.js";
 
 test("ausentismo identity is stable when the end date changes", () => {
@@ -19,7 +21,7 @@ test("absence identity distinguishes separate creation timestamps", () => {
   assert.notEqual(importStableKey("ausentismos_historico", first), importStableKey("ausentismos_historico", second));
 });
 
-test("vacation identity distinguishes separate request timestamps", () => {
+test("vacation identity preserves separate requests with different timestamps", () => {
   const first = { rut: "12.345.678-5", fecha_inicio: "2026-11-02", tipo_vacaciones: "vacaciones", fecha_solicitud: "2026-10-01 08:00:00" };
   const second = { ...first, fecha_solicitud: "01/10/2026 - 09:00:00" };
   assert.notEqual(importStableKey("solicitudes_vacaciones_historicas", first), importStableKey("solicitudes_vacaciones_historicas", second));
@@ -54,8 +56,22 @@ test("normalizes accents in natural-key text fields", () => {
   assert.equal(importStableKey("ausentismos_historico", a), importStableKey("ausentismos_historico", b));
 });
 
-test("attendance distinguishes entry and exit marks on the same date", () => {
+test("attendance identity overwrites the same employee-day when marks change", () => {
   const entry = { rut: "11131144-7", fecha: "02/10/2026", entrada: "07:32:14", salida: null };
   const exit = { rut: "11131144-7", fecha: "2026-10-02", entrada: null, salida: "22:36:04" };
-  assert.notEqual(importStableKey("reporte_jornadas_asistencia", entry), importStableKey("reporte_jornadas_asistencia", exit));
+  assert.equal(importStableKey("reporte_jornadas_asistencia", entry), importStableKey("reporte_jornadas_asistencia", exit));
+});
+
+
+test("vacation and attendance keys intentionally omit mutable fields", () => {
+  assert.deepEqual(importKeyFields("solicitudes_vacaciones_historicas"), ["rut", "fecha_inicio", "tipo_vacaciones", "fecha_solicitud", "jornada"]);
+  assert.deepEqual(importKeyFields("reporte_jornadas_asistencia"), ["rut", "fecha"]);
+});
+
+test("weekly absence filter starts on Monday in Chile and advances each week", () => {
+  assert.equal(chileMondayISO(new Date("2026-10-29T12:00:00Z")), "2026-10-26");
+  assert.equal(chileMondayISO(new Date("2026-11-04T12:00:00Z")), "2026-11-02");
+  assert.equal(parseDateISO("26/10/2026"), "2026-10-26");
+  assert.equal(parseDateISO("2026-10-26 09:30:00"), "2026-10-26");
+  assert.equal(parseDateISO(""), null);
 });
