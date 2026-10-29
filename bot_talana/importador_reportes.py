@@ -189,15 +189,17 @@ def _find_header(rows, report_type):
 
 
 def _dedupe_rows(report_type, rows):
-    """Merge duplicate source rows without discarding non-empty information."""
+    """Merge duplicate source rows globally before 100-row API batches."""
     identity_fields = {
+        # Without a license folio, retain all available stable discriminators.
         "ausentismos_historico": ("rut", "fecha_inicio", "tipo_ausencia", "fecha_creacion", "hora_inicio", "hora_fin"),
         "solicitudes_vacaciones_historicas": ("rut", "fecha_inicio", "tipo_vacaciones", "fecha_solicitud", "jornada"),
         "maestro_empleado": ("rut",),
-        # Separate entry/exit marks for one person/day are distinct records.
+        # Attendance represents one complete employee/day record.
         "reporte_jornadas_asistencia": ("rut", "fecha"),
     }[report_type]
     merged, by_key = [], {}
+    boolean_fields = {"sin_marca", "marca_incompleta", "tiene_atraso", "sin_turno_marcas"}
     for row in rows:
         parts = []
         for field in identity_fields:
@@ -210,13 +212,14 @@ def _dedupe_rows(report_type, rows):
             merged.append(copy)
             continue
         existing = by_key[key]
-        # For repeated records, the newest row in the Talana export wins.
-        # Empty cells do not erase previously known values.
         for field, value in row.items():
             if value not in (None, ""):
-                existing[field] = value
+                if report_type == "reporte_jornadas_asistencia" and field in boolean_fields:
+                    existing[field] = bool(existing.get(field)) or bool(value)
+                else:
+                    # Later non-empty source values win; blank cells never erase data.
+                    existing[field] = value
     return merged
-
 
 def parse_report(path, report_type):
     if report_type not in REPORT_FIELDS:
