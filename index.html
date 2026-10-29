@@ -1361,7 +1361,7 @@ main>header .topbar-quick-action{display:none!important}
         #sidebar { position:fixed !important; z-index:1000; inset:0 auto 0 0; height:100dvh !important;
           width:min(84vw,320px) !important; max-width:320px; transform:translateX(-105%);
           transition:transform .24s ease; box-shadow:18px 0 48px rgba(5,31,61,.28); }
-        #sidebar.mobile-open, #sidebar.is-open, #sidebar:not(.sidebar-collapsed)[data-mobile-open="true"] { transform:translateX(0); }
+        #sidebar.open, #sidebar.mobile-open, #sidebar.is-open, #sidebar:not(.sidebar-collapsed)[data-mobile-open="true"] { transform:translateX(0); }
         #sidebar-backdrop { position:fixed; inset:0; z-index:999; background:rgba(7,30,55,.38); backdrop-filter:blur(3px); }
         body.simi-sidebar-open #sidebar { transform:translateX(0); }
         body.simi-sidebar-open::after { content:""; position:fixed; inset:0; z-index:998; background:rgba(7,30,55,.34); backdrop-filter:blur(2px); }
