@@ -1381,6 +1381,78 @@ main>header .topbar-quick-action{display:none!important}
       }
     </style>
 
+
+    <style id="simi-loading-unification-20261029">
+      .simi-skeleton-cell { padding:11px 12px !important; }
+      .simi-skeleton-cell .simi-skeleton-line { height:11px; }
+      .simi-loading-card { min-height:24px; }
+      @media (max-width:767px) {
+        #sidebar { max-width:min(84vw,320px) !important; }
+        main, #main-content, #app-content { min-width:0 !important; width:100% !important; }
+        .simi-table-scroll { max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+        .simi-table-scroll table { min-width:620px; }
+      }
+    </style>
+    <script id="simi-loading-unification-script-20261029">
+      (function(){
+        if(window.__simiLoadingUnification) return;
+        window.__simiLoadingUnification=true;
+        var loadingPattern=/^\s*(cargando(?:\s|…|\.|$)|loading(?:\s|…|\.|$)|consultando\s+(?:todos\s+)?los\s+registros|actualizando\s+informaci[oó]n)/i;
+        function skeletonRow(columns,index){
+          var widths=[68,74,54,82,46,62,58,52,64,44,72,56];
+          var cells='';
+          for(var i=0;i<columns;i++){
+            var width=widths[(i+index)%widths.length];
+            cells+='<td class="simi-skeleton-cell"><span class="simi-skeleton simi-skeleton-line" style="display:block;width:'+width+'%;height:11px" aria-hidden="true"></span></td>';
+          }
+          return '<tr class="simi-generated-skeleton-row" aria-hidden="true">'+cells+'</tr>';
+        }
+        function convertLoadingRows(root){
+          if(!root||!root.querySelectorAll) return;
+          root.querySelectorAll('tbody tr').forEach(function(row){
+            if(row.classList.contains('simi-generated-skeleton-row')) return;
+            var cells=Array.from(row.cells||[]);
+            if(!cells.length) return;
+            var text=(row.textContent||'').trim();
+            if(!loadingPattern.test(text)) return;
+            var span=Number(cells[0].getAttribute('colspan'))||cells.length;
+            if(cells.length>1 && !loadingPattern.test((cells.map(function(c){return c.textContent}).join(' ').trim()))) return;
+            var table=row.closest('table');
+            var head=table&&table.querySelector('thead tr');
+            var columns=head&&head.cells.length?head.cells.length:Math.max(1,span);
+            var rows='';
+            for(var i=0;i<5;i++) rows+=skeletonRow(columns,i);
+            var tbody=row.parentElement;
+            row.remove();
+            if(tbody && !tbody.querySelector('.simi-generated-skeleton-row')) tbody.insertAdjacentHTML('afterbegin',rows);
+            if(tbody) tbody.setAttribute('aria-busy','true');
+          });
+        }
+        function clearGeneratedSkeletons(root){
+          if(!root||!root.querySelectorAll) return;
+          root.querySelectorAll('tbody').forEach(function(tbody){
+            if(tbody.getAttribute('aria-busy')!=='true') return;
+            var generated=tbody.querySelectorAll('.simi-generated-skeleton-row');
+            if(!generated.length) return;
+            var hasReal=Array.from(tbody.rows).some(function(row){return !row.classList.contains('simi-generated-skeleton-row') && !loadingPattern.test((row.textContent||'').trim())});
+            if(hasReal){generated.forEach(function(row){row.remove()});tbody.removeAttribute('aria-busy')}
+          });
+        }
+        function scan(root){convertLoadingRows(root);clearGeneratedSkeletons(root)}
+        if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){scan(document.body)});
+        else scan(document.body);
+        var observer=new MutationObserver(function(records){
+          records.forEach(function(record){
+            if(record.type==='childList') record.addedNodes.forEach(function(node){if(node.nodeType===1) scan(node)});
+            else if(record.target&&record.target.nodeType===1) scan(record.target);
+          });
+        });
+        observer.observe(document.documentElement,{subtree:true,childList:true,characterData:true});
+        window.SimiUX=window.SimiUX||{};
+        window.SimiUX.refreshLoadingStates=function(){scan(document.body)};
+      })();
+    </script>
+
 </head>
 
 <body class="bg-slate-50 text-slate-800 antialiased">
