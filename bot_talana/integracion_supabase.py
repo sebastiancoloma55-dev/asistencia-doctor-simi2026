@@ -28,7 +28,7 @@ class TalanaBotCloud:
   from importador_reportes import parse_report
   p=Path(path)
   rows,parse_errors,metadata=parse_report(p,report_type)
-  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"planned_inserted":0,"planned_updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True,"diagnostics":{"missing_key_fields":{},"attendance":{"incoming_by_date":{},"planned_new_by_date":{}}}}
+  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"planned_inserted":0,"planned_updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True,"diagnostics":{"missing_key_fields":{},"attendance":{"incoming_by_date":{},"planned_new_by_date":{}},"weekly_filter":{}}}
   attendance_employee_ids=set()
   if report_type=="reporte_jornadas_asistencia":
    import re
@@ -45,6 +45,13 @@ class TalanaBotCloud:
    diag=result.get("diagnostics") or {}
    for field,count in (diag.get("missing_key_fields") or {}).items():
     totals["diagnostics"]["missing_key_fields"][field]=totals["diagnostics"]["missing_key_fields"].get(field,0)+int(count or 0)
+   weekly=diag.get("weekly_filter") or {}
+   if weekly:
+    target=totals["diagnostics"]["weekly_filter"]
+    target["start_date"]=weekly.get("start_date")
+    target["date_field"]=weekly.get("date_field")
+    for field in ("received","included","excluded_before_week"):
+     target[field]=target.get(field,0)+int(weekly.get(field,0) or 0)
    attendance=diag.get("attendance") or {}
    for bucket in ("incoming_by_date","planned_new_by_date"):
     target=totals["diagnostics"]["attendance"][bucket]

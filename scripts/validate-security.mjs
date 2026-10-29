@@ -10,6 +10,23 @@ for (const key of ['x-content-type-options', 'x-frame-options', 'referrer-policy
 }
 if (headers.get('x-content-type-options') !== 'nosniff') fail('X-Content-Type-Options debe ser nosniff.');
 if (headers.get('x-frame-options') !== 'DENY') fail('X-Frame-Options debe ser DENY.');
+if (!headers.has('content-security-policy')) fail('Falta Content-Security-Policy.');
+if (!String(headers.get('content-security-policy') || '').includes("default-src 'self'")) fail('CSP debe restringir por defecto al mismo origen.');
+const csp = String(headers.get('content-security-policy') || '');
+if (/script-src[^;]*https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)(?:\s|;)/i.test(csp)) fail('CSP debe restringir CDN a paquetes y versiones concretos, no al host completo.');
+if (/connect-src[^;]*https:\/\/\*\.supabase\.co/i.test(csp)) fail('CSP debe restringir Supabase al proyecto requerido, no a cualquier subdominio.');
+if (!csp.includes('object-src \'none\'') || !csp.includes('frame-ancestors \'none\'')) fail('CSP debe bloquear objetos y framing.');
+
+if ([...headers.keys()].includes('access-control-allow-origin')) fail('No publicar CORS global para la SPA; configurar CORS únicamente en una API que lo necesite.');
+if (JSON.stringify(vercel).includes('"Access-Control-Allow-Origin": "*"')) fail('No se permite CORS con comodín.');
+const rootRule = (vercel.headers || []).find(rule => rule.source === '/');
+if (!rootRule?.headers?.some(h => h.key.toLowerCase() === 'cache-control' && /private, no-store/i.test(h.value))) {
+  fail('La ruta raíz debe impedir el almacenamiento compartido mediante Cache-Control private, no-store.');
+}
+const apiRule = (vercel.headers || []).find(rule => rule.source === '/api/(.*)');
+if (!apiRule?.headers?.some(h => h.key.toLowerCase() === 'cache-control' && /private, no-store/i.test(h.value))) {
+  fail('Las API deben impedir el almacenamiento compartido mediante Cache-Control private, no-store.');
+}
 
 const migration = read('../supabase/migrations/20261019090000_owasp_rls_policy_hardening.sql');
 for (const marker of [
@@ -31,6 +48,20 @@ const html = read('../index.html');
 if (html.includes('lucide@latest')) fail('Lucide debe estar fijado a una versión concreta.');
 if (html.includes('supabase-js@2"')) fail('Supabase JS debe estar fijado a una versión concreta.');
 if (html.includes('https://cdn.tailwindcss.com"')) fail('Tailwind CDN debe estar fijado a una versión concreta.');
+if (!/leaflet\.js[^>]*integrity="sha(?:256|384)-/.test(html)) fail('Leaflet JS debe incluir Subresource Integrity (SRI).');
+if (!/leaflet\.css[^>]*integrity="sha256-/.test(html)) fail('Leaflet CSS debe incluir Subresource Integrity (SRI).');
+const externalScripts = html.split('<script').slice(1).map(part => part.split('>')[0] + '>').filter(tag => tag.includes('src="https://') || tag.includes("src='https://"));
+const externalScriptsWithoutSri = externalScripts.filter(tag => !/integrity=["']sha384-[A-Za-z0-9+/=]+["']/i.test(tag));
+if (externalScriptsWithoutSri.length) {
+  fail('Todos los scripts externos deben incluir un hash SRI SHA-384 generado durante el build; faltan en ' + externalScriptsWithoutSri.length + ' etiqueta(s).');
+}
+const externalScriptsWithoutCors = externalScripts.filter(tag => !/crossorigin=["']anonymous["']/i.test(tag));
+if (externalScriptsWithoutCors.length) {
+  fail('Todos los scripts externos protegidos con SRI deben incluir crossorigin="anonymous"; faltan en ' + externalScriptsWithoutCors.length + ' etiqueta(s).');
+}
+if (/script-src[^;]*'unsafe-inline'/i.test(csp) || /script-src[^;]*'unsafe-eval'/i.test(csp)) {
+  console.warn('SECURITY FOLLOW-UP REQUIRED: CSP aún permite unsafe-inline/unsafe-eval; retirar después de migrar scripts y handlers inline.');
+}
 
 const serverAuth = read('../lib/server-auth.js');
 for (const marker of ['auth.getUser(token)', 'profile.activo !== true', 'permissions.includes(permission)']) {

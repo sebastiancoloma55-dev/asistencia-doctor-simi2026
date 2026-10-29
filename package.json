@@ -4,6 +4,7 @@
     "@supabase/supabase-js": "^2.57.0"
   },
   "scripts": {
-    "check": "node scripts/validate-structure.mjs && node scripts/validate-security.mjs"
+    "check": "node scripts/validate-structure.mjs && node scripts/validate-security.mjs",
+    "build": "node scripts/generate-sri.mjs && npm run check"
   }
 }

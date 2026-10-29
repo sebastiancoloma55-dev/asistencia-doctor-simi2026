@@ -195,7 +195,7 @@ def _dedupe_rows(report_type, rows):
         "solicitudes_vacaciones_historicas": ("rut", "fecha_inicio", "tipo_vacaciones", "fecha_solicitud", "jornada"),
         "maestro_empleado": ("rut",),
         # Separate entry/exit marks for one person/day are distinct records.
-        "reporte_jornadas_asistencia": ("rut", "fecha", "entrada", "salida", "tipo_ausentismo"),
+        "reporte_jornadas_asistencia": ("rut", "fecha"),
     }[report_type]
     merged, by_key = [], {}
     for row in rows:
@@ -210,8 +210,10 @@ def _dedupe_rows(report_type, rows):
             merged.append(copy)
             continue
         existing = by_key[key]
+        # For repeated records, the newest row in the Talana export wins.
+        # Empty cells do not erase previously known values.
         for field, value in row.items():
-            if existing.get(field) in (None, "") and value not in (None, ""):
+            if value not in (None, ""):
                 existing[field] = value
     return merged
 

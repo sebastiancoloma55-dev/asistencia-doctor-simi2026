@@ -4,6 +4,7 @@
   const $ = id => document.getElementById(id);
   let colaborador = null;
   let sucursalManual = null;
+  let registroEditando = null;
   let iniciada = false;
   const db = () => {
     try { if (typeof _supabase !== 'undefined' && _supabase) return _supabase; } catch (_) {}
@@ -191,6 +192,9 @@
   }
 
   function limpiarFormulario() {
+    registroEditando=null;
+    const saveButton=$('eml-guardar');
+    if(saveButton)saveButton.innerHTML='<i data-lucide="save" class="mr-2 inline h-4 w-4"></i>Guardar registro';
     colaborador=null;sucursalManual=null;$('eml-rut').value='';$('eml-colaborador-id').value='';$('eml-nombre').value='';$('eml-cargo').value='';$('eml-sucursal').value='';$('eml-correo-para').value='';$('eml-correo-cc').value='';
     $('eml-manual-toggle').checked=false;
     ['eml-nombre','eml-cargo','eml-sucursal'].forEach(id=>{$(id).readOnly=true;$(id).classList.add('bg-slate-50');});
@@ -289,22 +293,26 @@
     if(!manual&&(!colaborador||$('eml-colaborador-id').value!==colaborador.id||normalizarRut(colaborador.rut)!==normalizarRut(d.rut))){mensaje('Busca y confirma el colaborador, o activa el registro manual si no aparece en el maestro.');return;}
     const btn=$('eml-guardar');btn.disabled=true;btn.textContent='Validando y guardando…';mensaje('');
     try {
-      const dup=await client.from('envio_licencias_medicas').select('id').eq('rut',d.rut).eq('fecha_inicio',d.inicio).eq('dias_corridos',d.dias).limit(1);
+      let dupQuery=client.from('envio_licencias_medicas').select('id').eq('rut',d.rut).eq('fecha_inicio',d.inicio).eq('dias_corridos',d.dias);
+      if(registroEditando)dupQuery=dupQuery.neq('id',registroEditando.id);
+      const dup=await dupQuery.limit(1);
       if(dup.error)throw dup.error;
-      if((dup.data||[]).length)throw new Error('Ya existe un registro para este RUT, fecha de inicio y cantidad de días. Revisa el registro existente para evitar duplicados.');
+      if((dup.data||[]).length)throw new Error('Ya existe otro registro para este RUT, fecha de inicio y cantidad de días. Revisa el registro existente para evitar duplicados.');
       const userRes=await client.auth.getUser(), user=userRes?.data?.user;
       const sucursalRes=manual?await resolverSucursal(d.sucursal,null):sucursalManual;
       if(manual&&!sucursalRes)throw new Error('La sucursal manual debe coincidir exactamente con una sucursal registrada para usar sus destinatarios asignados.');
       const correoPara=manual?(sucursalRes?.correo_sucursal||''):(colaborador?.sucursalCorreo||d.correoSucursal||'');
       const correoCc=manual?(sucursalRes?.correo_copia||''):(colaborador?.sucursalCopia||d.correoCopia||'');
       if(!correoPara&&!correoCc)throw new Error('La sucursal no tiene destinatarios de correo configurados. Revisa Sucursales antes de continuar.');
-      const payload={fecha_registro:d.fechaRegistro,colaborador_id:manual?null:colaborador.id,rut:d.rut,nombre_colaborador:d.nombre,cargo:d.cargo||null,
-        sucursal_id:manual?(sucursalRes?.id||null):(colaborador.sucursal_id||null),sucursal_nombre:manual?(sucursalRes?.nombre||d.sucursal):d.sucursal,
+      const mantieneVinculo=registroEditando&&normalizarRut(registroEditando.rut)===normalizarRut(d.rut)&&String(registroEditando.nombre_colaborador||'').trim()===d.nombre;
+      const payload={fecha_registro:d.fechaRegistro,colaborador_id:manual?(mantieneVinculo?(registroEditando.colaborador_id||null):null):(colaborador?.id||registroEditando?.colaborador_id||null),rut:d.rut,nombre_colaborador:d.nombre,cargo:d.cargo||null,
+        sucursal_id:manual?(sucursalRes?.id||null):(colaborador?.sucursal_id||registroEditando?.sucursal_id||null),sucursal_nombre:manual?(sucursalRes?.nombre||d.sucursal):d.sucursal,
         correo_sucursal:correoPara||null,correo_copia:correoCc||null,
-        fecha_inicio:d.inicio,dias_corridos:d.dias,observacion_administrativa:d.observacion||null,estado_correo:'guardada',created_by:user?.id||null};
-      const ins=await client.from('envio_licencias_medicas').insert(payload).select('id').single();
-      if(ins.error)throw ins.error;
-      mensaje('');if(window.mostrarToast)window.mostrarToast('Registro guardado correctamente. No se envió ningún correo.','success');
+        fecha_inicio:d.inicio,dias_corridos:d.dias,observacion_administrativa:d.observacion||null,estado_correo:'guardada'};
+      if(registroEditando){const upd=await client.from('envio_licencias_medicas').update(payload).eq('id',registroEditando.id);if(upd.error)throw upd.error;}
+      else{payload.created_by=user?.id||null;const ins=await client.from('envio_licencias_medicas').insert(payload).select('id').single();if(ins.error)throw ins.error;}
+      const fueEdicion=!!registroEditando;
+      mensaje('');if(window.mostrarToast)window.mostrarToast(fueEdicion?'Registro actualizado correctamente. El estado volvió a «guardada» para generar un borrador actualizado.':'Registro guardado correctamente. No se envió ningún correo.','success');
       limpiarFormulario();await cargarLista();
     } catch(e){mensaje(e.message||'No se pudo guardar el registro.');}
     finally{btn.disabled=false;btn.innerHTML='<i data-lucide="save" class="mr-2 inline h-4 w-4"></i>Guardar registro';if(window.lucide)window.lucide.createIcons();}
@@ -363,14 +371,31 @@
     const client=db(); if(!client){$('eml-lista-estado').textContent='Conexión con Supabase no disponible.';return;}
     $('eml-lista-estado').textContent='Cargando registros manuales…';
     try {
-      let consulta=client.from('envio_licencias_medicas').select('id,fecha_registro,rut,nombre_colaborador,cargo,sucursal_nombre,correo_sucursal,correo_copia,observacion_administrativa,fecha_inicio,dias_corridos,fecha_termino,fecha_retorno,estado_correo,created_at').order('created_at',{ascending:false}).limit(200); const desde=$('eml-filtro-desde')?.value||'', hasta=$('eml-filtro-hasta')?.value||''; if(desde)consulta=consulta.gte('fecha_registro',desde); if(hasta)consulta=consulta.lte('fecha_registro',hasta); const {data,error}=await consulta;
+      let consulta=client.from('envio_licencias_medicas').select('id,fecha_registro,colaborador_id,rut,nombre_colaborador,cargo,sucursal_id,sucursal_nombre,correo_sucursal,correo_copia,observacion_administrativa,fecha_inicio,dias_corridos,fecha_termino,fecha_retorno,estado_correo,created_at').order('created_at',{ascending:false}).limit(200); const desde=$('eml-filtro-desde')?.value||'', hasta=$('eml-filtro-hasta')?.value||''; if(desde)consulta=consulta.gte('fecha_registro',desde); if(hasta)consulta=consulta.lte('fecha_registro',hasta); const {data,error}=await consulta;
       if(error)throw error;
       const rows=data||[];
       $('eml-lista-estado').textContent=rows.length+' registro(s) manual(es) recientes. Se muestran hasta 200.';
-      $('eml-lista').innerHTML=rows.length?rows.map(r=>'<tr class="border-t border-slate-100"><td class="p-3"><input type="checkbox" class="h-4 w-4" data-eml-seleccionar="'+esc(r.id)+'" aria-label="Seleccionar licencia"></td><td class="p-3">'+esc(formatoFecha(r.fecha_registro))+'<div class="mt-1 text-[10px] text-slate-500">'+esc(r.created_at?new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'short',timeStyle:'short'}).format(new Date(r.created_at)):'')+'</div></td><td class="p-3">'+esc(r.nombre_colaborador||'—')+'<div class="text-[10px] text-slate-500">'+esc(r.rut||'')+'</div><div class="text-[10px] text-slate-500">'+esc(r.cargo||'')+'</div></td><td class="p-3">'+esc(r.sucursal_nombre||'—')+'</td><td class="p-3">'+esc(formatoFecha(r.fecha_inicio))+' – '+esc(formatoFecha(r.fecha_termino))+'<div class="text-[10px] text-slate-500">'+esc(r.dias_corridos)+' día(s) · retorno '+esc(formatoFecha(r.fecha_retorno))+'</div></td><td class="p-3"><span class="rounded-full bg-slate-100 px-2 py-1">'+esc(r.estado_correo||'guardada')+'</span></td><td class="p-3"><button type="button" class="rounded-lg border border-slate-200 px-2 py-1 font-semibold" data-eml-ver="'+esc(r.id)+'">Ver</button></td></tr>').join(''):'<tr><td colspan="7" class="p-6 text-center text-slate-400">Todavía no hay registros manuales.</td></tr>';
+      $('eml-lista').innerHTML=rows.length?rows.map(r=>'<tr class="border-t border-slate-100"><td class="p-3"><input type="checkbox" class="h-4 w-4" data-eml-seleccionar="'+esc(r.id)+'" aria-label="Seleccionar licencia"></td><td class="p-3">'+esc(formatoFecha(r.fecha_registro))+'<div class="mt-1 text-[10px] text-slate-500">'+esc(r.created_at?new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'short',timeStyle:'short'}).format(new Date(r.created_at)):'')+'</div></td><td class="p-3">'+esc(r.nombre_colaborador||'—')+'<div class="text-[10px] text-slate-500">'+esc(r.rut||'')+'</div><div class="text-[10px] text-slate-500">'+esc(r.cargo||'')+'</div></td><td class="p-3">'+esc(r.sucursal_nombre||'—')+'</td><td class="p-3">'+esc(formatoFecha(r.fecha_inicio))+' – '+esc(formatoFecha(r.fecha_termino))+'<div class="text-[10px] text-slate-500">'+esc(r.dias_corridos)+' día(s) · retorno '+esc(formatoFecha(r.fecha_retorno))+'</div></td><td class="p-3"><span class="rounded-full bg-slate-100 px-2 py-1">'+esc(r.estado_correo||'guardada')+'</span></td><td class="p-3"><div class="flex flex-wrap gap-1"><button type="button" class="rounded-lg border border-slate-200 px-2 py-1 font-semibold" data-eml-ver="'+esc(r.id)+'">Ver</button><button type="button" class="rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 font-semibold text-blue-800" data-eml-editar="'+esc(r.id)+'">Editar</button><button type="button" class="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 font-semibold text-rose-700" data-eml-eliminar="'+esc(r.id)+'">Eliminar</button></div></td></tr>').join(''):'<tr><td colspan="7" class="p-6 text-center text-slate-400">Todavía no hay registros manuales.</td></tr>';
       $('eml-lista').querySelectorAll('[data-eml-ver]').forEach(b=>b.addEventListener('click',()=>verRegistro(rows.find(r=>String(r.id)===b.dataset.emlVer))));
+      $('eml-lista').querySelectorAll('[data-eml-editar]').forEach(b=>b.addEventListener('click',()=>editarRegistro(rows.find(r=>String(r.id)===b.dataset.emlEditar))));
+      $('eml-lista').querySelectorAll('[data-eml-eliminar]').forEach(b=>b.addEventListener('click',()=>eliminarRegistro(rows.find(r=>String(r.id)===b.dataset.emlEliminar))));
       actualizarSeleccion();
     } catch(e){$('eml-lista-estado').textContent='No se pudieron cargar los registros. Comprueba que la migración esté aplicada y que tengas permiso.';$('eml-lista').innerHTML='<tr><td colspan="6" class="p-6 text-center text-rose-600">'+esc(e.message||'Error desconocido')+'</td></tr>';}
+  }
+  async function editarRegistro(r) {
+    if(!r)return;registroEditando=r;colaborador=null;sucursalManual=null;
+    $('eml-manual-toggle').checked=true;['eml-nombre','eml-cargo','eml-sucursal'].forEach(id=>{$(id).readOnly=false;$(id).classList.remove('bg-slate-50');});
+    $('eml-fecha-registro').value=r.fecha_registro||isoHoy();$('eml-rut').value=r.rut||'';$('eml-colaborador-id').value=r.colaborador_id||'';
+    $('eml-nombre').value=r.nombre_colaborador||'';$('eml-cargo').value=r.cargo||'';$('eml-sucursal').value=r.sucursal_nombre||'';
+    $('eml-correo-para').value=r.correo_sucursal||'';$('eml-correo-cc').value=r.correo_copia||'';$('eml-inicio').value=r.fecha_inicio||'';$('eml-dias').value=String(r.dias_corridos||'');$('eml-observacion').value=r.observacion_administrativa||'';calcular();
+    try{sucursalManual=await resolverSucursal(r.sucursal_nombre,r.sucursal_id);if(sucursalManual){$('eml-sucursal').value=sucursalManual.nombre||r.sucursal_nombre||'';$('eml-correo-para').value=sucursalManual.correo_sucursal||r.correo_sucursal||'';$('eml-correo-cc').value=sucursalManual.correo_copia||r.correo_copia||'';}}catch(e){console.warn('[envio-licencias] no se pudo resolver sucursal al editar',e);}
+    $('eml-guardar').innerHTML='<i data-lucide="save" class="mr-2 inline h-4 w-4"></i>Guardar cambios';$('eml-rut-estado').textContent='Editando registro existente. Revisa los datos antes de guardar.';mensaje('');$('eml-fecha-registro').scrollIntoView({behavior:'smooth',block:'center'});if(window.lucide)window.lucide.createIcons();
+  }
+  async function eliminarRegistro(r) {
+    if(!r)return;const ok=window.confirm('¿Eliminar el registro de licencia médica de '+(r.nombre_colaborador||r.rut||'este colaborador')+' con inicio '+formatoFecha(r.fecha_inicio)+'? Esta acción no se puede deshacer.');if(!ok)return;
+    const client=db();if(!client){mensaje('No está disponible la conexión con Supabase.');return;}
+    try{const {error}=await client.from('envio_licencias_medicas').delete().eq('id',r.id);if(error)throw error;if(registroEditando&&String(registroEditando.id)===String(r.id))limpiarFormulario();if(window.mostrarToast)window.mostrarToast('Registro eliminado. No se envió ningún correo.','success');await cargarLista();}
+    catch(e){if(window.mostrarToast)window.mostrarToast('No se pudo eliminar el registro. Verifica tus permisos de acceso. '+(e.message||''),'error',8000);mensaje('No se pudo eliminar el registro. La base de datos debe autorizar esta operación mediante sus permisos y políticas.');}
   }
   async function verRegistro(r) {
     if(!r)return;

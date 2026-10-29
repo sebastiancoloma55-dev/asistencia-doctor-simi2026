@@ -99,6 +99,8 @@ def main():
                     result.get("planned_inserted", 0), result.get("planned_updated", 0),
                     result.get("skipped", 0), result.get("failed", 0),
                 )
+                if report_type == "ausentismos_historico":
+                    LOG.info("FILTRO SEMANAL AUSENTISMOS: %s", json.dumps((result.get("diagnostics") or {}).get("weekly_filter", {}), ensure_ascii=False, sort_keys=True))
                 if report_type == "reporte_jornadas_asistencia":
                     LOG.info("DIAGNÓSTICO DE FECHAS ASISTENCIA: %s", json.dumps((result.get("diagnostics") or {}).get("attendance", {}), ensure_ascii=False, sort_keys=True))
                 if int(result.get("failed", 0) or 0):
@@ -112,6 +114,8 @@ def main():
                 LOG.exception("Falló la previsualización de %s", title)
         LOG.info("PREVISUALIZACIÓN FINALIZADA: reportes=%s/4 altas_estimadas=%s actualizaciones_estimadas=%s duplicadas=%s rechazadas=%s errores=%s. No se escribieron datos de negocio.",
                  previewed, planned["planned_inserted"], planned["planned_updated"], planned["skipped"], planned["failed"], len(errors))
+        if planned["failed"] == 0 and previewed == 4:
+            LOG.info("Previsualización completada sin filas apartadas; revisar además el resumen FILTRO SEMANAL AUSENTISMOS para confirmar el período importado.")
         if previewed != 4 or errors:
             raise SystemExit(1)
         if planned["failed"]:
