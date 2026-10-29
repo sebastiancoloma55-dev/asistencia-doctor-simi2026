@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { importKeyFields, importStableKey, normalizeImportValue, normalizeImportRut } from "./import_keys.js";
+import { importKeyFields, importStableKey, normalizeImportValue, normalizeImportRut, chileMondayISO, parseDateISO } from "./import_keys.js";
 const cors = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, apikey, content-type, x-client-info, x-bot-secret","Access-Control-Allow-Methods":"POST, OPTIONS","Content-Type":"application/json"};
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:cors});
 const url=Deno.env.get("SUPABASE_URL")!, anon=Deno.env.get("SUPABASE_ANON_KEY")!, service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, botSecret=Deno.env.get("TALANA_BOT_SECRET")||"";
@@ -25,11 +25,17 @@ if(a==="bot_claim_manual"){const {data:config,error:configError}=await admin.fro
 if(a==="bot_start"){const {data:config,error:configError}=await admin.from("talana_bot_config").select("enabled").eq("id",1).single();if(configError)return json({error:configError.message},500);if(!config?.enabled)return json({error:"El bot está pausado desde la configuración. Actívalo antes de iniciar una ejecución."},409);const trigger=b.trigger_type==="manual"?"manual":"automatic";const {data,error}=await admin.from("talana_bot_runs").insert({trigger_type:trigger,status:"running",requested_by:b.requested_by||null}).select("*").single();if(error)return json({error:error.message},500);return json({run:data});}
 if(a==="bot_upload"){const runId=String(b.run_id||""),reportType=String(b.report_type||"reporte").slice(0,80),fileName=safeName(String(b.file_name||"reporte.bin")),mimeType=String(b.mime_type||"application/octet-stream").slice(0,120),base64=String(b.base64||"");if(!runId||!base64)return json({error:"Faltan run_id o base64"},400);if(base64.length>28000000)return json({error:"Archivo supera el máximo aproximado de 20 MB"},413);const bytes=decodeBase64(base64),path=runId+"/"+crypto.randomUUID()+"_"+fileName;const {error:ue}=await admin.storage.from("talana-reportes").upload(path,bytes,{contentType:mimeType,upsert:false});if(ue)return json({error:ue.message},500);const {data,error}=await admin.from("talana_bot_files").insert({run_id:runId,report_type:reportType,file_name:fileName,storage_path:path,mime_type:mimeType,size_bytes:bytes.byteLength,sha256:b.sha256||null}).select("*").single();if(error){await admin.storage.from("talana-reportes").remove([path]);return json({error:error.message},500);}const trackingModules=reportType==="ausentismos_historico"?["talana_bot","talana_ausentismos"]:reportType==="solicitudes_vacaciones_historicas"?["talana_bot","talana_vacaciones"]:["talana_bot"];let trackingRegistered=true;for(const moduleName of trackingModules){const {error:trackingError}=await admin.from("actualizaciones_fuentes").upsert({modulo:moduleName,actualizado_en:new Date().toISOString(),archivo:fileName,origen:"bot",usuario_email:"Bot Talana",registros:null,detalles:{report_type:reportType,run_id:runId}},{onConflict:"modulo"});if(trackingError){trackingRegistered=false;console.error("No se pudo registrar la fecha de actualización del bot:",trackingError.message);}}return json({file:data,tracking_registered:trackingRegistered});}
 if(a==="bot_import"){
- const reportType=String(b.report_type||""), rows=Array.isArray(b.rows)?b.rows:[], parseErrors=Array.isArray(b.parse_errors)?b.parse_errors:[];
+ const reportType=String(b.report_type||""), rawRows=Array.isArray(b.rows)?b.rows:[], parseErrors=Array.isArray(b.parse_errors)?b.parse_errors:[];
  const dryRun=b.dry_run===true;
  if(!["ausentismos_historico","solicitudes_vacaciones_historicas","maestro_empleado","reporte_jornadas_asistencia"].includes(reportType))return json({error:"Tipo de reporte no permitido para importación."},400);
- if(rows.length>150)return json({error:"Máximo 150 filas por lote."},413);
+ if(rawRows.length>150)return json({error:"Máximo 150 filas por lote."},413);
  const table=reportType==="ausentismos_historico"?"licencias_medicas":reportType==="solicitudes_vacaciones_historicas"?"vacaciones_historico":reportType==="maestro_empleado"?"colaboradores":"registros_asistencia";
+ const weeklyStart=reportType==="ausentismos_historico"?chileMondayISO():null;
+ const rows=reportType==="ausentismos_historico"?rawRows.filter((raw:any)=>{
+  const rowDate=parseDateISO(raw?.fecha_creacion)||parseDateISO(raw?.fecha_inicio);
+  return !!rowDate&&rowDate>=String(weeklyStart);
+ }):rawRows;
+ const weeklyExcluded=rawRows.length-rows.length;
  const allowed={
   licencias_medicas:["rut","nombre","empresa","cargo","gerencia","sucursal","centro_costo","tipo_ausencia","motivo_ausencia","dias_ausencia","fecha_inicio","fecha_fin","hora_inicio","hora_fin","numero_horas","numero_minutos","fecha_creacion","observaciones"],
   vacaciones_historico:["rut","nombre","empresa","cargo","gerencia","sucursal","centro_costo","fecha_solicitud","fecha_aprobacion","aprobado_por","estado","fecha_inicio","fecha_fin","fecha_retorno","dias","jornada","tipo_vacaciones","observaciones"],
@@ -156,6 +162,7 @@ if(a==="bot_import"){
   const pendingUpdates=[...pendingUpdateById.values()];
   if(dryRun){
    const diagnostics:any={missing_key_fields:missingKeyFieldCounts};
+   if(reportType==="ausentismos_historico")diagnostics.weekly_absence_filter={week_start:weeklyStart,date_field:"fecha_creacion (fallback fecha_inicio)",received:rawRows.length,included:rows.length,excluded_before_week:weeklyExcluded};
    if(attendanceFallback){
     const countByDate=(items:any[])=>{const counts:Record<string,number>={};for(const item of items){const day=norm(item.fecha);if(day)counts[day]=(counts[day]||0)+1;}return counts;};
     const incomingByDate=countByDate(valid), plannedByDate=countByDate(pending);
@@ -211,7 +218,7 @@ if(a==="bot_import"){
  if(b.final_batch!==false){
   for(const moduleName of moduleNames){const {error}=await admin.from("actualizaciones_fuentes").upsert({modulo:moduleName,actualizado_en:new Date().toISOString(),archivo:String(b.file_name||"Talana"),origen:"bot",usuario_email:"Bot Talana",registros:inserted+updated,detalles:{report_type:reportType,run_id:b.run_id||null,inserted,updated,skipped,failed}},{onConflict:"modulo"});if(error){trackingRegistered=false;console.error("Tracking de importación:",error.message);}}
  }
- return json({report_type:reportType,table,received:rows.length,inserted,updated,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts},tracking_registered:trackingRegistered});
+ return json({report_type:reportType,table,received:rawRows.length,inserted,updated,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts,...(reportType==="ausentismos_historico"?{weekly_absence_filter:{week_start:weeklyStart,date_field:"fecha_creacion (fallback fecha_inicio)",received:rawRows.length,included:rows.length,excluded_before_week:weeklyExcluded}}:{})},tracking_registered:trackingRegistered});
 }
 if(a==="bot_finish"){const runId=String(b.run_id||""),status=["success","partial","failed"].includes(b.status)?b.status:"success";const {count,error:ce}=await admin.from("talana_bot_files").select("id",{count:"exact",head:true}).eq("run_id",runId);if(ce)return json({error:ce.message},500);const {data,error}=await admin.from("talana_bot_runs").update({status,finished_at:new Date().toISOString(),reports_downloaded:Number(b.reports_downloaded||0),reports_uploaded:count||0,error_summary:b.error_summary?String(b.error_summary).slice(0,4000):null,details:b.details&&typeof b.details==="object"?b.details:{}}).eq("id",runId).select("*").single();if(error)return json({error:error.message},500);return json({run:data});}
 return json({error:"Acción desconocida"},400);
