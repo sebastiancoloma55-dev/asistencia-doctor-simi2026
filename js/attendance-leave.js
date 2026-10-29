@@ -249,9 +249,36 @@
             return resultado;
         }
 
+        function establecerSkeletonAsistencia(activo) {
+            const ids = ['kpi-asistencia', 'stat-sin-marcas', 'stat-incompletas', 'stat-atrasos', 'stat-tempranas', 'stat-sin-turno-marcas'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.toggle('simi-skeleton', activo);
+                el.setAttribute('aria-busy', activo ? 'true' : 'false');
+                if (activo) el.setAttribute('aria-label', 'Cargando indicador');
+                else el.removeAttribute('aria-label');
+            });
+        }
+
+        function pintarSkeletonFilasAsistencia(tbody) {
+            if (!tbody) return;
+            const columnas = 9;
+            const filas = Array.from({ length: 5 }, () => {
+                const celdas = Array.from({ length: columnas }, (_, i) =>
+                    '<td class="px-3 py-3"><span class="simi-skeleton simi-skeleton-line" style="display:block;height:12px;width:' +
+                    ([68, 74, 64, 86, 42, 62, 52, 52, 58][i]) + '%"></span></td>'
+                ).join('');
+                return '<tr aria-hidden="true">' + celdas + '</tr>';
+            }).join('');
+            tbody.setAttribute('aria-busy', 'true');
+            tbody.innerHTML = filas;
+        }
+
         async function cargarAsistenciaDesdeNube() {
             const tbody = document.getElementById('tabla-asistencia-body');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-slate-400">Cargando asistencia…</td></tr>';
+            establecerSkeletonAsistencia(true);
+            pintarSkeletonFilasAsistencia(tbody);
             try {
                 const [, registros] = await Promise.all([
                     obtenerMapaSupervisoresDirectorio(),
@@ -259,11 +286,28 @@
                 ]);
                 datosAsistenciaGlobal = registros;
                 asistenciaCargada = true;
-                document.getElementById('kpi-asistencia').innerText =
-                    datosAsistenciaGlobal.length;
+                const total = document.getElementById('kpi-asistencia');
+                if (total) total.innerText = datosAsistenciaGlobal.length;
+                if (tbody) tbody.removeAttribute('aria-busy');
+                establecerSkeletonAsistencia(false);
                 renderizarFiltrosAsistencia();
             } catch (error) {
-                if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-rose-600">No se pudo cargar la asistencia. Intenta actualizar; si persiste, revisa los permisos y los índices de Supabase.</td></tr>';
+                establecerSkeletonAsistencia(false);
+                if (tbody) {
+                    tbody.removeAttribute('aria-busy');
+                    tbody.innerHTML = '';
+                    const row = document.createElement('tr');
+                    const cell = document.createElement('td');
+                    cell.colSpan = 9;
+                    cell.className = 'p-4';
+                    const state = window.SimiUX?.state
+                        ? window.SimiUX.state('error', 'No se pudo cargar la asistencia', 'Revisa tu conexión y los permisos. Puedes volver a intentarlo.', 'Reintentar', () => cargarAsistenciaDesdeNube())
+                        : null;
+                    if (state) cell.appendChild(state);
+                    else cell.textContent = 'No se pudo cargar la asistencia. Intenta actualizar; si persiste, revisa los permisos y los índices de Supabase.';
+                    row.appendChild(cell);
+                    tbody.appendChild(row);
+                }
                 mostrarToast('No se pudo cargar asistencia: ' + (error?.message || error), 'error', 14000);
                 throw error;
             }
