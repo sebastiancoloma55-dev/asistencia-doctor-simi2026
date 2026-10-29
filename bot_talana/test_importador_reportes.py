@@ -158,7 +158,7 @@ class ReportParserTests(unittest.TestCase):
         self.assertEqual(metadata["rows_deduplicated"], 1)
         self.assertEqual(errors, [])
 
-    def test_attendance_entry_and_exit_rows_are_not_collapsed(self):
+    def test_attendance_entry_and_exit_rows_merge_into_latest_employee_day(self):
         path = self.make_xlsx(
             ["Fecha", "Rut", "Nombre", "Sucursal", "Turno", "Entrada", "Salida", "Estado"],
             [["02/10/2026", "11131144-7", "RAFAEL LEON", "DISTRIBUCION", "CENTRAL 2026",
@@ -167,9 +167,9 @@ class ReportParserTests(unittest.TestCase):
               "22:36:04", "Invalida"]],
         )
         rows, errors, metadata = parse_report(path, "reporte_jornadas_asistencia")
-        self.assertEqual(len(rows), 2)
-        self.assertEqual({row["entrada"] for row in rows}, {"07:32:14", None})
-        self.assertEqual({row["salida"] for row in rows}, {None, "22:36:04"})
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["entrada"], "07:32:14")
+        self.assertEqual(rows[0]["salida"], "22:36:04")
         self.assertEqual(errors, [])
 
     def test_same_absence_identity_with_different_creation_date_is_preserved(self):
