@@ -3,7 +3,7 @@ import base64, hashlib, json, mimetypes, os
 from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 
@@ -15,7 +15,7 @@ def filter_current_week_licenses(rows, today=None):
  usable date are excluded to avoid importing records outside the window.
  """
  today = today or datetime.now(ZoneInfo("America/Santiago")).date()
- week_start = today - __import__("datetime").timedelta(days=today.weekday())
+ week_start = today - timedelta(days=today.weekday())
  included, excluded_old, excluded_missing_date = [], 0, 0
 
  def parse_day(raw):
