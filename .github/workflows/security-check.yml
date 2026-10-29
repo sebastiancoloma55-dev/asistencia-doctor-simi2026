@@ -23,4 +23,4 @@ jobs:
         with:
           node-version: "20"
       - name: Validar estructura y seguridad
-        run: npm run check
+        run: npm run build

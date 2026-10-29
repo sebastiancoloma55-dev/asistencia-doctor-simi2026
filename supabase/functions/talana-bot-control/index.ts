@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { importKeyFields, importStableKey, normalizeImportValue, normalizeImportRut } from "./import_keys.js";
+import { importKeyFields, importStableKey, normalizeImportValue, normalizeImportRut, chileMondayISO, parseDateISO } from "./import_keys.js";
 const cors = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, apikey, content-type, x-client-info, x-bot-secret","Access-Control-Allow-Methods":"POST, OPTIONS","Content-Type":"application/json"};
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:cors});
 const url=Deno.env.get("SUPABASE_URL")!, anon=Deno.env.get("SUPABASE_ANON_KEY")!, service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, botSecret=Deno.env.get("TALANA_BOT_SECRET")||"";
@@ -37,6 +37,15 @@ if(a==="bot_import"){
   registros_asistencia:["rut","nombre","sucursal","fecha","razon_social","entrada","salida","horas_trabajadas","colacion","horas_extra","atraso","estado","estado_edicion","comentario_empleado","editada","editado_por","observacion","unidad_organizacional","jefe","turno","tipo_ausentismo","salida_temprana","sin_marca","marca_incompleta","tiene_atraso","sin_turno_marcas"]
  }[table];
  const norm=normalizeImportValue; const normRut=normalizeImportRut;
+ const weeklyStart=reportType==="ausentismos_historico"?chileMondayISO():null;
+ const rowsForImport=reportType==="ausentismos_historico"?rows.filter((raw:any)=>{
+  // El Excel se descarga completo, pero solo se importan ausentismos creados
+  // desde el lunes de la semana actual en Chile. Si falta fecha_creacion,
+  // se usa fecha_inicio como alternativa y no se importa una fila sin fecha.
+  const rowDate=parseDateISO(raw?.fecha_creacion)||parseDateISO(raw?.fecha_inicio);
+  return !!rowDate&&rowDate>=String(weeklyStart);
+ }):rows;
+ const weeklyExcluded=rows.length-rowsForImport.length;
  const rutLookupVariants=(value:any)=>{
   const raw=String(value??"").trim(), normalized=normRut(value);
   const match=normalized.match(/^(\d{7,8})-([0-9K])$/i);
@@ -48,7 +57,7 @@ if(a==="bot_import"){
  const errors:string[]=[...parseErrors.map((x:any)=>String(x).slice(0,250))], valid:any[]=[];
  const missingKeyFieldCounts:Record<string,number>={};
  let inserted=0,updated=0,skipped=0,failed=parseErrors.length;
- for(let i=0;i<rows.length;i++){const row=clean(rows[i]);if(!row.rut){errors.push("lote fila "+(i+1)+": falta RUT");failed++;continue;}
+ for(let i=0;i<rowsForImport.length;i++){const row=clean(rowsForImport[i]);if(!row.rut){errors.push("lote fila "+(i+1)+": falta RUT");failed++;continue;}
   if(table==="vacaciones_historico"&&(!row.fecha_inicio||!row.fecha_fin||!row.tipo_vacaciones)){errors.push("lote fila "+(i+1)+": faltan campos obligatorios de vacaciones");failed++;continue;}
   if(table==="registros_asistencia"&&!row.fecha){errors.push("lote fila "+(i+1)+": falta fecha de asistencia");failed++;continue;}
   // Existing employees may have incomplete name cells in historical exports.
@@ -144,6 +153,14 @@ if(a==="bot_import"){
      continue;
     }
     if(pendingUpdateById.has(oldId)){
+     if(reportType==="solicitudes_vacaciones_historicas"){
+      // Talana can export multiple versions of the same legacy vacation record
+      // when its request metadata is incomplete in the database. Keep the latest
+      // source row for that stored id instead of rejecting both versions.
+      pendingUpdateById.set(oldId,{id:old.id,row,old});
+      skipped++;
+      continue;
+     }
      pendingUpdateById.delete(oldId);
      conflictedUpdateIds.add(oldId);
      failed+=2;
@@ -156,6 +173,7 @@ if(a==="bot_import"){
   const pendingUpdates=[...pendingUpdateById.values()];
   if(dryRun){
    const diagnostics:any={missing_key_fields:missingKeyFieldCounts};
+   if(reportType==="ausentismos_historico")diagnostics.weekly_filter={start_date:weeklyStart,date_field:"fecha_creacion (fallback fecha_inicio)",received:rows.length,included:rowsForImport.length,excluded_before_week:weeklyExcluded};
    if(attendanceFallback){
     const countByDate=(items:any[])=>{const counts:Record<string,number>={};for(const item of items){const day=norm(item.fecha);if(day)counts[day]=(counts[day]||0)+1;}return counts;};
     const incomingByDate=countByDate(valid), plannedByDate=countByDate(pending);
@@ -211,7 +229,9 @@ if(a==="bot_import"){
  if(b.final_batch!==false){
   for(const moduleName of moduleNames){const {error}=await admin.from("actualizaciones_fuentes").upsert({modulo:moduleName,actualizado_en:new Date().toISOString(),archivo:String(b.file_name||"Talana"),origen:"bot",usuario_email:"Bot Talana",registros:inserted+updated,detalles:{report_type:reportType,run_id:b.run_id||null,inserted,updated,skipped,failed}},{onConflict:"modulo"});if(error){trackingRegistered=false;console.error("Tracking de importación:",error.message);}}
  }
- return json({report_type:reportType,table,received:rows.length,inserted,updated,skipped,failed,errors:errors.slice(0,100),diagnostics:{missing_key_fields:missingKeyFieldCounts},tracking_registered:trackingRegistered});
+ const diagnostics:any={missing_key_fields:missingKeyFieldCounts};
+ if(reportType==="ausentismos_historico")diagnostics.weekly_filter={start_date:weeklyStart,date_field:"fecha_creacion (fallback fecha_inicio)",received:rows.length,included:rowsForImport.length,excluded_before_week:weeklyExcluded};
+ return json({report_type:reportType,table,received:rows.length,inserted,updated,skipped,failed,errors:errors.slice(0,100),diagnostics,tracking_registered:trackingRegistered});
 }
 if(a==="bot_finish"){const runId=String(b.run_id||""),status=["success","partial","failed"].includes(b.status)?b.status:"success";const {count,error:ce}=await admin.from("talana_bot_files").select("id",{count:"exact",head:true}).eq("run_id",runId);if(ce)return json({error:ce.message},500);const {data,error}=await admin.from("talana_bot_runs").update({status,finished_at:new Date().toISOString(),reports_downloaded:Number(b.reports_downloaded||0),reports_uploaded:count||0,error_summary:b.error_summary?String(b.error_summary).slice(0,4000):null,details:b.details&&typeof b.details==="object"?b.details:{}}).eq("id",runId).select("*").single();if(error)return json({error:error.message},500);return json({run:data});}
 return json({error:"Acción desconocida"},400);

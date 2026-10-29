@@ -7,7 +7,7 @@ export const IMPORT_KEY_FIELDS = Object.freeze({
   ausentismos_historico: Object.freeze(["rut", "fecha_inicio", "tipo_ausencia", "fecha_creacion", "hora_inicio", "hora_fin"]),
   solicitudes_vacaciones_historicas: Object.freeze(["rut", "fecha_inicio", "tipo_vacaciones", "fecha_solicitud", "jornada"]),
   maestro_empleado: Object.freeze(["rut"]),
-  reporte_jornadas_asistencia: Object.freeze(["rut", "fecha", "entrada", "salida", "tipo_ausentismo"]),
+  reporte_jornadas_asistencia: Object.freeze(["rut", "fecha"]),
 });
 
 export function normalizeImportValue(value) {
@@ -51,11 +51,31 @@ function normalizeIdentityValue(field, value) {
   }
   return normalized.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ");
 }
+export function parseDateISO(value) {
+  const text = String(value ?? "").trim();
+  let m = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return m[1] + "-" + m[2].padStart(2, "0") + "-" + m[3].padStart(2, "0");
+  m = text.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
+  if (m) return m[3] + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0");
+  return null;
+}
+
+export function chileMondayISO(now = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Santiago", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(now);
+  const part = (type) => parts.find((p) => p.type === type)?.value || "";
+  const d = new Date(part("year") + "-" + part("month") + "-" + part("day") + "T00:00:00Z");
+  const day = d.getUTCDay();
+  d.setUTCDate(d.getUTCDate() - (day === 0 ? 6 : day - 1));
+  return d.toISOString().slice(0, 10);
+}
+
 export function importStableKey(reportType, row) {
   const fields = importKeyFields(reportType);
   if (!fields || !row || typeof row !== "object") return null;
-  // Attendance exports can contain separate entry and exit rows for the same
-  // employee/day. RUT and date are required; marks/type are optional discriminators.
+  // Attendance is refreshed by employee + date: changed marks, shift or absence
+  // fields replace the previous values for that same employee/day.
   const requiredFields = reportType === "reporte_jornadas_asistencia" ? ["rut", "fecha"] : reportType === "ausentismos_historico" ? ["rut", "fecha_inicio", "tipo_ausencia"] : reportType === "solicitudes_vacaciones_historicas" ? ["rut", "fecha_inicio", "tipo_vacaciones"] : fields;
   for (const field of requiredFields) {
     const value = row[field];
