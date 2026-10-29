@@ -3,6 +3,50 @@ import base64, hashlib, json, mimetypes, os
 from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
+
+
+def filter_current_week_licenses(rows, today=None):
+ """Keep absences created from Monday of the current Chilean week onward.
+
+ Prefer fecha_creacion, as the report is historic by creation date. If that
+ value is missing or invalid, fall back to fecha_inicio. Rows with neither
+ usable date are excluded to avoid importing records outside the window.
+ """
+ today = today or datetime.now(ZoneInfo("America/Santiago")).date()
+ week_start = today - timedelta(days=today.weekday())
+ included, excluded_old, excluded_missing_date = [], 0, 0
+
+ def parse_day(raw):
+  if isinstance(raw, datetime):
+   return raw.date()
+  if isinstance(raw, date):
+   return raw
+  if raw is None or not str(raw).strip():
+   return None
+  value = str(raw).strip()
+  try:
+   return date.fromisoformat(value[:10])
+  except ValueError:
+   for fmt in ("%d/%m/%Y", "%d-%m-%Y"):
+    try:
+     return datetime.strptime(value[:10], fmt).date()
+    except ValueError:
+     pass
+  return None
+
+ for row in rows:
+  parsed = parse_day(row.get("fecha_creacion")) or parse_day(row.get("fecha_inicio"))
+  if parsed is None:
+   excluded_missing_date += 1
+  elif parsed < week_start:
+   excluded_old += 1
+  else:
+   included.append(row)
+ return included, {"week_start": week_start.isoformat(), "date_field": "fecha_creacion (fallback fecha_inicio)",
+  "received": len(rows), "included": len(included), "excluded_before_week": excluded_old,
+  "excluded_missing_dates": excluded_missing_date}
 class TalanaBotCloud:
  def __init__(self):
   self.url=os.getenv("TALANA_BOT_URL","").rstrip("/"); self.secret=os.getenv("TALANA_BOT_SECRET","")
@@ -28,7 +72,16 @@ class TalanaBotCloud:
   from importador_reportes import parse_report
   p=Path(path)
   rows,parse_errors,metadata=parse_report(p,report_type)
-  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"planned_inserted":0,"planned_updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True,"diagnostics":{"missing_key_fields":{},"attendance":{"incoming_by_date":{},"planned_new_by_date":{}},"weekly_filter":{}}}
+  weekly_filter={"applied":False}
+  if report_type=="ausentismos_historico":
+   rows,weekly_filter=filter_current_week_licenses(rows)
+   weekly_filter["applied"]=True
+   if not rows:
+    import logging
+    logging.getLogger("talana-cloud").warning("Filtro semanal de ausentismos: no hay filas desde %s; se omite la importación.",weekly_filter["week_start"])
+  totals={"report_type":report_type,"file_name":p.name,"rows_found":len(rows),"inserted":0,"updated":0,"planned_inserted":0,"planned_updated":0,"skipped":0,"failed":0,"errors":[],"metadata":metadata,"tracking_registered":True,"diagnostics":{"weekly_absence_filter":weekly_filter,"missing_key_fields":{},"incoming_rows_merged":int(metadata.get("rows_deduplicated",0) or 0),"ambiguous_legacy_rows_merged":0,"blocked_ambiguous_legacy_rows":0,"planned_duplicate_rows_removed":0,"existing_duplicate_rows_detected":0,"duplicate_rows_removed":0,"attendance":{"incoming_by_date":{},"planned_new_by_date":{}}}}
+  # Count XLSX rows consolidated before batching as skipped source duplicates.
+  totals["skipped"] += int(metadata.get("rows_deduplicated",0) or 0)
   attendance_employee_ids=set()
   if report_type=="reporte_jornadas_asistencia":
    import re
@@ -45,13 +98,8 @@ class TalanaBotCloud:
    diag=result.get("diagnostics") or {}
    for field,count in (diag.get("missing_key_fields") or {}).items():
     totals["diagnostics"]["missing_key_fields"][field]=totals["diagnostics"]["missing_key_fields"].get(field,0)+int(count or 0)
-   weekly=diag.get("weekly_filter") or {}
-   if weekly:
-    target=totals["diagnostics"]["weekly_filter"]
-    target["start_date"]=weekly.get("start_date")
-    target["date_field"]=weekly.get("date_field")
-    for field in ("received","included","excluded_before_week"):
-     target[field]=target.get(field,0)+int(weekly.get(field,0) or 0)
+   for field in ("incoming_rows_merged","ambiguous_legacy_rows_merged","blocked_ambiguous_legacy_rows","blocked_existing_duplicate_conflicts","planned_duplicate_rows_removed","existing_duplicate_rows_detected","duplicate_rows_removed"):
+    totals["diagnostics"][field]=totals["diagnostics"].get(field,0)+int(diag.get(field,0) or 0)
    attendance=diag.get("attendance") or {}
    for bucket in ("incoming_by_date","planned_new_by_date"):
     target=totals["diagnostics"]["attendance"][bucket]
