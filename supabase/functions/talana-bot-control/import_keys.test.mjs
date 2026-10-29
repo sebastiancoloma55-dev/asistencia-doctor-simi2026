@@ -21,10 +21,10 @@ test("absence identity distinguishes separate creation timestamps", () => {
   assert.notEqual(importStableKey("ausentismos_historico", first), importStableKey("ausentismos_historico", second));
 });
 
-test("vacation identity overwrites the same request when request timestamp changes", () => {
+test("vacation identity preserves separate requests with different timestamps", () => {
   const first = { rut: "12.345.678-5", fecha_inicio: "2026-11-02", tipo_vacaciones: "vacaciones", fecha_solicitud: "2026-10-01 08:00:00" };
   const second = { ...first, fecha_solicitud: "01/10/2026 - 09:00:00" };
-  assert.equal(importStableKey("solicitudes_vacaciones_historicas", first), importStableKey("solicitudes_vacaciones_historicas", second));
+  assert.notEqual(importStableKey("solicitudes_vacaciones_historicas", first), importStableKey("solicitudes_vacaciones_historicas", second));
 });
 
 test("vacation identity is stable when the end date changes", () => {
@@ -64,7 +64,7 @@ test("attendance identity overwrites the same employee-day when marks change", (
 
 
 test("vacation and attendance keys intentionally omit mutable fields", () => {
-  assert.deepEqual(importKeyFields("solicitudes_vacaciones_historicas"), ["rut", "fecha_inicio", "tipo_vacaciones"]);
+  assert.deepEqual(importKeyFields("solicitudes_vacaciones_historicas"), ["rut", "fecha_inicio", "tipo_vacaciones", "fecha_solicitud", "jornada"]);
   assert.deepEqual(importKeyFields("reporte_jornadas_asistencia"), ["rut", "fecha"]);
 });
 
