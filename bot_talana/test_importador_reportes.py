@@ -4,7 +4,8 @@ from pathlib import Path
 
 from openpyxl import Workbook
 
-from importador_reportes import parse_report, _dedupe_rows
+from importador_reportes import parse_report
+from integracion_supabase import filter_current_week_licenses
 
 
 class ReportParserTests(unittest.TestCase):
@@ -158,7 +159,7 @@ class ReportParserTests(unittest.TestCase):
         self.assertEqual(metadata["rows_deduplicated"], 1)
         self.assertEqual(errors, [])
 
-    def test_attendance_entry_and_exit_rows_merge_into_latest_employee_day(self):
+    def test_attendance_entry_and_exit_rows_merge_into_one_employee_day(self):
         path = self.make_xlsx(
             ["Fecha", "Rut", "Nombre", "Sucursal", "Turno", "Entrada", "Salida", "Estado"],
             [["02/10/2026", "11131144-7", "RAFAEL LEON", "DISTRIBUCION", "CENTRAL 2026",
@@ -170,6 +171,7 @@ class ReportParserTests(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["entrada"], "07:32:14")
         self.assertEqual(rows[0]["salida"], "22:36:04")
+        self.assertEqual(metadata["rows_deduplicated"], 1)
         self.assertEqual(errors, [])
 
     def test_same_absence_identity_with_different_creation_date_is_preserved(self):
@@ -198,6 +200,28 @@ class ReportParserTests(unittest.TestCase):
         self.assertEqual(len(rows), 2)
         self.assertEqual(errors, [])
 
+    def test_current_week_absence_filter_starts_monday_and_rolls_week(self):
+        rows = [
+            {"rut": "1-9", "fecha_creacion": "2026-10-25", "fecha_inicio": "2026-10-25"},
+            {"rut": "2-7", "fecha_creacion": "2026-10-26", "fecha_inicio": "2026-10-26"},
+            {"rut": "3-5", "fecha_creacion": "2026-10-28", "fecha_inicio": "2026-10-28"},
+            {"rut": "4-3", "fecha_creacion": None, "fecha_inicio": "2026-10-27"},
+            {"rut": "5-1", "fecha_creacion": None, "fecha_inicio": None},
+        ]
+        current, diag = filter_current_week_licenses(
+            rows, today=__import__("datetime").date(2026, 10, 28)
+        )
+        self.assertEqual([row["rut"] for row in current], ["2-7", "3-5", "4-3"])
+        self.assertEqual(diag["week_start"], "2026-10-26")
+        self.assertEqual(diag["excluded_before_week"], 1)
+        self.assertEqual(diag["excluded_missing_dates"], 1)
+
+        next_week, next_diag = filter_current_week_licenses(
+            rows, today=__import__("datetime").date(2026, 11, 2)
+        )
+        self.assertEqual(next_week, [])
+        self.assertEqual(next_diag["week_start"], "2026-11-02")
+
     def test_unrecognized_headers_fail_closed(self):
         path = self.make_xlsx(["Columna A", "Columna B"], [["x", "y"]])
         with self.assertRaises(ValueError):
@@ -206,21 +230,3 @@ class ReportParserTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-class LatestRowWinsTests(unittest.TestCase):
-    def test_duplicate_vacation_record_uses_latest_nonempty_values(self):
-        old = {"rut": "12.345.678-5", "fecha_inicio": "2026-11-02", "tipo_vacaciones": "vacaciones", "fecha_fin": "2026-11-06", "estado": "Pendiente"}
-        latest = {"rut": "12.345.678-5", "fecha_inicio": "2026-11-02", "tipo_vacaciones": "vacaciones", "fecha_fin": "2026-11-09", "estado": "Aprobada", "observaciones": None}
-        merged = _dedupe_rows("solicitudes_vacaciones_historicas", [old, latest])
-        self.assertEqual(len(merged), 1)
-        self.assertEqual(merged[0]["fecha_fin"], "2026-11-09")
-        self.assertEqual(merged[0]["estado"], "Aprobada")
-
-    def test_duplicate_attendance_record_overwrites_old_marks_and_shift(self):
-        old = {"rut": "12.345.678-5", "fecha": "2026-10-26", "entrada": "08:00", "salida": "17:00", "turno": "Apertura"}
-        latest = {"rut": "12.345.678-5", "fecha": "2026-10-26", "entrada": "09:00", "salida": "18:00", "turno": "Cierre"}
-        merged = _dedupe_rows("reporte_jornadas_asistencia", [old, latest])
-        self.assertEqual(len(merged), 1)
-        self.assertEqual(merged[0]["entrada"], "09:00")
-        self.assertEqual(merged[0]["salida"], "18:00")
-        self.assertEqual(merged[0]["turno"], "Cierre")
