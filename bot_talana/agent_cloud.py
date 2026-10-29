@@ -3,12 +3,19 @@ import argparse
 import json
 import logging
 import os
+import re
 from pathlib import Path
 
 from integracion_supabase import TalanaBotCloud
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 LOG = logging.getLogger("talana-cloud")
+
+
+def safe_error_sample(value):
+    """Evita exponer RUT completos en los registros de GitHub Actions."""
+    text = re.sub(r"(?i)(RUT\s+)[0-9.kK.-]+", r"\1[REDACTADO]", str(value))
+    return text[:260]
 
 
 def eligibility(cloud):
@@ -99,27 +106,20 @@ def main():
                     result.get("planned_inserted", 0), result.get("planned_updated", 0),
                     result.get("skipped", 0), result.get("failed", 0),
                 )
-                if report_type == "ausentismos_historico":
-                    LOG.info("FILTRO SEMANAL AUSENTISMOS: %s", json.dumps((result.get("diagnostics") or {}).get("weekly_filter", {}), ensure_ascii=False, sort_keys=True))
-                if report_type == "reporte_jornadas_asistencia":
-                    LOG.info("DIAGNÓSTICO DE FECHAS ASISTENCIA: %s", json.dumps((result.get("diagnostics") or {}).get("attendance", {}), ensure_ascii=False, sort_keys=True))
+                diagnostics = result.get("diagnostics") or {}
+                if diagnostics:
+                    LOG.info("DIAGNÓSTICO PREVISUALIZACIÓN %s: %s", report_type, json.dumps(diagnostics, ensure_ascii=False, sort_keys=True))
                 if int(result.get("failed", 0) or 0):
-                    sample = "; ".join(map(str, result.get("errors", [])[:10]))
-                    LOG.warning(
-                        "PREVISUALIZACIÓN CON FILAS APARTADAS: %s rechazadas=%s; muestra de motivos: %s",
-                        title, result.get("failed"), sample or "el importador no devolvió detalle",
-                    )
+                    sample = [safe_error_sample(item) for item in (result.get("errors") or [])[:12]]
+                    LOG.error("MUESTRA DE RECHAZOS %s (%s total; máximo 12 mostrados): %s", report_type, result.get("failed"), json.dumps(sample, ensure_ascii=False))
+                    errors.append(f"{title}: {result.get('failed')} fila(s) rechazadas durante la previsualización.")
             except Exception as exc:
                 errors.append(f"{title}: no se pudo previsualizar: {exc}")
                 LOG.exception("Falló la previsualización de %s", title)
         LOG.info("PREVISUALIZACIÓN FINALIZADA: reportes=%s/4 altas_estimadas=%s actualizaciones_estimadas=%s duplicadas=%s rechazadas=%s errores=%s. No se escribieron datos de negocio.",
                  previewed, planned["planned_inserted"], planned["planned_updated"], planned["skipped"], planned["failed"], len(errors))
-        if planned["failed"] == 0 and previewed == 4:
-            LOG.info("Previsualización completada sin filas apartadas; revisar además el resumen FILTRO SEMANAL AUSENTISMOS para confirmar el período importado.")
-        if previewed != 4 or errors:
+        if previewed != 4 or errors or planned["failed"]:
             raise SystemExit(1)
-        if planned["failed"]:
-            LOG.warning("La previsualización terminó sin escrituras, pero dejó %s fila(s) apartadas para revisión; revisa los motivos detallados anteriores antes de autorizar una importación real.", planned["failed"])
         return
     if args.validate_only:
         user = os.getenv("TALANA_USER", "").strip()
