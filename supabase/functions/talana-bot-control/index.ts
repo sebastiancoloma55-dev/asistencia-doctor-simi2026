@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { importKeyFields, importStableKey, normalizeImportValue, normalizeImportRut } from "./import_keys.js";
+import { importKeyFields, importStableKey, normalizeImportValue, normalizeImportRut, chileMondayISO, parseDateISO } from "./import_keys.js";
 const cors = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, apikey, content-type, x-client-info, x-bot-secret","Access-Control-Allow-Methods":"POST, OPTIONS","Content-Type":"application/json"};
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:cors});
 const url=Deno.env.get("SUPABASE_URL")!, anon=Deno.env.get("SUPABASE_ANON_KEY")!, service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, botSecret=Deno.env.get("TALANA_BOT_SECRET")||"";
@@ -10,24 +10,6 @@ const githubActionsToken=Deno.env.get("GITHUB_ACTIONS_TOKEN")||"";
 const githubRepo="sebastiancoloma55-dev/asistencia-doctor-simi2026";
 const githubWorkflow="talana-hourly.yml";
 const safeName=(v:string)=>v.normalize("NFKD").replace(/[^a-zA-Z0-9._-]/g,"_").slice(0,160)||"reporte.bin";
-function chileTodayISO(){
- const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Santiago",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
- const part=(type:string)=>parts.find((p)=>p.type===type)?.value||"";
- return part("year")+"-"+part("month")+"-"+part("day");
-}
-function chileMondayISO(){
- const d=new Date(chileTodayISO()+"T00:00:00Z"), day=d.getUTCDay();
- d.setUTCDate(d.getUTCDate()-(day===0?6:day-1));
- return d.toISOString().slice(0,10);
-}
-function parseDateISO(value:unknown):string|null{
- const text=String(value??"").trim();
- let m=text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
- if(m)return m[1]+"-"+m[2].padStart(2,"0")+"-"+m[3].padStart(2,"0");
- m=text.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
- if(m)return m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0");
- return null;
-}
 function decodeBase64(v:string){const raw=atob(v.replace(/^data:[^,]+,/,""));const out=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);return out;}
 async function isAdmin(req:Request){const token=(req.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");if(!token||!anon)return false;const c=createClient(url,anon,{auth:{persistSession:false}});const {data,error}=await c.auth.getUser(token);return !error&&data.user?.email?.toLowerCase()===adminEmail;}
 const isBot=(req:Request)=>!!botSecret&&req.headers.get("x-bot-secret")===botSecret;
