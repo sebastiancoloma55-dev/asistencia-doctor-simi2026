@@ -5,7 +5,7 @@ from pathlib import Path
 from openpyxl import Workbook
 
 from importador_reportes import parse_report
-from integracion_supabase import filter_current_month_licenses
+from integracion_supabase import filter_current_week_licenses
 
 
 class ReportParserTests(unittest.TestCase):
@@ -200,22 +200,27 @@ class ReportParserTests(unittest.TestCase):
         self.assertEqual(len(rows), 2)
         self.assertEqual(errors, [])
 
-    def test_current_month_license_filter_uses_creation_date_and_rolls_month(self):
+    def test_current_week_absence_filter_starts_monday_and_rolls_week(self):
         rows = [
-            {"rut": "1-9", "fecha_creacion": "2026-09-30"},
-            {"rut": "2-7", "fecha_creacion": "2026-10-01"},
-            {"rut": "3-5", "fecha_creacion": "2026-10-15"},
-            {"rut": "4-3", "fecha_creacion": None},
+            {"rut": "1-9", "fecha_creacion": "2026-10-25", "fecha_inicio": "2026-10-25"},
+            {"rut": "2-7", "fecha_creacion": "2026-10-26", "fecha_inicio": "2026-10-26"},
+            {"rut": "3-5", "fecha_creacion": "2026-10-28", "fecha_inicio": "2026-10-28"},
+            {"rut": "4-3", "fecha_creacion": None, "fecha_inicio": "2026-10-27"},
+            {"rut": "5-1", "fecha_creacion": None, "fecha_inicio": None},
         ]
-        october, october_diag = filter_current_month_licenses(rows, today=__import__("datetime").date(2026, 10, 15))
-        self.assertEqual([row["rut"] for row in october], ["2-7", "3-5"])
-        self.assertEqual(october_diag["month_start"], "2026-10-01")
-        self.assertEqual(october_diag["excluded_before_month"], 1)
-        self.assertEqual(october_diag["excluded_missing_creation_date"], 1)
+        current, diag = filter_current_week_licenses(
+            rows, today=__import__("datetime").date(2026, 10, 28)
+        )
+        self.assertEqual([row["rut"] for row in current], ["2-7", "3-5", "4-3"])
+        self.assertEqual(diag["week_start"], "2026-10-26")
+        self.assertEqual(diag["excluded_before_week"], 1)
+        self.assertEqual(diag["excluded_missing_dates"], 1)
 
-        november, november_diag = filter_current_month_licenses(rows, today=__import__("datetime").date(2026, 11, 2))
-        self.assertEqual(november, [])
-        self.assertEqual(november_diag["month_start"], "2026-11-01")
+        next_week, next_diag = filter_current_week_licenses(
+            rows, today=__import__("datetime").date(2026, 11, 2)
+        )
+        self.assertEqual(next_week, [])
+        self.assertEqual(next_diag["week_start"], "2026-11-02")
 
     def test_unrecognized_headers_fail_closed(self):
         path = self.make_xlsx(["Columna A", "Columna B"], [["x", "y"]])
