@@ -181,9 +181,11 @@ if(a==="bot_import"){
       const groups=new Map<string,any[]>();
       for(const candidate of candidates){const candidateKey=keyOf(candidate)||"__incomplete__:"+String(candidate.id);const group=groups.get(candidateKey)||[];group.push(candidate);groups.set(candidateKey,group);}
       if(groups.size===1){
-       const sameKey=[...groups.values()][0], merged=mergeExactRows(sameKey);
-       if(!merged.conflicts.length){old=merged.merged;legacyDuplicateIds=sameKey.filter((candidate:any)=>candidate.id!==old.id).map((candidate:any)=>candidate.id);}
-       else {skipped++;blockedAmbiguousLegacy++;blockedExistingDuplicateConflicts++;continue;}
+       // Same complete natural identity: newest stored row is the base;
+       // current Talana values overwrite mutable fields during the update.
+       const sameKey=[...groups.values()][0];
+       old=sameKey[0];
+       legacyDuplicateIds=sameKey.filter((candidate:any)=>candidate.id!==old.id).map((candidate:any)=>candidate.id);
       }else{
        // Distintas licencias/solicitudes comparten la clave parcial: no se puede
        // decidir automáticamente cuál actualizar sin arriesgar datos.
@@ -195,13 +197,9 @@ if(a==="bot_import"){
     const exactMatches=(existingMatchesByKey.get(k)||[]).filter((candidate:any)=>candidate.id!==old.id);
     let canonical={...old};
     if(exactMatches.length){
-     const merged=mergeExactRows([old,...exactMatches]);
-     if(merged.conflicts.length){
-      skipped++;blockedExistingDuplicateConflicts++;
-      errors.push(table+" RUT "+row.rut+": hay duplicados con datos contradictorios ("+merged.conflicts.join(", ")+"); requiere revisión manual y no se modificó.");
-      continue;
-     }
-     canonical=merged.merged;
+     // Identical natural keys mean duplicate versions of one record. Mutable
+     // differences are resolved by the current Talana row, not blocked.
+     canonical={...old};
     }
     pendingUpdates.push({id:old.id,row,old:canonical,duplicateIds:[...new Set([...exactMatches.map((candidate:any)=>candidate.id),...legacyDuplicateIds])]});
    }else pending.push(row);
