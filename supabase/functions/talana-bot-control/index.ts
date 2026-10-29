@@ -153,6 +153,14 @@ if(a==="bot_import"){
      continue;
     }
     if(pendingUpdateById.has(oldId)){
+     if(reportType==="solicitudes_vacaciones_historicas"){
+      // Talana can export multiple versions of the same legacy vacation record
+      // when its request metadata is incomplete in the database. Keep the latest
+      // source row for that stored id instead of rejecting both versions.
+      pendingUpdateById.set(oldId,{id:old.id,row,old});
+      skipped++;
+      continue;
+     }
      pendingUpdateById.delete(oldId);
      conflictedUpdateIds.add(oldId);
      failed+=2;
