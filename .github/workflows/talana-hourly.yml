@@ -65,6 +65,8 @@ jobs:
           node-version: "22"
       - name: Verificar sintaxis de la función de Supabase
         run: npx --yes esbuild@0.25.0 supabase/functions/talana-bot-control/index.ts --loader:.ts=ts --bundle --external:jsr:* --format=esm --outfile=/tmp/talana-bot-control.js
+      - name: Probar claves y filtro semanal de Talana
+        run: node --test supabase/functions/talana-bot-control/import_keys.test.mjs
 
   run-talana:
     needs: validate-python
