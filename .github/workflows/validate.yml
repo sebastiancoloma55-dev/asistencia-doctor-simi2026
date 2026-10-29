@@ -16,4 +16,4 @@ jobs:
         with:
           node-version: '20'
       - name: Validar estructura, permisos y sintaxis
-        run: npm run check
+        run: npm run build
