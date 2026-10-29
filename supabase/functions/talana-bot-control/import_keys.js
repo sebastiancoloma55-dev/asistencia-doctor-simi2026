@@ -68,3 +68,29 @@ export function importStableKey(reportType, row) {
   });
   return values.join("|");
 }
+
+
+/** Parse Talana date values consistently without relying on the runner's locale. */
+export function parseDateISO(value) {
+  const text = String(value ?? "").trim();
+  let match = text.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})/);
+  if (match) return match[1] + "-" + match[2].padStart(2, "0") + "-" + match[3].padStart(2, "0");
+  match = text.match(/^(\\d{1,2})[\\/-](\\d{1,2})[\\/-](\\d{4})/);
+  if (match) return match[3] + "-" + match[2].padStart(2, "0") + "-" + match[1].padStart(2, "0");
+  return null;
+}
+
+/** Monday for the current calendar week in Chile, returned as YYYY-MM-DD. */
+export function chileMondayISO(now = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Santiago",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const part = (type) => parts.find((item) => item.type === type)?.value || "";
+  const day = new Date(part("year") + "-" + part("month") + "-" + part("day") + "T00:00:00Z");
+  const weekday = day.getUTCDay();
+  day.setUTCDate(day.getUTCDate() - (weekday === 0 ? 6 : weekday - 1));
+  return day.toISOString().slice(0, 10);
+}
